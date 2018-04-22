@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
@@ -11,7 +11,8 @@
     "test": "ava --verbose"
   },
   "devDependencies": {
-    "ava": "^1.0.0-beta.3"
+    "ava": "^1.0.0-beta.3",
+    "eslint": "^4.19.1"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,8 @@
     "babel-register": "^6.26.0",
     "chalk": "^2.4.0",
     "fs-extra": "^5.0.0",
-    "parcel-bundler": "^1.7.1"
+    "jsdom": "^11.8.0",
+    "parcel-bundler": "^1.7.1",
+    "repl": "^0.1.3"
   }
 }

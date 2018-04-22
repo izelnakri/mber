@@ -5,9 +5,6 @@ require('babel-register')({
 
 const chalk = require('chalk');
 const printCommand = require('./lib/commands').default;
-const serveCommand = require('./lib/commands/serve').default;
-const newCommand = require('./lib/commands/new').default;
-const versionCommand = require('./lib/commands/version').default;
 
 const CLI = {
   default(commandHandler) {
@@ -24,7 +21,11 @@ const CLI = {
 
 CLI.default(printCommand);
 CLI.command(['help', 'h'], printCommand);
-CLI.command(['init', 'new'], newCommand);
-CLI.command(['serve', 'server', 's'], serveCommand);
-CLI.command(['version', 'v'], versionCommand);
+CLI.command(['init', 'new'], require('./lib/commands/new').default);
+CLI.command(['serve', 'server', 's'], require('./lib/commands/serve').default);
+CLI.command(['build', 'b'], require('./lib/commands/build').default);
+CLI.command(['console', 'c'], require('./lib/commands/console').default);
+CLI.command(['test', 't'], require('./lib/commands/test').default);
+CLI.command(['version', 'v'], require('./lib/commands/version').default);
+
 // TODO: add ora spinners
