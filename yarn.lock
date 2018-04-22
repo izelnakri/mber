@@ -284,10 +284,6 @@
     pretty-ms "^0.2.1"
     text-table "^0.2.0"
 
-"@std/esm@^0.26.0":
-  version "0.26.0"
-  resolved "https://registry.yarnpkg.com/@std/esm/-/esm-0.26.0.tgz#c3ec3abdee95738e15ea7c695b7fee14ae529b81"
-
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"

@@ -26,5 +26,5 @@ CLI.default(printCommand);
 CLI.command(['help', 'h'], printCommand);
 CLI.command(['init', 'new'], newCommand);
 CLI.command(['serve', 'server', 's'], serveCommand);
-ClI.command(['version', 'v'], versionCommand);
+CLI.command(['version', 'v'], versionCommand);
 // TODO: add ora spinners
