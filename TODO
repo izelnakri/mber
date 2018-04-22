@@ -1,0 +1,28 @@
+simplistic terms.
+
+All I need:
+- Ignore ember-cli-build but yet hack all the needed things
+- Parcel bundling + smart watching
+- Ember resolver logic
+- Shimming hack
+- Working with existing plugin system
+- Testing commands
+- ember build command with environments
+- figure out a way to run fastboot
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+check ora cool library for terminal spinner

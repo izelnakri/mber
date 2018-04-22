@@ -1,11 +1,21 @@
 {
-  "name": "superior",
+  "name": "mber",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava --verbose"
+  },
+  "devDependencies": {
+    "ava": "^1.0.0-beta.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/izelnakri/mber.git"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "parcel-bundler": "^1.7.1"
+  }
 }
