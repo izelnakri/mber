@@ -1,8 +1,8 @@
 simplistic terms.
 
 All I need:
-- Ignore ember-cli-build but yet hack all the needed things
-- Parcel bundling + smart watching
+- Ignore ember-cli-build but yet hack all the needed things (vendor + application.js separation):
+ - add ember-cli-*plugins interop
 - How to do hbs compiling
 - Ember resolver logic(app.js)
 - Shimming hack

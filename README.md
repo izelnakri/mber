@@ -1,4 +1,4 @@
-# mber: Modern Ember.js + Parcel = Ultimate development experience
+# mber: Modern Ember.js + Parcel without ember-cli
 
 WARNING: This is highly experimental, you've been warned.
 
@@ -15,5 +15,13 @@ npm install -g mber
 Check mber CLI commands:
 
 ```
-mber
+mber new [your-app-name]
 ```
+
+run mber server:
+
+```
+mber s
+```
+
+Now your development server is running on http://localhost:4200
