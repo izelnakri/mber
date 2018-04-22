@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
@@ -20,10 +20,14 @@
   "author": "Izel Nakri",
   "license": "ISC",
   "dependencies": {
+    "@std/esm": "^0.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "chalk": "^2.4.0",
     "fs-extra": "^5.0.0",
     "parcel-bundler": "^1.7.1"
+  },
+  "@std/esm": {
+    "esm": "all"
   }
 }
