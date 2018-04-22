@@ -15,6 +15,12 @@ npm install -g mber
 Check mber CLI commands:
 
 ```
+mber
+```
+
+Create an mber application:
+
+```
 mber new [your-app-name]
 ```
 
