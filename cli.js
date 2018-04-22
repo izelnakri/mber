@@ -1,6 +1,12 @@
-const fs = require('fs');
-const child_process = require('child_process');
+#! /usr/bin/env node
+require('babel-register')({
+  presets: ['env']
+});
+
 const chalk = require('chalk');
+const printCommand = require('./lib/commands').default;
+const serveCommand = require('./lib/commands/serve').default;
+const newCommand = require('./lib/commands/new').default;
 
 const CLI = {
   default(commandHandler) {
@@ -14,3 +20,10 @@ const CLI = {
     commandName === process.argv[2] ? commandHandler() : null;
   }
 };
+
+CLI.default(printCommand);
+CLI.command(['help', 'h'], printCommand);
+CLI.command(['init', 'new'], newCommand);
+CLI.command(['serve', 'server'], serveCommand);
+
+// TODO: add ora spinners

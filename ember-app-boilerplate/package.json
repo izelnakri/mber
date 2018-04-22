@@ -1,0 +1,12 @@
+{
+  "name": "mber",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/main.js",
+  "devDependencies": {
+    "mber": "0.0.2"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}

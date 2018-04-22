@@ -3,7 +3,8 @@ simplistic terms.
 All I need:
 - Ignore ember-cli-build but yet hack all the needed things
 - Parcel bundling + smart watching
-- Ember resolver logic
+- How to do hbs compiling
+- Ember resolver logic(app.js)
 - Shimming hack
 - Working with existing plugin system
 - Testing commands
