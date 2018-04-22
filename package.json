@@ -1,12 +1,13 @@
 {
   "name": "mber",
-  "version": "0.0.2",
-  "description": "",
+  "version": "0.0.3",
+  "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
     "mber": "cli.js"
   },
   "scripts": {
+    "bin": "node cli.js",
     "test": "ava --verbose"
   },
   "devDependencies": {
@@ -16,7 +17,7 @@
     "type": "git",
     "url": "https://github.com/izelnakri/mber.git"
   },
-  "author": "",
+  "author": "Izel Nakri",
   "license": "ISC",
   "dependencies": {
     "babel-preset-env": "^1.6.1",
