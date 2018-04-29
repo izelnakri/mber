@@ -1,12 +1,13 @@
 {
   "name": "mber",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
     "mber": "cli.js"
   },
   "scripts": {
+    "build:jquery": "node -r esm scripts/global-jquery",
     "bin": "node cli.js",
     "test": "ava --verbose"
   },
@@ -22,17 +23,21 @@
   "license": "ISC",
   "dependencies": {
     "babel-plugin-transform-es2015-modules-amd": "^6.24.1",
+    "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "chalk": "^2.4.0",
     "ember-resolver": "^4.5.5",
-    "ember-source": "^3.1.1",
+    "esm": "^3.0.28",
     "fs-extra": "^5.0.0",
     "jquery": "^3.3.1",
     "jsdom": "^11.8.0",
     "mock-require": "^3.0.2",
     "mustache": "^2.3.0",
     "parcel-bundler": "^1.7.1",
+    "rollup": "^0.58.2",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
     "simple-dom": "^1.4.0-alpha.82914663"
   }
 }

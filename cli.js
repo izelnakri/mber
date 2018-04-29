@@ -2,6 +2,7 @@
 require('babel-register')({
   presets: ['env']
 });
+require('babel-polyfill');
 
 const chalk = require('chalk');
 const printCommand = require('./lib/commands').default;
