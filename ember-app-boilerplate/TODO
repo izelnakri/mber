@@ -1,0 +1,19 @@
+Add builder.js for app.import and transforms
+application adapter namespace
+mixin namespace
+locales lookup
+add tests structure
+
+
+package.json should have:
+eslint
+ember-data
+ember-source
+mber
+qunit
+
+
+check ember-cli-flash, ember-devtools, ember-i18n, ember-cli-head, ember-cli-htmlbars, ember-cli-htmlbars-inline-precompile,
+ember-cli-inline-content, maybe: scss modules, sri for script and link tags,
+
+maybe: ember-resolver and loader.js

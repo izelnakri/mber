@@ -6,7 +6,9 @@ module.exports = {
   },
   extends: ['eslint:recommended'],
   env: {
-    browser: true
+    browser: true,
+    commonjs: true,
+    node: true
   },
   globals: {
     Buffer: true

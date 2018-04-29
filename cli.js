@@ -26,6 +26,5 @@ CLI.command(['serve', 'server', 's'], require('./lib/commands/serve').default);
 CLI.command(['build', 'b'], require('./lib/commands/build').default);
 CLI.command(['console', 'c'], require('./lib/commands/console').default);
 CLI.command(['test', 't'], require('./lib/commands/test').default);
-CLI.command(['version', 'v'], require('./lib/commands/version').default);
 
 // TODO: add ora spinners

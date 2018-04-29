@@ -9,3 +9,6 @@ test('foo', (t) => {
 //
 // 	t.is(await bar, 'bar');
 // });
+
+
+// test new ember app build == mber app build
