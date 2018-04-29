@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.10",
+  "version": "0.0.12",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
