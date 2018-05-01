@@ -11,7 +11,8 @@ module.exports = {
     node: true
   },
   globals: {
-    Buffer: true
+    Buffer: true,
+    Promise: true
   },
   rules: {
     'no-console': 'off'

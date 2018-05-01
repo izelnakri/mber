@@ -1,0 +1,156 @@
+amd-name-resolver does the path delegation
+FOUNDD!!!: https://github.com/ember-cli/babel-plugin-ember-modules-api-polyfill
+https://github.com/ember-cli/ember-rfc176-data
+
+I need to build my own resolver simply that converts things to /
+
+ember-application/lib/system/resolver.js
+
+
+NOTE: check require-as-hash
+require('amd-name-resolver').moduleResolve
+also ember-resolver(probably not)
+
+
+var shims = {
+  'ember-data':                          { default: DS },
+  'ember-data/model':                    { default: DS.Model },
+  'ember-data/mixins/embedded-records':  { default: DS.EmbeddedRecordsMixin },
+  'ember-data/serializers/rest':         { default: DS.RESTSerializer },
+  'ember-data/serializers/active-model': { default: DS.ActiveModelSerializer },
+  'ember-data/serializers/json':         { default: DS.JSONSerializer },
+  'ember-data/serializers/json-api':     { default: DS.JSONAPISerializer },
+  'ember-data/serializer':               { default: DS.Serializer },
+  'ember-data/adapters/json-api':        { default: DS.JSONAPIAdapter },
+  'ember-data/adapters/rest':            { default: DS.RESTAdapter },
+  'ember-data/adapter':                  { default: DS.Adapter },
+  'ember-data/adapters/active-model':    { default: DS.ActiveModelAdapter },
+  'ember-data/store':                    { default: DS.Store },
+  'ember-data/transform':                { default: DS.Transform },
+  'ember-data/attr':                     { default: DS.attr },
+  'ember-data/relationships':            { hasMany: DS.hasMany, belongsTo: DS.belongsTo }
+};
+
+
+emberShims = ember.paths.shims; -> from ember-source becomes app-shims.js
+define('frontend/components/app-header/component', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Component.extend({
+    browser: Ember.inject.service(),
+    router: Ember.inject.service(),
+    session: Ember.inject.service(),
+    flashMessages: Ember.inject.service(),
+    search: Ember.inject.service(),
+
+    classNames: ['ml-app-header'],
+    tagName: 'nav',
+    isSearching: false,
+    siderbarIsActive: false,
+    actions: {
+      toggleSearch() {
+        this.set('isSearching', !this.isSearching);
+
+        if (this.isSearching) {
+          return this.search.goToSearchView();
+        }
+
+        return this.router.transitionTo('index');
+      },
+      toggleSidebar() {
+        this.set('sidebarIsActive', !this.sidebarIsActive);
+
+        Ember.$('body').toggleClass('has-sidebar');
+      },
+      logout() {
+        this.send('toggleSidebar');
+
+        if (this.session.currentUser) {
+          this.flashMessages.success('You have been logged out.');
+          this.session.logout().then(() => {
+            this.router.transitionTo('index');
+          });
+        }
+      },
+      hideFakeDataWarning() {
+        this.incrementProperty('browserTap');
+
+        return this.browserTap > 2 ? this.set('browser.runsFakeData', false) : null;
+      }
+    }
+  });
+});
+
+
+
+
+
+
+
+
+======================
+application.js
+========================
+
+define('frontend/components/app-header/component', ['exports'], function (exports) {
+  'use strict';
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.Component.extend({
+    browser: Ember.inject.service(),
+    router: Ember.inject.service(),
+    session: Ember.inject.service(),
+    flashMessages: Ember.inject.service(),
+    search: Ember.inject.service(),
+
+    classNames: ['ml-app-header'],
+    tagName: 'nav',
+    isSearching: false,
+    siderbarIsActive: false,
+    actions: {
+      toggleSearch() {
+        this.set('isSearching', !this.isSearching);
+
+        if (this.isSearching) {
+          return this.search.goToSearchView();
+        }
+
+        return this.router.transitionTo('index');
+      },
+      toggleSidebar() {
+        this.set('sidebarIsActive', !this.sidebarIsActive);
+
+        Ember.$('body').toggleClass('has-sidebar');
+      },
+      logout() {
+        this.send('toggleSidebar');
+
+        if (this.session.currentUser) {
+          this.flashMessages.success('You have been logged out.');
+          this.session.logout().then(() => {
+            this.router.transitionTo('index');
+          });
+        }
+      },
+      hideFakeDataWarning() {
+        this.incrementProperty('browserTap');
+
+        return this.browserTap > 2 ? this.set('browser.runsFakeData', false) : null;
+      }
+    }
+  });
+});
+
+define("frontend/templates/security", ["exports"], function (exports) {
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = Ember.HTMLBars.template({ "id": "tK1aJaOh", "block": "{\"symbols\":[\"phoneNumber\",\"form\",\"email\",\"form\"],\"statements\":[[1,[20,\"app-header\"],false],[0,\"\\n\\n\"],[6,\"div\"],[10,\"class\",\"card\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"d-flex justify-content-between\"],[8],[0,\"\\n    \"],[6,\"h6\"],[10,\"class\",\"m-0 p-2\"],[8],[0,\"Last Logins\"],[9],[0,\"\\n    \"],[6,\"h6\"],[10,\"class\",\"m-0 p-2 text-muted\"],[8],[0,\"Login history\"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\"],[6,\"div\"],[10,\"class\",\"card p-2 px-3\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"row\"],[8],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"col-3 text-center d-flex align-items-center\"],[8],[0,\"\\n      \"],[1,[26,\"fa-icon\",[\"desktop\"],[[\"size\",\"class\"],[\"3x\",\"text-success\"]]],false],[0,\"\\n    \"],[9],[0,\"\\n    \"],[6,\"div\"],[10,\"class\",\"col-9\"],[8],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"d-flex justify-content-between mb-1\"],[8],[0,\"\\n        \"],[6,\"h6\"],[10,\"class\",\"small\"],[8],[1,[26,\"fa-icon\",[\"circle\"],[[\"fixedWidth\",\"class\"],[true,\"text-success\"]]],false],[1,[22,[\"session\",\"currentUser\",\"currentSession\",\"ipAddress\"]],false],[9],[0,\"\\n        \"],[6,\"h6\"],[10,\"class\",\"small\"],[8],[0,\"May 5 10:30\"],[9],[0,\" \"],[2,\" {{session.currentUser.currentSession.insertedAt}} \"],[0,\"\\n      \"],[9],[0,\"\\n      \"],[6,\"div\"],[10,\"class\",\"d-flex justify-content-between mb-1\"],[8],[0,\"\\n        \"],[6,\"h6\"],[10,\"class\",\"small\"],[8],[1,[26,\"fa-icon\",[\"arrow-right\"],[[\"fixedWidth\",\"class\"],[true,\"text-success\"]]],false],[1,[22,[\"session\",\"currentUser\",\"currentSession\",\"browser\",\"deviceType\"]],false],[9],[0,\"\\n        \"],[6,\"h6\"],[10,\"class\",\"small\"],[8],[1,[22,[\"session\",\"currentUser\",\"currentSession\",\"browser\",\"browserType\"]],false],[9],[0,\"\\n      \"],[9],[0,\"\\n      \"],[6,\"h6\"],[10,\"class\",\"small\"],[8],[1,[26,\"fa-icon\",[\"globe\"],[[\"fixedWidth\",\"class\"],[true,\"text-success\"]]],false],[1,[22,[\"session\",\"currentUser\",\"currentSession\",\"location\"]],false],[9],[0,\" \"],[2,\" Amsterdam, The Netherlands \"],[0,\"\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\\n\"],[6,\"div\"],[10,\"class\",\"card\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"d-flex justify-content-between\"],[8],[0,\"\\n    \"],[6,\"h6\"],[10,\"class\",\"m-0 p-2\"],[8],[0,\"Emails\"],[9],[0,\"\\n    \"],[6,\"h6\"],[10,\"class\",\"m-0 p-2 text-success\"],[3,\"action\",[[21,0,[]],\"addEmail\"]],[8],[0,\"\\n      \"],[1,[26,\"fa-icon\",[\"plus\"],[[\"fixedWidth\",\"class\"],[true,\"text-success\"]]],false],[0,\"Add email\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\"],[6,\"div\"],[10,\"class\",\"card\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"session\",\"currentUser\",\"person\",\"emails\"]]],null,{\"statements\":[[4,\"ml-form\",null,[[\"model\"],[[21,3,[]]]],{\"statements\":[[0,\"      \"],[1,[26,\"component\",[[21,4,[\"privacyinput\"]]],[[\"type\",\"attribute\"],[\"email\",\"address\"]]],false],[0,\"\\n\"]],\"parameters\":[4]},null]],\"parameters\":[3]},null],[9],[0,\"\\n\\n\"],[6,\"div\"],[10,\"class\",\"card\"],[8],[0,\"\\n  \"],[6,\"div\"],[10,\"class\",\"d-flex justify-content-between\"],[8],[0,\"\\n    \"],[6,\"h6\"],[10,\"class\",\"m-0 p-2\"],[8],[0,\"Phone numbers\"],[9],[0,\"\\n    \"],[6,\"h6\"],[10,\"class\",\"m-0 p-2 text-success\"],[3,\"action\",[[21,0,[]],\"addPhoneNumber\"]],[8],[0,\"\\n      \"],[1,[26,\"fa-icon\",[\"plus\"],[[\"fixedWidth\",\"class\"],[true,\"text-success\"]]],false],[0,\"Add number\\n    \"],[9],[0,\"\\n  \"],[9],[0,\"\\n\"],[9],[0,\"\\n\"],[6,\"div\"],[10,\"class\",\"card\"],[8],[0,\"\\n\"],[4,\"each\",[[22,[\"session\",\"currentUser\",\"person\",\"phoneNumbers\"]]],null,{\"statements\":[[4,\"ml-form\",null,[[\"model\"],[[21,1,[]]]],{\"statements\":[[0,\"      \"],[1,[26,\"component\",[[21,2,[\"privacyinput\"]]],[[\"type\",\"attribute\"],[\"tel\",\"number\"]]],false],[0,\"\\n\"]],\"parameters\":[2]},null]],\"parameters\":[1]},null],[9],[0,\"\\n\"]],\"hasEval\":false}", "meta": { "moduleName": "frontend/templates/security.hbs" } });
+});
