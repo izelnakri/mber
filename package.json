@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
@@ -13,10 +13,10 @@
   },
   "devDependencies": {
     "ava": "^1.0.0-beta.3",
-    "eslint": "^4.19.1",
     "ember-data": "^3.1.1",
     "ember-resolver": "^4.5.5",
     "ember-source": "^3.1.1",
+    "eslint": "^4.19.1",
     "jquery": "^3.3.1",
     "loader.js": "^4.7.0",
     "rollup": "^0.58.2",
@@ -30,6 +30,7 @@
   "author": "Izel Nakri",
   "license": "ISC",
   "dependencies": {
+    "amd-name-resolver": "^1.2.0",
     "babel-core": "^6.26.3",
     "babel-plugin-ember-modules-api-polyfill": "^2.3.0",
     "babel-plugin-transform-es2015-modules-amd": "^6.24.1",
@@ -37,6 +38,7 @@
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "chalk": "^2.4.0",
+    "debug": "^3.1.0",
     "esm": "^3.0.28",
     "fs-extra": "^5.0.0",
     "jsdom": "^11.8.0",
@@ -44,6 +46,7 @@
     "mock-require": "^3.0.2",
     "mustache": "^2.3.0",
     "parcel-bundler": "^1.7.1",
+    "rsvp": "^4.8.2",
     "simple-dom": "^1.4.0-alpha.82914663",
     "through2": "^2.0.3"
   }

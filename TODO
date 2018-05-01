@@ -1,11 +1,14 @@
 simplistic terms.
 
+// PARCEL TRIES TO LOOKUP ember-data
+// frontend files + templates + fastboot + testing + prepend/append + addon system
+
 All I need:
+- use amd-name-resolver for frontend code?
+- How to do hbs compiling
 - Ignore ember-cli-build but yet hack all the needed things (vendor + application.js separation):
  - add ember-cli-*plugins interop
-- How to do hbs compiling
 - Ember resolver logic(app.js)
-- Shimming hack
 - Working with existing plugin system
 - Testing commands
 - ember build command with environments
