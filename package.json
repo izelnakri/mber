@@ -13,7 +13,15 @@
   },
   "devDependencies": {
     "ava": "^1.0.0-beta.3",
-    "eslint": "^4.19.1"
+    "eslint": "^4.19.1",
+    "ember-data": "^3.1.1",
+    "ember-resolver": "^4.5.5",
+    "ember-source": "^3.1.1",
+    "jquery": "^3.3.1",
+    "loader.js": "^4.7.0",
+    "rollup": "^0.58.2",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0"
   },
   "repository": {
     "type": "git",
@@ -29,21 +37,13 @@
     "babel-preset-env": "^1.6.1",
     "babel-register": "^6.26.0",
     "chalk": "^2.4.0",
-    "ember-data": "^3.1.1",
-    "ember-resolver": "^4.5.5",
-    "ember-source": "^3.1.1",
     "esm": "^3.0.28",
     "fs-extra": "^5.0.0",
-    "jquery": "^3.3.1",
     "jsdom": "^11.8.0",
     "klaw": "^2.1.1",
-    "loader.js": "^4.7.0",
     "mock-require": "^3.0.2",
     "mustache": "^2.3.0",
     "parcel-bundler": "^1.7.1",
-    "rollup": "^0.58.2",
-    "rollup-plugin-commonjs": "^9.1.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
     "simple-dom": "^1.4.0-alpha.82914663",
     "through2": "^2.0.3"
   }
