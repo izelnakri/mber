@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "ava": "^1.0.0-beta.3",
+    "babel-plugin-transform-es2015-constants": "^6.1.4",
     "ember-data": "^3.1.1",
     "ember-resolver": "^4.5.5",
     "ember-source": "^3.1.1",
