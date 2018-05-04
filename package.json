@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
@@ -34,6 +34,7 @@
     "amd-name-resolver": "^1.2.0",
     "babel-core": "^6.26.3",
     "babel-plugin-ember-modules-api-polyfill": "^2.3.0",
+    "babel-plugin-htmlbars-inline-precompile": "^0.2.4",
     "babel-plugin-transform-es2015-modules-amd": "^6.24.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
