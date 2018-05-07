@@ -48,6 +48,7 @@
     "klaw": "^2.1.1",
     "mock-require": "^3.0.2",
     "mustache": "^2.3.0",
+    "ora": "^2.1.0",
     "parcel-bundler": "^1.7.1",
     "rsvp": "^4.8.2",
     "simple-dom": "^1.4.0-alpha.82914663",

@@ -4,9 +4,7 @@ require('babel-register')({
 });
 require('babel-polyfill');
 
-const chalk = require('chalk');
 const printCommand = require('./lib/commands').default;
-
 const CLI = {
   default(commandHandler) {
     !process.argv[2] ? commandHandler() : null;
@@ -20,12 +18,12 @@ const CLI = {
   }
 };
 
-CLI.default(printCommand);
-CLI.command(['help', 'h'], printCommand);
-CLI.command(['init', 'new'], require('./lib/commands/new').default);
-CLI.command(['serve', 'server', 's'], require('./lib/commands/serve').default);
-CLI.command(['build', 'b'], require('./lib/commands/build').default);
-CLI.command(['console', 'c'], require('./lib/commands/console').default);
-CLI.command(['test', 't'], require('./lib/commands/test').default);
+CLI.default(() => printCommand());
+CLI.command(['help', 'h'], () => printCommand());
+CLI.command(['init', 'new'], () => require('./lib/commands/new').default());
+CLI.command(['serve', 'server', 's'], () => require('./lib/commands/serve').default());
+CLI.command(['build', 'b'], () => require('./lib/commands/build').default());
+CLI.command(['console', 'c'], () => require('./lib/commands/console').default());
+CLI.command(['test', 't'], () => require('./lib/commands/test').default());
 
 // TODO: add ora spinners
