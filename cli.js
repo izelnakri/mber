@@ -3,23 +3,29 @@ require('babel-register')({
   presets: ['env']
 });
 require('babel-polyfill');
+
 let shouldRunCommand = false;
 
 const chalk = require('chalk');
-const printCommand = require('./lib/commands').default;
 const Console = require('./lib/utils/console').default;
+const printCommand = () => require('./lib/commands').default();
 
 const CLI = {
   default(commandHandler) {
-    shouldRunCommand = !process.argv[2];
+    if (!process.argv[2]) {
+      shouldRunCommand = true;
 
-    return shouldRunCommand ? commandHandler() : null;
+      return commandHandler();
+    }
   },
   command(commandName, commandHandler) {
     const commandMatchesArray = Array.isArray(commandName) && commandName.includes(process.argv[2]);
-    shouldRunCommand = commandMatchesArray || (commandName === process.argv[2]);
 
-    return shouldRunCommand ? commandHandler() : null;
+    if (commandMatchesArray || (commandName === process.argv[2])) {
+      shouldRunCommand = true;
+
+      return commandHandler();
+    }
   }
 };
 

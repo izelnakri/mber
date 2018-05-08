@@ -1,31 +1,92 @@
 import test from 'ava';
+import fs from 'fs';
+import rimraf from 'rimraf';
+import mkdirp from 'mkdirp';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
 const shell = promisify(exec);
+const mkdir = promisify(mkdirp);
+const cwd = process.cwd();
+const parentPath = cwd.slice(0, cwd.lastIndexOf('/'));
 
-// // execute new with all the files in the readdirSync + contents check + stdout
-// // cannot call without applicationName
-//
-// // if applicationName exists it should throw error
-// // if applicationName exists in lower level directory it should throw error
-
-// TODO: remove testapp directory before and after each
-
-test('$ mber new -> creates', (t) => {
-  // TODO: change directory
-  const { stdout } = await shell(`node ${process.cwd()}/cli.js new`);
-
-  console.log('stdout is', stdout);
-
-  // TODO: stdout check
-  // TODO: fs.readdirSync
-  // TODO: content check
-  t.true(true);
+test.beforeEach(() => {
+  if (fs.existsSync('testapp')) {
+    rimraf.sync('testapp');
+  }
 });
 
-// test('$ mber new -> throws error if applicationName folder already exists', (t) => {
-// });
-//
-// test('$ mber new -> throws error if applicationName folder already exists in a parent dir', (t) => {
-// });
+test.afterEach.always(() => {
+  if (fs.existsSync('testapp')) {
+    rimraf.sync('testapp');
+  }
+});
+
+test.serial('$ mber new -> throws error if applicationName not provided', async (t) => {
+  const { stdout } = await shell(`node ${cwd}/cli.js new`);
+
+  t.true(stdout.includes('You forgot to include an application name! Example: mber init example-app'));
+});
+
+test.serial('$ mber new -> throws error if applicationName folder already exists', async (t) => {
+  if (!fs.existsSync('testapp')) {
+    await mkdir('testapp');
+  }
+
+  const { stdout } = await shell(`node ${cwd}/cli.js new testapp`);
+
+  t.true(stdout.includes('ember testapp already exists!'));
+});
+
+test.serial('$ mber new -> creates', async (t) => {
+  if (fs.existsSync('testapp')) {
+    rimraf.sync('testapp');
+  }
+
+  const { stdout } = await shell(`node ${cwd}/cli.js new testapp`);
+
+  t.true(stdout.includes(`ember creating testapp application
+created .dockerignore
+created .editorconfig
+created .eslintrc.js
+created .gitignore
+created TODO
+created config
+created dist
+created index.html
+created package.json
+created public
+created src
+created tests
+created tmp
+created vendor
+ember testapp ember application created. Next is to do:
+cd testapp && yarn install && mber s`));
+
+  const directoryEntries = fs.readdirSync('testapp');
+
+  [
+    '.dockerignore', '.editorconfig', '.eslintrc.js', '.gitignore', 'config', 'index.html',
+    'package.json', 'public', 'src', 'tests', 'tmp', 'vendor'
+  ].forEach((entry) => t.true(directoryEntries.includes(entry)));
+
+  // assertContentForFile(t, '.dockerignore', ``);
+  // assertContentForFile(t, '.editorconfig', ``);
+  // assertContentForFile(t, '.eslintrc.js', ``);
+  // assertContentForFile(t, '.gitignore', ``);
+
+  // assertContentForFile(t, 'config', ``)
+
+  // assertContentForFile(t, 'index.html', ``);
+  // assertContentForFile(t, 'package.json', ``);
+
+  // assertContentForFile(t, 'public', ``)
+
+  // assertContentForFile(t, 'src', ``)
+
+  // assertContentForFile(t, 'tests', ``)
+});
+
+function assertContentForFile(t, fileName, content) {
+  t.true(fs.readFileSync(`testapp/${fileName}`).toString().includes(content));
+}
