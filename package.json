@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "bin": {
@@ -9,11 +9,10 @@
   "scripts": {
     "build:jquery": "node -r esm scripts/global-jquery",
     "bin": "node cli.js",
-    "test": "ava --verbose"
+    "test": "./node_modules/ava/cli.js --verbose"
   },
   "devDependencies": {
-    "ava": "^1.0.0-beta.3",
-    "babel-plugin-transform-es2015-constants": "^6.1.4",
+    "ava": "^1.0.0-beta.4",
     "ember-data": "^3.1.1",
     "ember-resolver": "^4.5.5",
     "ember-source": "^3.1.1",
@@ -35,6 +34,7 @@
     "babel-core": "^6.26.3",
     "babel-plugin-ember-modules-api-polyfill": "^2.3.0",
     "babel-plugin-htmlbars-inline-precompile": "^0.2.4",
+    "babel-plugin-transform-es2015-constants": "^6.1.4",
     "babel-plugin-transform-es2015-modules-amd": "^6.24.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
