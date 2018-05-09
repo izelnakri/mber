@@ -4,6 +4,8 @@ require('babel-register')({
 });
 require('babel-polyfill');
 
+process.title = 'mber';
+
 let shouldRunCommand = false;
 
 const chalk = require('chalk');

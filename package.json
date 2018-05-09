@@ -3,13 +3,16 @@
   "version": "0.0.19",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
+  "engines": {
+    "node": ">=10.0.0"
+  },
   "bin": {
     "mber": "cli.js"
   },
   "scripts": {
     "build:jquery": "node -r esm scripts/global-jquery",
     "bin": "node cli.js",
-    "test": "./node_modules/ava/cli.js --verbose"
+    "test": "ava --verbose"
   },
   "devDependencies": {
     "ava": "^1.0.0-beta.4",
@@ -50,6 +53,7 @@
     "mustache": "^2.3.0",
     "ora": "^2.1.0",
     "parcel-bundler": "^1.7.1",
+    "rimraf": "^2.6.2",
     "rsvp": "^4.8.2",
     "simple-dom": "^1.4.0-alpha.82914663",
     "through2": "^2.0.3"

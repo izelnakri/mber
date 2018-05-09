@@ -7,8 +7,7 @@ import { exec } from 'child_process';
 
 const shell = promisify(exec);
 const mkdir = promisify(mkdirp);
-const cwd = process.cwd();
-const parentPath = cwd.slice(0, cwd.lastIndexOf('/'));
+const CWD = process.cwd();
 
 test.beforeEach(() => {
   if (fs.existsSync('testapp')) {
@@ -23,7 +22,7 @@ test.afterEach.always(() => {
 });
 
 test.serial('$ mber new -> throws error if applicationName not provided', async (t) => {
-  const { stdout } = await shell(`node ${cwd}/cli.js new`);
+  const { stdout } = await shell(`node ${CWD}/cli.js new`);
 
   t.true(stdout.includes('You forgot to include an application name! Example: mber init example-app'));
 });
@@ -33,7 +32,7 @@ test.serial('$ mber new -> throws error if applicationName folder already exists
     await mkdir('testapp');
   }
 
-  const { stdout } = await shell(`node ${cwd}/cli.js new testapp`);
+  const { stdout } = await shell(`node ${CWD}/cli.js new testapp`);
 
   t.true(stdout.includes('ember testapp already exists!'));
 });
@@ -43,9 +42,10 @@ test.serial('$ mber new -> creates', async (t) => {
     rimraf.sync('testapp');
   }
 
-  const { stdout } = await shell(`node ${cwd}/cli.js new testapp`);
+  const { stdout } = await shell(`node ${CWD}/cli.js new testapp`);
 
   t.true(stdout.includes(`ember creating testapp application
+created .cache
 created .dockerignore
 created .editorconfig
 created .eslintrc.js
@@ -61,7 +61,7 @@ created tests
 created tmp
 created vendor
 ember testapp ember application created. Next is to do:
-cd testapp && yarn install && mber s`));
+$ cd testapp && yarn install && mber s`));
 
   const directoryEntries = fs.readdirSync('testapp');
 
