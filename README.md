@@ -6,7 +6,7 @@ My hobby take on replacing ember-cli with parcel sometime in far future.
 
 ## Installation
 
-Install mber CLI:
+Make sure you have node.js v10+ installed. Then install mber CLI:
 
 ```
 npm install -g mber

@@ -1,0 +1,133 @@
+EMBER_ENV stringified object, rootURL normalized url
+
+window.EmberENV = {"FEATURES":{},"EXTEND_PROTOTYPES":{"Date":false},"_APPLICATION_TEMPLATE_WRAPPER":false,"_TEMPLATE_ONLY_GLIMMER_COMPONENTS":true};
+var runningTests = false;
+
+
+
+;var loader, define, requireModule, require, requirejs;
+
+(function (global) {
+  'use strict';
+
+  function dict() {
+    var obj = Object.create(null);
+    obj['__'] = undefined;
+    delete obj['__'];
+    return obj;
+  }
+
+  // Save off the original values of these globals, so we can restore them if someone asks us to
+  var oldGlobals = {
+    loader: loader,
+    define: define,
+    requireModule: requireModule,
+    require: require,
+    requirejs: requirejs
+  };
+
+  requirejs = require = requireModule = function (id) {
+    var pending = [];
+    var mod = findModule(id, '(require)', pending);
+
+    for (var i = pending.length - 1; i >= 0; i--) {
+      pending[i].exports();
+    }
+
+    return mod.module.exports;
+  };
+
+  loader = {
+    noConflict: function (aliases) {
+      var oldName, newName;
+
+      for (oldName in aliases) {
+        if (aliases.hasOwnProperty(oldName)) {
+          if (oldGlobals.hasOwnProperty(oldName)) {
+            newName = aliases[oldName];
+
+            global[newName] = global[oldName];
+            global[oldName] = oldGlobals[oldName];
+          }
+        }
+      }
+    },
+    // Option to enable or disable the generation of default exports
+    makeDefau
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    require('frontend/app')['default'].create({"API_HOST":"http://localhost:8000","name":"frontend","version":"0.0.0+578db4ce"});
+
+
+
+
+
+ember-application?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'use strict';
+
+const path = require('path');
+
+const ModulesTransform = (function() {
+  let plugin = require('babel-plugin-transform-es2015-modules-amd');
+
+  // adding `baseDir` ensures that broccoli-babel-transpiler does not
+  // issue a warning and opt out of caching
+  let pluginPath = require.resolve('babel-plugin-transform-es2015-modules-amd/package');
+  let pluginBaseDir = path.dirname(pluginPath);
+  plugin.baseDir = () => pluginBaseDir;
+
+  return plugin;
+})();
+
+module.exports = function processModulesOnly(tree, annotation) {
+  let options = {
+    plugins: [
+      [ModulesTransform, { loose: true, noInterop: true }],
+    ],
+    moduleIds: true,
+    resolveModuleSource: require('amd-name-resolver').moduleResolve,
+    annotation,
+  };
+
+  const Babel = require('broccoli-babel-transpiler');
+  return new Babel(tree, options);
+};
