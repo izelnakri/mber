@@ -1,3 +1,7 @@
+<a href="https://circleci.com/gh/izelnakri/mber/">
+  <img src="https://circleci.com/gh/izelnakri/mber/tree/master.png" alt="Build Status">
+</a>
+
 # mber: Modern Ember.js + Parcel without ember-cli
 
 WARNING: This is highly experimental, you've been warned.
