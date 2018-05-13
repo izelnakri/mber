@@ -1,0 +1,1 @@
+You can put some old global javascript here and then import them to your vendor.js using app.import()

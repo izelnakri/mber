@@ -15,9 +15,9 @@ test.beforeEach(async () => {
   }
 });
 
-test.afterEach.always(() => {
+test.afterEach.always(async () => {
   if (fs.existsSync('testapp')) {
-    rimraf.sync('testapp');
+    await rimraf.sync('testapp');
   }
 });
 
@@ -44,23 +44,13 @@ test.serial('$ mber new -> creates', async (t) => {
 
   const { stdout } = await shell(`node ${CWD}/cli.js new testapp`);
 
-  t.true(stdout.includes(`ember creating testapp application
-created .cache
-created .dockerignore
-created .editorconfig
-created .eslintrc.js
-created .gitignore
-created TODO
-created config
-created dist
-created index.html
-created package.json
-created public
-created src
-created tests
-created tmp
-created vendor
-ember testapp ember application created. Next is to do:
+  t.true(stdout.includes('ember creating testapp application'));
+  [
+    '.dockerignore', '.editorconfig', '.eslintrc.js', '.gitignore', 'config', 'index.html',
+    'package.json', 'public', 'src', 'tests', 'tmp', 'vendor'
+  ].forEach((fileOrFolder) => t.true(stdout.includes(`created ${fileOrFolder}`)));
+
+  t.true(stdout.includes(`ember testapp ember application created. Next is to do:
 $ cd testapp && yarn install && mber s`));
 
   const directoryEntries = fs.readdirSync('testapp');
