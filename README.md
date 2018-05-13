@@ -1,12 +1,14 @@
-<a href="https://circleci.com/gh/izelnakri/mber/">
-  <img src="https://circleci.com/gh/izelnakri/mber/tree/master.png" alt="Build Status">
-</a>
-
 # mber: Modern Ember.js + Parcel without ember-cli
 
-WARNING: This is highly experimental, you've been warned.
+<p>
+  WARNING: This is highly experimental, you've been warned.
+  <a href="https://circleci.com/gh/izelnakri/mber/">
+    <img src="https://circleci.com/gh/izelnakri/mber/tree/master.png" alt="Build Status">
+  </a>
+</p>
 
 My hobby take on replacing ember-cli with parcel sometime in far future.
+
 
 ## Installation
 

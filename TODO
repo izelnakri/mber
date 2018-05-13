@@ -10,8 +10,6 @@ simplistic terms.
 // frontend files + templates + fastboot + testing + prepend/append + addon system
 
 All I need:
-- use amd-name-resolver for frontend code?
-- How to do hbs compiling
 - Ignore ember-cli-build but yet hack all the needed things (vendor + application.js separation):
  - add ember-cli-*plugins interop
 - Ember resolver logic(app.js)
@@ -19,20 +17,5 @@ All I need:
 - Testing commands
 - ember build command with environments
 - figure out a way to run fastboot
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-check ora cool library for terminal spinner
+- by default memserver environment.
+- by default fastboot serve

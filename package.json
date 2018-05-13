@@ -57,5 +57,10 @@
     "rsvp": "^4.8.2",
     "simple-dom": "^1.4.0-alpha.82914663",
     "through2": "^2.0.3"
+  },
+  "ava": {
+    "require": [
+      "esm"
+    ]
   }
 }

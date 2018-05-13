@@ -9,9 +9,9 @@ const shell = promisify(exec);
 const mkdir = promisify(mkdirp);
 const CWD = process.cwd();
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
   if (fs.existsSync('testapp')) {
-    rimraf.sync('testapp');
+    await rimraf.sync('testapp');
   }
 });
 
@@ -32,7 +32,7 @@ test.serial('$ mber new -> throws error if applicationName folder already exists
     await mkdir('testapp');
   }
 
-  const { stdout } = await shell(`node ${CWD}/cli.js new testapp`);
+  const { stdout } = await shell(`node ${process.cwd()}/cli.js new testapp`);
 
   t.true(stdout.includes('ember testapp already exists!'));
 });
