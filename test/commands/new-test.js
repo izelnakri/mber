@@ -39,7 +39,7 @@ test.serial('$ mber new -> throws error if applicationName folder already exists
 
 test.serial('$ mber new -> creates', async (t) => {
   if (fs.existsSync('testapp')) {
-    rimraf.sync('testapp');
+    await rimraf.sync('testapp');
   }
 
   const { stdout } = await shell(`node ${CWD}/cli.js new testapp`);

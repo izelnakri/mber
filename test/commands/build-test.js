@@ -11,15 +11,15 @@ const shell = promisify(exec);
 const readFileAsync = promisify(fs.readFile);
 const readdirAsync = promisify(fs.readdir);
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
   if (fs.existsSync('testapp')) {
-    rimraf.sync('testapp');
+    await rimraf.sync('testapp');
   }
 });
 
-test.afterEach.always(() => {
+test.afterEach.always(async () => {
   if (fs.existsSync('testapp')) {
-    rimraf.sync('testapp');
+    await rimraf.sync('testapp');
   }
 });
 
