@@ -9,7 +9,7 @@ const CWD = process.cwd();
 const mkdir = promisify(mkdirp);
 const writeFileAsync = promisify(fs.writeFile);
 
-test.before(async () => { // TODO: move this to before
+test.before(async () => {
   if (fs.existsSync('online-shop')) {
     await rimraf.sync('online-shop');
   }

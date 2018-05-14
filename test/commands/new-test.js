@@ -28,32 +28,28 @@ test.serial('$ mber new -> throws error if applicationName not provided', async 
 });
 
 test.serial('$ mber new -> throws error if applicationName folder already exists', async (t) => {
-  if (!fs.existsSync('testapp')) {
-    await mkdir('testapp');
-  }
+  await mkdir('existingapp');
 
-  const { stdout } = await shell(`node ${process.cwd()}/cli.js new testapp`);
+  const { stdout } = await shell(`node ${CWD}/cli.js new existingapp`);
 
-  t.true(stdout.includes('ember testapp already exists!'));
+  t.true(stdout.includes('ember existingapp already exists!'));
+
+  await rimraf.sync('existingapp');
 });
 
 test.serial('$ mber new -> creates', async (t) => {
-  if (fs.existsSync('testapp')) {
-    await rimraf.sync('testapp');
-  }
+  const { stdout } = await shell(`node ${CWD}/cli.js new anotherapp`);
 
-  const { stdout } = await shell(`node ${CWD}/cli.js new testapp`);
-
-  t.true(stdout.includes('ember creating testapp application'));
+  t.true(stdout.includes('ember creating anotherapp application'));
   [
     '.dockerignore', '.editorconfig', '.eslintrc.js', '.gitignore', 'config', 'index.html',
     'package.json', 'public', 'src', 'tests', 'tmp', 'vendor'
   ].forEach((fileOrFolder) => t.true(stdout.includes(`created ${fileOrFolder}`)));
 
-  t.true(stdout.includes(`ember testapp ember application created. Next is to do:
-$ cd testapp && yarn install && mber s`));
+  t.true(stdout.includes('ember anotherapp ember application created. Next is to do:'));
+  t.true(stdout.includes('$ cd anotherapp && yarn install && mber s'));
 
-  const directoryEntries = fs.readdirSync('testapp');
+  const directoryEntries = fs.readdirSync('anotherapp');
 
   [
     '.dockerignore', '.editorconfig', '.eslintrc.js', '.gitignore', 'config', 'index.html',
@@ -75,6 +71,7 @@ $ cd testapp && yarn install && mber s`));
   // assertContentForFile(t, 'src', ``)
 
   // assertContentForFile(t, 'tests', ``)
+  rimraf.sync('anotherapp');
 });
 
 function assertContentForFile(t, fileName, content) {
