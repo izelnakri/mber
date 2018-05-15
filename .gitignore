@@ -1,6 +1,6 @@
 ember-app-boilerplate/tmp/*.js
 node_modules
-dist
+dist/*
 example
 example/node_modules
 ember-cli

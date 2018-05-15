@@ -18,16 +18,11 @@ test('buildVendor() works', async (t) => {
 
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
-  await Promise.all([
-    readdirAsync(`${CWD}/ember-app-boilerplate/dist`),
-    readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`),
-  ]).then(([dist, vendorJs]) => {
-    t.true(dist.includes('index.html'));
-    t.truthy(dist.find((entity) => /vendor\.\w+\.js/g.test(entity)));
-    t.true(1000 < vendorJs.length < 5000);
+  const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-    injectBrowserToNode();
-  }).catch((error) => console.log('error is', error));
+  t.true(1000 < vendorJs.length < 5000);
+
+  injectBrowserToNode();
 
   require(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
