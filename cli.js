@@ -35,12 +35,14 @@ CLI.default(() => printCommand());
 CLI.command(['help', 'h'], () => printCommand());
 CLI.command(['print', 'p'], () => printCommand());
 CLI.command(['init', 'new'], () => require('./lib/commands/new').default());
-CLI.command(['serve', 'server', 's'], () => require('./lib/commands/serve').default());
-CLI.command(['build', 'b'], () => require('./lib/commands/build').default());
+CLI.command(['serve', 'server', 's'], () => require('./lib/commands/serve').default()); // TODO: add env, watch, proxy, fastboot flags
+CLI.command(['build', 'b'], () => require('./lib/commands/build').default()); // TODO: add env, watch flags
 CLI.command(['console', 'c'], () => require('./lib/commands/console').default());
-CLI.command(['test', 't'], () => require('./lib/commands/test').default());
+CLI.command(['test', 't'], () => require('./lib/commands/test').default()); // TODO: add --server, --proxy flag
 
 if (!shouldRunCommand) {
   Console.log(chalk.red('unknown command. Available options are:'));
   printCommand();
 }
+
+// NOTE: maybe merge server and console commands in future?

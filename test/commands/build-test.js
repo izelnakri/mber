@@ -1,3 +1,4 @@
+// TODO: do actual building of test, production and memserver assets
 import fs from 'fs';
 import { promisify } from 'util';
 import { exec } from 'child_process';
@@ -23,6 +24,8 @@ test.afterEach.always(async () => {
 });
 
 test.serial('$ mber build -> builds successfully', async (t) => {
+  t.plan(20);
+
   await createDummyApp();
 
   const CWD = process.cwd();
@@ -39,44 +42,51 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
-  // t.true(stdout.includes('ember BUILDING: application.js...'));
-  // t.true(/ember BUILT: application\.js in \d+ms \[\w+\] Environment: development/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(/ember BUILT: application\.js in \d+ms \[0\.00 MB\] Environment: development/g.test(stdout));
 
-  // const timeTakenForApplication = stdout.match(/application\.js in \d+ms/g)[0]
-  //   .replace('application.js in ', '')
-  //   .replace('ms', '')
-  //
-  // t.true(1000 < Number(timeTakenForApplication) < 5000);
+  const timeTakenForApplication = stdout.match(/application\.js in \d+ms/g)[0]
+    .replace('application.js in ', '')
+    .replace('ms', '')
+
+  t.true(1000 < Number(timeTakenForApplication) < 5000);
+
+  t.true(/ember BUNDLED: dummyapp in \d+ms/g.test(stdout));
 
   await Promise.all([
     readdirAsync('./dummyapp/dist'),
     readFileAsync('./dummyapp/tmp/vendor.js'),
-    // readFileAsync('./testapp/tmp/application.js')
-  ]).then(([dist, vendorJs]) => {
+    readFileAsync('./dummyapp/tmp/application.js')
+  ]).then(([dist, vendorJs, applicationJs]) => {
     t.true(dist.includes('index.html'));
     t.truthy(dist.find((entity) => /vendor\.\w+\.js/g.test(entity)));
-    // t.truthy(dist.find((entity) => /application\.\w+\.js/g.test(entity)));
+    t.truthy(dist.find((entity) => /application\.\w+\.js/g.test(entity)));
 
     t.true(1000 < vendorJs.length < 5000);
-    // t.true(1000 < applicationJs.length < 5000);
+    t.true(0 < applicationJs.length < 1000);
 
-    injectBrowserToNode();
+    injectBrowserToNode(null, {
+      url: 'http://localhost:1234',
+      resources: 'usable',
+      runScripts: 'outside-only'
+    });
 
-    // TODO: finish this
-    // require('../../testapp/tmp/vendor.js');
-    //
-    // console.log('window.Ember is', global.window.Ember);
-    //
-    // [
-    //   window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs, window.require,
-    //   window.define
-    // ].forEach((object) => t.truthy(object));
+    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/vendor.js`).toString());
+    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/application.js`).toString());
+
+    [
+      window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs,
+      window.require, window.define, window.APP
+    ].forEach((object) => t.truthy(object));
   }).catch((error) => console.log('error is', error));
 });
 
-
-// TODO: test production build
+// test.serial('$ mber build --env=production -> builds successfully', async (t) => {
+//
+// });
 
 // TODO: test test build
+
+// TODO: test memserver build
 
 // TODO: if parent doesnt exist throw error
