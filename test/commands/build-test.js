@@ -31,7 +31,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
   console.log('stdout is', stdout);
 
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(/ember BUILT: vendor\.js in \d+ms \[2\.72 MB\] Environment: development/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[2\.74 MB\] Environment: development/g.test(stdout));
 
   const timeTakenForVendor = stdout.match(/vendor\.js in \d+ms/g)[0]
     .replace('vendor.js in ', '')

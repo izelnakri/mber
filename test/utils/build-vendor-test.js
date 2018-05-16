@@ -7,7 +7,6 @@ import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 
 const CWD = process.cwd();
 const readFileAsync = promisify(fs.readFile);
-const readdirAsync = promisify(fs.readdir);
 
 test('buildVendor() works', async (t) => {
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);

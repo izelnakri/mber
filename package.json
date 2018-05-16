@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "engines": {
@@ -17,6 +17,7 @@
   "devDependencies": {
     "ava": "^1.0.0-beta.4",
     "ember-data": "^3.1.1",
+    "ember-load-initializers": "^1.1.0",
     "ember-resolver": "^4.5.5",
     "ember-source": "^3.1.1",
     "eslint": "^4.19.1",
