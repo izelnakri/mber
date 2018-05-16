@@ -1,22 +1,38 @@
 // ml-button/component  + ml/button/template
 
 - cache ember-inflector, ember-data, ember-load-initializers, ember-resolver
-- maybe I need proper mber version use check depending on the path
-
-ember-resolver, ember-load-initializer(1 module), ember-inflector, ember-data
 
 simplistic terms.
 
-// PARCEL TRIES TO LOOKUP ember-data
 // frontend files + templates + fastboot + testing + prepend/append + addon system
 
 All I need:
 - Ignore ember-cli-build but yet hack all the needed things (vendor + application.js separation):
  - add ember-cli-*plugins interop
-- Ember resolver logic(app.js)
-- Working with existing plugin system
-- Testing commands
-- ember build command with environments
 - figure out a way to run fastboot
 - by default memserver environment.
 - by default fastboot serve
+- transforms and before after injection of a script app.import()
+- HEAD injections
+- html inline injections
+- ENV.APP.API_HOST
+- ember-dev-tools
+- ENV.APP.rootElement = '#ember-testing', ENV.APP.autoboot
+- template lint + eslint
+- sass compilation
+- investigate how people use engines
+- make jquery optional
+
+ENV.locationType = 'none';
+// keep test console output quieter
+ENV.APP.LOG_ACTIVE_GENERATION = false;
+ENV.APP.LOG_VIEW_LOOKUPS = false;
+
+addons to investigate:
+- ember-cli-sri,
+- ember-cli-csp
+- ember-cli-flash
+- ember-css-modules?
+- ember-i18n
+- ember-flash
+- investigate new ember test helpers

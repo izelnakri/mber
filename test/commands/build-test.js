@@ -90,3 +90,5 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 // TODO: test memserver build
 
 // TODO: if parent doesnt exist throw error
+
+// TODO: test build with watch

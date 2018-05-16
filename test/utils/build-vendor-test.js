@@ -8,7 +8,9 @@ import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 const CWD = process.cwd();
 const readFileAsync = promisify(fs.readFile);
 
-test('buildVendor() works', async (t) => {
+test.serial('buildVendor() works', async (t) => {
+  t.plan(9);
+
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const result = await buildVendor();
   const timeTakenForVendor = result.message.match(/vendor\.js in \d+ms/g)[0]
@@ -19,19 +21,118 @@ test('buildVendor() works', async (t) => {
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-  t.true(1000 < vendorJs.length < 5000);
+  t.true(1000 < vendorJs.length < 5000); // TODO: stricter length check
 
-  injectBrowserToNode();
+  injectBrowserToNode(null, {
+    url: 'http://localhost:1234',
+    resources: 'usable',
+    runScripts: 'outside-only'
+  });
 
-  require(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
+  window.eval(fs.readFileSync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`).toString());
 
-  t.truthy(global.window.DS);
+  [
+    window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs,
+    window.require, window.define
+  ].forEach((object) => t.truthy(object));
 
   mock.removeMock();
 });
-test.todo('buildVendor(development) works');
-test.todo('buildVendor(production) works');
-test.todo('buildVendor(test) works');
-test.todo('buildVendor(custom) works');
-test.todo('buildVendor() raises error when unknown environment is used');
+
+test.serial('buildVendor(development) works', async (t) => {
+  t.plan(9);
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const result = await buildVendor('development');
+  const timeTakenForVendor = result.message.match(/vendor\.js in \d+ms/g)[0]
+    .replace('vendor.js in ', '')
+    .replace('ms', '')
+
+  t.true(1000 < Number(timeTakenForVendor) < 5000);
+
+  const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
+
+  t.true(1000 < vendorJs.length < 5000); // TODO: stricter length check
+
+  injectBrowserToNode(null, {
+    url: 'http://localhost:1234',
+    resources: 'usable',
+    runScripts: 'outside-only'
+  });
+
+  window.eval(fs.readFileSync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`).toString());
+
+  [
+    window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs,
+    window.require, window.define
+  ].forEach((object) => t.truthy(object));
+
+  mock.removeMock();
+});
+
+test.serial('buildVendor(production) works', async (t) => {
+  t.plan(9);
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const result = await buildVendor('production');
+  const timeTakenForVendor = result.message.match(/vendor\.js in \d+ms/g)[0]
+    .replace('vendor.js in ', '')
+    .replace('ms', '')
+
+  t.true(1000 < Number(timeTakenForVendor) < 5000);
+
+  const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
+
+  t.true(1000 < vendorJs.length < 5000); // TODO: stricter length check
+
+  injectBrowserToNode(null, {
+    url: 'http://localhost:1234',
+    resources: 'usable',
+    runScripts: 'outside-only'
+  });
+
+  window.eval(fs.readFileSync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`).toString());
+
+  [
+    window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs,
+    window.require, window.define
+  ].forEach((object) => t.truthy(object));
+
+  mock.removeMock();
+});
+
+test.serial('buildVendor(test) works', async (t) => {
+  t.plan(9);
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const result = await buildVendor('test');
+  const timeTakenForVendor = result.message.match(/vendor\.js in \d+ms/g)[0]
+    .replace('vendor.js in ', '')
+    .replace('ms', '')
+
+  t.true(1000 < Number(timeTakenForVendor) < 5000);
+
+  const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
+
+  t.true(1000 < vendorJs.length < 5000); // TODO: stricter length check
+
+  injectBrowserToNode(null, {
+    url: 'http://localhost:1234',
+    resources: 'usable',
+    runScripts: 'outside-only'
+  });
+
+  window.eval(fs.readFileSync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`).toString());
+
+  // check how to get environment Ember.env() ?
+  [
+    window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs,
+    window.require, window.define
+  ].forEach((object) => t.truthy(object));
+
+  mock.removeMock();
+});
+
 test.todo('buildVendor() raises error when config/environment.js does not exist');
+test.todo('buildVendor() raises error when unknown environment is used');
+test.todo('buildVendor(custom) works');
