@@ -8,8 +8,9 @@ import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 const CWD = process.cwd();
 const readFileAsync = promisify(fs.readFile);
 
+// TODO: check how to get environment Ember.env() ?
 test.serial('buildVendor() works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const result = await buildVendor();
@@ -17,6 +18,7 @@ test.serial('buildVendor() works', async (t) => {
     .replace('vendor.js in ', '')
     .replace('ms', '')
 
+  t.true(result.message.includes('Environment: development'));
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
@@ -40,7 +42,7 @@ test.serial('buildVendor() works', async (t) => {
 });
 
 test.serial('buildVendor(development) works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const result = await buildVendor('development');
@@ -48,6 +50,7 @@ test.serial('buildVendor(development) works', async (t) => {
     .replace('vendor.js in ', '')
     .replace('ms', '')
 
+  t.true(result.message.includes('Environment: development'));
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
@@ -71,7 +74,7 @@ test.serial('buildVendor(development) works', async (t) => {
 });
 
 test.serial('buildVendor(production) works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const result = await buildVendor('production');
@@ -79,6 +82,7 @@ test.serial('buildVendor(production) works', async (t) => {
     .replace('vendor.js in ', '')
     .replace('ms', '')
 
+  t.true(result.message.includes('Environment: production'));
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
@@ -102,7 +106,7 @@ test.serial('buildVendor(production) works', async (t) => {
 });
 
 test.serial('buildVendor(test) works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const result = await buildVendor('test');
@@ -110,6 +114,7 @@ test.serial('buildVendor(test) works', async (t) => {
     .replace('vendor.js in ', '')
     .replace('ms', '')
 
+  t.true(result.message.includes('Environment: test'));
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
@@ -124,7 +129,6 @@ test.serial('buildVendor(test) works', async (t) => {
 
   window.eval(fs.readFileSync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`).toString());
 
-  // check how to get environment Ember.env() ?
   [
     window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs,
     window.require, window.define
