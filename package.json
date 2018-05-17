@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "engines": {
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build:jquery": "node -r esm scripts/global-jquery",
-    "bin": "node cli.js",
+    "bin": "node -r esm cli.js",
     "test": "ava --verbose"
   },
   "devDependencies": {
@@ -46,7 +46,7 @@
     "babel6-plugin-strip-heimdall": "^6.0.1",
     "chalk": "^2.4.0",
     "debug": "^3.1.0",
-    "esm": "^3.0.28",
+    "esm": "^3.0.34",
     "fs-extra": "^5.0.0",
     "jsdom": "^11.8.0",
     "klaw": "^2.1.1",
@@ -63,5 +63,8 @@
     "require": [
       "esm"
     ]
+  },
+  "esm": {
+    "mode": "all"
   }
 }
