@@ -9,7 +9,9 @@ export default async function(appName='dummyapp') {
   return new Promise(async (resolve) => {
     await shell(`node ${CWD}/cli.js new ${appName}`);
 
-    fs.symlinkSync(`${__dirname}/../../node_modules`, `${CWD}/${appName}/node_modules`); // TODO: this is huge
+    if (!fs.existsSync(`${CWD}/${appName}/node_modules`)) {
+      fs.symlinkSync(`${__dirname}/../../node_modules`, `${CWD}/${appName}/node_modules`); // TODO: this is huge      
+    }
 
     resolve();
   });

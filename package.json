@@ -57,14 +57,12 @@
     "rimraf": "^2.6.2",
     "rsvp": "^4.8.2",
     "simple-dom": "^1.4.0-alpha.82914663",
-    "through2": "^2.0.3"
+    "through2": "^2.0.3",
+    "uglify-js": "^3.3.26"
   },
   "ava": {
     "require": [
       "esm"
     ]
-  },
-  "esm": {
-    "mode": "all"
   }
 }
