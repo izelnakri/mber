@@ -38,6 +38,26 @@ mber s
 
 Now your development server is running on http://localhost:4200
 
+#### Extra: How to exclude ember-data or jquery from your application:
+
+add excludeEmberData or excludeJQuery to your config/environment.js:
+```js
+'use strict';
+
+module.exports = function(environment) {
+  let ENV = {
+    modulePrefix: '{{applicationName}}',
+    environment,
+    excludeEmberData: true, // to exclude ember-data
+    excludeJQuery: true // to exclude jQuery
+  }
+
+  // .. remaining code
+
+  return ENV;
+}
+```
+
 # CREDITS
 This would have been impossible without the great interop libraries, structures, conventions and the framework source code itself which is mainly developed by the ember core team and the community by large.
 

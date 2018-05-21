@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.1.1
+ * @version   3.1.2
  */
 
 /*globals process */
@@ -5073,11 +5073,12 @@ enifed('container', ['exports', 'ember-utils', 'ember-debug', 'ember/features', 
     };
 
     Container.prototype.destroy = function () {
-      destroyDestroyables(this);
+      resetCache(this);
       this.isDestroyed = true;
     };
 
     Container.prototype.reset = function (fullName) {
+      if (this.isDestroyed) return;
       if (fullName === undefined) {
         resetCache(this);
       } else {
@@ -10545,9 +10546,11 @@ enifed('ember-metal', ['exports', 'ember-environment', 'ember-utils', 'ember-deb
   */
   /**
     Sets the value of a property on an object, respecting computed properties
-    and notifying observers and other listeners of the change. If the
-    property is not defined but the object implements the `setUnknownProperty`
-    method then that will be invoked as well.
+    and notifying observers and other listeners of the change.
+    If the specified property is not defined on the object and the object
+    implements the `setUnknownProperty` method, then instead of setting the
+    value of the property on the object, its `setUnknownProperty` handler
+    will be invoked with the two parameters `keyName` and `value`.
   
     ```javascript
     import { set } from '@ember/object';
@@ -10674,7 +10677,7 @@ enifed('ember-metal', ['exports', 'ember-environment', 'ember-utils', 'ember-deb
 
 
   /**
-  @module @ember/object/computed
+  @module @ember/object
   */
 
   var END_WITH_EACH_REGEX = /\.@each$/;
@@ -10703,7 +10706,7 @@ enifed('ember-metal', ['exports', 'ember-environment', 'ember-utils', 'ember-deb
   
     @method expandProperties
     @static
-    @for @ember/object
+    @for @ember/object/computed
     @public
     @param {String} pattern The property pattern to expand.
     @param {Function} callback The callback to invoke.  It is invoked once per
@@ -15922,7 +15925,7 @@ enifed('ember/features', ['exports', 'ember-environment', 'ember-utils'], functi
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.1.1";
+  exports.default = "3.1.2";
 });
 enifed("handlebars", ["exports"], function (exports) {
   "use strict";

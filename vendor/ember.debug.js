@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.1.1
+ * @version   3.1.2
  */
 
 /*globals process */
@@ -3719,7 +3719,7 @@ enifed("@glimmer/reference", ["exports", "ember-babel", "@glimmer/util"], functi
 enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer/vm', '@glimmer/reference', '@glimmer/low-level'], function (exports, _emberBabel, _util, _vm2, _reference, _lowLevel) {
     'use strict';
 
-    exports.hasCapability = exports.capabilityFlagsFrom = exports.Cursor = exports.ConcreteBounds = exports.RehydrateBuilder = exports.rehydrationBuilder = exports.clientBuilder = exports.NewElementBuilder = exports.normalizeProperty = exports.insertHTMLBefore = exports.isWhitespace = exports.DOMTreeConstruction = exports.IDOMChanges = exports.SVG_NAMESPACE = exports.DOMChanges = exports.ARGS = exports.curry = exports.isCurriedComponentDefinition = exports.CurriedComponentDefinition = exports.MINIMAL_CAPABILITIES = exports.DEFAULT_CAPABILITIES = exports.DefaultEnvironment = exports.Environment = exports.Scope = exports.EMPTY_ARGS = exports.DynamicAttribute = exports.SimpleDynamicAttribute = exports.RenderResult = exports.UpdatingVM = exports.LowLevelVM = exports.getDynamicVar = exports.resetDebuggerCallback = exports.setDebuggerCallback = exports.ConditionalReference = exports.PrimitiveReference = exports.UNDEFINED_REFERENCE = exports.NULL_REFERENCE = exports.renderMain = undefined;
+    exports.hasCapability = exports.capabilityFlagsFrom = exports.Cursor = exports.ConcreteBounds = exports.RehydrateBuilder = exports.rehydrationBuilder = exports.clientBuilder = exports.NewElementBuilder = exports.normalizeProperty = exports.insertHTMLBefore = exports.isWhitespace = exports.DOMTreeConstruction = exports.IDOMChanges = exports.SVG_NAMESPACE = exports.DOMChanges = exports.curry = exports.isCurriedComponentDefinition = exports.CurriedComponentDefinition = exports.MINIMAL_CAPABILITIES = exports.DEFAULT_CAPABILITIES = exports.DefaultEnvironment = exports.Environment = exports.Scope = exports.EMPTY_ARGS = exports.DynamicAttribute = exports.SimpleDynamicAttribute = exports.RenderResult = exports.UpdatingVM = exports.LowLevelVM = exports.getDynamicVar = exports.resetDebuggerCallback = exports.setDebuggerCallback = exports.ConditionalReference = exports.PrimitiveReference = exports.UNDEFINED_REFERENCE = exports.NULL_REFERENCE = exports.renderMain = undefined;
 
     var AppendOpcodes = function () {
         function AppendOpcodes() {
@@ -4017,500 +4017,6 @@ enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer
         }
         vm$$1.stack.push(new ConcatReference(out));
     });
-
-    var Arguments = function () {
-        function Arguments() {
-            (0, _emberBabel.classCallCheck)(this, Arguments);
-
-            this.stack = null;
-            this.positional = new PositionalArguments();
-            this.named = new NamedArguments();
-            this.blocks = new BlockArguments();
-        }
-
-        Arguments.prototype.setup = function setup(stack, names, blockNames, positionalCount, synthetic) {
-            this.stack = stack;
-            /*
-                   | ... | blocks      | positional  | named |
-                   | ... | b0    b1    | p0 p1 p2 p3 | n0 n1 |
-             index | ... | 4/5/6 7/8/9 | 10 11 12 13 | 14 15 |
-                           ^             ^             ^  ^
-                         bbase         pbase       nbase  sp
-            */
-            var named = this.named;
-            var namedCount = names.length;
-            var namedBase = stack.sp - namedCount + 1;
-            named.setup(stack, namedBase, namedCount, names, synthetic);
-            var positional = this.positional;
-            var positionalBase = namedBase - positionalCount;
-            positional.setup(stack, positionalBase, positionalCount);
-            var blocks = this.blocks;
-            var blocksCount = blockNames.length;
-            var blocksBase = positionalBase - blocksCount * 3;
-            blocks.setup(stack, blocksBase, blocksCount, blockNames);
-        };
-
-        Arguments.prototype.at = function at(pos) {
-            return this.positional.at(pos);
-        };
-
-        Arguments.prototype.realloc = function realloc(offset) {
-            if (offset > 0) {
-                var positional = this.positional,
-                    named = this.named,
-                    stack = this.stack;
-
-                var newBase = positional.base + offset;
-                var length = positional.length + named.length;
-                for (var i = length - 1; i >= 0; i--) {
-                    stack.copy(i + positional.base, i + newBase);
-                }
-                positional.base += offset;
-                named.base += offset;
-                stack.sp += offset;
-            }
-        };
-
-        Arguments.prototype.capture = function capture() {
-            var positional = this.positional.length === 0 ? EMPTY_POSITIONAL : this.positional.capture();
-            var named = this.named.length === 0 ? EMPTY_NAMED : this.named.capture();
-            return {
-                tag: this.tag,
-                length: this.length,
-                positional: positional,
-                named: named
-            };
-        };
-
-        Arguments.prototype.clear = function clear() {
-            var stack = this.stack,
-                length = this.length;
-
-            stack.pop(length);
-        };
-
-        (0, _emberBabel.createClass)(Arguments, [{
-            key: 'tag',
-            get: function () {
-                return (0, _reference.combineTagged)([this.positional, this.named]);
-            }
-        }, {
-            key: 'base',
-            get: function () {
-                return this.blocks.base;
-            }
-        }, {
-            key: 'length',
-            get: function () {
-                return this.positional.length + this.named.length + this.blocks.length * 3;
-            }
-        }]);
-        return Arguments;
-    }();
-
-    var PositionalArguments = function () {
-        function PositionalArguments() {
-            (0, _emberBabel.classCallCheck)(this, PositionalArguments);
-
-            this.base = 0;
-            this.length = 0;
-            this.stack = null;
-            this._tag = null;
-            this._references = null;
-        }
-
-        PositionalArguments.prototype.setup = function setup(stack, base, length) {
-            this.stack = stack;
-            this.base = base;
-            this.length = length;
-            if (length === 0) {
-                this._tag = _reference.CONSTANT_TAG;
-                this._references = _util.EMPTY_ARRAY;
-            } else {
-                this._tag = null;
-                this._references = null;
-            }
-        };
-
-        PositionalArguments.prototype.at = function at(position) {
-            var base = this.base,
-                length = this.length,
-                stack = this.stack;
-
-            if (position < 0 || position >= length) {
-                return UNDEFINED_REFERENCE;
-            }
-            return stack.get(position, base);
-        };
-
-        PositionalArguments.prototype.capture = function capture() {
-            return new CapturedPositionalArguments(this.tag, this.references);
-        };
-
-        PositionalArguments.prototype.prepend = function prepend(other) {
-            var additions = other.length;
-            if (additions > 0) {
-                var base = this.base,
-                    length = this.length,
-                    stack = this.stack;
-
-                this.base = base = base - additions;
-                this.length = length + additions;
-                for (var i = 0; i < additions; i++) {
-                    stack.set(other.at(i), i, base);
-                }
-                this._tag = null;
-                this._references = null;
-            }
-        };
-
-        (0, _emberBabel.createClass)(PositionalArguments, [{
-            key: 'tag',
-            get: function () {
-                var tag = this._tag;
-                if (!tag) {
-                    tag = this._tag = (0, _reference.combineTagged)(this.references);
-                }
-                return tag;
-            }
-        }, {
-            key: 'references',
-            get: function () {
-                var references = this._references;
-                if (!references) {
-                    var stack = this.stack,
-                        base = this.base,
-                        length = this.length;
-
-                    references = this._references = stack.sliceArray(base, base + length);
-                }
-                return references;
-            }
-        }]);
-        return PositionalArguments;
-    }();
-
-    var CapturedPositionalArguments = function () {
-        function CapturedPositionalArguments(tag, references) {
-            var length = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : references.length;
-            (0, _emberBabel.classCallCheck)(this, CapturedPositionalArguments);
-
-            this.tag = tag;
-            this.references = references;
-            this.length = length;
-        }
-
-        CapturedPositionalArguments.empty = function empty() {
-            return new CapturedPositionalArguments(_reference.CONSTANT_TAG, _util.EMPTY_ARRAY, 0);
-        };
-
-        CapturedPositionalArguments.prototype.at = function at(position) {
-            return this.references[position];
-        };
-
-        CapturedPositionalArguments.prototype.value = function value() {
-            return this.references.map(this.valueOf);
-        };
-
-        CapturedPositionalArguments.prototype.get = function get(name) {
-            var references = this.references,
-                length = this.length;
-
-            if (name === 'length') {
-                return PrimitiveReference.create(length);
-            } else {
-                var idx = parseInt(name, 10);
-                if (idx < 0 || idx >= length) {
-                    return UNDEFINED_REFERENCE;
-                } else {
-                    return references[idx];
-                }
-            }
-        };
-
-        CapturedPositionalArguments.prototype.valueOf = function valueOf(reference$$1) {
-            return reference$$1.value();
-        };
-
-        return CapturedPositionalArguments;
-    }();
-
-    var NamedArguments = function () {
-        function NamedArguments() {
-            (0, _emberBabel.classCallCheck)(this, NamedArguments);
-
-            this.base = 0;
-            this.length = 0;
-            this._references = null;
-            this._names = _util.EMPTY_ARRAY;
-            this._atNames = _util.EMPTY_ARRAY;
-        }
-
-        NamedArguments.prototype.setup = function setup(stack, base, length, names, synthetic) {
-            this.stack = stack;
-            this.base = base;
-            this.length = length;
-            if (length === 0) {
-                this._references = _util.EMPTY_ARRAY;
-                this._names = _util.EMPTY_ARRAY;
-                this._atNames = _util.EMPTY_ARRAY;
-            } else {
-                this._references = null;
-                if (synthetic) {
-                    this._names = names;
-                    this._atNames = null;
-                } else {
-                    this._names = null;
-                    this._atNames = names;
-                }
-            }
-        };
-
-        NamedArguments.prototype.has = function has(name) {
-            return this.names.indexOf(name) !== -1;
-        };
-
-        NamedArguments.prototype.get = function get(name) {
-            var synthetic = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-            var base = this.base,
-                stack = this.stack;
-
-            var names = synthetic ? this.names : this.atNames;
-            var idx = names.indexOf(name);
-            if (idx === -1) {
-                return UNDEFINED_REFERENCE;
-            }
-            return stack.get(idx, base);
-        };
-
-        NamedArguments.prototype.capture = function capture() {
-            return new CapturedNamedArguments(this.tag, this.names, this.references);
-        };
-
-        NamedArguments.prototype.merge = function merge(other) {
-            var extras = other.length;
-
-            if (extras > 0) {
-                var names = this.names,
-                    length = this.length,
-                    stack = this.stack;
-                var extraNames = other.names;
-
-                if (Object.isFrozen(names) && names.length === 0) {
-                    names = [];
-                }
-                for (var i = 0; i < extras; i++) {
-                    var name = extraNames[i];
-                    var idx = names.indexOf(name);
-                    if (idx === -1) {
-                        length = names.push(name);
-                        stack.push(other.references[i]);
-                    }
-                }
-                this.length = length;
-                this._references = null;
-                this._names = names;
-                this._atNames = null;
-            }
-        };
-
-        NamedArguments.prototype.toSyntheticName = function toSyntheticName(name) {
-            return name.slice(1);
-        };
-
-        NamedArguments.prototype.toAtName = function toAtName(name) {
-            return '@' + name;
-        };
-
-        (0, _emberBabel.createClass)(NamedArguments, [{
-            key: 'tag',
-            get: function () {
-                return (0, _reference.combineTagged)(this.references);
-            }
-        }, {
-            key: 'names',
-            get: function () {
-                var names = this._names;
-                if (!names) {
-                    names = this._names = this._atNames.map(this.toSyntheticName);
-                }
-                return names;
-            }
-        }, {
-            key: 'atNames',
-            get: function () {
-                var atNames = this._atNames;
-                if (!atNames) {
-                    atNames = this._atNames = this._names.map(this.toAtName);
-                }
-                return atNames;
-            }
-        }, {
-            key: 'references',
-            get: function () {
-                var references = this._references;
-                if (!references) {
-                    var base = this.base,
-                        length = this.length,
-                        stack = this.stack;
-
-                    references = this._references = stack.sliceArray(base, base + length);
-                }
-                return references;
-            }
-        }]);
-        return NamedArguments;
-    }();
-
-    var CapturedNamedArguments = function () {
-        function CapturedNamedArguments(tag, names, references) {
-            (0, _emberBabel.classCallCheck)(this, CapturedNamedArguments);
-
-            this.tag = tag;
-            this.names = names;
-            this.references = references;
-            this.length = names.length;
-            this._map = null;
-        }
-
-        CapturedNamedArguments.prototype.has = function has(name) {
-            return this.names.indexOf(name) !== -1;
-        };
-
-        CapturedNamedArguments.prototype.get = function get(name) {
-            var names = this.names,
-                references = this.references;
-
-            var idx = names.indexOf(name);
-            if (idx === -1) {
-                return UNDEFINED_REFERENCE;
-            } else {
-                return references[idx];
-            }
-        };
-
-        CapturedNamedArguments.prototype.value = function value() {
-            var names = this.names,
-                references = this.references;
-
-            var out = (0, _util.dict)();
-            for (var i = 0; i < names.length; i++) {
-                var name = names[i];
-                out[name] = references[i].value();
-            }
-            return out;
-        };
-
-        (0, _emberBabel.createClass)(CapturedNamedArguments, [{
-            key: 'map',
-            get: function () {
-                var map = this._map;
-                if (!map) {
-                    var names = this.names,
-                        references = this.references;
-
-                    map = this._map = (0, _util.dict)();
-                    for (var i = 0; i < names.length; i++) {
-                        var name = names[i];
-                        map[name] = references[i];
-                    }
-                }
-                return map;
-            }
-        }]);
-        return CapturedNamedArguments;
-    }();
-
-    var BlockArguments = function () {
-        function BlockArguments() {
-            (0, _emberBabel.classCallCheck)(this, BlockArguments);
-
-            this.internalValues = null;
-            this.internalTag = null;
-            this.names = _util.EMPTY_ARRAY;
-            this.length = 0;
-            this.base = 0;
-        }
-
-        BlockArguments.prototype.setup = function setup(stack, base, length, names) {
-            this.stack = stack;
-            this.names = names;
-            this.base = base;
-            this.length = length;
-            if (length === 0) {
-                this.internalTag = _reference.CONSTANT_TAG;
-                this.internalValues = _util.EMPTY_ARRAY;
-            } else {
-                this.internalTag = null;
-                this.internalValues = null;
-            }
-        };
-
-        BlockArguments.prototype.has = function has(name) {
-            return this.names.indexOf(name) !== -1;
-        };
-
-        BlockArguments.prototype.get = function get(name) {
-            var base = this.base,
-                stack = this.stack,
-                names = this.names;
-
-            var idx = names.indexOf(name);
-            if (names.indexOf(name) === -1) {
-                return null;
-            }
-            var table = stack.get(idx * 3, base);
-            var scope = stack.get(idx * 3 + 1, base); // FIXME(mmun): shouldn't need to cast this
-            var handle = stack.get(idx * 3 + 2, base);
-            return handle === null ? null : [handle, scope, table];
-        };
-
-        BlockArguments.prototype.capture = function capture() {
-            return new CapturedBlockArguments(this.names, this.values);
-        };
-
-        (0, _emberBabel.createClass)(BlockArguments, [{
-            key: 'values',
-            get: function () {
-                var values = this.internalValues;
-                if (!values) {
-                    var base = this.base,
-                        length = this.length,
-                        stack = this.stack;
-
-                    values = this.internalValues = stack.sliceArray(base, base + length * 3);
-                }
-                return values;
-            }
-        }]);
-        return BlockArguments;
-    }();
-
-    var CapturedBlockArguments = function () {
-        function CapturedBlockArguments(names, values) {
-            (0, _emberBabel.classCallCheck)(this, CapturedBlockArguments);
-
-            this.names = names;
-            this.values = values;
-            this.length = names.length;
-        }
-
-        CapturedBlockArguments.prototype.has = function has(name) {
-            return this.names.indexOf(name) !== -1;
-        };
-
-        CapturedBlockArguments.prototype.get = function get(name) {
-            var idx = this.names.indexOf(name);
-            if (idx === -1) return null;
-            return [this.values[idx * 3 + 2], this.values[idx * 3 + 1], this.values[idx * 3]];
-        };
-
-        return CapturedBlockArguments;
-    }();
-
-    var EMPTY_NAMED = new CapturedNamedArguments(_reference.CONSTANT_TAG, _util.EMPTY_ARRAY, _util.EMPTY_ARRAY);
-    var EMPTY_POSITIONAL = new CapturedPositionalArguments(_reference.CONSTANT_TAG, _util.EMPTY_ARRAY);
-    var EMPTY_ARGS = { tag: _reference.CONSTANT_TAG, length: 0, positional: EMPTY_POSITIONAL, named: EMPTY_NAMED };
 
     var CURRIED_COMPONENT_DEFINITION_BRAND = 'CURRIED COMPONENT DEFINITION [id=6f00feb9-a0ef-4547-99ea-ac328f80acea]';
     function isCurriedComponentDefinition(definition) {
@@ -5191,7 +4697,6 @@ enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer
         return !!(capabilities & capability);
     }
 
-    var ARGS = new Arguments();
     APPEND_OPCODES.add(57 /* IsComponent */, function (vm$$1) {
         var stack = vm$$1.stack;
         var ref = stack.pop();
@@ -5284,8 +4789,8 @@ enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer
         if (flags & 4) blockNames.push('main');
         if (flags & 2) blockNames.push('else');
         if (flags & 1) blockNames.push('attrs');
-        ARGS.setup(stack, names, blockNames, positionalCount, !!synthetic);
-        stack.push(ARGS);
+        vm$$1.args.setup(stack, names, blockNames, positionalCount, !!synthetic);
+        stack.push(vm$$1.args);
     });
     APPEND_OPCODES.add(66 /* CaptureArgs */, function (vm$$1) {
         var stack = vm$$1.stack;
@@ -7689,6 +7194,7 @@ enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer
 
         InnerStack.prototype.reset = function reset() {
             this.inner.reset();
+            this.js.length = 0;
         };
 
         (0, _emberBabel.createClass)(InnerStack, [{
@@ -8233,6 +7739,501 @@ enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer
         return RenderResult;
     }();
 
+    var Arguments = function () {
+        function Arguments() {
+            (0, _emberBabel.classCallCheck)(this, Arguments);
+
+            this.stack = null;
+            this.positional = new PositionalArguments();
+            this.named = new NamedArguments();
+            this.blocks = new BlockArguments();
+        }
+
+        Arguments.prototype.setup = function setup(stack, names, blockNames, positionalCount, synthetic) {
+            this.stack = stack;
+            /*
+                   | ... | blocks      | positional  | named |
+                   | ... | b0    b1    | p0 p1 p2 p3 | n0 n1 |
+             index | ... | 4/5/6 7/8/9 | 10 11 12 13 | 14 15 |
+                           ^             ^             ^  ^
+                         bbase         pbase       nbase  sp
+            */
+            var named = this.named;
+            var namedCount = names.length;
+            var namedBase = stack.sp - namedCount + 1;
+            named.setup(stack, namedBase, namedCount, names, synthetic);
+            var positional = this.positional;
+            var positionalBase = namedBase - positionalCount;
+            positional.setup(stack, positionalBase, positionalCount);
+            var blocks = this.blocks;
+            var blocksCount = blockNames.length;
+            var blocksBase = positionalBase - blocksCount * 3;
+            blocks.setup(stack, blocksBase, blocksCount, blockNames);
+        };
+
+        Arguments.prototype.at = function at(pos) {
+            return this.positional.at(pos);
+        };
+
+        Arguments.prototype.realloc = function realloc(offset) {
+            var stack = this.stack;
+
+            if (offset > 0 && stack !== null) {
+                var positional = this.positional,
+                    named = this.named;
+
+                var newBase = positional.base + offset;
+                var length = positional.length + named.length;
+                for (var i = length - 1; i >= 0; i--) {
+                    stack.copy(i + positional.base, i + newBase);
+                }
+                positional.base += offset;
+                named.base += offset;
+                stack.sp += offset;
+            }
+        };
+
+        Arguments.prototype.capture = function capture() {
+            var positional = this.positional.length === 0 ? EMPTY_POSITIONAL : this.positional.capture();
+            var named = this.named.length === 0 ? EMPTY_NAMED : this.named.capture();
+            return {
+                tag: this.tag,
+                length: this.length,
+                positional: positional,
+                named: named
+            };
+        };
+
+        Arguments.prototype.clear = function clear() {
+            var stack = this.stack,
+                length = this.length;
+
+            if (length > 0 && stack !== null) stack.pop(length);
+        };
+
+        (0, _emberBabel.createClass)(Arguments, [{
+            key: 'tag',
+            get: function () {
+                return (0, _reference.combineTagged)([this.positional, this.named]);
+            }
+        }, {
+            key: 'base',
+            get: function () {
+                return this.blocks.base;
+            }
+        }, {
+            key: 'length',
+            get: function () {
+                return this.positional.length + this.named.length + this.blocks.length * 3;
+            }
+        }]);
+        return Arguments;
+    }();
+
+    var PositionalArguments = function () {
+        function PositionalArguments() {
+            (0, _emberBabel.classCallCheck)(this, PositionalArguments);
+
+            this.base = 0;
+            this.length = 0;
+            this.stack = null;
+            this._tag = null;
+            this._references = null;
+        }
+
+        PositionalArguments.prototype.setup = function setup(stack, base, length) {
+            this.stack = stack;
+            this.base = base;
+            this.length = length;
+            if (length === 0) {
+                this._tag = _reference.CONSTANT_TAG;
+                this._references = _util.EMPTY_ARRAY;
+            } else {
+                this._tag = null;
+                this._references = null;
+            }
+        };
+
+        PositionalArguments.prototype.at = function at(position) {
+            var base = this.base,
+                length = this.length,
+                stack = this.stack;
+
+            if (position < 0 || position >= length) {
+                return UNDEFINED_REFERENCE;
+            }
+            return stack.get(position, base);
+        };
+
+        PositionalArguments.prototype.capture = function capture() {
+            return new CapturedPositionalArguments(this.tag, this.references);
+        };
+
+        PositionalArguments.prototype.prepend = function prepend(other) {
+            var additions = other.length;
+            if (additions > 0) {
+                var base = this.base,
+                    length = this.length,
+                    stack = this.stack;
+
+                this.base = base = base - additions;
+                this.length = length + additions;
+                for (var i = 0; i < additions; i++) {
+                    stack.set(other.at(i), i, base);
+                }
+                this._tag = null;
+                this._references = null;
+            }
+        };
+
+        (0, _emberBabel.createClass)(PositionalArguments, [{
+            key: 'tag',
+            get: function () {
+                var tag = this._tag;
+                if (!tag) {
+                    tag = this._tag = (0, _reference.combineTagged)(this.references);
+                }
+                return tag;
+            }
+        }, {
+            key: 'references',
+            get: function () {
+                var references = this._references;
+                if (!references) {
+                    var stack = this.stack,
+                        base = this.base,
+                        length = this.length;
+
+                    references = this._references = stack.sliceArray(base, base + length);
+                }
+                return references;
+            }
+        }]);
+        return PositionalArguments;
+    }();
+
+    var CapturedPositionalArguments = function () {
+        function CapturedPositionalArguments(tag, references) {
+            var length = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : references.length;
+            (0, _emberBabel.classCallCheck)(this, CapturedPositionalArguments);
+
+            this.tag = tag;
+            this.references = references;
+            this.length = length;
+        }
+
+        CapturedPositionalArguments.empty = function empty() {
+            return new CapturedPositionalArguments(_reference.CONSTANT_TAG, _util.EMPTY_ARRAY, 0);
+        };
+
+        CapturedPositionalArguments.prototype.at = function at(position) {
+            return this.references[position];
+        };
+
+        CapturedPositionalArguments.prototype.value = function value() {
+            return this.references.map(this.valueOf);
+        };
+
+        CapturedPositionalArguments.prototype.get = function get(name) {
+            var references = this.references,
+                length = this.length;
+
+            if (name === 'length') {
+                return PrimitiveReference.create(length);
+            } else {
+                var idx = parseInt(name, 10);
+                if (idx < 0 || idx >= length) {
+                    return UNDEFINED_REFERENCE;
+                } else {
+                    return references[idx];
+                }
+            }
+        };
+
+        CapturedPositionalArguments.prototype.valueOf = function valueOf(reference$$1) {
+            return reference$$1.value();
+        };
+
+        return CapturedPositionalArguments;
+    }();
+
+    var NamedArguments = function () {
+        function NamedArguments() {
+            (0, _emberBabel.classCallCheck)(this, NamedArguments);
+
+            this.base = 0;
+            this.length = 0;
+            this._references = null;
+            this._names = _util.EMPTY_ARRAY;
+            this._atNames = _util.EMPTY_ARRAY;
+        }
+
+        NamedArguments.prototype.setup = function setup(stack, base, length, names, synthetic) {
+            this.stack = stack;
+            this.base = base;
+            this.length = length;
+            if (length === 0) {
+                this._references = _util.EMPTY_ARRAY;
+                this._names = _util.EMPTY_ARRAY;
+                this._atNames = _util.EMPTY_ARRAY;
+            } else {
+                this._references = null;
+                if (synthetic) {
+                    this._names = names;
+                    this._atNames = null;
+                } else {
+                    this._names = null;
+                    this._atNames = names;
+                }
+            }
+        };
+
+        NamedArguments.prototype.has = function has(name) {
+            return this.names.indexOf(name) !== -1;
+        };
+
+        NamedArguments.prototype.get = function get(name) {
+            var synthetic = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+            var base = this.base,
+                stack = this.stack;
+
+            var names = synthetic ? this.names : this.atNames;
+            var idx = names.indexOf(name);
+            if (idx === -1) {
+                return UNDEFINED_REFERENCE;
+            }
+            return stack.get(idx, base);
+        };
+
+        NamedArguments.prototype.capture = function capture() {
+            return new CapturedNamedArguments(this.tag, this.names, this.references);
+        };
+
+        NamedArguments.prototype.merge = function merge(other) {
+            var extras = other.length;
+
+            if (extras > 0) {
+                var names = this.names,
+                    length = this.length,
+                    stack = this.stack;
+                var extraNames = other.names;
+
+                if (Object.isFrozen(names) && names.length === 0) {
+                    names = [];
+                }
+                for (var i = 0; i < extras; i++) {
+                    var name = extraNames[i];
+                    var idx = names.indexOf(name);
+                    if (idx === -1) {
+                        length = names.push(name);
+                        stack.push(other.references[i]);
+                    }
+                }
+                this.length = length;
+                this._references = null;
+                this._names = names;
+                this._atNames = null;
+            }
+        };
+
+        NamedArguments.prototype.toSyntheticName = function toSyntheticName(name) {
+            return name.slice(1);
+        };
+
+        NamedArguments.prototype.toAtName = function toAtName(name) {
+            return '@' + name;
+        };
+
+        (0, _emberBabel.createClass)(NamedArguments, [{
+            key: 'tag',
+            get: function () {
+                return (0, _reference.combineTagged)(this.references);
+            }
+        }, {
+            key: 'names',
+            get: function () {
+                var names = this._names;
+                if (!names) {
+                    names = this._names = this._atNames.map(this.toSyntheticName);
+                }
+                return names;
+            }
+        }, {
+            key: 'atNames',
+            get: function () {
+                var atNames = this._atNames;
+                if (!atNames) {
+                    atNames = this._atNames = this._names.map(this.toAtName);
+                }
+                return atNames;
+            }
+        }, {
+            key: 'references',
+            get: function () {
+                var references = this._references;
+                if (!references) {
+                    var base = this.base,
+                        length = this.length,
+                        stack = this.stack;
+
+                    references = this._references = stack.sliceArray(base, base + length);
+                }
+                return references;
+            }
+        }]);
+        return NamedArguments;
+    }();
+
+    var CapturedNamedArguments = function () {
+        function CapturedNamedArguments(tag, names, references) {
+            (0, _emberBabel.classCallCheck)(this, CapturedNamedArguments);
+
+            this.tag = tag;
+            this.names = names;
+            this.references = references;
+            this.length = names.length;
+            this._map = null;
+        }
+
+        CapturedNamedArguments.prototype.has = function has(name) {
+            return this.names.indexOf(name) !== -1;
+        };
+
+        CapturedNamedArguments.prototype.get = function get(name) {
+            var names = this.names,
+                references = this.references;
+
+            var idx = names.indexOf(name);
+            if (idx === -1) {
+                return UNDEFINED_REFERENCE;
+            } else {
+                return references[idx];
+            }
+        };
+
+        CapturedNamedArguments.prototype.value = function value() {
+            var names = this.names,
+                references = this.references;
+
+            var out = (0, _util.dict)();
+            for (var i = 0; i < names.length; i++) {
+                var name = names[i];
+                out[name] = references[i].value();
+            }
+            return out;
+        };
+
+        (0, _emberBabel.createClass)(CapturedNamedArguments, [{
+            key: 'map',
+            get: function () {
+                var map = this._map;
+                if (!map) {
+                    var names = this.names,
+                        references = this.references;
+
+                    map = this._map = (0, _util.dict)();
+                    for (var i = 0; i < names.length; i++) {
+                        var name = names[i];
+                        map[name] = references[i];
+                    }
+                }
+                return map;
+            }
+        }]);
+        return CapturedNamedArguments;
+    }();
+
+    var BlockArguments = function () {
+        function BlockArguments() {
+            (0, _emberBabel.classCallCheck)(this, BlockArguments);
+
+            this.internalValues = null;
+            this.internalTag = null;
+            this.names = _util.EMPTY_ARRAY;
+            this.length = 0;
+            this.base = 0;
+        }
+
+        BlockArguments.prototype.setup = function setup(stack, base, length, names) {
+            this.stack = stack;
+            this.names = names;
+            this.base = base;
+            this.length = length;
+            if (length === 0) {
+                this.internalTag = _reference.CONSTANT_TAG;
+                this.internalValues = _util.EMPTY_ARRAY;
+            } else {
+                this.internalTag = null;
+                this.internalValues = null;
+            }
+        };
+
+        BlockArguments.prototype.has = function has(name) {
+            return this.names.indexOf(name) !== -1;
+        };
+
+        BlockArguments.prototype.get = function get(name) {
+            var base = this.base,
+                stack = this.stack,
+                names = this.names;
+
+            var idx = names.indexOf(name);
+            if (names.indexOf(name) === -1) {
+                return null;
+            }
+            var table = stack.get(idx * 3, base);
+            var scope = stack.get(idx * 3 + 1, base); // FIXME(mmun): shouldn't need to cast this
+            var handle = stack.get(idx * 3 + 2, base);
+            return handle === null ? null : [handle, scope, table];
+        };
+
+        BlockArguments.prototype.capture = function capture() {
+            return new CapturedBlockArguments(this.names, this.values);
+        };
+
+        (0, _emberBabel.createClass)(BlockArguments, [{
+            key: 'values',
+            get: function () {
+                var values = this.internalValues;
+                if (!values) {
+                    var base = this.base,
+                        length = this.length,
+                        stack = this.stack;
+
+                    values = this.internalValues = stack.sliceArray(base, base + length * 3);
+                }
+                return values;
+            }
+        }]);
+        return BlockArguments;
+    }();
+
+    var CapturedBlockArguments = function () {
+        function CapturedBlockArguments(names, values) {
+            (0, _emberBabel.classCallCheck)(this, CapturedBlockArguments);
+
+            this.names = names;
+            this.values = values;
+            this.length = names.length;
+        }
+
+        CapturedBlockArguments.prototype.has = function has(name) {
+            return this.names.indexOf(name) !== -1;
+        };
+
+        CapturedBlockArguments.prototype.get = function get(name) {
+            var idx = this.names.indexOf(name);
+            if (idx === -1) return null;
+            return [this.values[idx * 3 + 2], this.values[idx * 3 + 1], this.values[idx * 3]];
+        };
+
+        return CapturedBlockArguments;
+    }();
+
+    var EMPTY_NAMED = new CapturedNamedArguments(_reference.CONSTANT_TAG, _util.EMPTY_ARRAY, _util.EMPTY_ARRAY);
+    var EMPTY_POSITIONAL = new CapturedPositionalArguments(_reference.CONSTANT_TAG, _util.EMPTY_ARRAY);
+    var EMPTY_ARGS = { tag: _reference.CONSTANT_TAG, length: 0, positional: EMPTY_POSITIONAL, named: EMPTY_NAMED };
+
     var VM = function () {
         function VM(program, env, scope, dynamicScope, elementStack) {
             var _this36 = this;
@@ -8258,6 +8259,7 @@ enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer
             this.elementStack = elementStack;
             this.scopeStack.push(scope);
             this.dynamicScopeStack.push(dynamicScope);
+            this.args = new Arguments();
             this.inner = new LowLevelVM(EvaluationStack.empty(), this.heap, program, {
                 debugBefore: function (opcode) {
                     return APPEND_OPCODES.debugBefore(_this36, opcode, opcode.type);
@@ -9090,7 +9092,6 @@ enifed('@glimmer/runtime', ['exports', 'ember-babel', '@glimmer/util', '@glimmer
     exports.CurriedComponentDefinition = CurriedComponentDefinition;
     exports.isCurriedComponentDefinition = isCurriedComponentDefinition;
     exports.curry = curry;
-    exports.ARGS = ARGS;
     exports.DOMChanges = helper$1;
     exports.SVG_NAMESPACE = SVG_NAMESPACE;
     exports.IDOMChanges = DOMChanges;
@@ -10442,11 +10443,12 @@ enifed('container', ['exports', 'ember-babel', 'ember-utils', 'ember-debug', 'em
     };
 
     Container.prototype.destroy = function destroy() {
-      destroyDestroyables(this);
+      resetCache(this);
       this.isDestroyed = true;
     };
 
     Container.prototype.reset = function reset(fullName) {
+      if (this.isDestroyed) return;
       if (fullName === undefined) {
         resetCache(this);
       } else {
@@ -15147,7 +15149,7 @@ enifed('ember-glimmer', ['exports', '@glimmer/runtime', '@glimmer/node', 'ember-
         return typeof helper === 'object' && helper !== null && helper.class && helper.class.isHelperFactory;
     }
     function isSimpleHelper(helper) {
-        return helper.class.isSimpleHelper;
+        return helper.destroy === undefined;
     }
     /**
       Ember Helpers are functions that can compute values, and are used in templates.
@@ -15199,8 +15201,7 @@ enifed('ember-glimmer', ['exports', '@glimmer/runtime', '@glimmer/node', 'ember-
         }
     });
     Helper.reopenClass({
-        isHelperFactory: true,
-        isSimpleHelper: false
+        isHelperFactory: true
     });
 
     var Wrapper = function () {
@@ -15209,11 +15210,13 @@ enifed('ember-glimmer', ['exports', '@glimmer/runtime', '@glimmer/node', 'ember-
 
             this.compute = compute;
             this.isHelperFactory = true;
-            this.isSimpleHelper = true;
         }
 
         Wrapper.prototype.create = function create() {
-            return this;
+            // needs new instance or will leak containers
+            return {
+                compute: this.compute
+            };
         };
 
         return Wrapper;
@@ -15750,8 +15753,8 @@ enifed('ember-glimmer', ['exports', '@glimmer/runtime', '@glimmer/node', 'ember-
       In these contexts,
       the helper is called a "closure action" helper. Its behavior is simple:
       If passed a function name, read that function off the `actions` property
-      of the current context. Once that function is read (or if a function was
-      passed), create a closure over that function and any arguments.
+      of the current context. Once that function is read, or immediately if a function was
+      passed, create a closure over that function and any arguments.
       The resulting value of an action helper used this way is simply a function.
     
       For example, in the attribute context:
@@ -17629,7 +17632,9 @@ enifed('ember-glimmer', ['exports', '@glimmer/runtime', '@glimmer/node', 'ember-
                 return false;
             }
             if ((0, _emberMetal.get)(this, 'loading')) {
-                (true && (0, _emberDebug.warn)('This link-to is in an inactive loading state because at least one of its parameters presently has a null/undefined value, or the provided route name is invalid.', false));
+                (true && (0, _emberDebug.warn)('This link-to is in an inactive loading state because at least one of its parameters presently has a null/undefined value, or the provided route name is invalid.', false, {
+                    id: 'ember-glimmer.link-to.inactive-loading-state'
+                }));
 
                 return false;
             }
@@ -22311,14 +22316,11 @@ enifed('ember-glimmer', ['exports', '@glimmer/runtime', '@glimmer/node', 'ember-
             if (!isHelperFactory(factory)) {
                 return null;
             }
-            if (isSimpleHelper(factory)) {
-                var _helper$$ = factory.create().compute;
-                return function (_vm, args) {
-                    return SimpleHelperReference.create(_helper$$, args.capture());
-                };
-            }
             return function (vm, args) {
                 var helper$$1 = factory.create();
+                if (isSimpleHelper(helper$$1)) {
+                    return new SimpleHelperReference(helper$$1.compute, args.capture());
+                }
                 vm.newDestroyable(helper$$1);
                 return ClassBasedHelperReference.create(helper$$1, args.capture());
             };
@@ -26313,9 +26315,11 @@ enifed('ember-metal', ['exports', 'ember-environment', 'ember-utils', 'ember-deb
   */
   /**
     Sets the value of a property on an object, respecting computed properties
-    and notifying observers and other listeners of the change. If the
-    property is not defined but the object implements the `setUnknownProperty`
-    method then that will be invoked as well.
+    and notifying observers and other listeners of the change.
+    If the specified property is not defined on the object and the object
+    implements the `setUnknownProperty` method, then instead of setting the
+    value of the property on the object, its `setUnknownProperty` handler
+    will be invoked with the two parameters `keyName` and `value`.
   
     ```javascript
     import { set } from '@ember/object';
@@ -26442,7 +26446,7 @@ enifed('ember-metal', ['exports', 'ember-environment', 'ember-utils', 'ember-deb
   }
 
   /**
-  @module @ember/object/computed
+  @module @ember/object
   */
 
   var END_WITH_EACH_REGEX = /\.@each$/;
@@ -26471,7 +26475,7 @@ enifed('ember-metal', ['exports', 'ember-environment', 'ember-utils', 'ember-deb
   
     @method expandProperties
     @static
-    @for @ember/object
+    @for @ember/object/computed
     @public
     @param {String} pattern The property pattern to expand.
     @param {Function} callback The callback to invoke.  It is invoked once per
@@ -46844,7 +46848,7 @@ enifed('ember/index', ['exports', 'require', 'ember-environment', 'node-module',
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.1.1";
+  exports.default = "3.1.2";
 });
 enifed("handlebars", ["exports"], function (exports) {
   "use strict";

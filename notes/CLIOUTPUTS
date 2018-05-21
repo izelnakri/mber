@@ -1,3 +1,33 @@
+==vendor-prefix.js
+window.EmberENV = {{EMBER_ENV}};
+var runningTests = false;
+
+{{content-for 'vendor-prefix'}}
+
+===vendor-suffix.js
+{{content-for 'vendor-suffix'}}
+
+===test-prefix
+ 'use strict';
+
+===test-suffix
+require('{{MODULE_PREFIX}}/tests/test-helper');
+EmberENV.TESTS_FILE_LOADED = true;
+
+====test-support-prefix
+{{content-for 'test-support-prefix'}}
+
+===test-support-suffix
+runningTests = true;
+
+if (window.Testem) {
+  window.Testem.hookIntoTestFramework();
+}
+
+{{content-for 'test-support-suffix'}}
+
+
+
 amd-name-resolver does the path delegation
 FOUNDD!!!: https://github.com/ember-cli/babel-plugin-ember-modules-api-polyfill
 https://github.com/ember-cli/ember-rfc176-data

@@ -18,10 +18,8 @@ const build = async () => {
     name: 'jQuery',
     file: './vendor/jquery.js'
   };
-  const { code } = await bundle.generate(OUTPUT_OPTIONS); // generate code and a sourcemap
 
-  console.log('code is', code);
-
+  await bundle.generate(OUTPUT_OPTIONS); // generate code and a sourcemap
   await bundle.write(OUTPUT_OPTIONS);
 }
 

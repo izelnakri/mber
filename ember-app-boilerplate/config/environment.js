@@ -3,27 +3,10 @@
 
 module.exports = function(environment) {
   let ENV = {
-    'ember-resolver': {
-      features: {
-        EMBER_RESOLVER_MODULE_UNIFICATION: true
-      }
-    },
     modulePrefix: '{{applicationName}}',
     environment,
     rootURL: '/',
     locationType: 'auto',
-    EmberENV: {
-      FEATURES: {
-        // Here you can enable experimental features on an ember canary build
-        // e.g. 'with-controller': true
-        'ember-module-unification': true
-      },
-      EXTEND_PROTOTYPES: {
-        // Prevent Ember Data from overriding Date.parse.
-        Date: false
-      }
-    },
-
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
@@ -39,8 +22,7 @@ module.exports = function(environment) {
   }
 
   if (environment === 'test') {
-    // Testem prefers this...
-    ENV.locationType = 'none';
+    ENV.locationType = 'none'; // Testem prefers this...
 
     // keep test console output quieter
     ENV.APP.LOG_ACTIVE_GENERATION = false;
