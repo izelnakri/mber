@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "engines": {
@@ -11,21 +11,21 @@
   },
   "scripts": {
     "build:jquery": "node -r esm scripts/global-jquery",
-    "build:loader": "cp -r ./node_modules/loader.js/dist/loader/* ./vendor",
-    "build:ember-source": "cp -r ./node_modules/ember-source/dist/* ./vendor",
+    "build:loader": "cp ./node_modules/loader.js/dist/loader/loader.js ./vendor",
+    "build:ember-source": "cp ./node_modules/ember-source/dist/ember-template-compiler.js ./vendor && cp ./node_modules/ember-source/dist/ember-testing.js ./vendor",
     "build:welcome-page": "cp ./scripts/welcome-page.js ./vendor/welcome-page.js",
-    "build:full-ember": "",
-    "build:no-ember-data": "",
-    "build:no-jquery-ember": "",
-    "build:only-ember": "",
-    "build": "npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:welcome-page",
+    "build:full-ember": "node -r esm scripts/build-ember-base",
+    "build:no-ember-data": "node -r esm scripts/build-ember-base --exclude-ember-data",
+    "build:no-jquery-ember": "node -r esm scripts/build-ember-base --exclude-jquery",
+    "build:only-ember": "node -r esm scripts/build-ember-base --exclude-ember-data --exclude-jquery",
+    "build": "npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:welcome-page && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember",
     "prepublish": "npm run build",
     "bin": "node -r esm cli.js",
     "test": "ava --verbose"
   },
   "devDependencies": {
     "ava": "^1.0.0-beta.4",
-    "ember-data": "^3.1.1",
+    "ember-data": "3.1.1",
     "ember-load-initializers": "^1.1.0",
     "ember-resolver": "^4.5.5",
     "ember-source": "^3.1.1",
