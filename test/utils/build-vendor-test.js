@@ -23,7 +23,7 @@ test.serial('buildVendor() works', async (t) => {
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-  t.deepEqual(vendorJs.length, 2744427);
+  t.deepEqual(vendorJs.length, 2744431);
 
   injectBrowserToNode(null, {
     url: 'http://localhost:1234',
@@ -55,7 +55,7 @@ test.serial('buildVendor(development) works', async (t) => {
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-  t.deepEqual(vendorJs.length, 2744427);
+  t.deepEqual(vendorJs.length, 2744431);
 
   injectBrowserToNode(null, {
     url: 'http://localhost:1234',
@@ -87,7 +87,7 @@ test.serial('buildVendor(production) works', async (t) => {
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-  t.deepEqual(vendorJs.length, 752879); // 723k
+  t.deepEqual(vendorJs.length, 752884); // 723k
                            // 2743937
   injectBrowserToNode(null, {
     url: 'http://localhost:1234',
@@ -119,7 +119,7 @@ test.serial('buildVendor(test) works', async (t) => {
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-  t.deepEqual(vendorJs.length, 2744519);
+  t.deepEqual(vendorJs.length, 2744523);
 
   injectBrowserToNode(null, {
     url: 'http://localhost:1234',
@@ -151,7 +151,7 @@ test('buildVendor(custom) works', async (t) => {
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-  t.deepEqual(vendorJs.length, 2744519);
+  t.deepEqual(vendorJs.length, 2744426);
 
   injectBrowserToNode(null, {
     url: 'http://localhost:1234',

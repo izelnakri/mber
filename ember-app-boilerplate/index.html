@@ -11,7 +11,12 @@
     <script src="./tmp/vendor.js"></script>
     <script src="./tmp/application.js"></script>
     <script>
-      window.izel = 'testing';
+      window.socket = new WebSocket('ws://localhost:65511');
+
+      socket.addEventListener('message', function(event) {
+        $('.ember-application > .ember-view').remove();
+        $('.ember-application').toggleClass('ember-application');
+      });
     </script>
   </body>
 </html>

@@ -19,6 +19,24 @@ test('--env argument could be read', (t) => {
   mock.removeMock();
 });
 
+test('--port argument could be read', (t) => {
+  t.plan(3);
+
+  const mock = mockProcessARGV(['--port=4200']);
+
+  t.deepEqual(parseCLIArguments(), { port: 4200 });
+
+  mockProcessARGV(['--port=3000']);
+
+  t.deepEqual(parseCLIArguments(), { port: 3000 });
+
+  mockProcessARGV(['--port=8888']);
+
+  t.deepEqual(parseCLIArguments(), { port: 8888 });
+
+  mock.removeMock();
+});
+
 test('--watch argument could be read', (t) => {
   t.plan(2);
 

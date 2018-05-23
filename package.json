@@ -55,6 +55,7 @@
     "babel-register": "^6.26.0",
     "babel6-plugin-strip-heimdall": "^6.0.1",
     "chalk": "^2.4.0",
+    "chokidar": "^2.0.3",
     "esm": "^3.0.34",
     "fs-extra": "^5.0.0",
     "jsdom": "^11.8.0",
