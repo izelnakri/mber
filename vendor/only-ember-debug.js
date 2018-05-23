@@ -53597,6 +53597,96 @@ requireModule('ember')
         exports.default = Ember.OrderedSet;
       });
     
+define('ember-inflector/lib/ext/string', ['ember-inflector/lib/system/string'], function (_string) {
+  'use strict';
+
+  if (Ember.ENV.EXTEND_PROTOTYPES === true || Ember.ENV.EXTEND_PROTOTYPES.String) {
+    /**
+      See {{#crossLink "Ember.String/pluralize"}}{{/crossLink}}
+       @method pluralize
+      @for String
+    */
+    Object.defineProperty(String.prototype, 'pluralize', {
+      get: function () {
+        Ember.deprecate('String.prototype.pluralize() is deprecated. Please explicitly: import { pluralize } from \'ember-inflector\';', false, {
+          id: 'ember-inflector.globals',
+          until: '3.0.0'
+        });
+
+        return function () {
+          return (0, _string.pluralize)(this);
+        };
+      }
+    });
+
+    /**
+      See {{#crossLink "Ember.String/singularize"}}{{/crossLink}}
+       @method singularize
+      @for String
+    */
+    Object.defineProperty(String.prototype, 'singularize', {
+      get: function () {
+        Ember.deprecate('String.prototype.singularize() is deprecated. Please explicitly: import { singularize } from \'ember-inflector\';', false, {
+          id: 'ember-inflector.globals',
+          until: '3.0.0'
+        });
+
+        return function () {
+          return (0, _string.singularize)(this);
+        };
+      }
+    });
+  }
+});
+define('ember-inflector/lib/helpers/singularize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = (0, _makeHelper.default)(function (params) {
+    return (0, _emberInflector.singularize)(params[0]);
+  });
+});
+define('ember-inflector/lib/helpers/pluralize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
+  'use strict';
+
+  exports.__esModule = true;
+
+  function _toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
+  }
+
+  exports.default = (0, _makeHelper.default)(function (params, hash) {
+    var fullParams = new (Function.prototype.bind.apply(Array, [null].concat(_toConsumableArray(params))))();
+
+    if (fullParams.length === 2) {
+      fullParams.push({ withoutCount: hash["without-count"] });
+    }
+
+    return _emberInflector.pluralize.apply(undefined, _toConsumableArray(fullParams));
+  });
+});
+define("ember-inflector/lib/system", ["exports", "ember-inflector/lib/system/inflector", "ember-inflector/lib/system/string", "ember-inflector/lib/system/inflections"], function (exports, _inflector, _string, _inflections) {
+  "use strict";
+
+  exports.__esModule = true;
+  exports.defaultRules = exports.pluralize = exports.singularize = exports.Inflector = undefined;
+
+
+  _inflector.default.inflector = new _inflector.default(_inflections.default);
+
+  exports.Inflector = _inflector.default;
+  exports.singularize = _string.singularize;
+  exports.pluralize = _string.pluralize;
+  exports.defaultRules = _inflections.default;
+});
 define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember-inflector/lib/ext/string'], function (exports, _system) {
   'use strict';
 
@@ -53644,96 +53734,6 @@ define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember
   exports.singularize = _system.singularize;
   exports.defaultRules = _system.defaultRules;
 });
-define("ember-inflector/lib/system", ["exports", "ember-inflector/lib/system/inflector", "ember-inflector/lib/system/string", "ember-inflector/lib/system/inflections"], function (exports, _inflector, _string, _inflections) {
-  "use strict";
-
-  exports.__esModule = true;
-  exports.defaultRules = exports.pluralize = exports.singularize = exports.Inflector = undefined;
-
-
-  _inflector.default.inflector = new _inflector.default(_inflections.default);
-
-  exports.Inflector = _inflector.default;
-  exports.singularize = _string.singularize;
-  exports.pluralize = _string.pluralize;
-  exports.defaultRules = _inflections.default;
-});
-define('ember-inflector/lib/ext/string', ['ember-inflector/lib/system/string'], function (_string) {
-  'use strict';
-
-  if (Ember.ENV.EXTEND_PROTOTYPES === true || Ember.ENV.EXTEND_PROTOTYPES.String) {
-    /**
-      See {{#crossLink "Ember.String/pluralize"}}{{/crossLink}}
-       @method pluralize
-      @for String
-    */
-    Object.defineProperty(String.prototype, 'pluralize', {
-      get: function () {
-        Ember.deprecate('String.prototype.pluralize() is deprecated. Please explicitly: import { pluralize } from \'ember-inflector\';', false, {
-          id: 'ember-inflector.globals',
-          until: '3.0.0'
-        });
-
-        return function () {
-          return (0, _string.pluralize)(this);
-        };
-      }
-    });
-
-    /**
-      See {{#crossLink "Ember.String/singularize"}}{{/crossLink}}
-       @method singularize
-      @for String
-    */
-    Object.defineProperty(String.prototype, 'singularize', {
-      get: function () {
-        Ember.deprecate('String.prototype.singularize() is deprecated. Please explicitly: import { singularize } from \'ember-inflector\';', false, {
-          id: 'ember-inflector.globals',
-          until: '3.0.0'
-        });
-
-        return function () {
-          return (0, _string.singularize)(this);
-        };
-      }
-    });
-  }
-});
-define('ember-inflector/lib/helpers/pluralize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
-  'use strict';
-
-  exports.__esModule = true;
-
-  function _toConsumableArray(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-        arr2[i] = arr[i];
-      }
-
-      return arr2;
-    } else {
-      return Array.from(arr);
-    }
-  }
-
-  exports.default = (0, _makeHelper.default)(function (params, hash) {
-    var fullParams = new (Function.prototype.bind.apply(Array, [null].concat(_toConsumableArray(params))))();
-
-    if (fullParams.length === 2) {
-      fullParams.push({ withoutCount: hash["without-count"] });
-    }
-
-    return _emberInflector.pluralize.apply(undefined, _toConsumableArray(fullParams));
-  });
-});
-define('ember-inflector/lib/helpers/singularize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = (0, _makeHelper.default)(function (params) {
-    return (0, _emberInflector.singularize)(params[0]);
-  });
-});
 define('ember-inflector/lib/system/inflections', ['exports'], function (exports) {
   'use strict';
 
@@ -53747,6 +53747,26 @@ define('ember-inflector/lib/system/inflections', ['exports'], function (exports)
 
     uncountable: ['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'police']
   };
+});
+define('ember-inflector/lib/system/string', ['exports', 'ember-inflector/lib/system/inflector'], function (exports, _inflector) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.singularize = exports.pluralize = undefined;
+
+
+  function pluralize() {
+    var _Inflector$inflector;
+
+    return (_Inflector$inflector = _inflector.default.inflector).pluralize.apply(_Inflector$inflector, arguments);
+  }
+
+  function singularize(word) {
+    return _inflector.default.inflector.singularize(word);
+  }
+
+  exports.pluralize = pluralize;
+  exports.singularize = singularize;
 });
 define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
   'use strict';
@@ -54074,26 +54094,6 @@ define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
 
   exports.default = Inflector;
 });
-define('ember-inflector/lib/system/string', ['exports', 'ember-inflector/lib/system/inflector'], function (exports, _inflector) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.singularize = exports.pluralize = undefined;
-
-
-  function pluralize() {
-    var _Inflector$inflector;
-
-    return (_Inflector$inflector = _inflector.default.inflector).pluralize.apply(_Inflector$inflector, arguments);
-  }
-
-  function singularize(word) {
-    return _inflector.default.inflector.singularize(word);
-  }
-
-  exports.pluralize = pluralize;
-  exports.singularize = singularize;
-});
 define('ember-inflector/lib/utils/make-helper', ['exports'], function (exports) {
   'use strict';
 
@@ -54167,14 +54167,6 @@ define('ember-load-initializers/index', ['exports'], function (exports) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 });
-/*
- * This is a stub file, it must be on disk b/c babel-plugin-debug-macros
- * does not strip the module require when the transpiled variable usage is
- * stripped.
- */
-define("ember-resolver/features", [], function () {
-  "use strict";
-});
 define('ember-resolver/index', ['exports', 'ember-resolver/resolvers/classic'], function (exports, _classic) {
   'use strict';
 
@@ -54185,6 +54177,14 @@ define('ember-resolver/index', ['exports', 'ember-resolver/resolvers/classic'], 
       return _classic.default;
     }
   });
+});
+/*
+ * This is a stub file, it must be on disk b/c babel-plugin-debug-macros
+ * does not strip the module require when the transpiled variable usage is
+ * stripped.
+ */
+define("ember-resolver/features", [], function () {
+  "use strict";
 });
 define('ember-resolver/resolver', ['exports', 'ember-resolver/resolvers/classic'], function (exports, _classic) {
   'use strict';
@@ -54212,18 +54212,6 @@ define('ember-resolver/utils/class-factory', ['exports'], function (exports) {
         }
       }
     };
-  }
-});
-define('ember-resolver/utils/make-dictionary', ['exports'], function (exports) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = makeDictionary;
-  function makeDictionary() {
-    var cache = Object.create(null);
-    cache['_dict'] = null;
-    delete cache['_dict'];
-    return cache;
   }
 });
 define('ember-resolver/resolvers/classic/container-debug-adapter', ['exports', 'ember-resolver/resolvers/classic/index'], function (exports, _index) {
@@ -54326,6 +54314,18 @@ define('ember-resolver/resolvers/classic/container-debug-adapter', ['exports', '
       return types;
     }
   });
+});
+define('ember-resolver/utils/make-dictionary', ['exports'], function (exports) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = makeDictionary;
+  function makeDictionary() {
+    var cache = Object.create(null);
+    cache['_dict'] = null;
+    delete cache['_dict'];
+    return cache;
+  }
 });
 define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/utils/class-factory', 'ember-resolver/utils/make-dictionary'], function (exports, _classFactory, _makeDictionary) {
   'use strict';

@@ -105,10 +105,12 @@ function buildEmberData(projectPath) {
 function writeVendorJS(path, content, environment) {
   if (environment === 'production') {
     const minified = UglifyJS.minify(content, {
-      toplevel: true,
       compress: {
-        negate_iife: false,
-        sequences: 30
+        'negate_iife': false,
+        sequences: 20
+      },
+      output: {
+        semicolons: false, // no difference in size and much easier to debug
       }
     }).code;
 

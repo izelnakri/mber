@@ -64069,6 +64069,14 @@ define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember
   exports.singularize = _system.singularize;
   exports.defaultRules = _system.defaultRules;
 });
+define('ember-inflector/lib/helpers/singularize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = (0, _makeHelper.default)(function (params) {
+    return (0, _emberInflector.singularize)(params[0]);
+  });
+});
 define('ember-inflector/lib/helpers/pluralize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
   'use strict';
 
@@ -64096,13 +64104,25 @@ define('ember-inflector/lib/helpers/pluralize', ['exports', 'ember-inflector', '
     return _emberInflector.pluralize.apply(undefined, _toConsumableArray(fullParams));
   });
 });
-define('ember-inflector/lib/helpers/singularize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
+define('ember-inflector/lib/system/string', ['exports', 'ember-inflector/lib/system/inflector'], function (exports, _inflector) {
   'use strict';
 
   exports.__esModule = true;
-  exports.default = (0, _makeHelper.default)(function (params) {
-    return (0, _emberInflector.singularize)(params[0]);
-  });
+  exports.singularize = exports.pluralize = undefined;
+
+
+  function pluralize() {
+    var _Inflector$inflector;
+
+    return (_Inflector$inflector = _inflector.default.inflector).pluralize.apply(_Inflector$inflector, arguments);
+  }
+
+  function singularize(word) {
+    return _inflector.default.inflector.singularize(word);
+  }
+
+  exports.pluralize = pluralize;
+  exports.singularize = singularize;
 });
 define('ember-inflector/lib/system/inflections', ['exports'], function (exports) {
   'use strict';
@@ -64117,6 +64137,21 @@ define('ember-inflector/lib/system/inflections', ['exports'], function (exports)
 
     uncountable: ['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'police']
   };
+});
+define('ember-inflector/lib/utils/make-helper', ['exports'], function (exports) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = makeHelper;
+  function makeHelper(helperFunction) {
+    if (Ember.Helper) {
+      return Ember.Helper.helper(helperFunction);
+    }
+    if (Ember.HTMLBars) {
+      return Ember.HTMLBars.makeBoundHelper(helperFunction);
+    }
+    return Ember.Handlebars.makeBoundHelper(helperFunction);
+  }
 });
 define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
   'use strict';
@@ -64444,41 +64479,6 @@ define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
 
   exports.default = Inflector;
 });
-define('ember-inflector/lib/system/string', ['exports', 'ember-inflector/lib/system/inflector'], function (exports, _inflector) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.singularize = exports.pluralize = undefined;
-
-
-  function pluralize() {
-    var _Inflector$inflector;
-
-    return (_Inflector$inflector = _inflector.default.inflector).pluralize.apply(_Inflector$inflector, arguments);
-  }
-
-  function singularize(word) {
-    return _inflector.default.inflector.singularize(word);
-  }
-
-  exports.pluralize = pluralize;
-  exports.singularize = singularize;
-});
-define('ember-inflector/lib/utils/make-helper', ['exports'], function (exports) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = makeHelper;
-  function makeHelper(helperFunction) {
-    if (Ember.Helper) {
-      return Ember.Helper.helper(helperFunction);
-    }
-    if (Ember.HTMLBars) {
-      return Ember.HTMLBars.makeBoundHelper(helperFunction);
-    }
-    return Ember.Handlebars.makeBoundHelper(helperFunction);
-  }
-});
 define('ember-load-initializers/index', ['exports'], function (exports) {
   'use strict';
 
@@ -64537,7 +64537,26 @@ define('ember-load-initializers/index', ['exports'], function (exports) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 });
+/*
+ * This is a stub file, it must be on disk b/c babel-plugin-debug-macros
+ * does not strip the module require when the transpiled variable usage is
+ * stripped.
+ */
+define("ember-resolver/features", [], function () {
+  "use strict";
+});
 define('ember-resolver/index', ['exports', 'ember-resolver/resolvers/classic'], function (exports, _classic) {
+  'use strict';
+
+  exports.__esModule = true;
+  Object.defineProperty(exports, 'default', {
+    enumerable: true,
+    get: function () {
+      return _classic.default;
+    }
+  });
+});
+define('ember-resolver/resolver', ['exports', 'ember-resolver/resolvers/classic'], function (exports, _classic) {
   'use strict';
 
   exports.__esModule = true;
@@ -64564,25 +64583,6 @@ define('ember-resolver/utils/class-factory', ['exports'], function (exports) {
       }
     };
   }
-});
-define('ember-resolver/resolver', ['exports', 'ember-resolver/resolvers/classic'], function (exports, _classic) {
-  'use strict';
-
-  exports.__esModule = true;
-  Object.defineProperty(exports, 'default', {
-    enumerable: true,
-    get: function () {
-      return _classic.default;
-    }
-  });
-});
-/*
- * This is a stub file, it must be on disk b/c babel-plugin-debug-macros
- * does not strip the module require when the transpiled variable usage is
- * stripped.
- */
-define("ember-resolver/features", [], function () {
-  "use strict";
 });
 define('ember-resolver/resolvers/classic/container-debug-adapter', ['exports', 'ember-resolver/resolvers/classic/index'], function (exports, _index) {
   'use strict';

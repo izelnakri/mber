@@ -61,7 +61,7 @@
     "klaw": "^2.1.1",
     "mustache": "^2.3.0",
     "ora": "^2.1.0",
-    "parcel-bundler": "^1.7.1",
+    "parcel-bundler": "^1.8.1",
     "rimraf": "^2.6.2",
     "simple-dom": "^1.4.0-alpha.82914663",
     "through2": "^2.0.3",
