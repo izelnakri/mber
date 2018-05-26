@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
   "main": "lib/index.js",
   "engines": {
@@ -28,7 +28,7 @@
     "ember-data": "3.1.1",
     "ember-load-initializers": "^1.1.0",
     "ember-resolver": "^4.5.5",
-    "ember-source": "^3.1.1",
+    "ember-source": "https://s3.amazonaws.com/builds.emberjs.com/canary/shas/5431f71df060e7b5c82c05c300f40e9151d135e8.tgz",
     "eslint": "^4.19.1",
     "jquery": "^3.3.1",
     "loader.js": "^4.7.0",
@@ -44,6 +44,7 @@
   "author": "Izel Nakri",
   "license": "ISC",
   "dependencies": {
+    "@glimmer/resolver": "^0.4.1",
     "amd-name-resolver": "^1.2.0",
     "babel-core": "^6.26.3",
     "babel-plugin-ember-modules-api-polyfill": "^2.3.0",

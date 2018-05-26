@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.1.1
+ * @version   3.2.0-canary+5431f71d
  */
 
 /*globals process */
@@ -188,7 +188,7 @@ enifed('ember-babel', ['exports'], function (exports) {
 
   var slice = exports.slice = Array.prototype.slice;
 });
-enifed('ember-debug/deprecate', ['exports', 'ember-debug/error', 'ember-console', 'ember-environment', 'ember-debug/index', 'ember-debug/handlers'], function (exports, _error, _emberConsole, _emberEnvironment, _index, _handlers) {
+enifed('ember-debug/deprecate', ['exports', 'ember-debug/error', 'ember-environment', 'ember-debug/index', 'ember-debug/handlers'], function (exports, _error, _emberEnvironment, _index, _handlers) {
   'use strict';
 
   exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = undefined;
@@ -235,8 +235,8 @@ enifed('ember-debug/deprecate', ['exports', 'ember-debug/error', 'ember-console'
     @param handler {Function} A function to handle deprecation calls.
     @since 2.1.0
   */
-  /*global __fail__*/
-  var registerHandler = function () {};
+  var registerHandler = function () {}; /*global __fail__*/
+
   var missingOptionsDeprecation = void 0,
       missingOptionsIdDeprecation = void 0,
       missingOptionsUntilDeprecation = void 0,
@@ -263,8 +263,7 @@ enifed('ember-debug/deprecate', ['exports', 'ember-debug/error', 'ember-console'
 
     registerHandler(function logDeprecationToConsole(message, options) {
       var updatedMessage = formatMessage(message, options);
-
-      _emberConsole.default.warn('DEPRECATION: ' + updatedMessage);
+      console.warn('DEPRECATION: ' + updatedMessage); // eslint-disable-line no-console
     });
 
     var captureErrorForStack = void 0;
@@ -304,7 +303,7 @@ enifed('ember-debug/deprecate', ['exports', 'ember-debug/error', 'ember-console'
 
         var updatedMessage = formatMessage(message, options);
 
-        _emberConsole.default.warn('DEPRECATION: ' + updatedMessage + stackStr);
+        console.warn('DEPRECATION: ' + updatedMessage + stackStr); // eslint-disable-line no-console 
       } else {
         next.apply(undefined, arguments);
       }
@@ -534,7 +533,7 @@ enifed('ember-debug/handlers', ['exports'], function (exports) {
   exports.registerHandler = registerHandler;
   exports.invoke = invoke;
 });
-enifed('ember-debug/index', ['exports', 'ember-debug/warn', 'ember-debug/deprecate', 'ember-debug/features', 'ember-debug/error', 'ember-debug/testing', 'ember-environment', 'ember-console', 'ember/features'], function (exports, _warn2, _deprecate2, _features, _error, _testing, _emberEnvironment, _emberConsole, _features2) {
+enifed('ember-debug/index', ['exports', 'ember-debug/warn', 'ember-debug/deprecate', 'ember-debug/features', 'ember-debug/error', 'ember-debug/testing', 'ember-environment', 'ember/features'], function (exports, _warn2, _deprecate2, _features, _error, _testing, _emberEnvironment, _features2) {
   'use strict';
 
   exports._warnIfUsingStrippedFeatureFlags = exports.getDebugFunction = exports.setDebugFunction = exports.deprecateFunc = exports.runInDebug = exports.debugFreeze = exports.debugSeal = exports.deprecate = exports.debug = exports.warn = exports.info = exports.assert = exports.setTesting = exports.isTesting = exports.Error = exports.isFeatureEnabled = exports.registerDeprecationHandler = exports.registerWarnHandler = undefined;
@@ -699,7 +698,13 @@ enifed('ember-debug/index', ['exports', 'ember-debug/warn', 'ember-debug/depreca
       @public
     */
     setDebugFunction('debug', function debug(message) {
-      _emberConsole.default.debug('DEBUG: ' + message);
+      /* eslint-disable no-console */
+      if (console.debug) {
+        console.debug('DEBUG: ' + message);
+      } else {
+        console.log('DEBUG: ' + message);
+      }
+      /* eslint-ensable no-console */
     });
 
     /**
@@ -711,7 +716,9 @@ enifed('ember-debug/index', ['exports', 'ember-debug/warn', 'ember-debug/depreca
       @private
     */
     setDebugFunction('info', function info() {
-      _emberConsole.default.info.apply(undefined, arguments);
+      var _console;
+
+      (_console = console).info.apply(_console, arguments); /* eslint-disable-line no-console */
     });
 
     /**
@@ -895,7 +902,7 @@ enifed("ember-debug/testing", ["exports"], function (exports) {
     testing = !!value;
   }
 });
-enifed('ember-debug/warn', ['exports', 'ember-environment', 'ember-console', 'ember-debug/deprecate', 'ember-debug/index', 'ember-debug/handlers'], function (exports, _emberEnvironment, _emberConsole, _deprecate, _index, _handlers) {
+enifed('ember-debug/warn', ['exports', 'ember-environment', 'ember-debug/deprecate', 'ember-debug/index', 'ember-debug/handlers'], function (exports, _emberEnvironment, _deprecate, _index, _handlers) {
   'use strict';
 
   exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = undefined;
@@ -942,10 +949,12 @@ enifed('ember-debug/warn', ['exports', 'ember-environment', 'ember-console', 'em
     };
 
     registerHandler(function logWarning(message) {
-      _emberConsole.default.warn('WARNING: ' + message);
-      if ('trace' in _emberConsole.default) {
-        _emberConsole.default.trace();
+      /* eslint-disable no-console */
+      console.warn('WARNING: ' + message);
+      if (console.trace) {
+        console.trace();
       }
+      /* eslint-enable no-console */
     });
 
     exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -1727,13 +1736,14 @@ enifed("ember-testing/helpers/key_event", ["exports"], function (exports) {
     return app.testHelpers.triggerEvent(selector, context, type, { keyCode: keyCode, which: keyCode });
   }
 });
-enifed('ember-testing/helpers/pause_test', ['exports', 'ember-runtime', 'ember-console', 'ember-debug'], function (exports, _emberRuntime, _emberConsole, _emberDebug) {
+enifed('ember-testing/helpers/pause_test', ['exports', 'ember-runtime', 'ember-debug'], function (exports, _emberRuntime, _emberDebug) {
   'use strict';
 
   exports.resumeTest = resumeTest;
   exports.pauseTest = pauseTest;
-
-
+  /**
+  @module ember
+  */
   var resume = void 0;
 
   /**
@@ -1742,9 +1752,6 @@ enifed('ember-testing/helpers/pause_test', ['exports', 'ember-runtime', 'ember-c
    @method resumeTest
    @return {void}
    @public
-  */
-  /**
-  @module ember
   */
   function resumeTest() {
     (true && !(resume) && (0, _emberDebug.assert)('Testing has not been paused. There is nothing to resume.', resume));
@@ -1791,7 +1798,8 @@ enifed('ember-testing/helpers/pause_test', ['exports', 'ember-runtime', 'ember-c
    @public
   */
   function pauseTest() {
-    _emberConsole.default.info('Testing paused. Use `resumeTest()` to continue.');
+    // eslint-disable-next-line no-console
+    console.info('Testing paused. Use `resumeTest()` to continue.');
 
     return new _emberRuntime.RSVP.Promise(function (resolve) {
       resume = resolve;
@@ -2037,12 +2045,14 @@ enifed('ember-testing/initializers', ['ember-runtime'], function (_emberRuntime)
     }
   });
 });
-enifed('ember-testing/setup_for_testing', ['exports', 'ember-debug', 'ember-views', 'ember-testing/test/adapter', 'ember-testing/test/pending_requests', 'ember-testing/adapters/adapter', 'ember-testing/adapters/qunit'], function (exports, _emberDebug, _emberViews, _adapter, _pending_requests, _adapter2, _qunit) {
+enifed('ember-testing/setup_for_testing', ['exports', 'ember-debug', 'ember-testing/test/adapter', 'ember-testing/test/pending_requests', 'ember-testing/adapters/adapter', 'ember-testing/adapters/qunit'], function (exports, _emberDebug, _adapter, _pending_requests, _adapter2, _qunit) {
   'use strict';
 
   exports.default = setupForTesting;
 
-
+  /**
+  @module ember
+  */
   /**
     Sets Ember up for testing. This is useful to perform
     basic setup steps in order to unit test.
@@ -2055,8 +2065,6 @@ enifed('ember-testing/setup_for_testing', ['exports', 'ember-debug', 'ember-view
     @since 1.5.0
     @private
   */
-  /* global self */
-
   function setupForTesting() {
     (0, _emberDebug.setTesting)(true);
 
@@ -2066,16 +2074,14 @@ enifed('ember-testing/setup_for_testing', ['exports', 'ember-debug', 'ember-view
       (0, _adapter.setAdapter)(typeof self.QUnit === 'undefined' ? new _adapter2.default() : new _qunit.default());
     }
 
-    if (_emberViews.jQuery) {
-      (0, _emberViews.jQuery)(document).off('ajaxSend', _pending_requests.incrementPendingRequests);
-      (0, _emberViews.jQuery)(document).off('ajaxComplete', _pending_requests.decrementPendingRequests);
+    document.removeEventListener('ajaxSend', _pending_requests.incrementPendingRequests);
+    document.removeEventListener('ajaxComplete', _pending_requests.decrementPendingRequests);
 
-      (0, _pending_requests.clearPendingRequests)();
+    (0, _pending_requests.clearPendingRequests)();
 
-      (0, _emberViews.jQuery)(document).on('ajaxSend', _pending_requests.incrementPendingRequests);
-      (0, _emberViews.jQuery)(document).on('ajaxComplete', _pending_requests.decrementPendingRequests);
-    }
-  }
+    document.addEventListener('ajaxSend', _pending_requests.incrementPendingRequests);
+    document.addEventListener('ajaxComplete', _pending_requests.decrementPendingRequests);
+  } /* global self */
 });
 enifed('ember-testing/support', ['ember-debug', 'ember-views', 'ember-environment'], function (_emberDebug, _emberViews, _emberEnvironment) {
   'use strict';
@@ -2194,7 +2200,7 @@ enifed('ember-testing/test', ['exports', 'ember-testing/test/helpers', 'ember-te
 
   exports.default = Test;
 });
-enifed('ember-testing/test/adapter', ['exports', 'ember-console', 'ember-metal'], function (exports, _emberConsole, _emberMetal) {
+enifed('ember-testing/test/adapter', ['exports', 'ember-metal'], function (exports, _emberMetal) {
   'use strict';
 
   exports.getAdapter = getAdapter;
@@ -2231,7 +2237,8 @@ enifed('ember-testing/test/adapter', ['exports', 'ember-console', 'ember-metal']
 
   function adapterDispatch(error) {
     adapter.exception(error);
-    _emberConsole.default.error(error.stack);
+
+    console.error(error.stack); // eslint-disable-line no-console 
   }
 });
 enifed('ember-testing/test/helpers', ['exports', 'ember-testing/test/promise'], function (exports, _promise) {
@@ -2426,11 +2433,19 @@ enifed("ember-testing/test/pending_requests", ["exports"], function (exports) {
     requests.length = 0;
   }
 
-  function incrementPendingRequests(_, xhr) {
+  function incrementPendingRequests() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { detail: { xhr: null } },
+        detail = _ref.detail;
+
+    var xhr = detail.xhr;
     requests.push(xhr);
   }
 
-  function decrementPendingRequests(_, xhr) {
+  function decrementPendingRequests() {
+    var _ref2 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { detail: { xhr: null } },
+        detail = _ref2.detail;
+
+    var xhr = detail.xhr;
     for (var i = 0; i < requests.length; i++) {
       if (xhr === requests[i]) {
         requests.splice(i, 1);

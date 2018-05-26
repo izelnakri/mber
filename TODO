@@ -5,6 +5,13 @@
 - listen /public
 - listen index.html, and listen app.import(module) from node_modules
 ui/index.html
+
+content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
+
+destDir: `${this.name}/tests/src/`,
+
+lint code -> lint templates
+
 // ml-button/component  + ml/button/template
 
 - cache ember-inflector, ember-data, ember-load-initializers, ember-resolver

@@ -59,8 +59,10 @@ function readBuildFiles(projectPath, environment, options={
 
   let baseBuilds = [
     readFileAsync(`${MODULE_PATH}/loader.js/dist/loader/loader.js`),
-    options.excludeJQuery ? new Promise((resolve) => resolve('')) :
-      readFileAsync(`${VENDOR_PATH}/jquery.js`),
+    options.excludeJQuery ?
+      new Promise((resolve) => resolve('')) : readFileAsync(`${VENDOR_PATH}/jquery.js`),
+    importAddonToAMD('@glimmer/resolver', '@glimmer/resolver/dist/commonjs/es2017'),
+    readFileAsync(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     injectEmberJS(MODULE_PATH, environment),
     new Promise((resolve) => resolve(`
       define('@ember/ordered-set/index', ['exports'], function (exports) {
@@ -76,7 +78,8 @@ function readBuildFiles(projectPath, environment, options={
 
   return baseBuilds.concat([
     importAddonToAMD('ember-load-initializers', 'ember-load-initializers/addon'),
-    importAddonToAMD('ember-resolver', 'ember-resolver/addon')
+    importAddonToAMD('ember-resolver', 'ember-resolver/addon'),
+    importAddonToAMD('ember-resolver', 'ember-resolver/mu-trees/addon')
   ]);
 }
 
