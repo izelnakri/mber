@@ -34,7 +34,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
   console.log('stdout is', stdout);
 
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(/ember BUILT: vendor\.js in \d+ms \[2\.74 MB\] Environment: development/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[2\.81 MB\] Environment: development/g.test(stdout));
 
   const timeTakenForVendor = stdout.match(/vendor\.js in \d+ms/g)[0]
     .replace('vendor.js in ', '')
@@ -43,7 +43,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
   t.true(stdout.includes('ember BUILDING: application.js...'));
-  t.true(/ember BUILT: application\.js in \d+ms \[0\.00 MB\] Environment: development/g.test(stdout));
+  t.true(/ember BUILT: application\.js in \d+ms \[0\.0\d MB\] Environment: development/g.test(stdout));
 
   const timeTakenForApplication = stdout.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -53,8 +53,8 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 
   t.true(/ember BUNDLED: dummyapp in \d+ms/g.test(stdout));
   t.true(/Built project successfully\. Stored in "\.\/dist":/g.test(stdout));
-  t.true(/- \.\/dist\/application\.\w+\.js: 0\.01 MB \[0\.00 MB gzipped\]/g.test(stdout));
-  t.true(/- \.\/dist\/vendor\.\w+\.js: 2\.85 MB \[0\.60 MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/application\.\w+\.js: 0\.0\d MB \[0\.0\d MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/vendor\.\w+\.js: 2\.91 MB \[0\.61 MB gzipped\]/g.test(stdout));
 
   await Promise.all([
     readdirAsync('./dummyapp/dist'),
@@ -101,7 +101,7 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
   console.log('stdout is', stdout);
 
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(/ember BUILT: vendor\.js in \d+ms \[0\.75 MB\] Environment: production/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[0\.77 MB\] Environment: production/g.test(stdout));
 
   const timeTakenForVendor = stdout.match(/vendor\.js in \d+ms/g)[0]
     .replace('vendor.js in ', '')
@@ -110,7 +110,7 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
   t.true(1000 < Number(timeTakenForVendor) < 5000);
 
   t.true(stdout.includes('ember BUILDING: application.js...'));
-  t.true(/ember BUILT: application\.js in \d+ms \[0\.00 MB\] Environment: production/g.test(stdout));
+  t.true(/ember BUILT: application\.js in \d+ms \[0\.0\d MB\] Environment: production/g.test(stdout));
 
   const timeTakenForApplication = stdout.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -120,8 +120,8 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
 
   t.true(/ember BUNDLED: dummyapp in \d+ms/g.test(stdout));
   t.true(/Built project successfully\. Stored in "\.\/dist":/g.test(stdout));
-  t.true(/- \.\/dist\/application\.\w+\.js: 0\.01 MB \[0\.00 MB gzipped\]/g.test(stdout));
-  t.true(/- \.\/dist\/vendor\.\w+\.js: 1\.06 MB \[0\.23 MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/application\.\w+\.js: 0\.0\d MB \[0\.0\d MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/vendor\.\w+\.js: 1\.09 MB \[0\.23 MB gzipped\]/g.test(stdout));
 
   await Promise.all([
     readdirAsync('./dummyapp/dist'),
