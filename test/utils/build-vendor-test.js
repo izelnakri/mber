@@ -87,7 +87,7 @@ test.serial('buildVendor(production) works', async (t) => {
 
   const vendorJs = await readFileAsync(`${CWD}/ember-app-boilerplate/tmp/vendor.js`);
 
-  t.deepEqual(vendorJs.length, 752884); // 723k
+  t.deepEqual(vendorJs.length, 752896); // 723k
                            // 2743937
   injectBrowserToNode(null, {
     url: 'http://localhost:1234',

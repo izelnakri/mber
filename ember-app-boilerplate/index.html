@@ -14,8 +14,10 @@
       window.socket = new WebSocket('ws://localhost:65511');
 
       socket.addEventListener('message', function(event) {
+        // TODO: make this without jquery and in the vendor.js
         $('.ember-application > .ember-view').remove();
         $('.ember-application').toggleClass('ember-application');
+        window.location.reload(true);
       });
     </script>
   </body>
