@@ -1,4 +1,8 @@
-- listen entire /src (require('broccoli-source').WatchedDir)
+Building makes /dist/public folder (just copy public there)
+robots.txt will be under /dist not /dist/public
+component-integration-test, component-unit-test
+add linter
+
 - listen /tests is listen et
 - listen /src/ui/styles
 - listen /vendor
@@ -14,15 +18,10 @@ lint code -> lint templates
 
 // ml-button/component  + ml/button/template
 
-- cache ember-inflector, ember-data, ember-load-initializers, ember-resolver
-
-simplistic terms.
-
-// frontend files + templates + fastboot + testing + prepend/append + addon system
+// fastboot + testing + prepend/append + addon system
 
 All I need:
-- Ignore ember-cli-build but yet hack all the needed things (vendor + application.js separation):
- - add ember-cli-*plugins interop
+- add ember-cli-*plugins interop
 - scss compilation
 - figure out a way to run fastboot
 - by default memserver environment.
@@ -34,9 +33,7 @@ All I need:
 - ember-dev-tools
 - ENV.APP.rootElement = '#ember-testing', ENV.APP.autoboot
 - template lint + eslint
-- sass compilation
 - investigate how people use engines
-- make jquery optional
 
 ENV.locationType = 'none';
 // keep test console output quieter
@@ -47,7 +44,6 @@ addons to investigate:
 - ember-cli-sri,
 - ember-cli-csp
 - ember-cli-flash
-- ember-css-modules?
 - ember-i18n
 - ember-flash
 - investigate new ember test helpers

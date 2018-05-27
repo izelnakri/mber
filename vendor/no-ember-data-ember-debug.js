@@ -10733,9 +10733,6 @@ define('@glimmer/resolver/index', ['exports', './resolver', './module-registries
 define("@glimmer/resolver/module-registry", [], function () {
   "use strict";
 });
-define("@glimmer/resolver/resolver-configuration", [], function () {
-  "use strict";
-});
 define("@glimmer/resolver/module-registries/basic-registry", ["exports"], function (exports) {
     "use strict";
 
@@ -10805,6 +10802,9 @@ define('@glimmer/resolver/utils/specifiers', ['exports'], function (exports) {
         }
         return collection;
     }
+});
+define("@glimmer/resolver/resolver-configuration", [], function () {
+  "use strict";
 });
 define('@glimmer/resolver/resolver', ['exports', '@glimmer/di', './utils/debug', './utils/specifiers'], function (exports, _di, _debug, _specifiers) {
     'use strict';
@@ -65456,6 +65456,20 @@ requireModule('ember')
         exports.default = Ember.OrderedSet;
       });
     
+define("ember-inflector/lib/system", ["exports", "ember-inflector/lib/system/inflector", "ember-inflector/lib/system/string", "ember-inflector/lib/system/inflections"], function (exports, _inflector, _string, _inflections) {
+  "use strict";
+
+  exports.__esModule = true;
+  exports.defaultRules = exports.pluralize = exports.singularize = exports.Inflector = undefined;
+
+
+  _inflector.default.inflector = new _inflector.default(_inflections.default);
+
+  exports.Inflector = _inflector.default;
+  exports.singularize = _string.singularize;
+  exports.pluralize = _string.pluralize;
+  exports.defaultRules = _inflections.default;
+});
 define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember-inflector/lib/ext/string'], function (exports, _system) {
   'use strict';
 
@@ -65502,20 +65516,6 @@ define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember
   exports.pluralize = _system.pluralize;
   exports.singularize = _system.singularize;
   exports.defaultRules = _system.defaultRules;
-});
-define("ember-inflector/lib/system", ["exports", "ember-inflector/lib/system/inflector", "ember-inflector/lib/system/string", "ember-inflector/lib/system/inflections"], function (exports, _inflector, _string, _inflections) {
-  "use strict";
-
-  exports.__esModule = true;
-  exports.defaultRules = exports.pluralize = exports.singularize = exports.Inflector = undefined;
-
-
-  _inflector.default.inflector = new _inflector.default(_inflections.default);
-
-  exports.Inflector = _inflector.default;
-  exports.singularize = _string.singularize;
-  exports.pluralize = _string.pluralize;
-  exports.defaultRules = _inflections.default;
 });
 define('ember-inflector/lib/ext/string', ['ember-inflector/lib/system/string'], function (_string) {
   'use strict';
@@ -65606,6 +65606,26 @@ define('ember-inflector/lib/system/inflections', ['exports'], function (exports)
 
     uncountable: ['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'police']
   };
+});
+define('ember-inflector/lib/system/string', ['exports', 'ember-inflector/lib/system/inflector'], function (exports, _inflector) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.singularize = exports.pluralize = undefined;
+
+
+  function pluralize() {
+    var _Inflector$inflector;
+
+    return (_Inflector$inflector = _inflector.default.inflector).pluralize.apply(_Inflector$inflector, arguments);
+  }
+
+  function singularize(word) {
+    return _inflector.default.inflector.singularize(word);
+  }
+
+  exports.pluralize = pluralize;
+  exports.singularize = singularize;
 });
 define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
   'use strict';
@@ -65933,26 +65953,6 @@ define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
 
   exports.default = Inflector;
 });
-define('ember-inflector/lib/system/string', ['exports', 'ember-inflector/lib/system/inflector'], function (exports, _inflector) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.singularize = exports.pluralize = undefined;
-
-
-  function pluralize() {
-    var _Inflector$inflector;
-
-    return (_Inflector$inflector = _inflector.default.inflector).pluralize.apply(_Inflector$inflector, arguments);
-  }
-
-  function singularize(word) {
-    return _inflector.default.inflector.singularize(word);
-  }
-
-  exports.pluralize = pluralize;
-  exports.singularize = singularize;
-});
 define('ember-inflector/lib/utils/make-helper', ['exports'], function (exports) {
   'use strict';
 
@@ -66026,14 +66026,6 @@ define('ember-load-initializers/index', ['exports'], function (exports) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
 });
-/*
- * This is a stub file, it must be on disk b/c babel-plugin-debug-macros
- * does not strip the module require when the transpiled variable usage is
- * stripped.
- */
-define("ember-resolver/features", [], function () {
-  "use strict";
-});
 define('ember-resolver/index', ['exports', 'ember-resolver/resolvers/classic'], function (exports, _classic) {
   'use strict';
 
@@ -66044,6 +66036,14 @@ define('ember-resolver/index', ['exports', 'ember-resolver/resolvers/classic'], 
       return _classic.default;
     }
   });
+});
+/*
+ * This is a stub file, it must be on disk b/c babel-plugin-debug-macros
+ * does not strip the module require when the transpiled variable usage is
+ * stripped.
+ */
+define("ember-resolver/features", [], function () {
+  "use strict";
 });
 define('ember-resolver/resolver', ['exports', 'ember-resolver/resolvers/classic'], function (exports, _classic) {
   'use strict';
@@ -66590,113 +66590,6 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
 
   exports.default = Resolver;
 });
-define('ember-resolver/ember-config', ['exports'], function (exports) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = generateConfig;
-  /*
-   * This config describes canonical Ember, as described in the
-   * module unification spec:
-   *
-   *   https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md
-   *
-   */
-  function generateConfig(name) {
-    return {
-      app: {
-        name: name,
-        rootName: name
-      },
-      types: {
-        adapter: { definitiveCollection: 'models' },
-        application: { definitiveCollection: 'main' },
-        controller: { definitiveCollection: 'routes' },
-        component: { definitiveCollection: 'components' },
-        'component-lookup': { definitiveCollection: 'main' },
-        event_dispatcher: { definitiveCollection: 'main' },
-        helper: { definitiveCollection: 'components' },
-        initializer: { definitiveCollection: 'initializers' },
-        'instance-initializers': { definitiveCollection: 'instance-initializer' },
-        location: { definitiveCollection: 'main' },
-        model: { definitiveCollection: 'models' },
-        partial: { definitiveCollection: 'partials' },
-        renderer: { definitiveCollection: 'main' },
-        route: { definitiveCollection: 'routes' },
-        router: { definitiveCollection: 'main' },
-        serializer: { definitiveCollection: 'models' },
-        service: { definitiveCollection: 'services' },
-        template: { definitiveCollection: 'components' },
-        'template-compiler': { definitiveCollection: 'main' },
-        transform: { definitiveCollection: 'transforms' },
-        view: { definitiveCollection: 'views' },
-        '-view-registry': { definitiveCollection: 'main' },
-        '-bucket-cache': { definitiveCollection: 'main' },
-        '-environment': { definitiveCollection: 'main' },
-        '-application-instance': { definitiveCollection: 'main' }
-      },
-      collections: {
-        'main': {
-          types: ['router', '-bucket-cache', 'component-lookup', '-view-registry', 'event_dispatcher', 'application', 'location', 'renderer', '-environment', '-application-instance']
-        },
-        components: {
-          group: 'ui',
-          privateCollections: ['utils'],
-          types: ['component', 'helper', 'template']
-        },
-        initializers: {
-          group: 'init',
-          defaultType: 'initializer',
-          privateCollections: ['utils'],
-          types: ['initializer']
-        },
-        'instance-initializers': {
-          group: 'init',
-          defaultType: 'instance-initializer',
-          privateCollections: ['utils'],
-          types: ['instance-initializers']
-        },
-        models: {
-          group: 'data',
-          defaultType: 'model',
-          privateCollections: ['utils'],
-          types: ['model', 'adapter', 'serializer']
-        },
-        partials: {
-          group: 'ui',
-          defaultType: 'partial',
-          privateCollections: ['utils'],
-          types: ['partial']
-        },
-        routes: {
-          group: 'ui',
-          defaultType: 'route',
-          privateCollections: ['components', 'utils'],
-          types: ['route', 'controller', 'template']
-        },
-        services: {
-          defaultType: 'service',
-          privateCollections: ['utils'],
-          types: ['service']
-        },
-        utils: {
-          unresolvable: true
-        },
-        views: {
-          defaultType: 'view',
-          privateCollections: ['utils'],
-          types: ['view']
-        },
-        transforms: {
-          group: 'data',
-          defaultType: 'transform',
-          privateCollections: ['utils'],
-          types: ['transform']
-        }
-      }
-    };
-  }
-});
 define('ember-resolver/module-registries/requirejs', ['exports', '@glimmer/di'], function (exports, _di) {
   'use strict';
 
@@ -66810,6 +66703,113 @@ define('ember-resolver/module-registries/requirejs', ['exports', '@glimmer/di'],
   }();
 
   exports.default = RequireJSRegistry;
+});
+define('ember-resolver/ember-config', ['exports'], function (exports) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = generateConfig;
+  /*
+   * This config describes canonical Ember, as described in the
+   * module unification spec:
+   *
+   *   https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md
+   *
+   */
+  function generateConfig(name) {
+    return {
+      app: {
+        name: name,
+        rootName: name
+      },
+      types: {
+        adapter: { definitiveCollection: 'models' },
+        application: { definitiveCollection: 'main' },
+        controller: { definitiveCollection: 'routes' },
+        component: { definitiveCollection: 'components' },
+        'component-lookup': { definitiveCollection: 'main' },
+        event_dispatcher: { definitiveCollection: 'main' },
+        helper: { definitiveCollection: 'components' },
+        initializer: { definitiveCollection: 'initializers' },
+        'instance-initializers': { definitiveCollection: 'instance-initializer' },
+        location: { definitiveCollection: 'main' },
+        model: { definitiveCollection: 'models' },
+        partial: { definitiveCollection: 'partials' },
+        renderer: { definitiveCollection: 'main' },
+        route: { definitiveCollection: 'routes' },
+        router: { definitiveCollection: 'main' },
+        serializer: { definitiveCollection: 'models' },
+        service: { definitiveCollection: 'services' },
+        template: { definitiveCollection: 'components' },
+        'template-compiler': { definitiveCollection: 'main' },
+        transform: { definitiveCollection: 'transforms' },
+        view: { definitiveCollection: 'views' },
+        '-view-registry': { definitiveCollection: 'main' },
+        '-bucket-cache': { definitiveCollection: 'main' },
+        '-environment': { definitiveCollection: 'main' },
+        '-application-instance': { definitiveCollection: 'main' }
+      },
+      collections: {
+        'main': {
+          types: ['router', '-bucket-cache', 'component-lookup', '-view-registry', 'event_dispatcher', 'application', 'location', 'renderer', '-environment', '-application-instance']
+        },
+        components: {
+          group: 'ui',
+          privateCollections: ['utils'],
+          types: ['component', 'helper', 'template']
+        },
+        initializers: {
+          group: 'init',
+          defaultType: 'initializer',
+          privateCollections: ['utils'],
+          types: ['initializer']
+        },
+        'instance-initializers': {
+          group: 'init',
+          defaultType: 'instance-initializer',
+          privateCollections: ['utils'],
+          types: ['instance-initializers']
+        },
+        models: {
+          group: 'data',
+          defaultType: 'model',
+          privateCollections: ['utils'],
+          types: ['model', 'adapter', 'serializer']
+        },
+        partials: {
+          group: 'ui',
+          defaultType: 'partial',
+          privateCollections: ['utils'],
+          types: ['partial']
+        },
+        routes: {
+          group: 'ui',
+          defaultType: 'route',
+          privateCollections: ['components', 'utils'],
+          types: ['route', 'controller', 'template']
+        },
+        services: {
+          defaultType: 'service',
+          privateCollections: ['utils'],
+          types: ['service']
+        },
+        utils: {
+          unresolvable: true
+        },
+        views: {
+          defaultType: 'view',
+          privateCollections: ['utils'],
+          types: ['view']
+        },
+        transforms: {
+          group: 'data',
+          defaultType: 'transform',
+          privateCollections: ['utils'],
+          types: ['transform']
+        }
+      }
+    };
+  }
 });
 define('ember-resolver/resolvers/fallback/index', ['exports', 'ember-resolver', 'ember-resolver/resolvers/glimmer-wrapper'], function (exports, _emberResolver, _glimmerWrapper) {
   'use strict';

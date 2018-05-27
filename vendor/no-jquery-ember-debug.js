@@ -57534,6 +57534,30 @@ define('ember-data/-private/system/map', ['exports'], function (exports) {
 
   exports.default = MapWithDeprecations;
 });
+define('ember-data/-private/system/normalize-model-name', ['exports'], function (exports) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = normalizeModelName;
+
+
+  // All modelNames are dasherized internally. Changing this function may
+  // require changes to other normalization hooks (such as typeForRoot).
+
+  /**
+   This method normalizes a modelName into the format Ember Data uses
+   internally.
+  
+    @method normalizeModelName
+    @public
+    @param {String} modelName
+    @return {String} normalizedModelName
+    @for DS
+  */
+  function normalizeModelName(modelName) {
+    return Ember.String.dasherize(modelName);
+  }
+});
 define('ember-data/-private/system/normalize-link', ['exports'], function (exports) {
   'use strict';
 
@@ -57559,30 +57583,6 @@ define('ember-data/-private/system/normalize-link', ['exports'], function (expor
         return { href: link };
     }
     return null;
-  }
-});
-define('ember-data/-private/system/normalize-model-name', ['exports'], function (exports) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = normalizeModelName;
-
-
-  // All modelNames are dasherized internally. Changing this function may
-  // require changes to other normalization hooks (such as typeForRoot).
-
-  /**
-   This method normalizes a modelName into the format Ember Data uses
-   internally.
-  
-    @method normalizeModelName
-    @public
-    @param {String} modelName
-    @return {String} normalizedModelName
-    @for DS
-  */
-  function normalizeModelName(modelName) {
-    return Ember.String.dasherize(modelName);
   }
 });
 define('ember-data/-private/system/ordered-set', ['exports', '@ember/ordered-set'], function (exports, _orderedSet) {
@@ -62598,236 +62598,6 @@ define('ember-data/-private/system/references/has-many', ['exports', 'ember-data
 
   exports.default = HasManyReference;
 });
-define('ember-data/-private/system/relationships/relationship-payloads-manager', ['exports', 'ember-data/-private/system/relationships/relationship-payloads'], function (exports, _relationshipPayloads) {
-  'use strict';
-
-  exports.__esModule = true;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var RelationshipPayloadsManager = function () {
-    function RelationshipPayloadsManager(store) {
-      _classCallCheck(this, RelationshipPayloadsManager);
-
-      this._store = store;
-      // cache of `RelationshipPayload`s
-      this._cache = Object.create(null);
-      this._inverseLookupCache = new _relationshipPayloads.TypeCache();
-    }
-
-    /**
-      Find the payload for the given relationship of the given model.
-       Returns the payload for the given relationship, whether raw or computed from
-      the payload of the inverse relationship.
-       @example
-         relationshipPayloadsManager.get('hobby', 2, 'user') === {
-          {
-            data: {
-              id: 1,
-              type: 'user'
-            }
-          }
-        }
-       @method
-    */
-
-
-    RelationshipPayloadsManager.prototype.get = function get(modelName, id, relationshipName) {
-      var relationshipPayloads = this._getRelationshipPayloads(modelName, relationshipName, false);
-      return relationshipPayloads && relationshipPayloads.get(modelName, id, relationshipName);
-    };
-
-    RelationshipPayloadsManager.prototype.push = function push(modelName, id, relationshipsData) {
-      var _this = this;
-
-      if (!relationshipsData) {
-        return;
-      }
-
-      Object.keys(relationshipsData).forEach(function (key) {
-        var relationshipPayloads = _this._getRelationshipPayloads(modelName, key, true);
-        if (relationshipPayloads) {
-          relationshipPayloads.push(modelName, id, key, relationshipsData[key]);
-        }
-      });
-    };
-
-    RelationshipPayloadsManager.prototype.unload = function unload(modelName, id) {
-      var _this2 = this;
-
-      var modelClass = this._store._modelFor(modelName);
-      var relationshipsByName = Ember.get(modelClass, 'relationshipsByName');
-      relationshipsByName.forEach(function (_, relationshipName) {
-        var relationshipPayloads = _this2._getRelationshipPayloads(modelName, relationshipName, false);
-        if (relationshipPayloads) {
-          relationshipPayloads.unload(modelName, id, relationshipName);
-        }
-      });
-    };
-
-    RelationshipPayloadsManager.prototype._getRelationshipPayloads = function _getRelationshipPayloads(modelName, relationshipName, init) {
-      var relInfo = this.getRelationshipInfo(modelName, relationshipName);
-
-      if (relInfo === null) {
-        return;
-      }
-
-      var cache = this._cache[relInfo.lhs_key];
-
-      if (!cache && init) {
-        return this._initializeRelationshipPayloads(relInfo);
-      }
-
-      return cache;
-    };
-
-    RelationshipPayloadsManager.prototype.getRelationshipInfo = function getRelationshipInfo(modelName, relationshipName) {
-      var inverseCache = this._inverseLookupCache;
-      var store = this._store;
-      var cached = inverseCache.get(modelName, relationshipName);
-
-      // CASE: We have a cached resolution (null if no relationship exists)
-      if (cached !== undefined) {
-        return cached;
-      }
-
-      var modelClass = store._modelFor(modelName);
-      var relationshipsByName = Ember.get(modelClass, 'relationshipsByName');
-
-      // CASE: We don't have a relationship at all
-      if (!relationshipsByName.has(relationshipName)) {
-        inverseCache.set(modelName, relationshipName, null);
-        return null;
-      }
-
-      var inverseMeta = modelClass.inverseFor(relationshipName, store);
-      var relationshipMeta = relationshipsByName.get(relationshipName);
-      var selfIsPolymorphic = relationshipMeta.options !== undefined && relationshipMeta.options.polymorphic === true;
-      var inverseBaseModelName = relationshipMeta.type;
-
-      // CASE: We have no inverse
-      if (!inverseMeta) {
-        var _info = {
-          lhs_key: modelName + ':' + relationshipName,
-          lhs_modelNames: [modelName],
-          lhs_baseModelName: modelName,
-          lhs_relationshipName: relationshipName,
-          lhs_relationshipMeta: relationshipMeta,
-          lhs_isPolymorphic: selfIsPolymorphic,
-          rhs_key: '',
-          rhs_modelNames: [],
-          rhs_baseModelName: inverseBaseModelName,
-          rhs_relationshipName: '',
-          rhs_relationshipMeta: null,
-          rhs_isPolymorphic: false,
-          hasInverse: false,
-          isSelfReferential: false, // modelName === inverseBaseModelName,
-          isReflexive: false
-        };
-
-        inverseCache.set(modelName, relationshipName, _info);
-
-        return _info;
-      }
-
-      // CASE: We do have an inverse
-
-      var inverseRelationshipName = inverseMeta.name;
-      var inverseRelationshipMeta = Ember.get(inverseMeta.type, 'relationshipsByName').get(inverseRelationshipName);
-      var baseModelName = inverseRelationshipMeta.type;
-      var isSelfReferential = baseModelName === inverseBaseModelName;
-
-      // TODO we want to assert this but this breaks all of our shoddily written tests
-      /*
-      if (DEBUG) {
-        let inverseDoubleCheck = inverseMeta.type.inverseFor(inverseRelationshipName, store);
-         assert(`The ${inverseBaseModelName}:${inverseRelationshipName} relationship declares 'inverse: null', but it was resolved as the inverse for ${baseModelName}:${relationshipName}.`, inverseDoubleCheck);
-      }
-      */
-
-      // CASE: We may have already discovered the inverse for the baseModelName
-      // CASE: We have already discovered the inverse
-      cached = inverseCache.get(baseModelName, relationshipName) || inverseCache.get(inverseBaseModelName, inverseRelationshipName);
-      if (cached) {
-        (true && Ember.assert('The ' + inverseBaseModelName + ':' + inverseRelationshipName + ' relationship declares \'inverse: null\', but it was resolved as the inverse for ' + baseModelName + ':' + relationshipName + '.', cached.hasInverse !== false));
-
-
-        var isLHS = cached.lhs_baseModelName === baseModelName;
-        var modelNames = isLHS ? cached.lhs_modelNames : cached.rhs_modelNames;
-        // make this lookup easier in the future by caching the key
-        modelNames.push(modelName);
-        inverseCache.set(modelName, relationshipName, cached);
-
-        return cached;
-      }
-
-      var info = {
-        lhs_key: baseModelName + ':' + relationshipName,
-        lhs_modelNames: [modelName],
-        lhs_baseModelName: baseModelName,
-        lhs_relationshipName: relationshipName,
-        lhs_relationshipMeta: relationshipMeta,
-        lhs_isPolymorphic: selfIsPolymorphic,
-        rhs_key: inverseBaseModelName + ':' + inverseRelationshipName,
-        rhs_modelNames: [],
-        rhs_baseModelName: inverseBaseModelName,
-        rhs_relationshipName: inverseRelationshipName,
-        rhs_relationshipMeta: inverseRelationshipMeta,
-        rhs_isPolymorphic: inverseRelationshipMeta.options !== undefined && inverseRelationshipMeta.options.polymorphic === true,
-        hasInverse: true,
-        isSelfReferential: isSelfReferential,
-        isReflexive: isSelfReferential && relationshipName === inverseRelationshipName
-      };
-
-      // Create entries for the baseModelName as well as modelName to speed up
-      //  inverse lookups
-      inverseCache.set(baseModelName, relationshipName, info);
-      inverseCache.set(modelName, relationshipName, info);
-
-      // Greedily populate the inverse
-      inverseCache.set(inverseBaseModelName, inverseRelationshipName, info);
-
-      return info;
-    };
-
-    RelationshipPayloadsManager.prototype._initializeRelationshipPayloads = function _initializeRelationshipPayloads(relInfo) {
-      var lhsKey = relInfo.lhs_key;
-      var rhsKey = relInfo.rhs_key;
-      var existingPayloads = this._cache[lhsKey];
-
-      if (relInfo.hasInverse === true && relInfo.rhs_isPolymorphic === true) {
-        existingPayloads = this._cache[rhsKey];
-
-        if (existingPayloads !== undefined) {
-          this._cache[lhsKey] = existingPayloads;
-          return existingPayloads;
-        }
-      }
-
-      // populate the cache for both sides of the relationship, as they both use
-      // the same `RelationshipPayloads`.
-      //
-      // This works out better than creating a single common key, because to
-      // compute that key we would need to do work to look up the inverse
-      //
-      var cache = this._cache[lhsKey] = new _relationshipPayloads.default(relInfo);
-
-      if (relInfo.hasInverse === true) {
-        this._cache[rhsKey] = cache;
-      }
-
-      return cache;
-    };
-
-    return RelationshipPayloadsManager;
-  }();
-
-  exports.default = RelationshipPayloadsManager;
-});
 define('ember-data/-private/system/relationships/relationship-payloads', ['exports'], function (exports) {
   'use strict';
 
@@ -63180,6 +62950,236 @@ define('ember-data/-private/system/relationships/relationship-payloads', ['expor
   }();
 
   exports.default = RelationshipPayloads;
+});
+define('ember-data/-private/system/relationships/relationship-payloads-manager', ['exports', 'ember-data/-private/system/relationships/relationship-payloads'], function (exports, _relationshipPayloads) {
+  'use strict';
+
+  exports.__esModule = true;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var RelationshipPayloadsManager = function () {
+    function RelationshipPayloadsManager(store) {
+      _classCallCheck(this, RelationshipPayloadsManager);
+
+      this._store = store;
+      // cache of `RelationshipPayload`s
+      this._cache = Object.create(null);
+      this._inverseLookupCache = new _relationshipPayloads.TypeCache();
+    }
+
+    /**
+      Find the payload for the given relationship of the given model.
+       Returns the payload for the given relationship, whether raw or computed from
+      the payload of the inverse relationship.
+       @example
+         relationshipPayloadsManager.get('hobby', 2, 'user') === {
+          {
+            data: {
+              id: 1,
+              type: 'user'
+            }
+          }
+        }
+       @method
+    */
+
+
+    RelationshipPayloadsManager.prototype.get = function get(modelName, id, relationshipName) {
+      var relationshipPayloads = this._getRelationshipPayloads(modelName, relationshipName, false);
+      return relationshipPayloads && relationshipPayloads.get(modelName, id, relationshipName);
+    };
+
+    RelationshipPayloadsManager.prototype.push = function push(modelName, id, relationshipsData) {
+      var _this = this;
+
+      if (!relationshipsData) {
+        return;
+      }
+
+      Object.keys(relationshipsData).forEach(function (key) {
+        var relationshipPayloads = _this._getRelationshipPayloads(modelName, key, true);
+        if (relationshipPayloads) {
+          relationshipPayloads.push(modelName, id, key, relationshipsData[key]);
+        }
+      });
+    };
+
+    RelationshipPayloadsManager.prototype.unload = function unload(modelName, id) {
+      var _this2 = this;
+
+      var modelClass = this._store._modelFor(modelName);
+      var relationshipsByName = Ember.get(modelClass, 'relationshipsByName');
+      relationshipsByName.forEach(function (_, relationshipName) {
+        var relationshipPayloads = _this2._getRelationshipPayloads(modelName, relationshipName, false);
+        if (relationshipPayloads) {
+          relationshipPayloads.unload(modelName, id, relationshipName);
+        }
+      });
+    };
+
+    RelationshipPayloadsManager.prototype._getRelationshipPayloads = function _getRelationshipPayloads(modelName, relationshipName, init) {
+      var relInfo = this.getRelationshipInfo(modelName, relationshipName);
+
+      if (relInfo === null) {
+        return;
+      }
+
+      var cache = this._cache[relInfo.lhs_key];
+
+      if (!cache && init) {
+        return this._initializeRelationshipPayloads(relInfo);
+      }
+
+      return cache;
+    };
+
+    RelationshipPayloadsManager.prototype.getRelationshipInfo = function getRelationshipInfo(modelName, relationshipName) {
+      var inverseCache = this._inverseLookupCache;
+      var store = this._store;
+      var cached = inverseCache.get(modelName, relationshipName);
+
+      // CASE: We have a cached resolution (null if no relationship exists)
+      if (cached !== undefined) {
+        return cached;
+      }
+
+      var modelClass = store._modelFor(modelName);
+      var relationshipsByName = Ember.get(modelClass, 'relationshipsByName');
+
+      // CASE: We don't have a relationship at all
+      if (!relationshipsByName.has(relationshipName)) {
+        inverseCache.set(modelName, relationshipName, null);
+        return null;
+      }
+
+      var inverseMeta = modelClass.inverseFor(relationshipName, store);
+      var relationshipMeta = relationshipsByName.get(relationshipName);
+      var selfIsPolymorphic = relationshipMeta.options !== undefined && relationshipMeta.options.polymorphic === true;
+      var inverseBaseModelName = relationshipMeta.type;
+
+      // CASE: We have no inverse
+      if (!inverseMeta) {
+        var _info = {
+          lhs_key: modelName + ':' + relationshipName,
+          lhs_modelNames: [modelName],
+          lhs_baseModelName: modelName,
+          lhs_relationshipName: relationshipName,
+          lhs_relationshipMeta: relationshipMeta,
+          lhs_isPolymorphic: selfIsPolymorphic,
+          rhs_key: '',
+          rhs_modelNames: [],
+          rhs_baseModelName: inverseBaseModelName,
+          rhs_relationshipName: '',
+          rhs_relationshipMeta: null,
+          rhs_isPolymorphic: false,
+          hasInverse: false,
+          isSelfReferential: false, // modelName === inverseBaseModelName,
+          isReflexive: false
+        };
+
+        inverseCache.set(modelName, relationshipName, _info);
+
+        return _info;
+      }
+
+      // CASE: We do have an inverse
+
+      var inverseRelationshipName = inverseMeta.name;
+      var inverseRelationshipMeta = Ember.get(inverseMeta.type, 'relationshipsByName').get(inverseRelationshipName);
+      var baseModelName = inverseRelationshipMeta.type;
+      var isSelfReferential = baseModelName === inverseBaseModelName;
+
+      // TODO we want to assert this but this breaks all of our shoddily written tests
+      /*
+      if (DEBUG) {
+        let inverseDoubleCheck = inverseMeta.type.inverseFor(inverseRelationshipName, store);
+         assert(`The ${inverseBaseModelName}:${inverseRelationshipName} relationship declares 'inverse: null', but it was resolved as the inverse for ${baseModelName}:${relationshipName}.`, inverseDoubleCheck);
+      }
+      */
+
+      // CASE: We may have already discovered the inverse for the baseModelName
+      // CASE: We have already discovered the inverse
+      cached = inverseCache.get(baseModelName, relationshipName) || inverseCache.get(inverseBaseModelName, inverseRelationshipName);
+      if (cached) {
+        (true && Ember.assert('The ' + inverseBaseModelName + ':' + inverseRelationshipName + ' relationship declares \'inverse: null\', but it was resolved as the inverse for ' + baseModelName + ':' + relationshipName + '.', cached.hasInverse !== false));
+
+
+        var isLHS = cached.lhs_baseModelName === baseModelName;
+        var modelNames = isLHS ? cached.lhs_modelNames : cached.rhs_modelNames;
+        // make this lookup easier in the future by caching the key
+        modelNames.push(modelName);
+        inverseCache.set(modelName, relationshipName, cached);
+
+        return cached;
+      }
+
+      var info = {
+        lhs_key: baseModelName + ':' + relationshipName,
+        lhs_modelNames: [modelName],
+        lhs_baseModelName: baseModelName,
+        lhs_relationshipName: relationshipName,
+        lhs_relationshipMeta: relationshipMeta,
+        lhs_isPolymorphic: selfIsPolymorphic,
+        rhs_key: inverseBaseModelName + ':' + inverseRelationshipName,
+        rhs_modelNames: [],
+        rhs_baseModelName: inverseBaseModelName,
+        rhs_relationshipName: inverseRelationshipName,
+        rhs_relationshipMeta: inverseRelationshipMeta,
+        rhs_isPolymorphic: inverseRelationshipMeta.options !== undefined && inverseRelationshipMeta.options.polymorphic === true,
+        hasInverse: true,
+        isSelfReferential: isSelfReferential,
+        isReflexive: isSelfReferential && relationshipName === inverseRelationshipName
+      };
+
+      // Create entries for the baseModelName as well as modelName to speed up
+      //  inverse lookups
+      inverseCache.set(baseModelName, relationshipName, info);
+      inverseCache.set(modelName, relationshipName, info);
+
+      // Greedily populate the inverse
+      inverseCache.set(inverseBaseModelName, inverseRelationshipName, info);
+
+      return info;
+    };
+
+    RelationshipPayloadsManager.prototype._initializeRelationshipPayloads = function _initializeRelationshipPayloads(relInfo) {
+      var lhsKey = relInfo.lhs_key;
+      var rhsKey = relInfo.rhs_key;
+      var existingPayloads = this._cache[lhsKey];
+
+      if (relInfo.hasInverse === true && relInfo.rhs_isPolymorphic === true) {
+        existingPayloads = this._cache[rhsKey];
+
+        if (existingPayloads !== undefined) {
+          this._cache[lhsKey] = existingPayloads;
+          return existingPayloads;
+        }
+      }
+
+      // populate the cache for both sides of the relationship, as they both use
+      // the same `RelationshipPayloads`.
+      //
+      // This works out better than creating a single common key, because to
+      // compute that key we would need to do work to look up the inverse
+      //
+      var cache = this._cache[lhsKey] = new _relationshipPayloads.default(relInfo);
+
+      if (relInfo.hasInverse === true) {
+        this._cache[rhsKey] = cache;
+      }
+
+      return cache;
+    };
+
+    return RelationshipPayloadsManager;
+  }();
+
+  exports.default = RelationshipPayloadsManager;
 });
 define('ember-data/-private/system/store/finders', ['exports', 'ember-data/-private/system/store/common', 'ember-data/-private/system/store/serializer-response', 'ember-data/-private/system/store/serializers'], function (exports, _common, _serializerResponse, _serializers) {
   'use strict';

@@ -5,6 +5,7 @@ require('babel-register')({
 require('babel-polyfill');
 
 process.title = 'mber';
+global.mainContext = global; // NOTE: needed for ember-template-compiler
 
 let shouldRunCommand = false;
 
