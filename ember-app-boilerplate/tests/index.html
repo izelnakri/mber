@@ -7,16 +7,22 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="./tmp/vendor.css">
-    <link rel="stylesheet" href="./tmp/application.css">
-    <link rel="stylesheet" href="./tmp/test-support.css">
+    <link rel="stylesheet" href="../tmp/application.css">
+    <link rel="stylesheet" href="../tmp/test-support.css">
   </head>
   <body>
+    <div id="qunit"></div>
+    <div id="qunit-fixture"></div>
+
+    <div id="ember-testing-container">
+      <div id="ember-testing"></div>
+    </div>
+
     <!-- is testem necessary ? -->
-    <script src="/testem.js" integrity=""></script>
-    <script src="./tmp/vendor.js"></script>
-    <script src="./tmp/test-support.js"></script>
-    <script src="./tmp/application.js"></script>
-    <script src="./tmp/tests.js"></script>
+    <script src="../tmp/vendor.js"></script>
+    <script>Ember.testing = true;</script>
+    <script src="../tmp/test-support.js"></script>
+    <script src="../tmp/application.js"></script>
+    <script src="../tmp/tests.js"></script>
   </body>
 </html>

@@ -55086,6 +55086,20 @@ requireModule('ember')
         exports.default = Ember.OrderedSet;
       });
     
+define("ember-inflector/lib/system", ["exports", "ember-inflector/lib/system/inflector", "ember-inflector/lib/system/string", "ember-inflector/lib/system/inflections"], function (exports, _inflector, _string, _inflections) {
+  "use strict";
+
+  exports.__esModule = true;
+  exports.defaultRules = exports.pluralize = exports.singularize = exports.Inflector = undefined;
+
+
+  _inflector.default.inflector = new _inflector.default(_inflections.default);
+
+  exports.Inflector = _inflector.default;
+  exports.singularize = _string.singularize;
+  exports.pluralize = _string.pluralize;
+  exports.defaultRules = _inflections.default;
+});
 define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember-inflector/lib/ext/string'], function (exports, _system) {
   'use strict';
 
@@ -55133,19 +55147,32 @@ define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember
   exports.singularize = _system.singularize;
   exports.defaultRules = _system.defaultRules;
 });
-define("ember-inflector/lib/system", ["exports", "ember-inflector/lib/system/inflector", "ember-inflector/lib/system/string", "ember-inflector/lib/system/inflections"], function (exports, _inflector, _string, _inflections) {
-  "use strict";
+define('ember-inflector/lib/helpers/pluralize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
+  'use strict';
 
   exports.__esModule = true;
-  exports.defaultRules = exports.pluralize = exports.singularize = exports.Inflector = undefined;
 
+  function _toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
 
-  _inflector.default.inflector = new _inflector.default(_inflections.default);
+      return arr2;
+    } else {
+      return Array.from(arr);
+    }
+  }
 
-  exports.Inflector = _inflector.default;
-  exports.singularize = _string.singularize;
-  exports.pluralize = _string.pluralize;
-  exports.defaultRules = _inflections.default;
+  exports.default = (0, _makeHelper.default)(function (params, hash) {
+    var fullParams = new (Function.prototype.bind.apply(Array, [null].concat(_toConsumableArray(params))))();
+
+    if (fullParams.length === 2) {
+      fullParams.push({ withoutCount: hash["without-count"] });
+    }
+
+    return _emberInflector.pluralize.apply(undefined, _toConsumableArray(fullParams));
+  });
 });
 define('ember-inflector/lib/ext/string', ['ember-inflector/lib/system/string'], function (_string) {
   'use strict';
@@ -55187,33 +55214,6 @@ define('ember-inflector/lib/ext/string', ['ember-inflector/lib/system/string'], 
       }
     });
   }
-});
-define('ember-inflector/lib/helpers/pluralize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
-  'use strict';
-
-  exports.__esModule = true;
-
-  function _toConsumableArray(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
-        arr2[i] = arr[i];
-      }
-
-      return arr2;
-    } else {
-      return Array.from(arr);
-    }
-  }
-
-  exports.default = (0, _makeHelper.default)(function (params, hash) {
-    var fullParams = new (Function.prototype.bind.apply(Array, [null].concat(_toConsumableArray(params))))();
-
-    if (fullParams.length === 2) {
-      fullParams.push({ withoutCount: hash["without-count"] });
-    }
-
-    return _emberInflector.pluralize.apply(undefined, _toConsumableArray(fullParams));
-  });
 });
 define('ember-inflector/lib/helpers/singularize', ['exports', 'ember-inflector', 'ember-inflector/lib/utils/make-helper'], function (exports, _emberInflector, _makeHelper) {
   'use strict';
@@ -56327,23 +56327,6 @@ define('ember-resolver/ember-config', ['exports'], function (exports) {
     };
   }
 });
-define('ember-resolver/resolvers/fallback/index', ['exports', 'ember-resolver', 'ember-resolver/resolvers/glimmer-wrapper'], function (exports, _emberResolver, _glimmerWrapper) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = _glimmerWrapper.default.extend({
-    init: function (options) {
-      this._super(options);
-      this._fallback = _emberResolver.default.create(Ember.assign({
-        namespace: { modulePrefix: this.config.app.name }
-      }, options));
-    },
-    resolve: function (name) {
-      var result = this._super(name);
-      return result || this._fallback.resolve(this._fallback.normalize(name));
-    }
-  });
-});
 define('ember-resolver/module-registries/requirejs', ['exports', '@glimmer/di'], function (exports, _di) {
   'use strict';
 
@@ -56457,6 +56440,23 @@ define('ember-resolver/module-registries/requirejs', ['exports', '@glimmer/di'],
   }();
 
   exports.default = RequireJSRegistry;
+});
+define('ember-resolver/resolvers/fallback/index', ['exports', 'ember-resolver', 'ember-resolver/resolvers/glimmer-wrapper'], function (exports, _emberResolver, _glimmerWrapper) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = _glimmerWrapper.default.extend({
+    init: function (options) {
+      this._super(options);
+      this._fallback = _emberResolver.default.create(Ember.assign({
+        namespace: { modulePrefix: this.config.app.name }
+      }, options));
+    },
+    resolve: function (name) {
+      var result = this._super(name);
+      return result || this._fallback.resolve(this._fallback.normalize(name));
+    }
+  });
 });
 define('ember-resolver/resolvers/glimmer-wrapper/index', ['exports', '@glimmer/resolver/resolver', 'ember-resolver/module-registries/requirejs'], function (exports, _resolver, _requirejs) {
   'use strict';

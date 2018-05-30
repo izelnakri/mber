@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import UglifyJS from 'uglify-js';
 import Console from '../lib/utils/console';
 import importAddonToAMD from '../lib/utils/import-addon-to-amd';
-import searchInParentDirectories from '../lib/utils/search-in-parent-directories';
+import findProjectRoot from '../lib/utils/find-project-root';
 import countTime from '../lib/utils/count-time';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
@@ -18,8 +18,7 @@ function build(environment, options={ excludeJQuery: false, excludeEmberData: fa
     Console.log(chalk.yellow('BUILDING:'), `${FILENAME}...`);
 
     const timer = countTime();
-    const PROJECT_PATH = searchInParentDirectories(process.cwd(), 'package.json')
-      .replace('/package.json', '');
+    const PROJECT_PATH = findProjectRoot();
     const OUTPUT_PATH = `${PROJECT_PATH}/vendor/${FILENAME}.js`;
 
     return Promise.all(readBuildFiles(PROJECT_PATH, environment, options))

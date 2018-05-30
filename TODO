@@ -1,3 +1,5 @@
+toggle Ember.testing: true
+
 Building makes /dist/public folder (just copy public there)
 robots.txt will be under /dist not /dist/public
 component-integration-test, component-unit-test
