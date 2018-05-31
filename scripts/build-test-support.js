@@ -1,5 +1,3 @@
-// TODO: add ember-test-helpers to build-tests along with ember-qunit
-
 import fs from 'fs';
 import { promisify } from 'util';
 import chalk from 'chalk';
@@ -47,7 +45,7 @@ function buildTestVendorCSS() {
     }).then((result) => {
       const compiledCSS = result.css.toString();
 
-      writeFileAsync(`${VENDOR_PATH}/${CSS_FILENAME}`, 'define = window.define;' + compiledCSS).then(() => {
+      writeFileAsync(`${VENDOR_PATH}/${CSS_FILENAME}`, compiledCSS).then(() => {
         const timePassed = timer.stop();
 
         Console.log(`${chalk.green('BUILT:')} vendor/${CSS_FILENAME} in ${formatTimePassed(timePassed)} [${formatSize(compiledCSS.length)}]`);
@@ -65,16 +63,17 @@ function buildTestVendorJS() {
     const timer = countTime();
     return Promise.all([
       readFileAsync(`${VENDOR_PATH}/ember-testing.js`),
+      readFileAsync(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       readFileAsync(`${MODULE_PATH}/qunit/qunit/qunit.js`),
       readFileAsync(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/qunit-configuration.js`),
-      importAddonToAMD('ember-qunit', 'ember-qunit/addon-test-support/ember-qunit'),
-      importAddonToAMD('qunit', 'ember-qunit/addon-test-support/qunit'),
-      importAddonToAMD('ember-cli-test-loader/test-support', 'ember-cli-test-loader/addon-test-support'),
-      readFileAsync(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       importAddonToAMD('@ember/test-helpers', '@ember/test-helpers/addon-test-support/@ember/test-helpers'),
-      importAddonToAMD('ember-test-helpers', '@ember/test-helpers/addon-test-support/ember-test-helpers')
+      importAddonToAMD('ember-cli-test-loader/test-support', 'ember-cli-test-loader/addon-test-support'),
+      importAddonToAMD('ember-cli-qunit', 'ember-cli-test-loader/addon-test-support'), // NOTE: is this needed?
+      importAddonToAMD('ember-qunit', 'ember-qunit/addon-test-support/ember-qunit'),
+      importAddonToAMD('ember-test-helpers', '@ember/test-helpers/addon-test-support/ember-test-helpers'),
+      importAddonToAMD('qunit', 'ember-qunit/addon-test-support/qunit')
     ]).then((jsContents) => {
-      return writeFileAsync(`${VENDOR_PATH}/${JS_FILENAME}`, 'define = window.define;' + jsContents.join('\n') + `
+      return writeFileAsync(`${VENDOR_PATH}/${JS_FILENAME}`, 'define = window.define;require = window.require;' + jsContents.join('\n') + `
         runningTests = true;
 
         if (window.Testem) {

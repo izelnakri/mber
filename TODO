@@ -1,9 +1,12 @@
-toggle Ember.testing: true
+// ember-cli-qunit // TODO: check if its ever imported?! Only once in test.js some things are loaded twice there!! like: tests/addon-test-support/ember-cli-qunit
+// TODO: seems like there supposed to be a different vendor.js for tests?!?!?
+// TODO: we have not imported testem
 
-Building makes /dist/public folder (just copy public there)
-robots.txt will be under /dist not /dist/public
-component-integration-test, component-unit-test
-add linter
+- testem ci mode
+- Building makes /dist/public folder (just copy public there)
+- robots.txt will be under /dist not /dist/public
+- component-integration-test, component-unit-test
+- add linter
 
 - listen /tests is listen et
 - listen /src/ui/styles
@@ -23,8 +26,8 @@ lint code -> lint templates
 // fastboot + testing + prepend/append + addon system
 
 All I need:
-- add ember-cli-*plugins interop
-- scss compilation
+- remove parcel(websocket refresh, build fingerprint under /dist, index.html(as it is), add head there and title)
+- add ember-cli-*plugins interop (app.importAddon())
 - figure out a way to run fastboot
 - by default memserver environment.
 - by default fastboot serve
