@@ -1,4 +1,6 @@
-# mber: Modern Ember.js + Parcel without ember-cli
+# mber: Modern Ember.js, without broccoli.
+
+I just rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much magic. I hoped I wouldnt need to do this but ember-cli has always been getting in to the way of my productivity. I've realized one day rewriting it from scratch is the only way to move forward. It currently looks like I've made a good long term investment by taking the painful path to salvation.
 
 <p>
   WARNING: This is highly experimental, you've been warned.

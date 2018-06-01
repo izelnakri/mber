@@ -1,7 +1,7 @@
 {
   "name": "mber",
-  "version": "0.0.24",
-  "description": "My hobby take on replacing ember-cli with parcel sometime in far future",
+  "version": "0.0.25",
+  "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "lib/index.js",
   "engines": {
     "node": ">=10.0.0"
@@ -13,33 +13,35 @@
     "build:jquery": "node -r esm scripts/global-jquery",
     "build:loader": "cp ./node_modules/loader.js/dist/loader/loader.js ./vendor",
     "build:ember-source": "cp ./node_modules/ember-source/dist/ember-template-compiler.js ./vendor && cp ./node_modules/ember-source/dist/ember-testing.js ./vendor",
-    "build:welcome-page": "cp ./scripts/welcome-page.js ./vendor/welcome-page.js",
     "build:full-ember": "node -r esm scripts/build-ember-base",
     "build:no-ember-data": "node -r esm scripts/build-ember-base --exclude-ember-data",
     "build:no-jquery-ember": "node -r esm scripts/build-ember-base --exclude-jquery",
     "build:only-ember": "node -r esm scripts/build-ember-base --exclude-ember-data --exclude-jquery",
     "build:test-support": "node -r esm scripts/build-test-support",
-    "build": "npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:welcome-page && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support",
+    "build": "npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support",
     "prepublish": "npm run build",
     "bin": "node -r esm cli.js",
     "test": "ava --verbose"
   },
   "devDependencies": {
+    "@ember/test-helpers": "0.7.18",
+    "@glimmer/resolver": "^0.4.1",
     "ava": "^1.0.0-beta.4",
+    "ember-cli-test-loader": "^2.2.0",
     "ember-data": "3.1.1",
     "ember-load-initializers": "^1.1.0",
+    "ember-qunit": "^3.3.2",
     "ember-resolver": "^4.5.5",
     "ember-source": "https://s3.amazonaws.com/builds.emberjs.com/canary/shas/5431f71df060e7b5c82c05c300f40e9151d135e8.tgz",
-    "ember-qunit": "^3.3.2",
     "eslint": "^4.19.1",
     "jquery": "^3.3.1",
     "loader.js": "^4.2.3",
     "mock-require": "^3.0.2",
+    "qunit": "2.6.0",
     "rollup": "^0.58.2",
     "rollup-plugin-commonjs": "^9.1.0",
     "rollup-plugin-node-resolve": "^3.3.0",
-    "qunit": "2.6.0",
-    "@ember/test-helpers": "0.7.18"
+    "rollup-plugin-virtual": "1.0.1"
   },
   "repository": {
     "type": "git",
@@ -48,7 +50,6 @@
   "author": "Izel Nakri",
   "license": "ISC",
   "dependencies": {
-    "@glimmer/resolver": "^0.4.1",
     "amd-name-resolver": "^1.2.0",
     "babel-core": "^6.26.3",
     "babel-plugin-ember-modules-api-polyfill": "^2.3.0",
@@ -60,8 +61,8 @@
     "babel-register": "^6.26.0",
     "babel6-plugin-strip-heimdall": "^6.0.1",
     "chalk": "^2.4.0",
+    "cheerio": "^1.0.0-rc.2",
     "chokidar": "^2.0.3",
-    "ember-cli-test-loader": "^2.2.0",
     "esm": "^3.0.34",
     "fs-extra": "^5.0.0",
     "jsdom": "^11.8.0",
@@ -69,11 +70,11 @@
     "mustache": "^2.3.0",
     "node-sass": "4.9.0",
     "ora": "^2.1.0",
-    "parcel-bundler": "^1.8.1",
     "rimraf": "^2.6.2",
     "simple-dom": "^1.4.0-alpha.82914663",
     "through2": "^2.0.3",
-    "uglify-js": "^3.3.26"
+    "uglify-js": "^3.3.26",
+    "ws": "^5.2.0"
   },
   "ava": {
     "require": [

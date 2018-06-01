@@ -5,7 +5,7 @@ import sass from 'node-sass';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
 import findProjectRoot from '../lib/utils/find-project-root';
-import importAddonToAMD from '../lib/utils/import-addon-to-amd';
+import importAddonToAMD from '../lib/transpilers/import-addon-to-amd';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
 const compileScssAsync = promisify(sass.render);
@@ -68,7 +68,7 @@ function buildTestVendorJS() {
       readFileAsync(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/qunit-configuration.js`),
       importAddonToAMD('@ember/test-helpers', '@ember/test-helpers/addon-test-support/@ember/test-helpers'),
       importAddonToAMD('ember-cli-test-loader/test-support', 'ember-cli-test-loader/addon-test-support'),
-      importAddonToAMD('ember-cli-qunit', 'ember-cli-test-loader/addon-test-support'), // NOTE: is this needed?
+      importAddonToAMD('ember-cli-qunit', 'ember-cli-test-loader/addon-test-support'), // NOTE: check if this is needed
       importAddonToAMD('ember-qunit', 'ember-qunit/addon-test-support/ember-qunit'),
       importAddonToAMD('ember-test-helpers', '@ember/test-helpers/addon-test-support/ember-test-helpers'),
       importAddonToAMD('qunit', 'ember-qunit/addon-test-support/qunit')

@@ -1,37 +1,26 @@
-// ember-cli-qunit // TODO: check if its ever imported?! Only once in test.js some things are loaded twice there!! like: tests/addon-test-support/ember-cli-qunit
-// TODO: seems like there supposed to be a different vendor.js for tests?!?!?
-// TODO: we have not imported testem
-
 - testem ci mode
+
 - Building makes /dist/public folder (just copy public there)
 - robots.txt will be under /dist not /dist/public
-- component-integration-test, component-unit-test
+- component-integration-test, component-unit-test filtering
 - add linter
-
 - listen /tests is listen et
 - listen /src/ui/styles
 - listen /vendor
 - listen /public
 - listen index.html, and listen app.import(module) from node_modules
 ui/index.html
-
 content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
-
-destDir: `${this.name}/tests/src/`,
 
 lint code -> lint templates
 
-// ml-button/component  + ml/button/template
-
-// fastboot + testing + prepend/append + addon system
+- rootURL in the test
+// prepend/append + transforms + addon system(app.importAddon()) + fastboot
 
 All I need:
 - remove parcel(websocket refresh, build fingerprint under /dist, index.html(as it is), add head there and title)
-- add ember-cli-*plugins interop (app.importAddon())
-- figure out a way to run fastboot
 - by default memserver environment.
 - by default fastboot serve
-- transforms and before after injection of a script app.import()
 - HEAD injections
 - html inline injections
 - ENV.APP.API_HOST
@@ -52,3 +41,6 @@ addons to investigate:
 - ember-i18n
 - ember-flash
 - investigate new ember test helpers
+
+- check fastboot-asset-rev-rewrite (https://github.com/rickharrison/broccoli-asset-rev/blob/master/lib/fastboot-manifest-rewrite.js)
+// add generators

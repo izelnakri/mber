@@ -3,9 +3,9 @@ import { promisify } from 'util';
 import chalk from 'chalk';
 import UglifyJS from 'uglify-js';
 import Console from '../lib/utils/console';
-import importAddonToAMD from '../lib/utils/import-addon-to-amd';
-import findProjectRoot from '../lib/utils/find-project-root';
 import countTime from '../lib/utils/count-time';
+import importAddonToAMD from '../lib/transpilers/import-addon-to-amd';
+import findProjectRoot from '../lib/utils/find-project-root';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
 const readFileAsync = promisify(fs.readFile);
@@ -91,8 +91,7 @@ function injectEmberJS(modulePath, environment) {
 }
 
 function buildEmberData(projectPath) {
-  // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
-  const emberDataVersion = require(`${projectPath}/package.json`).devDependencies['ember-data'];
+  const emberDataVersion = require(`${projectPath}/package.json`).devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
 
   return [
     importAddonToAMD('ember-data', 'ember-data/addon'),
@@ -112,7 +111,7 @@ function writeVendorJS(path, content, environment) {
         sequences: 20
       },
       output: {
-        semicolons: false, // no difference in size and much easier to debug
+        semicolons: false
       }
     }).code;
 
@@ -121,10 +120,6 @@ function writeVendorJS(path, content, environment) {
 
   return writeFileAsync(path, content);
 }
-
-const ARGUMENTS = readArguments();
-
-['development', 'production'].forEach((environment) => build(environment, ARGUMENTS));
 
 function readArguments() {
   return process.argv.slice(2).reduce((result, arg) => {
@@ -137,3 +132,7 @@ function readArguments() {
     return result;
   }, {});
 }
+
+const ARGUMENTS = readArguments();
+
+['development', 'production'].forEach((environment) => build(environment, ARGUMENTS));
