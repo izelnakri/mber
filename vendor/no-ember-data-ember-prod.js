@@ -478,8 +478,8 @@ var Wt=x.jQuery,$t=x.$
 return T.noConflict=function(e){return x.$===T&&(x.$=$t),e&&x.jQuery===T&&(x.jQuery=Wt),T},e||(x.jQuery=x.$=T),T},e.exports=t.document?n(t,!0):function(e){if(!e.document)throw new Error("jQuery requires a window with a document")
 return n(e)}}(e={exports:{}},e.exports),e.exports)
 return window.$=window.jQuery=t,t}()
-define("@glimmer/resolver/module-registry",[],function(){}),define("@glimmer/resolver/index",["exports","./resolver","./module-registries/basic-registry"],function(e,t,n){"use strict"
-function r(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(e,"__esModule",{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return r(t).default}}),Object.defineProperty(e,"BasicModuleRegistry",{enumerable:!0,get:function(){return r(n).default}})}),define("@glimmer/resolver/resolver-configuration",[],function(){}),define("@glimmer/resolver/module-registries/basic-registry",["exports"],function(e){"use strict"
+define("@glimmer/resolver/index",["exports","./resolver","./module-registries/basic-registry"],function(e,t,n){"use strict"
+function r(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(e,"__esModule",{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return r(t).default}}),Object.defineProperty(e,"BasicModuleRegistry",{enumerable:!0,get:function(){return r(n).default}})}),define("@glimmer/resolver/module-registry",[],function(){}),define("@glimmer/resolver/resolver-configuration",[],function(){}),define("@glimmer/resolver/module-registries/basic-registry",["exports"],function(e){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0})
 var t=function(){function t(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:{};(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,t),this._entries=e}return t.prototype.has=function(e){return e in this._entries},t.prototype.get=function(e){return this._entries[e]},t}()
 e.default=t}),define("@glimmer/resolver/utils/debug",["exports"],function(e){"use strict"

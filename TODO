@@ -1,32 +1,18 @@
 - testem ci mode
 
-- Building makes /dist/public folder (just copy public there)
-- robots.txt will be under /dist not /dist/public
 - component-integration-test, component-unit-test filtering
-- add linter
-- listen /tests is listen et
-- listen /src/ui/styles
-- listen /vendor
-- listen /public
-- listen index.html, and listen app.import(module) from node_modules
-ui/index.html
+- add linter (js + hbs)
 content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
-
-lint code -> lint templates
-
 - rootURL in the test
 // prepend/append + transforms + addon system(app.importAddon()) + fastboot
 
 All I need:
-- remove parcel(websocket refresh, build fingerprint under /dist, index.html(as it is), add head there and title)
 - by default memserver environment.
 - by default fastboot serve
 - HEAD injections
 - html inline injections
 - ENV.APP.API_HOST
 - ember-dev-tools
-- ENV.APP.rootElement = '#ember-testing', ENV.APP.autoboot
-- template lint + eslint
 - investigate how people use engines
 
 ENV.locationType = 'none';
@@ -44,3 +30,4 @@ addons to investigate:
 
 - check fastboot-asset-rev-rewrite (https://github.com/rickharrison/broccoli-asset-rev/blob/master/lib/fastboot-manifest-rewrite.js)
 // add generators
+CDN

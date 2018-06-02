@@ -66812,6 +66812,23 @@ define('ember-resolver/module-registries/requirejs', ['exports', '@glimmer/di'],
 
   exports.default = RequireJSRegistry;
 });
+define('ember-resolver/resolvers/fallback/index', ['exports', 'ember-resolver', 'ember-resolver/resolvers/glimmer-wrapper'], function (exports, _emberResolver, _glimmerWrapper) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = _glimmerWrapper.default.extend({
+    init: function (options) {
+      this._super(options);
+      this._fallback = _emberResolver.default.create(Ember.assign({
+        namespace: { modulePrefix: this.config.app.name }
+      }, options));
+    },
+    resolve: function (name) {
+      var result = this._super(name);
+      return result || this._fallback.resolve(this._fallback.normalize(name));
+    }
+  });
+});
 define('ember-resolver/resolvers/glimmer-wrapper/index', ['exports', '@glimmer/resolver/resolver', 'ember-resolver/module-registries/requirejs'], function (exports, _resolver, _requirejs) {
   'use strict';
 
@@ -67009,21 +67026,4 @@ define('ember-resolver/resolvers/glimmer-wrapper/index', ['exports', '@glimmer/r
   });
 
   exports.default = Resolver;
-});
-define('ember-resolver/resolvers/fallback/index', ['exports', 'ember-resolver', 'ember-resolver/resolvers/glimmer-wrapper'], function (exports, _emberResolver, _glimmerWrapper) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = _glimmerWrapper.default.extend({
-    init: function (options) {
-      this._super(options);
-      this._fallback = _emberResolver.default.create(Ember.assign({
-        namespace: { modulePrefix: this.config.app.name }
-      }, options));
-    },
-    resolve: function (name) {
-      var result = this._super(name);
-      return result || this._fallback.resolve(this._fallback.normalize(name));
-    }
-  });
 });

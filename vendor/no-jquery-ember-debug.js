@@ -360,10 +360,10 @@ define('@glimmer/resolver/index', ['exports', './resolver', './module-registries
     return obj && obj.__esModule ? obj : { default: obj };
   }
 });
-define("@glimmer/resolver/resolver-configuration", [], function () {
+define("@glimmer/resolver/module-registry", [], function () {
   "use strict";
 });
-define("@glimmer/resolver/module-registry", [], function () {
+define("@glimmer/resolver/resolver-configuration", [], function () {
   "use strict";
 });
 define("@glimmer/resolver/module-registries/basic-registry", ["exports"], function (exports) {
@@ -55223,20 +55223,6 @@ define('ember-inflector/lib/helpers/singularize', ['exports', 'ember-inflector',
     return (0, _emberInflector.singularize)(params[0]);
   });
 });
-define('ember-inflector/lib/system/inflections', ['exports'], function (exports) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = {
-    plurals: [[/$/, 's'], [/s$/i, 's'], [/^(ax|test)is$/i, '$1es'], [/(octop|vir)us$/i, '$1i'], [/(octop|vir)i$/i, '$1i'], [/(alias|status|bonus)$/i, '$1es'], [/(bu)s$/i, '$1ses'], [/(buffal|tomat)o$/i, '$1oes'], [/([ti])um$/i, '$1a'], [/([ti])a$/i, '$1a'], [/sis$/i, 'ses'], [/(?:([^f])fe|([lr])f)$/i, '$1$2ves'], [/(hive)$/i, '$1s'], [/([^aeiouy]|qu)y$/i, '$1ies'], [/(x|ch|ss|sh)$/i, '$1es'], [/(matr|vert|ind)(?:ix|ex)$/i, '$1ices'], [/^(m|l)ouse$/i, '$1ice'], [/^(m|l)ice$/i, '$1ice'], [/^(ox)$/i, '$1en'], [/^(oxen)$/i, '$1'], [/(quiz)$/i, '$1zes']],
-
-    singular: [[/s$/i, ''], [/(ss)$/i, '$1'], [/(n)ews$/i, '$1ews'], [/([ti])a$/i, '$1um'], [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '$1sis'], [/(^analy)(sis|ses)$/i, '$1sis'], [/([^f])ves$/i, '$1fe'], [/(hive)s$/i, '$1'], [/(tive)s$/i, '$1'], [/([lr])ves$/i, '$1f'], [/([^aeiouy]|qu)ies$/i, '$1y'], [/(s)eries$/i, '$1eries'], [/(m)ovies$/i, '$1ovie'], [/(x|ch|ss|sh)es$/i, '$1'], [/^(m|l)ice$/i, '$1ouse'], [/(bus)(es)?$/i, '$1'], [/(o)es$/i, '$1'], [/(shoe)s$/i, '$1'], [/(cris|test)(is|es)$/i, '$1is'], [/^(a)x[ie]s$/i, '$1xis'], [/(octop|vir)(us|i)$/i, '$1us'], [/(alias|status|bonus)(es)?$/i, '$1'], [/^(ox)en/i, '$1'], [/(vert|ind)ices$/i, '$1ex'], [/(matr)ices$/i, '$1ix'], [/(quiz)zes$/i, '$1'], [/(database)s$/i, '$1']],
-
-    irregularPairs: [['person', 'people'], ['man', 'men'], ['child', 'children'], ['sex', 'sexes'], ['move', 'moves'], ['cow', 'kine'], ['zombie', 'zombies']],
-
-    uncountable: ['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'police']
-  };
-});
 define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
   'use strict';
 
@@ -55563,6 +55549,20 @@ define('ember-inflector/lib/system/inflector', ['exports'], function (exports) {
 
   exports.default = Inflector;
 });
+define('ember-inflector/lib/system/inflections', ['exports'], function (exports) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = {
+    plurals: [[/$/, 's'], [/s$/i, 's'], [/^(ax|test)is$/i, '$1es'], [/(octop|vir)us$/i, '$1i'], [/(octop|vir)i$/i, '$1i'], [/(alias|status|bonus)$/i, '$1es'], [/(bu)s$/i, '$1ses'], [/(buffal|tomat)o$/i, '$1oes'], [/([ti])um$/i, '$1a'], [/([ti])a$/i, '$1a'], [/sis$/i, 'ses'], [/(?:([^f])fe|([lr])f)$/i, '$1$2ves'], [/(hive)$/i, '$1s'], [/([^aeiouy]|qu)y$/i, '$1ies'], [/(x|ch|ss|sh)$/i, '$1es'], [/(matr|vert|ind)(?:ix|ex)$/i, '$1ices'], [/^(m|l)ouse$/i, '$1ice'], [/^(m|l)ice$/i, '$1ice'], [/^(ox)$/i, '$1en'], [/^(oxen)$/i, '$1'], [/(quiz)$/i, '$1zes']],
+
+    singular: [[/s$/i, ''], [/(ss)$/i, '$1'], [/(n)ews$/i, '$1ews'], [/([ti])a$/i, '$1um'], [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, '$1sis'], [/(^analy)(sis|ses)$/i, '$1sis'], [/([^f])ves$/i, '$1fe'], [/(hive)s$/i, '$1'], [/(tive)s$/i, '$1'], [/([lr])ves$/i, '$1f'], [/([^aeiouy]|qu)ies$/i, '$1y'], [/(s)eries$/i, '$1eries'], [/(m)ovies$/i, '$1ovie'], [/(x|ch|ss|sh)es$/i, '$1'], [/^(m|l)ice$/i, '$1ouse'], [/(bus)(es)?$/i, '$1'], [/(o)es$/i, '$1'], [/(shoe)s$/i, '$1'], [/(cris|test)(is|es)$/i, '$1is'], [/^(a)x[ie]s$/i, '$1xis'], [/(octop|vir)(us|i)$/i, '$1us'], [/(alias|status|bonus)(es)?$/i, '$1'], [/^(ox)en/i, '$1'], [/(vert|ind)ices$/i, '$1ex'], [/(matr)ices$/i, '$1ix'], [/(quiz)zes$/i, '$1'], [/(database)s$/i, '$1']],
+
+    irregularPairs: [['person', 'people'], ['man', 'men'], ['child', 'children'], ['sex', 'sexes'], ['move', 'moves'], ['cow', 'kine'], ['zombie', 'zombies']],
+
+    uncountable: ['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'police']
+  };
+});
 define('ember-inflector/lib/system/string', ['exports', 'ember-inflector/lib/system/inflector'], function (exports, _inflector) {
   'use strict';
 
@@ -55862,6 +55862,17 @@ define("ember-data/index", ["exports", "ember-data/-private", "ember-data/setup-
 
   exports.default = _private.DS;
 });
+define('ember-data/model', ['exports', 'ember-data/-private'], function (exports, _private) {
+  'use strict';
+
+  exports.__esModule = true;
+  Object.defineProperty(exports, 'default', {
+    enumerable: true,
+    get: function () {
+      return _private.Model;
+    }
+  });
+});
 define('ember-data/initialize-store-service', ['exports'], function (exports) {
   'use strict';
 
@@ -55882,17 +55893,6 @@ define('ember-data/initialize-store-service', ['exports'], function (exports) {
     // Eagerly generate the store so defaultStore is populated.
     container.lookup('service:store');
   }
-});
-define('ember-data/model', ['exports', 'ember-data/-private'], function (exports, _private) {
-  'use strict';
-
-  exports.__esModule = true;
-  Object.defineProperty(exports, 'default', {
-    enumerable: true,
-    get: function () {
-      return _private.Model;
-    }
-  });
 });
 define('ember-data/relationships', ['exports', 'ember-data/-private'], function (exports, _private) {
   'use strict';
@@ -56197,6 +56197,17 @@ define('ember-data/-debug/index', ['exports'], function (exports) {
 
   exports.assertPolymorphicType = assertPolymorphicType;
 });
+define('ember-data/-private/features', ['exports'], function (exports) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = isEnabled;
+  function isEnabled() {
+    var _Ember$FEATURES;
+
+    return (_Ember$FEATURES = Ember.FEATURES).isEnabled.apply(_Ember$FEATURES, arguments);
+  }
+});
 define('ember-data/-private/core', ['exports', 'ember-data/version'], function (exports, _version) {
   'use strict';
 
@@ -56229,17 +56240,6 @@ define('ember-data/-private/core', ['exports', 'ember-data/version'], function (
   }
 
   exports.default = DS;
-});
-define('ember-data/-private/features', ['exports'], function (exports) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = isEnabled;
-  function isEnabled() {
-    var _Ember$FEATURES;
-
-    return (_Ember$FEATURES = Ember.FEATURES).isEnabled.apply(_Ember$FEATURES, arguments);
-  }
 });
 define('ember-data/-private/index', ['exports', 'ember-data/-private/system/model/model', 'ember-data/-private/system/model/errors', 'ember-data/-private/system/store', 'ember-data/-private/core', 'ember-data/-private/system/relationships/belongs-to', 'ember-data/-private/system/relationships/has-many', 'ember-data/-private/adapters/build-url-mixin', 'ember-data/-private/system/snapshot', 'ember-data/-private/adapters/errors', 'ember-data/-private/system/normalize-model-name', 'ember-data/-private/utils', 'ember-data/-private/system/coerce-id', 'ember-data/-private/utils/parse-response-headers', 'ember-data/-private/features', 'ember-data/-private/system/model/states', 'ember-data/-private/system/model/internal-model', 'ember-data/-private/system/promise-proxies', 'ember-data/-private/system/record-arrays', 'ember-data/-private/system/many-array', 'ember-data/-private/system/record-array-manager', 'ember-data/-private/system/relationships/state/relationship', 'ember-data/-private/system/map', 'ember-data/-private/system/map-with-default', 'ember-data/-private/system/debug/debug-adapter', 'ember-data/-private/system/diff-array', 'ember-data/-private/system/relationships/relationship-payloads-manager', 'ember-data/-private/system/relationships/relationship-payloads', 'ember-data/-private/system/snapshot-record-array'], function (exports, _model, _errors, _store, _core, _belongsTo, _hasMany, _buildUrlMixin, _snapshot, _errors2, _normalizeModelName, _utils, _coerceId, _parseResponseHeaders, _features, _states, _internalModel, _promiseProxies, _recordArrays, _manyArray, _recordArrayManager, _relationship, _map, _mapWithDefault, _debugAdapter, _diffArray, _relationshipPayloadsManager, _relationshipPayloads, _snapshotRecordArray) {
   'use strict';
@@ -56626,37 +56626,6 @@ define('ember-data/adapters/errors', ['exports', 'ember-data/-private'], functio
     }
   });
 });
-define('ember-data/transforms/boolean', ['exports', 'ember-data/transforms/transform'], function (exports, _transform) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = _transform.default.extend({
-    deserialize: function (serialized, options) {
-      if (Ember.isNone(serialized) && options.allowNull === true) {
-        return null;
-      }
-
-      var type = typeof serialized;
-      if (type === "boolean") {
-        return serialized;
-      } else if (type === "string") {
-        return (/^(true|t|1)$/i.test(serialized)
-        );
-      } else if (type === "number") {
-        return serialized === 1;
-      } else {
-        return false;
-      }
-    },
-    serialize: function (deserialized, options) {
-      if (Ember.isNone(deserialized) && options.allowNull === true) {
-        return null;
-      }
-
-      return Boolean(deserialized);
-    }
-  });
-});
 define('ember-data/transforms/date', ['exports', 'ember-data/transforms/transform'], function (exports, _transform) {
   'use strict';
 
@@ -56689,6 +56658,37 @@ define('ember-data/transforms/date', ['exports', 'ember-data/transforms/transfor
       } else {
         return null;
       }
+    }
+  });
+});
+define('ember-data/transforms/boolean', ['exports', 'ember-data/transforms/transform'], function (exports, _transform) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = _transform.default.extend({
+    deserialize: function (serialized, options) {
+      if (Ember.isNone(serialized) && options.allowNull === true) {
+        return null;
+      }
+
+      var type = typeof serialized;
+      if (type === "boolean") {
+        return serialized;
+      } else if (type === "string") {
+        return (/^(true|t|1)$/i.test(serialized)
+        );
+      } else if (type === "number") {
+        return serialized === 1;
+      } else {
+        return false;
+      }
+    },
+    serialize: function (deserialized, options) {
+      if (Ember.isNone(deserialized) && options.allowNull === true) {
+        return null;
+      }
+
+      return Boolean(deserialized);
     }
   });
 });
@@ -56952,6 +56952,44 @@ define('ember-data/-private/system/identity-map', ['exports', 'ember-data/-priva
 
   exports.default = IdentityMap;
 });
+define('ember-data/-private/system/is-array-like', ['exports'], function (exports) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.default = isArrayLike;
+
+
+  /*
+    We're using this to detect arrays and "array-like" objects.
+  
+    This is a copy of the `isArray` method found in `ember-runtime/utils` as we're
+    currently unable to import non-exposed modules.
+  
+    This method was previously exposed as `Ember.isArray` but since
+    https://github.com/emberjs/ember.js/pull/11463 `Ember.isArray` is an alias of
+    `Array.isArray` hence removing the "array-like" part.
+   */
+  function isArrayLike(obj) {
+    if (!obj || obj.setInterval) {
+      return false;
+    }
+    if (Array.isArray(obj)) {
+      return true;
+    }
+    if (Ember.Array.detect(obj)) {
+      return true;
+    }
+
+    var type = Ember.typeOf(obj);
+    if ('array' === type) {
+      return true;
+    }
+    if (obj.length !== undefined && 'object' === type) {
+      return true;
+    }
+    return false;
+  }
+});
 define('ember-data/-private/system/internal-model-map', ['exports', 'ember-data/-private/system/model/internal-model'], function (exports, _internalModel) {
   'use strict';
 
@@ -57079,44 +57117,6 @@ define('ember-data/-private/system/internal-model-map', ['exports', 'ember-data/
   }();
 
   exports.default = InternalModelMap;
-});
-define('ember-data/-private/system/is-array-like', ['exports'], function (exports) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.default = isArrayLike;
-
-
-  /*
-    We're using this to detect arrays and "array-like" objects.
-  
-    This is a copy of the `isArray` method found in `ember-runtime/utils` as we're
-    currently unable to import non-exposed modules.
-  
-    This method was previously exposed as `Ember.isArray` but since
-    https://github.com/emberjs/ember.js/pull/11463 `Ember.isArray` is an alias of
-    `Array.isArray` hence removing the "array-like" part.
-   */
-  function isArrayLike(obj) {
-    if (!obj || obj.setInterval) {
-      return false;
-    }
-    if (Array.isArray(obj)) {
-      return true;
-    }
-    if (Ember.Array.detect(obj)) {
-      return true;
-    }
-
-    var type = Ember.typeOf(obj);
-    if ('array' === type) {
-      return true;
-    }
-    if (obj.length !== undefined && 'object' === type) {
-      return true;
-    }
-    return false;
-  }
 });
 define('ember-data/-private/system/many-array', ['exports', 'ember-data/-private/system/promise-proxies', 'ember-data/-private/system/store/common', 'ember-data/-private/system/diff-array'], function (exports, _promiseProxies, _common, _diffArray) {
   'use strict';
@@ -57783,34 +57783,6 @@ define('ember-data/-private/system/references', ['exports', 'ember-data/-private
   exports.BelongsToReference = _belongsTo.default;
   exports.HasManyReference = _hasMany.default;
 });
-define('ember-data/-private/system/relationship-meta', ['exports', 'ember-inflector', 'ember-data/-private/system/normalize-model-name'], function (exports, _emberInflector, _normalizeModelName) {
-  'use strict';
-
-  exports.__esModule = true;
-  exports.typeForRelationshipMeta = typeForRelationshipMeta;
-  exports.relationshipFromMeta = relationshipFromMeta;
-  function typeForRelationshipMeta(meta) {
-    var modelName = void 0;
-
-    modelName = meta.type || meta.key;
-    if (meta.kind === 'hasMany') {
-      modelName = (0, _emberInflector.singularize)((0, _normalizeModelName.default)(modelName));
-    }
-    return modelName;
-  }
-
-  function relationshipFromMeta(meta) {
-    return {
-      key: meta.key,
-      kind: meta.kind,
-      type: typeForRelationshipMeta(meta),
-      options: meta.options,
-      name: meta.name,
-      parentType: meta.parentType,
-      isRelationship: true
-    };
-  }
-});
 define('ember-data/-private/system/snapshot-record-array', ['exports'], function (exports) {
   'use strict';
 
@@ -57962,6 +57934,34 @@ define('ember-data/-private/system/snapshot-record-array', ['exports'], function
   }();
 
   exports.default = SnapshotRecordArray;
+});
+define('ember-data/-private/system/relationship-meta', ['exports', 'ember-inflector', 'ember-data/-private/system/normalize-model-name'], function (exports, _emberInflector, _normalizeModelName) {
+  'use strict';
+
+  exports.__esModule = true;
+  exports.typeForRelationshipMeta = typeForRelationshipMeta;
+  exports.relationshipFromMeta = relationshipFromMeta;
+  function typeForRelationshipMeta(meta) {
+    var modelName = void 0;
+
+    modelName = meta.type || meta.key;
+    if (meta.kind === 'hasMany') {
+      modelName = (0, _emberInflector.singularize)((0, _normalizeModelName.default)(modelName));
+    }
+    return modelName;
+  }
+
+  function relationshipFromMeta(meta) {
+    return {
+      key: meta.key,
+      kind: meta.kind,
+      type: typeForRelationshipMeta(meta),
+      options: meta.options,
+      name: meta.name,
+      parentType: meta.parentType,
+      isRelationship: true
+    };
+  }
 });
 define('ember-data/-private/utils/parse-response-headers', ['exports'], function (exports) {
   'use strict';

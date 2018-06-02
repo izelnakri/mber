@@ -2915,10 +2915,10 @@ var n=t.default
 return n.name||(n.name=e.slice(e.lastIndexOf("/")+1)),n}function c(e,t){return-1!==e.indexOf(t,e.length-t.length)}e.__esModule=!0,e.default=function(e,t){for(var n=t+"/initializers/",r=t+"/instance-initializers/",i=[],o=[],s=Object.keys(requirejs._eak_seen),a=0;a<s.length;a++){var u=s[a]
 0===u.lastIndexOf(n,0)?c(u,"-test")||i.push(u):0===u.lastIndexOf(r,0)&&(c(u,"-test")||o.push(u))}(function(e,t){for(var n=0;n<t.length;n++)e.initializer(l(t[n]))})(e,i),function(e,t){for(var n=0;n<t.length;n++)e.instanceInitializer(l(t[n]))}(e,o)}}),define("ember-resolver/features",[],function(){}),define("ember-resolver/index",["exports","ember-resolver/resolvers/classic"],function(e,t){"use strict"
 e.__esModule=!0,Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t.default}})}),define("ember-resolver/resolver",["exports","ember-resolver/resolvers/classic"],function(e,t){"use strict"
-e.__esModule=!0,Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t.default}})}),define("ember-resolver/utils/class-factory",["exports"],function(e){"use strict"
-e.__esModule=!0,e.default=function(t){return{create:function(e){return"function"==typeof t.extend?t.extend(e):t}}}}),define("ember-resolver/utils/make-dictionary",["exports"],function(e){"use strict"
+e.__esModule=!0,Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t.default}})}),define("ember-resolver/utils/make-dictionary",["exports"],function(e){"use strict"
 e.__esModule=!0,e.default=function(){var e=Object.create(null)
-return e._dict=null,delete e._dict,e}}),define("ember-resolver/resolvers/classic/container-debug-adapter",["exports","ember-resolver/resolvers/classic/index"],function(e,t){"use strict"
+return e._dict=null,delete e._dict,e}}),define("ember-resolver/utils/class-factory",["exports"],function(e){"use strict"
+e.__esModule=!0,e.default=function(t){return{create:function(e){return"function"==typeof t.extend?t.extend(e):t}}}}),define("ember-resolver/resolvers/classic/container-debug-adapter",["exports","ember-resolver/resolvers/classic/index"],function(e,t){"use strict"
 e.__esModule=!0
 var n=Ember.ContainerDebugAdapter
 function u(e,t,n){var r=t.match(new RegExp("^/?"+n+"/(.+)/"+e+"$"))
