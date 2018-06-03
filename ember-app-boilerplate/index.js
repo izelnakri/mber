@@ -18,5 +18,5 @@ module.exports = function(environment) {
   //     };
   //   }
 
-  return app.build();
+  return app.build(environment);
 }
