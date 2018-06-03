@@ -12,7 +12,6 @@ let shouldRunCommand = false;
 const chalk = require('chalk');
 const Console = require('./lib/utils/console').default;
 const printCommand = () => require('./lib/commands').default();
-const parseCLIArguments = () => require('./lib/utils/parse-cli-arguments');
 
 const CLI = {
   default(commandHandler) {

@@ -2,17 +2,17 @@
 
 - component-integration-test, component-unit-test filtering
 - add linter (js + hbs)
+- fastboot(by default on development mode)
+- npm import support
+- memserver ships with mber.
 content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
 - rootURL in the test
-// prepend/append + transforms + addon system(app.importAddon()) + fastboot
 
 All I need:
-- by default memserver environment.
-- by default fastboot serve
 - HEAD injections
 - html inline injections
-- ENV.APP.API_HOST
-- ember-dev-tools
+- ENV.APP.API_HOST (tests)
+- ember-dev-tools injection
 - investigate how people use engines
 
 ENV.locationType = 'none';
