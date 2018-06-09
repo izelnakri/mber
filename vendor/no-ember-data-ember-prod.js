@@ -479,15 +479,7 @@ return T.noConflict=function(e){return x.$===T&&(x.$=$t),e&&x.jQuery===T&&(x.jQu
 return n(e)}}(e={exports:{}},e.exports),e.exports)
 return window.$=window.jQuery=t,t}()
 define("@glimmer/resolver/index",["exports","./resolver","./module-registries/basic-registry"],function(e,t,n){"use strict"
-function r(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(e,"__esModule",{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return r(t).default}}),Object.defineProperty(e,"BasicModuleRegistry",{enumerable:!0,get:function(){return r(n).default}})}),define("@glimmer/resolver/module-registry",[],function(){}),define("@glimmer/resolver/resolver-configuration",[],function(){}),define("@glimmer/resolver/module-registries/basic-registry",["exports"],function(e){"use strict"
-Object.defineProperty(e,"__esModule",{value:!0})
-var t=function(){function t(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:{};(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,t),this._entries=e}return t.prototype.has=function(e){return e in this._entries},t.prototype.get=function(e){return this._entries[e]},t}()
-e.default=t}),define("@glimmer/resolver/utils/debug",["exports"],function(e){"use strict"
-Object.defineProperty(e,"__esModule",{value:!0}),e.assert=function(e,t){if(!t)throw new Error("Assertion Failed: "+e)}}),define("@glimmer/resolver/utils/specifiers",["exports"],function(e){"use strict"
-Object.defineProperty(e,"__esModule",{value:!0}),e.detectLocalResolutionCollection=function(e){var t=e.namespace,n=e.collection,r=t.lastIndexOf("/-")
-if(-1<r){r+=2
-var i=t.indexOf("/",r)
-n=t.slice(r,-1<i?i:void 0)}return n}}),define("@glimmer/resolver/resolver",["exports","@glimmer/di","./utils/debug","./utils/specifiers"],function(e,s,a,u){"use strict"
+function r(e){return e&&e.__esModule?e:{default:e}}Object.defineProperty(e,"__esModule",{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return r(t).default}}),Object.defineProperty(e,"BasicModuleRegistry",{enumerable:!0,get:function(){return r(n).default}})}),define("@glimmer/resolver/module-registry",[],function(){}),define("@glimmer/resolver/resolver-configuration",[],function(){}),define("@glimmer/resolver/resolver",["exports","@glimmer/di","./utils/debug","./utils/specifiers"],function(e,s,a,u){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0})
 var t=function(){function n(e,t){(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,n),this.config=e,this.registry=t}return n.prototype.identify=function(e,t){if((0,s.isSpecifierStringAbsolute)(e))return e
 var n=(0,s.deserializeSpecifier)(e),r=void 0
@@ -502,7 +494,15 @@ n.namespace?(n.rootName=n.namespace,n.namespace=void 0):(n.rootName=n.name,n.nam
 if(n)return this.retrieve(n)},n.prototype._definitiveCollection=function(e){var t=this.config.types[e]
 return(0,a.assert)("'"+e+"' is not a recognized type",t),t.definitiveCollection},n.prototype._serializeAndVerify=function(e){var t=(0,s.serializeSpecifier)(e)
 if(this.registry.has(t))return t},n}()
-e.default=t}),define("@glimmer/di",["exports"],function(e){"use strict"
+e.default=t}),define("@glimmer/resolver/module-registries/basic-registry",["exports"],function(e){"use strict"
+Object.defineProperty(e,"__esModule",{value:!0})
+var t=function(){function t(){var e=0<arguments.length&&void 0!==arguments[0]?arguments[0]:{};(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,t),this._entries=e}return t.prototype.has=function(e){return e in this._entries},t.prototype.get=function(e){return this._entries[e]},t}()
+e.default=t}),define("@glimmer/resolver/utils/debug",["exports"],function(e){"use strict"
+Object.defineProperty(e,"__esModule",{value:!0}),e.assert=function(e,t){if(!t)throw new Error("Assertion Failed: "+e)}}),define("@glimmer/resolver/utils/specifiers",["exports"],function(e){"use strict"
+Object.defineProperty(e,"__esModule",{value:!0}),e.detectLocalResolutionCollection=function(e){var t=e.namespace,n=e.collection,r=t.lastIndexOf("/-")
+if(-1<r){r+=2
+var i=t.indexOf("/",r)
+n=t.slice(r,-1<i?i:void 0)}return n}}),define("@glimmer/di",["exports"],function(e){"use strict"
 var t=function(){function n(e){var t=1<arguments.length&&void 0!==arguments[1]?arguments[1]:null;(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,n),this._registry=e,this._resolver=t,this._lookups={},this._factoryDefinitionLookups={}}return n.prototype.factoryFor=function(e){var t=this._factoryDefinitionLookups[e]
 if(t||(this._resolver&&(t=this._resolver.retrieve(e)),t||(t=this._registry.registration(e)),t&&(this._factoryDefinitionLookups[e]=t)),t)return this.buildFactory(e,t)},n.prototype.lookup=function(e){var t=!1!==this._registry.registeredOption(e,"singleton")
 if(t){var n=this._lookups[e]

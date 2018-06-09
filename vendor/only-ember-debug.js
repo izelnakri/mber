@@ -366,76 +366,6 @@ define("@glimmer/resolver/module-registry", [], function () {
 define("@glimmer/resolver/resolver-configuration", [], function () {
   "use strict";
 });
-define("@glimmer/resolver/module-registries/basic-registry", ["exports"], function (exports) {
-    "use strict";
-
-    function _classCallCheck(instance, Constructor) {
-        if (!(instance instanceof Constructor)) {
-            throw new TypeError("Cannot call a class as a function");
-        }
-    }
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-
-    var BasicRegistry = function () {
-        function BasicRegistry() {
-            var entries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-            _classCallCheck(this, BasicRegistry);
-
-            this._entries = entries;
-        }
-
-        BasicRegistry.prototype.has = function has(specifier) {
-            return specifier in this._entries;
-        };
-
-        BasicRegistry.prototype.get = function get(specifier) {
-            return this._entries[specifier];
-        };
-
-        return BasicRegistry;
-    }();
-
-    exports.default = BasicRegistry;
-});
-define('@glimmer/resolver/utils/debug', ['exports'], function (exports) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.assert = assert;
-    function assert(description, test) {
-        if (!test) {
-            throw new Error('Assertion Failed: ' + description);
-        }
-    }
-});
-define('@glimmer/resolver/utils/specifiers', ['exports'], function (exports) {
-    'use strict';
-
-    Object.defineProperty(exports, "__esModule", {
-        value: true
-    });
-    exports.detectLocalResolutionCollection = detectLocalResolutionCollection;
-    function detectLocalResolutionCollection(specifier) {
-        var namespace = specifier.namespace,
-            collection = specifier.collection;
-
-        // Look for the local-most private collection contained in the namespace
-        // (which will appear closest to the end of the string)
-        var startPos = namespace.lastIndexOf('/-');
-        if (startPos > -1) {
-            startPos += 2;
-            var endPos = namespace.indexOf('/', startPos);
-            collection = namespace.slice(startPos, endPos > -1 ? endPos : undefined);
-        }
-        return collection;
-    }
-});
 define('@glimmer/resolver/resolver', ['exports', '@glimmer/di', './utils/debug', './utils/specifiers'], function (exports, _di, _debug, _specifiers) {
     'use strict';
 
@@ -562,6 +492,76 @@ define('@glimmer/resolver/resolver', ['exports', '@glimmer/di', './utils/debug',
     }();
 
     exports.default = Resolver;
+});
+define("@glimmer/resolver/module-registries/basic-registry", ["exports"], function (exports) {
+    "use strict";
+
+    function _classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError("Cannot call a class as a function");
+        }
+    }
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+
+    var BasicRegistry = function () {
+        function BasicRegistry() {
+            var entries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+            _classCallCheck(this, BasicRegistry);
+
+            this._entries = entries;
+        }
+
+        BasicRegistry.prototype.has = function has(specifier) {
+            return specifier in this._entries;
+        };
+
+        BasicRegistry.prototype.get = function get(specifier) {
+            return this._entries[specifier];
+        };
+
+        return BasicRegistry;
+    }();
+
+    exports.default = BasicRegistry;
+});
+define('@glimmer/resolver/utils/debug', ['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.assert = assert;
+    function assert(description, test) {
+        if (!test) {
+            throw new Error('Assertion Failed: ' + description);
+        }
+    }
+});
+define('@glimmer/resolver/utils/specifiers', ['exports'], function (exports) {
+    'use strict';
+
+    Object.defineProperty(exports, "__esModule", {
+        value: true
+    });
+    exports.detectLocalResolutionCollection = detectLocalResolutionCollection;
+    function detectLocalResolutionCollection(specifier) {
+        var namespace = specifier.namespace,
+            collection = specifier.collection;
+
+        // Look for the local-most private collection contained in the namespace
+        // (which will appear closest to the end of the string)
+        var startPos = namespace.lastIndexOf('/-');
+        if (startPos > -1) {
+            startPos += 2;
+            var endPos = namespace.indexOf('/', startPos);
+            collection = namespace.slice(startPos, endPos > -1 ? endPos : undefined);
+        }
+        return collection;
+    }
 });
 define('@glimmer/di', ['exports'], function (exports) { 'use strict';
 

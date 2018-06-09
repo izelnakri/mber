@@ -49,30 +49,28 @@ module.exports = {
         return result;
       }, {});
 
-      return Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey])).then((finishedBuild) => {
-        const targetBuildMeta = finishedBuild.reduce((result, code, index) => {
-          return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
-        }, {});
+      return Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
+        .then((finishedBuild) => {
+          const targetBuildMeta = finishedBuild.reduce((result, code, index) => {
+            return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
+          }, {});
 
-        // TODO: also parse app.inlineContents
-        return Promise.all([
-          buildCSS(environment),
-          buildVendor(environment, {
-            hasSocketWatching: !['production', 'demo'].includes(environment),
-            vendorPrepends: targetBuildMeta.vendorPrepends,
-            vendorAppends: targetBuildMeta.vendorAppends
-          }),
-          buildApplication(environment, {
-            applicationPrepends: targetBuildMeta.applicationPrepends,
-            applicationAppends: targetBuildMeta.applicationAppends
-          })
-        ]).then(() => resolve(targetBuildMeta))
-          .catch((error) => {
-            Console.error('Error occured:', error);
-
-            process.exit();
-          });
-      });
+          // TODO: also parse app.inlineContents
+          return Promise.all([
+            buildCSS(environment),
+            buildVendor(environment, {
+              hasSocketWatching: !['production', 'demo'].includes(environment),
+              vendorPrepends: targetBuildMeta.vendorPrepends,
+              vendorAppends: targetBuildMeta.vendorAppends
+            }),
+            buildApplication(environment, {
+              applicationPrepends: targetBuildMeta.applicationPrepends,
+              applicationAppends: targetBuildMeta.applicationAppends
+            })
+          ])
+          .then(() => resolve(targetBuildMeta))
+          .catch(reportErrorAndExit);
+      }).catch(reportErrorAndExit);
     });
   }
 }
@@ -92,4 +90,10 @@ function readTranspile(arrayOfImportableObjects) {
     })
       // .then((contents) => writeAsync(`${PROJECT_ROOT}/tmp/${writeKey}.js`, contents.join('\n')))
   });
+}
+
+function reportErrorAndExit(error)  {
+  Console.error('Error occured:', error);
+
+  process.exit();
 }

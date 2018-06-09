@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@ember/test-helpers": "0.7.18",
-    "@glimmer/resolver": "^0.4.1",
+    "@glimmer/resolver": "^0.4.3",
     "ava": "^1.0.0-beta.4",
     "ember-cli-test-loader": "^2.2.0",
     "ember-data": "3.1.1",
@@ -64,7 +64,9 @@
     "cheerio": "^1.0.0-rc.2",
     "chokidar": "^2.0.3",
     "compression": "^1.7.2",
+    "ember-cli-fastboot": "^1.1.4-beta.1",
     "esm": "^3.0.34",
+    "fastboot-express-middleware": "^1.2.0",
     "fs-extra": "^5.0.0",
     "jsdom": "^11.8.0",
     "klaw": "^2.1.1",
@@ -73,7 +75,6 @@
     "node-sass": "4.9.0",
     "ora": "^2.1.0",
     "rimraf": "^2.6.2",
-    "simple-dom": "^1.4.0-alpha.82914663",
     "through2": "^2.0.3",
     "uglify-js": "^3.3.26",
     "ws": "^5.2.0"

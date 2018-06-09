@@ -34,7 +34,8 @@ function build(environment, options={ excludeJQuery: false, excludeEmberData: fa
             fileBuffer: fileBuffer
           });
         })
-      });
+      })
+      .catch((error) => Console.error(`buildEmberBase error: ${error}`))
   });
 }
 
@@ -104,6 +105,8 @@ function buildEmberData(projectPath) {
 }
 
 function writeVendorJS(path, content, environment) {
+  // console.log('content is', content);
+
   if (environment === 'production') {
     const minified = UglifyJS.minify(content, {
       compress: {
