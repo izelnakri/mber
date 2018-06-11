@@ -8,6 +8,7 @@ process.title = 'mber';
 const buildCSS = require('./lib/builders/build-css').default;
 const buildVendor = require('./lib/builders/build-vendor').default;
 const buildApplication = require('./lib/builders/build-application').default;
+const buildFastbootPackageJSON = require('./lib/builders/build-fastboot-package-json').default;
 const Console = require('./lib/utils/console').default;
 const findProjectRoot = require('./lib/utils/find-project-root').default;
 const appImportTransformation = require('./lib/transpilers/app-import-transformation').default;
@@ -55,12 +56,13 @@ module.exports = {
             return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
           }, {});
           const CLI_ARGUMENTS = parseCLIArguments();
+
           // TODO: also parse app.inlineContents
 
           return Promise.all([
             buildCSS(environment),
             buildVendor(environment, Object.assign({}, CLI_ARGUMENTS, {
-              fastboot: CLI_ARGUMENTS.fastboot === false ? false : true,
+              fastboot: CLI_ARGUMENTS.fastboot !== false,
               hasSocketWatching: CLI_ARGUMENTS.watch || !['production', 'demo'].includes(environment),
               vendorPrepends: targetBuildMeta.vendorPrepends,
               vendorAppends: targetBuildMeta.vendorAppends
