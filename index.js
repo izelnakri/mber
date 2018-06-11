@@ -12,7 +12,7 @@ const Console = require('./lib/utils/console').default;
 const findProjectRoot = require('./lib/utils/find-project-root').default;
 const appImportTransformation = require('./lib/transpilers/app-import-transformation').default;
 const importAddonToAMD = require('./lib/transpilers/import-addon-to-amd').default;
-
+const parseCLIArguments = require('./lib/utils/parse-cli-arguments').default;
 const PROJECT_ROOT = findProjectRoot();
 
 module.exports = {
@@ -54,15 +54,17 @@ module.exports = {
           const targetBuildMeta = finishedBuild.reduce((result, code, index) => {
             return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
           }, {});
-
+          const CLI_ARGUMENTS = parseCLIArguments();
           // TODO: also parse app.inlineContents
+
           return Promise.all([
             buildCSS(environment),
-            buildVendor(environment, {
-              hasSocketWatching: !['production', 'demo'].includes(environment),
+            buildVendor(environment, Object.assign({}, CLI_ARGUMENTS, {
+              fastboot: CLI_ARGUMENTS.fastboot === false ? false : true,
+              hasSocketWatching: CLI_ARGUMENTS.watch || !['production', 'demo'].includes(environment),
               vendorPrepends: targetBuildMeta.vendorPrepends,
               vendorAppends: targetBuildMeta.vendorAppends
-            }),
+            })),
             buildApplication(environment, {
               applicationPrepends: targetBuildMeta.applicationPrepends,
               applicationAppends: targetBuildMeta.applicationAppends

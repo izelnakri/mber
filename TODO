@@ -1,16 +1,13 @@
-// /dist/package.json has metadata for fastboot match the newest one, it has schema versioning
-// read my IZEL-notes + code + tests + ember-cli-fastboot building for fastboot js build + server handling
+BUG: instance-initializers not loaded for addons, could this be related to this module unification?
+SOLUTION: /app folder in ember addons loads the dep into the application namespace
 
-// ember-cli-fastboot required for the ember side of the code, server middleware hook is on index.js
+// TODO: fastboot /temp building for serve + hot module changing
 
-
-
+// SUPPORT ES6 MODULES > then memserver
 
 - testem ci mode
-
 - component-integration-test, component-unit-test filtering
 - add linter (js + hbs)
-- fastboot(by default on development mode)
 - npm import support
 - memserver ships with mber.
 content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
@@ -23,11 +20,6 @@ All I need:
 - ember-dev-tools injection
 - investigate how people use engines
 
-ENV.locationType = 'none';
-// keep test console output quieter
-ENV.APP.LOG_ACTIVE_GENERATION = false;
-ENV.APP.LOG_VIEW_LOOKUPS = false;
-
 addons to investigate:
 - ember-cli-sri,
 - ember-cli-csp
@@ -39,45 +31,3 @@ addons to investigate:
 - check fastboot-asset-rev-rewrite (https://github.com/rickharrison/broccoli-asset-rev/blob/master/lib/fastboot-manifest-rewrite.js)
 // add generators
 CDN
-
-
-add package.json(fastboot thing to dist)
-
-ember-cli-fastboot/addon
-ember-cli-fastboot/fastboot/initializers
-
-
-
-
-'use strict';
-
-// Expose the an factory for the creating the `Application` object
-// with the proper config at a known path, so that the server does
-// not have to disover the app's module prefix ("my-app").
-//
-// The module defined here is prefixed with a `~` to make it less
-// likely to collide with user code, since it is not possible to
-// define a module with a name like this in the file system.
-module.exports = function fastbootAppModule(prefix, configAppAsString, isModuleUnification) {
-  var appSuffix = isModuleUnification ? "src/main" : "app";
-  return [
-    "",
-    "if (typeof FastBoot === 'undefined') {",
-    "  if (!runningTests) {",
-    "    require('{{MODULE_PREFIX}}/" + appSuffix + "')['default'].create({{CONFIG_APP}});",
-    "  }",
-    "}",
-    "",
-    "define('~fastboot/app-factory', ['{{MODULE_PREFIX}}/" + appSuffix + "', '{{MODULE_PREFIX}}/config/environment'], function(App, config) {",
-    "  App = App['default'];",
-    "  config = config['default'];",
-    "",
-    "  return {",
-    "    'default': function() {",
-    "      return App.create(config.APP);",
-    "    }",
-    "  };",
-    "});",
-    ""
-  ].join("\n").replace(/\{\{MODULE_PREFIX\}\}/g, prefix).replace(/\{\{CONFIG_APP\}\}/g, configAppAsString);
-};

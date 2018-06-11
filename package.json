@@ -18,7 +18,8 @@
     "build:no-jquery-ember": "node -r esm scripts/build-ember-base --exclude-jquery",
     "build:only-ember": "node -r esm scripts/build-ember-base --exclude-ember-data --exclude-jquery",
     "build:test-support": "node -r esm scripts/build-test-support",
-    "build": "npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support",
+    "build:fastboot-modules": "node -r esm scripts/transpile-fastboot-modules",
+    "build": "npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support && npm run build:fastboot-modules",
     "prepublish": "npm run build",
     "bin": "node -r esm cli.js",
     "test": "ava --verbose"
@@ -48,7 +49,7 @@
     "url": "https://github.com/izelnakri/mber.git"
   },
   "author": "Izel Nakri",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "amd-name-resolver": "^1.2.0",
     "babel-core": "^6.26.3",
