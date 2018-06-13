@@ -1,13 +1,9 @@
 TODO: importAddonToAMD should import /app folder! and sometimes not
 
-// TODO: fastboot /temp building for serve + hot module changing
-
-// SUPPORT ES6 MODULES > then memserver
-
 - testem ci mode
 - component-integration-test, component-unit-test filtering
 - add linter (js + hbs)
-- npm import support
+- npm import support then memserver
 - memserver ships with mber.
 content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
 - rootURL in the test

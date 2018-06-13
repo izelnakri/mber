@@ -24,7 +24,7 @@ test.afterEach.always(async () => {
 });
 
 test.serial('$ mber build -> builds successfully', async (t) => {
-  t.plan(22);
+  t.plan(20);
 
   await createDummyApp();
 
@@ -34,7 +34,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
   console.log('stdout is', stdout);
 
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(/ember BUILT: vendor\.js in \d+ms \[2\.81 MB\] Environment: development/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[2\.82 MB\] Environment: development/g.test(stdout));
 
   const timeTakenForVendor = stdout.match(/vendor\.js in \d+ms/g)[0]
     .replace('vendor.js in ', '')
@@ -53,17 +53,16 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 
   t.true(/ember BUNDLED: dummyapp in \d+ms/g.test(stdout));
   t.true(/Built project successfully\. Stored in "\.\/dist":/g.test(stdout));
-  t.true(/- \.\/dist\/application\.\w+\.js: 0\.0\d MB \[0\.0\d MB gzipped\]/g.test(stdout));
-  t.true(/- \.\/dist\/vendor\.\w+\.js: 2\.91 MB \[0\.61 MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/assets\/application-\w+\.js: 0\.0\d MB \[0\.0\d MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/assets\/vendor-\w+\.js: 2\.82 MB \[0\.60 MB gzipped\]/g.test(stdout));
 
   await Promise.all([
-    readdirAsync('./dummyapp/dist'),
-    readFileAsync('./dummyapp/tmp/vendor.js'),
-    readFileAsync('./dummyapp/tmp/application.js')
+    readdirAsync('./dummyapp/dist/assets'),
+    readFileAsync('./dummyapp/tmp/assets/vendor.js'),
+    readFileAsync('./dummyapp/tmp/assets/application.js')
   ]).then(([dist, vendorJs, applicationJs]) => {
-    t.true(dist.includes('index.html'));
-    t.truthy(dist.find((entity) => /vendor\.\w+\.js/g.test(entity)));
-    t.truthy(dist.find((entity) => /application\.\w+\.js/g.test(entity)));
+    t.truthy(dist.find((entity) => /vendor-\w+\.js/g.test(entity)));
+    t.truthy(dist.find((entity) => /application-\w+\.js/g.test(entity)));
 
 
     t.true(1000 < vendorJs.length < 5000);
@@ -75,11 +74,11 @@ test.serial('$ mber build -> builds successfully', async (t) => {
       runScripts: 'outside-only'
     });
 
-    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/vendor.js`).toString());
-    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/application.js`).toString());
+    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/assets/vendor.js`).toString());
+    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/assets/application.js`).toString());
 
     [
-      window.Ember, window.Ember.Object, window.DS, window.jQuery, window.requirejs,
+      window.Ember, window.Ember.Object, window.jQuery, window.requirejs,
       window.require, window.define
       // , window.APP
     ].forEach((object) => t.truthy(object));
@@ -89,7 +88,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 });
 
 test.serial('$ mber build --env=production -> builds successfully', async (t) => {
-  t.plan(22);
+  t.plan(20);
 
   await createDummyApp();
 
@@ -101,7 +100,7 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
   console.log('stdout is', stdout);
 
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(/ember BUILT: vendor\.js in \d+ms \[0\.77 MB\] Environment: production/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[0\.78 MB\] Environment: production/g.test(stdout));
 
   const timeTakenForVendor = stdout.match(/vendor\.js in \d+ms/g)[0]
     .replace('vendor.js in ', '')
@@ -120,17 +119,16 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
 
   t.true(/ember BUNDLED: dummyapp in \d+ms/g.test(stdout));
   t.true(/Built project successfully\. Stored in "\.\/dist":/g.test(stdout));
-  t.true(/- \.\/dist\/application\.\w+\.js: 0\.0\d MB \[0\.0\d MB gzipped\]/g.test(stdout));
-  t.true(/- \.\/dist\/vendor\.\w+\.js: 1\.09 MB \[0\.23 MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/assets\/application-\w+\.js: 0\.0\d MB \[0\.0\d MB gzipped\]/g.test(stdout));
+  t.true(/- \.\/dist\/assets\/vendor-\w+\.js: 0\.78 MB \[0\.20 MB gzipped\]/g.test(stdout));
 
   await Promise.all([
-    readdirAsync('./dummyapp/dist'),
-    readFileAsync('./dummyapp/tmp/vendor.js'),
-    readFileAsync('./dummyapp/tmp/application.js')
+    readdirAsync('./dummyapp/dist/assets'),
+    readFileAsync('./dummyapp/tmp/assets/vendor.js'),
+    readFileAsync('./dummyapp/tmp/assets/application.js')
   ]).then(([dist, vendorJs, applicationJs]) => {
-    t.true(dist.includes('index.html'));
-    t.truthy(dist.find((entity) => /vendor\.\w+\.js/g.test(entity)));
-    t.truthy(dist.find((entity) => /application\.\w+\.js/g.test(entity)));
+    t.truthy(dist.find((entity) => /vendor-\w+\.js/g.test(entity)));
+    t.truthy(dist.find((entity) => /application-\w+\.js/g.test(entity)));
 
     t.true(1000 < vendorJs.length < 5000);
     t.true(0 < applicationJs.length < 1000);
@@ -141,13 +139,12 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
       runScripts: 'outside-only'
     });
 
-    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/vendor.js`).toString());
-    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/application.js`).toString());
+    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/assets/vendor.js`).toString());
+    window.eval(fs.readFileSync(`${CWD}/dummyapp/tmp/assets/application.js`).toString());
 
     [
       window.Ember, window.Ember.Object, window.jQuery, window.requirejs,
-      window.require, window.define, !window.DS
-      // , window.APP
+      window.require, window.define
     ].forEach((object) => t.truthy(object));
 
     // TODO: assert services(), routes()

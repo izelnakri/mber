@@ -1,4 +1,5 @@
 #! /usr/bin/env node
+require = require('esm')(module)
 require('babel-register')({
   presets: ['env']
 });
