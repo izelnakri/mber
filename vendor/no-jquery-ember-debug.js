@@ -74042,11 +74042,9 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
       }
     },
     mainModuleName: function (parsedName) {
-      // if router:main or adapter:main look for a module with just the type first
-      var tmpModuleName = parsedName.prefix + '/' + parsedName.type;
-
       if (parsedName.fullNameWithoutType === 'main') {
-        return tmpModuleName;
+        // if router:main or adapter:main look for a module with just the type first
+        return parsedName.prefix + '/' + parsedName.type;
       }
     },
     defaultModuleName: function (parsedName) {
@@ -74163,8 +74161,8 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
         description = this.lookupDescription(parsedName);
       }
 
+      /* eslint-disable no-console */
       if (console && console.info) {
-        // eslint-disable-next-line no-console
         console.info(symbol, parsedName.fullName, padding, description);
       }
     },
@@ -74245,6 +74243,7 @@ define('ember-resolver/ember-config', ['exports'], function (exports) {
       types: {
         adapter: { definitiveCollection: 'models' },
         application: { definitiveCollection: 'main' },
+        config: { definitiveCollection: 'config' },
         controller: { definitiveCollection: 'routes' },
         component: { definitiveCollection: 'components' },
         'component-lookup': { definitiveCollection: 'main' },
@@ -74277,6 +74276,9 @@ define('ember-resolver/ember-config', ['exports'], function (exports) {
           group: 'ui',
           privateCollections: ['utils'],
           types: ['component', 'helper', 'template']
+        },
+        config: {
+          unresolvable: true
         },
         initializers: {
           group: 'init',
@@ -74427,8 +74429,6 @@ define('ember-resolver/module-registries/requirejs', ['exports', '@glimmer/di'],
       var _this2 = this;
 
       var specifier = (0, _di.deserializeSpecifier)(specifierString);
-
-      var useDefaultType = this._checkDefaultType(specifier);
 
       /* return an export */
       var moduleExport = this._detectModule(specifier, function (path) {
@@ -74603,9 +74603,8 @@ define('ember-resolver/resolvers/glimmer-wrapper/index', ['exports', '@glimmer/r
         var rootName = namespace || this._configRootName;
 
         var _specifier$split3 = specifier.split(':'),
-            _specifier$split4 = _slicedToArray(_specifier$split3, 2),
-            type = _specifier$split4[0],
-            name = _specifier$split4[1];
+            _specifier$split4 = _slicedToArray(_specifier$split3, 1),
+            type = _specifier$split4[0];
 
         /*
          * Ember components require their lookupString to be massaged. Make this

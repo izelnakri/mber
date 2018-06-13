@@ -2945,8 +2945,7 @@ return this.podBasedLookupWithPrefix(t,e)},podBasedComponentsInSubdir:function(e
 if(t+="/components","component"===e.type||/^components/.test(e.fullNameWithoutType))return this.podBasedLookupWithPrefix(t,e)},resolveEngine:function(e){var t=e.fullNameWithoutType+"/engine"
 if(this._moduleRegistry.has(t))return this._extractDefaultExport(t)},resolveRouteMap:function(e){var t=e.fullNameWithoutType,n=t+"/routes"
 if(this._moduleRegistry.has(n)){var r=this._extractDefaultExport(n)
-return Ember.assert("The route map for "+t+" should be wrapped by 'buildRoutes' before exporting.",r.isRouteMap),r}},mainModuleName:function(e){var t=e.prefix+"/"+e.type
-if("main"===e.fullNameWithoutType)return t},defaultModuleName:function(e){return e.prefix+"/"+this.pluralize(e.type)+"/"+e.fullNameWithoutType},prefix:function(e){var t=this.namespace.modulePrefix
+return Ember.assert("The route map for "+t+" should be wrapped by 'buildRoutes' before exporting.",r.isRouteMap),r}},mainModuleName:function(e){if("main"===e.fullNameWithoutType)return e.prefix+"/"+e.type},defaultModuleName:function(e){return e.prefix+"/"+this.pluralize(e.type)+"/"+e.fullNameWithoutType},prefix:function(e){var t=this.namespace.modulePrefix
 return this.namespace[e.type+"Prefix"]&&(t=this.namespace[e.type+"Prefix"]),t},moduleNameLookupPatterns:Ember.computed(function(){return[this.podBasedModuleName,this.podBasedComponentsInSubdir,this.mainModuleName,this.defaultModuleName]}).readOnly(),findModuleName:function(e,t){for(var n=this.get("moduleNameLookupPatterns"),r=void 0,i=0,o=n.length;i<o;i++){var s=n[i].call(this,e)
 if(s&&(s=this.chooseModuleName(s,e)),s&&this._moduleRegistry.has(s)&&(r=s),t||this._logLookup(r,e,s),r)return r}},chooseModuleName:function(e,t){var n=this,r=o(e)
 if(e!==r&&this._moduleRegistry.has(e)&&this._moduleRegistry.has(r))throw new TypeError("Ambiguous module names: '"+e+"' and '"+r+"'")
@@ -2963,7 +2962,7 @@ var a=n+"/"+this.pluralize(e)+"/"
 return 0===t.indexOf(a)&&t.length>a.length?e+":"+t.slice(a.length):void 0},_extractDefaultExport:function(e){var t=require(e,null,null,!0)
 return t&&t.default&&(t=t.default),t}})
 u.reopenClass({moduleBasedResolver:!0}),e.default=u}),define("ember-resolver/ember-config",["exports"],function(e){"use strict"
-e.__esModule=!0,e.default=function(e){return{app:{name:e,rootName:e},types:{adapter:{definitiveCollection:"models"},application:{definitiveCollection:"main"},controller:{definitiveCollection:"routes"},component:{definitiveCollection:"components"},"component-lookup":{definitiveCollection:"main"},event_dispatcher:{definitiveCollection:"main"},helper:{definitiveCollection:"components"},initializer:{definitiveCollection:"initializers"},"instance-initializers":{definitiveCollection:"instance-initializer"},location:{definitiveCollection:"main"},model:{definitiveCollection:"models"},partial:{definitiveCollection:"partials"},renderer:{definitiveCollection:"main"},route:{definitiveCollection:"routes"},router:{definitiveCollection:"main"},serializer:{definitiveCollection:"models"},service:{definitiveCollection:"services"},template:{definitiveCollection:"components"},"template-compiler":{definitiveCollection:"main"},transform:{definitiveCollection:"transforms"},view:{definitiveCollection:"views"},"-view-registry":{definitiveCollection:"main"},"-bucket-cache":{definitiveCollection:"main"},"-environment":{definitiveCollection:"main"},"-application-instance":{definitiveCollection:"main"}},collections:{main:{types:["router","-bucket-cache","component-lookup","-view-registry","event_dispatcher","application","location","renderer","-environment","-application-instance"]},components:{group:"ui",privateCollections:["utils"],types:["component","helper","template"]},initializers:{group:"init",defaultType:"initializer",privateCollections:["utils"],types:["initializer"]},"instance-initializers":{group:"init",defaultType:"instance-initializer",privateCollections:["utils"],types:["instance-initializers"]},models:{group:"data",defaultType:"model",privateCollections:["utils"],types:["model","adapter","serializer"]},partials:{group:"ui",defaultType:"partial",privateCollections:["utils"],types:["partial"]},routes:{group:"ui",defaultType:"route",privateCollections:["components","utils"],types:["route","controller","template"]},services:{defaultType:"service",privateCollections:["utils"],types:["service"]},utils:{unresolvable:!0},views:{defaultType:"view",privateCollections:["utils"],types:["view"]},transforms:{group:"data",defaultType:"transform",privateCollections:["utils"],types:["transform"]}}}}}),define("ember-resolver/module-registries/requirejs",["exports","@glimmer/di"],function(e,i){"use strict"
+e.__esModule=!0,e.default=function(e){return{app:{name:e,rootName:e},types:{adapter:{definitiveCollection:"models"},application:{definitiveCollection:"main"},config:{definitiveCollection:"config"},controller:{definitiveCollection:"routes"},component:{definitiveCollection:"components"},"component-lookup":{definitiveCollection:"main"},event_dispatcher:{definitiveCollection:"main"},helper:{definitiveCollection:"components"},initializer:{definitiveCollection:"initializers"},"instance-initializers":{definitiveCollection:"instance-initializer"},location:{definitiveCollection:"main"},model:{definitiveCollection:"models"},partial:{definitiveCollection:"partials"},renderer:{definitiveCollection:"main"},route:{definitiveCollection:"routes"},router:{definitiveCollection:"main"},serializer:{definitiveCollection:"models"},service:{definitiveCollection:"services"},template:{definitiveCollection:"components"},"template-compiler":{definitiveCollection:"main"},transform:{definitiveCollection:"transforms"},view:{definitiveCollection:"views"},"-view-registry":{definitiveCollection:"main"},"-bucket-cache":{definitiveCollection:"main"},"-environment":{definitiveCollection:"main"},"-application-instance":{definitiveCollection:"main"}},collections:{main:{types:["router","-bucket-cache","component-lookup","-view-registry","event_dispatcher","application","location","renderer","-environment","-application-instance"]},components:{group:"ui",privateCollections:["utils"],types:["component","helper","template"]},config:{unresolvable:!0},initializers:{group:"init",defaultType:"initializer",privateCollections:["utils"],types:["initializer"]},"instance-initializers":{group:"init",defaultType:"instance-initializer",privateCollections:["utils"],types:["instance-initializers"]},models:{group:"data",defaultType:"model",privateCollections:["utils"],types:["model","adapter","serializer"]},partials:{group:"ui",defaultType:"partial",privateCollections:["utils"],types:["partial"]},routes:{group:"ui",defaultType:"route",privateCollections:["components","utils"],types:["route","controller","template"]},services:{defaultType:"service",privateCollections:["utils"],types:["service"]},utils:{unresolvable:!0},views:{defaultType:"view",privateCollections:["utils"],types:["view"]},transforms:{group:"data",defaultType:"transform",privateCollections:["utils"],types:["transform"]}}}}}),define("ember-resolver/module-registries/requirejs",["exports","@glimmer/di"],function(e,i){"use strict"
 e.__esModule=!0
 var t=function(){function r(e,t){var n=2<arguments.length&&void 0!==arguments[2]?arguments[2]:self.requirejs;(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,r),this._config=e,this._modulePrefix=t,this._require=n}return r.prototype._baseSegments=function(e){var t=this._config.collections[e.collection],n=t&&t.group,r=[e.rootName,this._modulePrefix]
 n&&r.push(n)
@@ -2973,17 +2972,16 @@ return i||(i=this._checkDefaultType(e)?t(r):n(r)),i},r.prototype._checkDefaultTy
 return t&&t===e.type},r.prototype.has=function(e){var n=this,r=(0,i.deserializeSpecifier)(e)
 return this._detectModule(r,function(e){return e in n._require.entries},function(e){if(e in n._require.entries){var t=n._require(e)
 return r.type in t}})},r.prototype.get=function(e){var t=this,n=(0,i.deserializeSpecifier)(e)
-this._checkDefaultType(n)
 return this._detectModule(n,function(e){return e in t._require.entries&&t._require(e).default},function(e){return e in t._require.entries&&t._require(e)[n.type]})},r}()
 e.default=t}),define("ember-resolver/resolvers/fallback/index",["exports","ember-resolver","ember-resolver/resolvers/glimmer-wrapper"],function(e,t,n){"use strict"
 e.__esModule=!0,e.default=n.default.extend({init:function(e){this._super(e),this._fallback=t.default.create(Ember.assign({namespace:{modulePrefix:this.config.app.name}},e))},resolve:function(e){return this._super(e)||this._fallback.resolve(this._fallback.normalize(e))}})}),define("ember-resolver/resolvers/glimmer-wrapper/index",["exports","@glimmer/resolver/resolver","ember-resolver/module-registries/requirejs"],function(e,t,n){"use strict"
 e.__esModule=!0
-var f=function(e,t){if(Array.isArray(e))return e
+var h=function(e,t){if(Array.isArray(e))return e
 if(Symbol.iterator in Object(e))return function(e,t){var n=[],r=!0,i=!1,o=void 0
 try{for(var s,a=e[Symbol.iterator]();!(r=(s=a.next()).done)&&(n.push(s.value),!t||n.length!==t);r=!0);}catch(e){i=!0,o=e}finally{try{!r&&a.return&&a.return()}finally{if(i)throw o}}return n}(e,t)
 throw new TypeError("Invalid attempt to destructure non-iterable instance")},r=Ember.DefaultResolver,u=Ember.String.dasherize
 function l(e){return e.replace(/\./g,"/")}var c=/^template:(.*\/)?_([\w-]+)/
-function d(e){return-1!==e.indexOf(":/")}function m(e,t,n){var r=e.split(":"),i=f(r,2),o=i[0],s=i[1]
+function f(e){return-1!==e.indexOf(":/")}function d(e,t,n){var r=e.split(":"),i=h(r,2),o=i[0],s=i[1]
 if(!s)return[e,null]
 if("component"===o&&s)e=o+":"+s
 else if("service"===o)e="service:"+u(s)
@@ -2991,14 +2989,13 @@ else if("route"===o)e="route:"+l(s)
 else if("controller"===o)e="controller:"+l(s)
 else if("template"===o)if(s&&0===s.indexOf("components/")){e="template:"+s.slice(11)}else{var a=c.exec(e)
 if(a){e="partial:"+(a[1]||"")+a[2]}else{if(t)throw new Error("Cannot look up a route template "+e+" with a source")
-e="template",t="route:/"+n+"/routes/"+l(s)}}return[e,t]}var i=r.extend({init:function(){this._super.apply(this,arguments),this._configRootName=this.config.app.rootName||"app",this.glimmerModuleRegistry||(this.glimmerModuleRegistry=new n.default(this.config,"src")),this._glimmerResolver=new t.default(this.config,this.glimmerModuleRegistry)},normalize:null,expandLocalLookup:function(e,t,n){if(d(e))return e
-if(t||n){var r=n||this._configRootName,i=e.split(":"),o=f(i,2),s=o[0]
-o[1]
-if(n)t=s+":/"+r+"/"
-else if(t){var a=t.split(":src/ui/")
-t=(t=a[0]+":/"+r+"/"+a[1]).split("/template.hbs")[0]}var u=m(e,t,r),l=f(u,2),c=l[0],p=l[1],h=this._glimmerResolver.identify(c,p)
-if(h)return h
-if(h=this._glimmerResolver.identify(c))return e}return e},resolve:function(e){var t=null
-if(!d(e)){var n=m(e,t,this._configRootName),r=f(n,2)
+e="template",t="route:/"+n+"/routes/"+l(s)}}return[e,t]}var i=r.extend({init:function(){this._super.apply(this,arguments),this._configRootName=this.config.app.rootName||"app",this.glimmerModuleRegistry||(this.glimmerModuleRegistry=new n.default(this.config,"src")),this._glimmerResolver=new t.default(this.config,this.glimmerModuleRegistry)},normalize:null,expandLocalLookup:function(e,t,n){if(f(e))return e
+if(t||n){var r=n||this._configRootName,i=e.split(":"),o=h(i,1)[0]
+if(n)t=o+":/"+r+"/"
+else if(t){var s=t.split(":src/ui/")
+t=(t=s[0]+":/"+r+"/"+s[1]).split("/template.hbs")[0]}var a=d(e,t,r),u=h(a,2),l=u[0],c=u[1],p=this._glimmerResolver.identify(l,c)
+if(p)return p
+if(p=this._glimmerResolver.identify(l))return e}return e},resolve:function(e){var t=null
+if(!f(e)){var n=d(e,t,this._configRootName),r=h(n,2)
 e=r[0],t=r[1]}return this._glimmerResolver.resolve(e,t)}})
 e.default=i})
