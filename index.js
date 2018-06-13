@@ -1,14 +1,12 @@
 require('babel-register')({
   presets: ['env']
 });
-require('babel-polyfill');
 
 process.title = 'mber';
 
 const buildCSS = require('./lib/builders/build-css').default;
 const buildVendor = require('./lib/builders/build-vendor').default;
 const buildApplication = require('./lib/builders/build-application').default;
-const buildFastbootPackageJSON = require('./lib/builders/build-fastboot-package-json').default;
 const Console = require('./lib/utils/console').default;
 const findProjectRoot = require('./lib/utils/find-project-root').default;
 const appImportTransformation = require('./lib/transpilers/app-import-transformation').default;

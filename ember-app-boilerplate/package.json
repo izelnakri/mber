@@ -4,11 +4,10 @@
   "description": "",
   "main": "src/main.js",
   "devDependencies": {
-    "mber": "0.0.2"
+    "mber": "{{mberVersion}}"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    
   }
 }

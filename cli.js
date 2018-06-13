@@ -10,7 +10,6 @@ global.mainContext = global; // NOTE: needed for ember-template-compiler
 
 let shouldRunCommand = false;
 
-const chalk = require('chalk');
 const Console = require('./lib/utils/console').default;
 const printCommand = () => require('./lib/commands').default();
 
@@ -43,7 +42,7 @@ CLI.command(['print', 'p'], () => printCommand());
 CLI.command(['init', 'new'], () => require('./lib/commands/new').default());
 
 if (!shouldRunCommand) {
-  Console.log(chalk.red('unknown command. Available options are:'));
+  Console.log(require('chalk').red('unknown command. Available options are:'));
   printCommand();
 }
 
