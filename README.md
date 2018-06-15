@@ -1,6 +1,6 @@
 # mber: Modern Ember.js, without broccoli.
 
-My hobby take on replacing ember-cli. I've recently rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much counter-intuitive magic. One day after reading ember-cli source code, I've realized rewriting this beast from scratch is the only way to move forward.
+My hobby take on replacing ember-cli. This build system uses module unification and fastboot by default. I've recently rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much counter-intuitive magic. One day after reading ember-cli source code, I've realized rewriting this beast from scratch is the only way to move forward.
 
 It currently looks like I've made a good long term investment by taking the painful path to salvation.
 
@@ -39,7 +39,7 @@ run mber server:
 mber s
 ```
 
-Now your development server is running on http://localhost:4200
+Now your development server is running on http://localhost:1234
 
 Running your test suite is same as before:
 
@@ -99,7 +99,7 @@ module.exports = function(environment) {
 }
 ```
 
-#### How to run your frontend app in your command line!
+#### Hipster feature: You can now run your frontend app from your command line:
 
 ```mber console```
 
