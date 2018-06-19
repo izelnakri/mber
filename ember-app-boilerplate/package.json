@@ -1,13 +1,28 @@
 {
   "name": "{{applicationName}}",
+  "private": true,
   "version": "0.0.1",
   "description": "",
+  "license": "ISC",
+  "author": "",
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "repository": "",
   "main": "src/main.js",
+  "scripts": {
+    "build": "mber build",
+    "start": "mber server",
+    "test": "mber test"
+  },
+  "engines": {
+    "node": "^10.*"
+  },
   "devDependencies": {
     "mber": "{{mberVersion}}"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
+    "mber-head": "^0.1.0"
   }
 }

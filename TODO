@@ -16,7 +16,7 @@ All I need:
 - investigate how people use engines
 
 addons to investigate:
-- ember-cli-sri,
+- ember-cli-sri, https://github.com/jonathanKingston/broccoli-sri-hash/blob/master/index.js adds integrity
 - ember-cli-csp
 - ember-cli-flash
 - ember-i18n
@@ -26,3 +26,10 @@ addons to investigate:
 - check fastboot-asset-rev-rewrite (https://github.com/rickharrison/broccoli-asset-rev/blob/master/lib/fastboot-manifest-rewrite.js)
 // add generators
 CDN
+
+
+add eslint-plugin-ember + eslint
+
+test:
+"_APPLICATION_TEMPLATE_WRAPPER": false,
+"_TEMPLATE_ONLY_GLIMMER_COMPONENTS": true

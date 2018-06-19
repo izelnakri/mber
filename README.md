@@ -57,7 +57,9 @@ Instead of ```ember-cli-build.js``` you now have ```index.js``` in your project 
 /* eslint-env node */
 const app = require('mber');
 
-module.exports = function(environment) {
+module.exports = function(ENV) {
+  const { environment } = ENV;
+
   if (!environment !== 'somecustomenvironment') {
     app.import('node_modules/yourlibrary/dist/', { type: 'vendor '});
 
@@ -77,6 +79,73 @@ module.exports = function(environment) {
   return app.build(environment);
 }
 
+```
+
+### Adding dynamic inline-content to your index.html
+
+./index.html supports dynamic inline-content based on your environment configuration:
+
+```html
+<!-- in your index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <meta name="description" content="">
+    <!-- EMBER_CLI_FASTBOOT_TITLE --><!-- EMBER_CLI_FASTBOOT_HEAD -->
+
+    <link rel="stylesheet" href="/assets/application.css">
+  </head>
+  <body>
+    <!-- EMBER_CLI_FASTBOOT_BODY -->
+
+    <script src="/assets/vendor.js"></script>
+    <script src="/assets/application.js"></script>
+
+    {{google-analytics}}
+
+    {{sentry}}
+  </body>
+</html>
+```
+
+```js
+// in your index.js
+
+/* eslint-env node */
+const app = require('mber');
+
+module.exports = function(ENV) {
+  const { environment } = ENV;
+
+  if (environment === 'production') {
+    app.injectInlineContent('googleAnalytics', `
+      <script>
+        window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+        ga('create', '${ENV.googleAnalyticsId}', 'auto');
+      </script>
+      <script async src='https://www.google-analytics.com/analytics.js'></script>
+    `);
+  }
+
+  if (ENV.sentry.url) {
+    app.injectInlineContent('sentry', `
+      <script>
+        Raven.config('${ENV.sentry.url}', {
+          ignoreUrls: [${ENV.sentry.ignoreUrls}],
+          ignoreErrors: ${JSON.stringify(ENV.sentry.ignoreErrors)}
+        }).addPlugin(Raven.Plugins.Ember).install();
+      </script>
+    `);
+  }
+
+  return app.build(environment);
+}
 ```
 
 #### Extra: How to exclude ember-data or jquery from your application:

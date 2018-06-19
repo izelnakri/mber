@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import UglifyJS from 'uglify-js';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
-import importAddonToAMD from '../lib/transpilers/import-addon-to-amd';
+import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
 import findProjectRoot from '../lib/utils/find-project-root';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
@@ -61,7 +61,7 @@ function readBuildFiles(projectPath, environment, options={
     readFileAsync(`${MODULE_PATH}/loader.js/dist/loader/loader.js`),
     options.excludeJQuery ?
       new Promise((resolve) => resolve('')) : readFileAsync(`${VENDOR_PATH}/jquery.js`),
-    importAddonToAMD('@glimmer/resolver', '@glimmer/resolver/dist/commonjs/es2017'),
+    importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/commonjs/es2017'),
     readFileAsync(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     injectEmberJS(MODULE_PATH, environment),
     new Promise((resolve) => resolve(`
@@ -69,7 +69,7 @@ function readBuildFiles(projectPath, environment, options={
         exports.default = Ember.OrderedSet;
       });
     `)),
-    importAddonToAMD('ember-inflector', 'ember-inflector/addon'),
+    importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon'),
   ];
 
   if (!options.excludeEmberData) {
@@ -77,9 +77,9 @@ function readBuildFiles(projectPath, environment, options={
   }
 
   return baseBuilds.concat([
-    importAddonToAMD('ember-load-initializers', 'ember-load-initializers/addon'),
-    importAddonToAMD('ember-resolver', 'ember-resolver/addon'),
-    importAddonToAMD('ember-resolver', 'ember-resolver/mu-trees/addon')
+    importAddonFolderToAMD('ember-load-initializers', 'ember-load-initializers/addon'),
+    importAddonFolderToAMD('ember-resolver', 'ember-resolver/addon'),
+    importAddonFolderToAMD('ember-resolver', 'ember-resolver/mu-trees/addon')
   ]);
 }
 
@@ -95,7 +95,7 @@ function buildEmberData(projectPath) {
   const emberDataVersion = require(`${projectPath}/package.json`).devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
 
   return [
-    importAddonToAMD('ember-data', 'ember-data/addon'),
+    importAddonFolderToAMD('ember-data', 'ember-data/addon'),
     new Promise((resolve) => resolve(`
       define('ember-data/version', ['exports'], function (exports) {
         exports.default = '${emberDataVersion}';

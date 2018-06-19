@@ -5,7 +5,7 @@ import sass from 'node-sass';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
 import findProjectRoot from '../lib/utils/find-project-root';
-import importAddonToAMD from '../lib/transpilers/import-addon-to-amd';
+import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
 const compileScssAsync = promisify(sass.render);
@@ -66,12 +66,12 @@ function buildTestVendorJS() {
       readFileAsync(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       readFileAsync(`${MODULE_PATH}/qunit/qunit/qunit.js`),
       readFileAsync(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/qunit-configuration.js`),
-      importAddonToAMD('@ember/test-helpers', '@ember/test-helpers/addon-test-support/@ember/test-helpers'),
-      importAddonToAMD('ember-cli-test-loader/test-support', 'ember-cli-test-loader/addon-test-support'),
-      importAddonToAMD('ember-cli-qunit', 'ember-cli-test-loader/addon-test-support'), // NOTE: check if this is needed
-      importAddonToAMD('ember-qunit', 'ember-qunit/addon-test-support/ember-qunit'),
-      importAddonToAMD('ember-test-helpers', '@ember/test-helpers/addon-test-support/ember-test-helpers'),
-      importAddonToAMD('qunit', 'ember-qunit/addon-test-support/qunit')
+      importAddonFolderToAMD('@ember/test-helpers', '@ember/test-helpers/addon-test-support/@ember/test-helpers'),
+      importAddonFolderToAMD('ember-cli-test-loader/test-support', 'ember-cli-test-loader/addon-test-support'),
+      importAddonFolderToAMD('ember-cli-qunit', 'ember-cli-test-loader/addon-test-support'), // NOTE: check if this is needed
+      importAddonFolderToAMD('ember-qunit', 'ember-qunit/addon-test-support/ember-qunit'),
+      importAddonFolderToAMD('ember-test-helpers', '@ember/test-helpers/addon-test-support/ember-test-helpers'),
+      importAddonFolderToAMD('qunit', 'ember-qunit/addon-test-support/qunit')
     ]).then((jsContents) => {
       return writeFileAsync(`${VENDOR_PATH}/${JS_FILENAME}`, 'define = window.define;require = window.require;' + jsContents.join('\n') + `
         runningTests = true;

@@ -5,7 +5,7 @@ import Console from '../lib/utils/console';
 import findProjectRoot from '../lib/utils/find-project-root';
 import countTime from '../lib/utils/count-time';
 import convertESModuleToAMD from '../lib/transpilers/convert-es-module-to-amd';
-import importAddonToAMD from '../lib/transpilers/import-addon-to-amd';
+import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
 const copyFileAsync = promisify(fs.copyFile);
@@ -27,7 +27,7 @@ function transpileFastbootModules() {
     return Promise.all([
       readFileAsync(`${MODULE_PATH}/fastboot/initializers/ajax.js`),
       readFileAsync(`${MODULE_PATH}/fastboot/initializers/error-handler.js`),
-      importAddonToAMD('ember-cli-fastboot', 'ember-cli-fastboot/addon'),
+      importAddonFolderToAMD('ember-cli-fastboot', 'ember-cli-fastboot/addon'),
       copyFileAsync(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/experimental-render-mode-rehydrate.js`),
       copyFileAsync(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot-app-module.js`)
     ]).then(([ajaxInitializer, errorHandler, fastbootAddon]) => {

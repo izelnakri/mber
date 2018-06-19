@@ -22,5 +22,11 @@
     <script src="/assets/test-support.js"></script>
     <script src="/assets/application.js"></script>
     <script src="/assets/tests.js"></script>
+
+    <script type="text/javascript">
+      $(document).on('keydown', function(event) {
+        event.keyCode === 80 ? $('#qunit-abort-tests-button').click() : null;
+      });
+    </script>
   </body>
 </html>
