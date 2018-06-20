@@ -1,16 +1,14 @@
 TODO: importAddonToAMD should import /app folder! and sometimes not
 
 - testem ci mode
+- npm import support then memserver
 - component-integration-test, component-unit-test filtering
 - add linter (js + hbs)
-- npm import support then memserver
 - memserver ships with mber.
 content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
 - rootURL in the test
 
 All I need:
-- HEAD injections
-- html inline injections
 - ENV.APP.API_HOST (tests)
 - ember-dev-tools injection
 - investigate how people use engines
