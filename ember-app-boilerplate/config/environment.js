@@ -12,6 +12,10 @@ module.exports = function(environment) {
     environment,
     rootURL: '/',
     locationType: 'auto',
+    'ember-devtools': {
+      global: true,
+      enabled: ['development', 'memserver', 'test'].includes(environment)
+    },
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build

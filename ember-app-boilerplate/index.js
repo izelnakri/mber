@@ -6,6 +6,10 @@ module.exports = function(ENV) {
 
   app.importAddon('mber-head', { type: 'vendor' });
 
+  if (environment !== 'production') {
+    app.importAddon('ember-devtools', { type: 'vendor' }); // TODO: ember-data not imported correctly    
+  }
+
   if (ENV.googleAnalyticsId) {
     app.injectInlineContent('googleAnalytics', `
       <script>
