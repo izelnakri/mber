@@ -113,14 +113,12 @@ function fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections
 function readTranspile(arrayOfImportableObjects, applicationName) {
   return new Promise((resolve) => {
     Promise.all(arrayOfImportableObjects.map((importObject) => {
+      // TODO: add appImportTransformation to amdModule and addon types. Check on importObject.options.using
+
       if (importObject.type === 'amdModule') {
-        return importObject.options.using ?
-          appImportTransformation(transpileNPMImports(importObject.name, importObject.path)) :
-          transpileNPMImports(importObject.name, importObject.path);
+        return transpileNPMImports(importObject.name, importObject.path);
       } else if (importObject.type === 'addon') {
-        return importObject.options.using ?
-          appImportTransformation(importAddonToAMD(importObject.name, importObject.path, applicationName)) :
-          importAddonToAMD(importObject.name, importObject.path, applicationName);
+        return importAddonToAMD(importObject.name, importObject.path, applicationName);
       }
 
       return appImportTransformation(importObject, PROJECT_ROOT);

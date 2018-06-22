@@ -27,3 +27,6 @@ add eslint-plugin-ember + eslint
 test:
 "_APPLICATION_TEMPLATE_WRAPPER": false,
 "_TEMPLATE_ONLY_GLIMMER_COMPONENTS": true
+
+
+- write appTransform tests
