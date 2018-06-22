@@ -209,6 +209,24 @@ module.exports = function(environment) {
 
 Yep, now you can.
 
+
+#### Using ember-i18n with mber
+
+Currently ember-i18n has legacy folder/code under addon directory that gets filtered during ember-cli builds. Until that issue gets resolved you can use mber-i18n instead. Example:
+
+```js
+// in your index.js
+
+/* eslint-env node */
+const app = require('mber');
+
+module.exports = function(ENV) {
+  const { environment } = ENV;
+
+  app.importAddon('ember-i18n', 'mber-i18n', { type: 'vendor' }); // here we are telling mber to inject addon code of mber-i18n npm module, however use ember-i18n module name during AMD transpilation
+}
+```
+
 # CREDITS
 This would have been impossible without the great interop libraries, structures, conventions and the framework source code itself which is mainly developed by the ember core team and the community by large.
 
