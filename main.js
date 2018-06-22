@@ -52,7 +52,7 @@ export default {
   },
   build(environment) {
     return new Promise((resolve) => {
-      const ENV = require(`${PROJECT_ROOT}/config/environment`)(environment);
+      const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
       const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
       const metaKeys = [
         'vendorPrepends', 'vendorAppends', 'applicationPrepends', 'applicationAppends'
@@ -143,4 +143,10 @@ function importAddonToAMD(name, path, applicationName) {
       importAddonFolderToAMD(applicationName, `${path}/app`)
     ]).then((content) => resolve(content.join('\n')));
   });
+}
+
+function serializeRegExp(object) {
+  RegExp.prototype.toJSON = function() { return this.source; };
+
+  return JSON.parse(JSON.stringify(object));
 }
