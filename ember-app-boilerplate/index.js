@@ -5,9 +5,11 @@ module.exports = function(ENV) {
   const { environment } = ENV;
 
   app.importAddon('mber-head', { type: 'vendor' });
+  // app.importAsAMDModule('moment', 'node_modules/moment/min/moment.min.js');
+  // app.importAsAMDModule('bip39');
 
   if (environment !== 'production') {
-    app.importAddon('ember-devtools', { type: 'vendor' }); // TODO: ember-data not imported correctly    
+    app.importAddon('ember-devtools', { type: 'vendor' });
   }
 
   if (ENV.googleAnalyticsId) {

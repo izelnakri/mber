@@ -1,7 +1,3 @@
-TODO: importAddonToAMD should import /app folder! and sometimes not
-
-- testem ci mode
-- npm import support then memserver
 - component-integration-test, component-unit-test filtering
 - add linter (js + hbs)
 - memserver ships with mber.
@@ -10,7 +6,6 @@ content.push(`<meta name="${config.modulePrefix}/config/environment" content="${
 
 All I need:
 - ENV.APP.API_HOST (tests)
-- ember-dev-tools injection
 - investigate how people use engines
 
 addons to investigate:
@@ -25,6 +20,7 @@ addons to investigate:
 // add generators
 CDN
 
+- allow overriding sandbox
 
 add eslint-plugin-ember + eslint
 

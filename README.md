@@ -81,6 +81,41 @@ module.exports = function(ENV) {
 
 ```
 
+### Whitelisting npm modules
+
+Mber supports importing npm modules and browser javascript as AMD modules. However you need to explicitly state these imports in your build config(index.js). The reason why this is needed is explained [here](https://github.com/izelnakri/mber/blob/master/npm-import-explanation.md):
+
+```js
+// in your index.js
+
+/* eslint-env node */
+const app = require('mber');
+
+module.exports = function(ENV) {
+  const { environment } = ENV;
+
+  app.importAsAMDModule('moment', 'node_modules/moment/min/moment.min.js', {
+    type: 'vendor'
+  });
+
+  app.importAsAMDModule('bip39', {
+    type: 'vendor', using: [{ transformation: 'fastbootShim' }]
+  });
+
+  return app.build(environment);
+}
+
+// then in your application code you can simply import these modules
+
+import Component from '@ember/component';
+import moment from 'moment';
+import bip39 from 'bip39';
+
+export default Component.extend({
+  phrase: bip39.generateMnemonic()
+});
+```
+
 ### Adding dynamic inline-content to your index.html
 
 ./index.html supports dynamic inline-content based on your environment configuration:
