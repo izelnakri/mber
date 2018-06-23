@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "index.js",
   "engines": {
@@ -19,7 +19,8 @@
     "build:only-ember": "node -r esm scripts/build-ember-base --exclude-ember-data --exclude-jquery",
     "build:test-support": "node -r esm scripts/build-test-support",
     "build:fastboot-modules": "node -r esm scripts/transpile-fastboot-modules",
-    "build": "npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support && npm run build:fastboot-modules",
+    "build:memserver": "node -r esm scripts/build-memserver",
+    "build": "npm run build:memserver && npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support && npm run build:fastboot-modules",
     "prepublish": "npm run build",
     "bin": "node -r esm cli.js",
     "test": "ava --verbose"
@@ -84,6 +85,7 @@
     "rimraf": "^2.6.2",
     "through2": "^2.0.3",
     "uglify-js": "^3.3.26",
+    "whatwg-fetch": "^2.0.4",
     "ws": "^5.2.0"
   },
   "ava": {

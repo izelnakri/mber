@@ -1,6 +1,7 @@
+import buildApplication from './lib/builders/build-application';
 import buildCSS from './lib/builders/build-css';
 import buildVendor from './lib/builders/build-vendor';
-import buildApplication from './lib/builders/build-application';
+import buildMemServer from './lib/builders/build-memserver';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';
 import appImportTransformation from './lib/transpilers/app-import-transformation';
@@ -98,7 +99,8 @@ function fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections
     buildApplication(environment, ENV, {
       applicationPrepends: buildCache.applicationPrepends,
       applicationAppends: buildCache.applicationAppends
-    })
+    }),
+    (ENV.memserver && ENV.memserver.enabled) ? buildMemServer(environment, ENV) : null
   ]).then(() => {
     return resolve({
       buildCache: buildCache,

@@ -16,6 +16,10 @@ module.exports = function(environment) {
       global: true,
       enabled: ['development', 'memserver', 'test'].includes(environment)
     },
+    memserver: {
+      minify: ['demo', 'production'].includes(environment),
+      enabled: ['demo', 'test', 'memserver'].includes(environment)
+    },
     EmberENV: {
       FEATURES: {
         // Here you can enable experimental features on an ember canary build
