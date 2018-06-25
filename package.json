@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.2.8",
+  "version": "0.2.11",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "index.js",
   "engines": {
@@ -36,7 +36,7 @@
     "ember-source": "3.2.2",
     "eslint": "^5.0.0",
     "jquery": "^3.3.1",
-    "loader.js": "^4.7.0",
+    "loader.js": "^4.2.3",
     "mber-head": "^0.1.0",
     "mock-require": "^3.0.2",
     "qunit": "2.6.1",
@@ -72,6 +72,8 @@
     "ember-data": "3.1.1",
     "ember-devtools": "^6.0.0",
     "esm": "^3.0.52",
+    "express": "^4.16.3",
+    "fastboot": "^1.2.0",
     "fs-extra": "^6.0.1",
     "jsdom": "^11.11.0",
     "klaw": "^2.1.1",
