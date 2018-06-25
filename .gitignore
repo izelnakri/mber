@@ -1,4 +1,4 @@
-ember-app-boilerplate/tmp/*.js
+ember-app-boilerplate/tmp
 ember-app-boilerplate/dist
 node_modules
 dist/*
