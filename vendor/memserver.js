@@ -4407,7 +4407,9 @@ function hasOwnProperty(obj, prop) {
 });
 
 
-          return window['_memserver__model'];
+          
+      return window['_memserver__model'];
+    
         }
 
         define('memserver/model', [], vendorModule);
@@ -10169,7 +10171,9 @@ module.exports = {
 });
 
 
-          return window['_memserver'];
+          
+      return window['_memserver'];
+    
         }
 
         define('memserver', [], vendorModule);

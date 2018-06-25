@@ -30,7 +30,7 @@ export default {
     const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
 
     this[`${type}${appendMetadata}`].push({
-      name: name, path: PATH, type: 'addon', options: options
+      name: name, path: PATH, type: 'addon', options: OPTIONS
     });
   },
   importAsAMDModule(npmModuleName, path, options={}) {
@@ -40,7 +40,7 @@ export default {
     const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
 
     this[`${type}${appendMetadata}`].push({
-      name: npmModuleName, path: PATH, type: 'amdModule', options: options
+      name: npmModuleName, path: PATH, type: 'amdModule', options: OPTIONS
     });
   },
   injectInlineContent(keyName, value) {
@@ -118,7 +118,7 @@ function readTranspile(arrayOfImportableObjects, applicationName) {
       // TODO: add appImportTransformation to amdModule and addon types. Check on importObject.options.using
 
       if (importObject.type === 'amdModule') {
-        return transpileNPMImports(importObject.name, importObject.path);
+        return transpileNPMImports(importObject.name, importObject.path, importObject.options);
       } else if (importObject.type === 'addon') {
         return importAddonToAMD(importObject.name, importObject.path, applicationName);
       }
