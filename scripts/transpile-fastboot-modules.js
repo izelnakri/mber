@@ -1,48 +1,41 @@
-import fs from 'fs';
+import fs from 'fs-extra';
 import { promisify } from 'util';
 import chalk from 'chalk';
 import Console from '../lib/utils/console';
 import findProjectRoot from '../lib/utils/find-project-root';
 import countTime from '../lib/utils/count-time';
-import convertESModuleToAMD from '../lib/transpilers/convert-es-module-to-amd';
 import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
+const ensudeDirAsync = promisify(fs.ensureDir);
 const copyFileAsync = promisify(fs.copyFile);
 const writeFileAsync = promisify(fs.writeFile);
 const readFileAsync = promisify(fs.readFile);
 
-const FILENAME = 'fastboot-modules.js';
+const FILENAME = 'fastboot-addon-modules.js';
 
 function transpileFastbootModules() {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     Console.log(chalk.yellow('BUILDING:'), `${FILENAME}...`);
 
     const timer = countTime();
 
     const PROJECT_PATH = findProjectRoot();
-    const OUTPUT_PATH = `${PROJECT_PATH}/vendor/${FILENAME}`;
+    const OUTPUT_PATH = `${PROJECT_PATH}/vendor/fastboot/${FILENAME}`;
     const MODULE_PATH = `${PROJECT_PATH}/node_modules/ember-cli-fastboot`;
 
-    return Promise.all([
-      readFileAsync(`${MODULE_PATH}/fastboot/initializers/ajax.js`),
-      readFileAsync(`${MODULE_PATH}/fastboot/initializers/error-handler.js`),
-      importAddonFolderToAMD('ember-cli-fastboot', 'ember-cli-fastboot/addon'),
-      copyFileAsync(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/experimental-render-mode-rehydrate.js`),
-      copyFileAsync(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot-app-module.js`)
-    ]).then(([ajaxInitializer, errorHandler, fastbootAddon]) => {
-      const AJAX_INITIALIZER_CODE = convertESModuleToAMD(ajaxInitializer.toString(), {
-        moduleName: 'ember-cli-fastboot/addon/initializers/ajax'
-      });
-      const ERROR_HANDLER_INITIALIZER_CODE = convertESModuleToAMD(errorHandler.toString(), {
-        moduleName: 'ember-cli-fastboot/addon/initializers/error-handler'
-      });
+    await ensudeDirAsync(`${PROJECT_PATH}/vendor/fastboot`);
+    await ensudeDirAsync(`${PROJECT_PATH}/vendor/fastboot/initializers`);
 
-      return writeFileAsync(OUTPUT_PATH, `
-        ${fastbootAddon}
-        ${AJAX_INITIALIZER_CODE}
-        ${ERROR_HANDLER_INITIALIZER_CODE}
-      `);
+    return Promise.all([
+      importAddonFolderToAMD('ember-cli-fastboot', 'ember-cli-fastboot/addon'),
+      copyFileAsync(`${MODULE_PATH}/fastboot/initializers/ajax.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/ajax.js`),
+      copyFileAsync(`${MODULE_PATH}/fastboot/initializers/error-handler.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/error-handler.js`),
+      copyFileAsync(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
+      copyFileAsync(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
+      copyFileAsync(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot/fastboot-app-module.js`)
+    ]).then(([fastbootAddon]) => {
+      return writeFileAsync(OUTPUT_PATH, fastbootAddon);
     }).then(() => {
       const timePassed = timer.stop();
 

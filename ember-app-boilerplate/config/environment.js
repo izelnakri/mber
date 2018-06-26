@@ -12,6 +12,9 @@ module.exports = function(environment) {
     environment,
     rootURL: '/',
     locationType: 'auto',
+    fastboot: {
+      hostWhitelist: [/^localhost:\d+$/]
+    },
     'ember-devtools': {
       global: true,
       enabled: ['development', 'memserver', 'test'].includes(environment)
@@ -37,6 +40,8 @@ module.exports = function(environment) {
       // when it is created
     }
   };
+
+  ENV.APP.API_HOST = 'http://localhost:3000';
 
   if (environment === 'development') {
     // ENV.APP.LOG_RESOLVER = true;

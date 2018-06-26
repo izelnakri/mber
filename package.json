@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.2.12",
+  "version": "0.3.0",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "index.js",
   "engines": {
@@ -20,7 +20,7 @@
     "build:test-support": "node -r esm scripts/build-test-support",
     "build:fastboot-modules": "node -r esm scripts/transpile-fastboot-modules",
     "build:memserver": "node -r esm scripts/build-memserver",
-    "build": "npm run build:memserver && npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support && npm run build:fastboot-modules",
+    "build": "npm run build:memserver && npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support",
     "prepack": "npm run build",
     "bin": "node -r esm cli.js",
     "test": "ava --verbose"

@@ -75,10 +75,6 @@ function buildTestVendorJS() {
     ]).then((jsContents) => {
       return writeFileAsync(`${VENDOR_PATH}/${JS_FILENAME}`, 'define = window.define;require = window.require;' + jsContents.join('\n') + `
         runningTests = true;
-
-        if (window.Testem) {
-          window.Testem.hookIntoTestFramework();
-        }
       `)
     }).then(() => {
       const timePassed = timer.stop();
