@@ -245,6 +245,27 @@ module.exports = function(ENV) {
 }
 ```
 
+#### Using sinon with mber tests
+
+Sinon is a very large javascript project with 10k+ lines of code, this can make your initial build noticibly slow for tests. When you `importAsAMDModule(file)`, mber by default runs the target javascript file through babel and browserify. In order to disable this transpilation you can use: { transpile: false } option, therefore maintain the exceptional initial build speed:
+
+```js
+/* eslint-env node */
+const app = require('mber');
+
+module.exports = function(ENV) {
+  const { environment } = ENV;
+
+  if (environment === 'test') {
+    app.importAsAMDModule('sinon', 'node_modules/sinon/pkg/sinon-no-sourcemaps.js', {
+      type: 'vendor', transpile: false
+    });
+  }
+
+  return app.build(environment);
+}
+```
+
 # CREDITS
 This would have been impossible without the great interop libraries, structures, conventions and the framework source code itself which is mainly developed by the ember core team and the community by large.
 
