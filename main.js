@@ -146,7 +146,9 @@ function importAddonToAMD(name, path, applicationName) {
 }
 
 function serializeRegExp(object) {
-  RegExp.prototype.toJSON = function() { return this.source; };
+  RegExp.prototype.toJSON = function() {
+    return this.source;
+  };
 
   return JSON.parse(JSON.stringify(object));
 }

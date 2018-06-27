@@ -41,11 +41,29 @@ mber s
 
 Now your development server is running on http://localhost:1234
 
-Running your test suite is same as before:
+### Testing
+
+Running your application test suite is same as before:
 
 ```
 mber test --server
 ```
+
+You can now view your tests in your browser afterwards.
+
+If you are running your tests in the terminal and CI servers you can use the following:
+
+```
+mber test
+```
+
+If you want to view/debug the browser output:
+
+```
+mber test --debug=true
+```
+
+Currently tests only run on the actual google chrome for CI. In future I might implement CI mode support for other browsers.
 
 ### Adding libraries and ember-cli-addons to your build
 

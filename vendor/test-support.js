@@ -12811,8 +12811,4 @@ define("qunit/index", ["exports"], function (exports) {
   exports.default = QUnit;
 });
         runningTests = true;
-
-        if (window.Testem) {
-          window.Testem.hookIntoTestFramework();
-        }
       
