@@ -10,17 +10,14 @@
     "mber": "cli.js"
   },
   "scripts": {
-    "build:jquery": "node -r esm scripts/global-jquery",
     "build:loader": "cp ./node_modules/loader.js/dist/loader/loader.js ./vendor",
     "build:ember-source": "cp ./node_modules/ember-source/dist/ember-template-compiler.js ./vendor && cp ./node_modules/ember-source/dist/ember-testing.js ./vendor",
     "build:full-ember": "node -r esm scripts/build-ember-base",
     "build:no-ember-data": "node -r esm scripts/build-ember-base --exclude-ember-data",
-    "build:no-jquery-ember": "node -r esm scripts/build-ember-base --exclude-jquery",
-    "build:only-ember": "node -r esm scripts/build-ember-base --exclude-ember-data --exclude-jquery",
     "build:test-support": "node -r esm scripts/build-test-support",
-    "build:fastboot-modules": "node -r esm scripts/transpile-fastboot-modules",
     "build:memserver": "node -r esm scripts/build-memserver",
-    "build": "npm run build:memserver && npm run build:jquery && npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:no-jquery-ember && npm run build:only-ember && npm run build:test-support",
+    "build:fastboot-modules": "node -r esm scripts/transpile-fastboot-modules",
+    "build": "npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:test-support && npm run build:memserver && npm run build:fastboot-modules",
     "prepack": "npm run build",
     "bin": "node -r esm cli.js",
     "test": "ava --verbose"
@@ -29,7 +26,10 @@
     "@ember/test-helpers": "0.7.25",
     "@glimmer/resolver": "^0.4.3",
     "ava": "^1.0.0-beta.6",
+    "ember-cli-fastboot": "^1.1.4-beta.1",
     "ember-cli-test-loader": "^2.2.0",
+    "ember-data": "3.1.1",
+    "ember-devtools": "^6.0.0",
     "ember-load-initializers": "^1.1.0",
     "ember-qunit": "^3.4.1",
     "ember-resolver": "^4.5.6",
@@ -42,7 +42,8 @@
     "rollup": "^0.61.1",
     "rollup-plugin-commonjs": "^9.1.3",
     "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-virtual": "^1.0.1"
+    "rollup-plugin-virtual": "^1.0.1",
+    "whatwg-fetch": "^2.0.4"
   },
   "repository": {
     "type": "git",
@@ -67,14 +68,10 @@
     "cheerio": "^1.0.0-rc.2",
     "chokidar": "^2.0.4",
     "compression": "^1.7.2",
-    "ember-cli-fastboot": "^1.1.4-beta.1",
-    "ember-data": "3.1.1",
-    "ember-devtools": "^6.0.0",
     "esm": "^3.0.55",
     "express": "^4.16.3",
     "fastboot": "^1.2.0",
     "fs-extra": "^6.0.1",
-    "jquery": "^3.3.1",
     "jsdom": "^11.11.0",
     "klaw": "^2.1.1",
     "memserver": "^1.1.6",
@@ -84,8 +81,7 @@
     "puppeteer": "^1.5.0",
     "rimraf": "^2.6.2",
     "through2": "^2.0.3",
-    "uglify-js": "^3.4.1",
-    "whatwg-fetch": "^2.0.4",
+    "uglify-es": "^3.3.9",
     "ws": "^5.2.0"
   },
   "ava": {

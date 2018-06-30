@@ -29,8 +29,8 @@ const memserverResponseModule = convertESModuletoAMD(`
 function build() {
   return Promise.all([
     readFileAsync(`${MODULE_PATH}/whatwg-fetch/fetch.js`),
-    transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/lib/model.js`),
-    transpileNPMImport('memserver', `${MODULE_PATH}/memserver/lib/mem-server.js`)
+    transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),
+    transpileNPMImport('memserver', `${MODULE_PATH}/memserver/lib/mem-server-cjs.js`)
   ]).then(([fetchReplacement, memServerModelModule, memServerModule]) => {
     return writeFileAsync(`${VENDOR_PATH}/memserver.js`, `
       ${removeFetch}

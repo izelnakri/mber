@@ -13,7 +13,7 @@ export default {
       // if no onerror handler is defined, define one for fastboot environments
       Ember.onerror = function(err) {
         let errorMessage = `There was an error running your app in fastboot. More info about the error: \n ${err.stack || err}`;
-        console.log(errorMessage);
+        Ember.Logger.error(errorMessage);
       }
     }
   }

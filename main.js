@@ -90,17 +90,17 @@ function fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections
 
   return Promise.all([
     buildCSS(environment),
-    buildVendor(environment, ENV, Object.assign({}, cliArguments, {
+    buildVendor(ENV, Object.assign({}, cliArguments, {
       fastboot: cliArguments.fastboot !== false,
       hasSocketWatching: cliArguments.watch || !['production', 'demo'].includes(environment),
       vendorPrepends: buildCache.vendorPrepends,
       vendorAppends: buildCache.vendorAppends
     })),
-    buildApplication(environment, ENV, {
+    buildApplication(ENV, {
       applicationPrepends: buildCache.applicationPrepends,
       applicationAppends: buildCache.applicationAppends
     }),
-    (ENV.memserver && ENV.memserver.enabled) ? buildMemServer(environment, ENV) : null
+    (ENV.memserver && ENV.memserver.enabled) ? buildMemServer(ENV) : null
   ]).then(() => {
     return resolve({
       buildCache: buildCache,

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import chalk from 'chalk';
-import UglifyJS from 'uglify-js';
+import UglifyJS from 'uglify-es';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
 import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
@@ -11,7 +11,7 @@ import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
 
-function build(environment, options={ excludeJQuery: false, excludeEmberData: false }) {
+function build(environment, options={ excludeEmberData: false }) {
   const FILENAME = getFileName(environment, options);
 
   return new Promise((resolve) => {
@@ -40,27 +40,18 @@ function build(environment, options={ excludeJQuery: false, excludeEmberData: fa
 }
 
 function getFileName(environment, options) {
-  if (options.excludeJQuery && options.excludeEmberData){
-    return environment === 'production' ? 'only-ember-prod' : 'only-ember-debug';
-  } else if (options.excludeEmberData) {
+  if (options.excludeEmberData) {
     return environment === 'production' ? 'no-ember-data-ember-prod' : 'no-ember-data-ember-debug';
-  } else if (options.excludeJQuery) {
-    return environment === 'production' ? 'no-jquery-ember-prod' : 'no-jquery-ember-debug';
   }
 
   return environment === 'production' ? 'full-ember-prod' : 'full-ember-debug';
 }
 
-function readBuildFiles(projectPath, environment, options={
-  excludejQuery: false, excludeEmberData: false
-}){
+function readBuildFiles(projectPath, environment, options={ excludeEmberData: false }){
   const MODULE_PATH = `${projectPath}/node_modules`;
-  const VENDOR_PATH = `${projectPath}/vendor`;
 
   let baseBuilds = [
     readFileAsync(`${MODULE_PATH}/loader.js/dist/loader/loader.js`),
-    options.excludeJQuery ?
-      new Promise((resolve) => resolve('')) : readFileAsync(`${VENDOR_PATH}/jquery.js`),
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/commonjs/es2017'),
     readFileAsync(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     injectEmberJS(MODULE_PATH, environment),
@@ -126,9 +117,7 @@ function writeVendorJS(path, content, environment) {
 
 function readArguments() {
   return process.argv.slice(2).reduce((result, arg) => {
-    if (arg.startsWith('--exclude-jquery')) {
-      return Object.assign(result, { excludeJQuery: true });
-    } else if (arg.startsWith('--exclude-ember-data')) {
+    if (arg.startsWith('--exclude-ember-data')) {
       return Object.assign(result, { excludeEmberData: true });
     }
 
