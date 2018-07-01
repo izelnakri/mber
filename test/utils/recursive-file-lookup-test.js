@@ -1,40 +1,35 @@
 import test from 'ava';
-import fs from 'fs';
-import { promisify } from 'util';
-import mkdirp from 'mkdirp';
-import rimraf from 'rimraf';
+import fs from 'fs-extra';
 import lookup from '../../lib/utils/recursive-file-lookup';
 
 const CWD = process.cwd();
-const mkdir = promisify(mkdirp);
-const writeFileAsync = promisify(fs.writeFile);
 
 test.before(async () => {
-  if (fs.existsSync('online-shop')) {
-    await rimraf.sync('online-shop');
+  if (await fs.exists('online-shop')) {
+    await fs.remove('online-shop');
   }
 
-  await mkdir('online-shop');
+  await fs.mkdirp('online-shop');
   await Promise.all([
-    writeFileAsync('online-shop/index.js', '// find me in online-shop/index.js'),
-    writeFileAsync('online-shop/details.js', '// find me in online-shop/details.js'),
-    writeFileAsync('online-shop/details.hbs', '// find me in online-shop/details.hbs'),
-    mkdir('online-shop/shoes'),
-    mkdir('online-shop/shirts')
+    fs.writeFile('online-shop/index.js', '// find me in online-shop/index.js'),
+    fs.writeFile('online-shop/details.js', '// find me in online-shop/details.js'),
+    fs.writeFile('online-shop/details.hbs', '// find me in online-shop/details.hbs'),
+    fs.mkdirp('online-shop/shoes'),
+    fs.mkdirp('online-shop/shirts')
   ]);
   await Promise.all([
-    writeFileAsync('online-shop/shoes/shoe.js', '// find me in online-shop/shoes/shoe.js'),
-    writeFileAsync('online-shop/shoes/index.js', '// find me in online-shop/shoes/index.js'),
-    writeFileAsync('online-shop/shoes/brown.js', '// find me in online-shop/shoes/brown.js'),
-    writeFileAsync('online-shop/shoes/brown.hbs', '// find me in online-shop/shoes/brown.hbs'),
-    mkdir('online-shop/shoes/shoe')
+    fs.writeFile('online-shop/shoes/shoe.js', '// find me in online-shop/shoes/shoe.js'),
+    fs.writeFile('online-shop/shoes/index.js', '// find me in online-shop/shoes/index.js'),
+    fs.writeFile('online-shop/shoes/brown.js', '// find me in online-shop/shoes/brown.js'),
+    fs.writeFile('online-shop/shoes/brown.hbs', '// find me in online-shop/shoes/brown.hbs'),
+    fs.mkdirp('online-shop/shoes/shoe')
   ]);
-  await writeFileAsync('online-shop/shoes/shoe/brown.js', '// find me in online-shop/shoes/shoe/brown.js')
+  await fs.writeFile('online-shop/shoes/shoe/brown.js', '// find me in online-shop/shoes/shoe/brown.js')
 });
 
 test.after(async () => {
-  if (fs.existsSync('online-shop')) {
-    await rimraf.sync('online-shop');
+  if (await fs.exists('online-shop')) {
+    await fs.remove('online-shop');
   }
 });
 

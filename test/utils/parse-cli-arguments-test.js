@@ -97,23 +97,47 @@ test('--server argument could be read', (t) => {
   mock.removeMock();
 });
 
+test('--debug argument could be read', (t) => {
+  t.plan(2);
+
+  const mock = mockProcessARGV(['--debug=true']);
+
+  t.deepEqual(parseCLIArguments(), { debug: true });
+
+  mockProcessARGV(['--debug=false']);
+
+  t.deepEqual(parseCLIArguments(), { debug: false });
+
+  mock.removeMock();
+});
+
 test('all arguments could be read', (t) => {
   t.plan(2);
 
   const mock = mockProcessARGV([
-    '--env=production', '--fastboot=true', '--watch=true', '--proxy=http://localhost:3000'
+    '--env=production', '--fastboot=true', '--watch=true', '--proxy=http://localhost:3000',
+    '--debug=true'
   ]);
 
   t.deepEqual(parseCLIArguments(), {
-    environment: 'production', fastboot: true, watch: true, proxy: 'http://localhost:3000'
+    environment: 'production',
+    fastboot: true,
+    watch: true,
+    proxy: 'http://localhost:3000',
+    debug: true
   });
 
   mockProcessARGV([
-    '--env=test', '--fastboot=false', '--watch=false', '--proxy=https://api.mapbox.com'
+    '--env=test', '--fastboot=false', '--watch=false', '--proxy=https://api.mapbox.com',
+    '--debug=false'
   ]);
 
   t.deepEqual(parseCLIArguments(), {
-    environment: 'test', fastboot: false, watch: false, proxy: 'https://api.mapbox.com'
+    environment: 'test',
+    fastboot: false,
+    watch: false,
+    proxy: 'https://api.mapbox.com',
+    debug: false
   });
 
   mock.removeMock();
