@@ -282,6 +282,19 @@ module.exports = function(ENV) {
 }
 ```
 
+#### Enabling Ember optional features
+
+Currently ember-source builds toggle two features based on environment configurations. You can toggle them in your `environment.js`:
+
+```js
+module.exports = function(environment) {
+  let ENV = {
+    _APPLICATION_TEMPLATE_WRAPPER: false, // NOTE: true by default
+    _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true // NOTE: false by default
+  }
+};
+```
+
 # CREDITS
 This would have been impossible without the great interop libraries, structures, conventions and the framework source code itself which is mainly developed by the ember core team and the community by large.
 

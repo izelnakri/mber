@@ -13,7 +13,7 @@ test.beforeEach(async () => {
 });
 
 test.serial('buildTests() works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
@@ -26,10 +26,9 @@ test.serial('buildTests() works', async (t) => {
   t.true(Number(timeTakenForBuild) < 500);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
-  const testsJS = testsJSBuffer.toString();
-  const testsJSCode = testsJS.trim();
+  const testsJSCode = testsJSBuffer.toString().trim();
 
-  // t.true(testsJS.length === TESTS_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
@@ -41,7 +40,7 @@ test.serial('buildTests() works', async (t) => {
   mock.removeMock();
 });
 test.serial('buildTests(development) works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
@@ -54,10 +53,9 @@ test.serial('buildTests(development) works', async (t) => {
   t.true(Number(timeTakenForBuild) < 500);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
-  const testsJS = testsJSBuffer.toString();
-  const testsJSCode = testsJS.trim();
+  const testsJSCode = testsJSBuffer.toString().trim();
 
-  // t.true(testsJS.length === TESTS_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
@@ -69,7 +67,7 @@ test.serial('buildTests(development) works', async (t) => {
   mock.removeMock();
 });
 test.serial('buildTests(test) works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
@@ -82,10 +80,9 @@ test.serial('buildTests(test) works', async (t) => {
   t.true(Number(timeTakenForBuild) < 500);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
-  const testsJS = testsJSBuffer.toString();
-  const testsJSCode = testsJS.trim();
+  const testsJSCode = testsJSBuffer.toString().trim();
 
-  // t.true(testsJS.length === TESTS_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
@@ -97,7 +94,7 @@ test.serial('buildTests(test) works', async (t) => {
   mock.removeMock();
 });
 test.serial('buildTests(custom) works', async (t) => {
-  t.plan(9);
+  t.plan(10);
 
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
@@ -112,10 +109,9 @@ test.serial('buildTests(custom) works', async (t) => {
   t.true(Number(timeTakenForBuild) < 500);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
-  const testsJS = testsJSBuffer.toString();
-  const testsJSCode = testsJS.trim();
+  const testsJSCode = testsJSBuffer.toString().trim();
 
-  // t.true(testsJS.length === TESTS_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE - 7);
   t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE - 7);
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/components/welcome-page/integration-test'));

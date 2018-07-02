@@ -1,3 +1,4 @@
+// NOTE: maybe remove size checker for some tests
 import test from 'ava';
 import fs from 'fs-extra';
 import mockProcessCWD from '../helpers/mock-process-cwd';
@@ -8,526 +9,688 @@ import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 
 const CWD = process.cwd();
 const VENDOR_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/vendor.js`;
-// TODO: vendor.js should have min and max range instead
-const DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE = 2495344;
-const DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 692933;
-const FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE = 2504860;
-const FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 698551;
-// const NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE = 0;
-// const NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 0;
-// const FASTBOOT_NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE = 0;
-// const FASTBOOT_NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 0;
+const DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE = 2495344; // 2.50 MB
+const DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 692933; // 692.93 kB
+const FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE = 2504860; // 2.50 MB
+const FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 698551; // 698.55 kB
+const DEFAULT_BROWSER_EMBER_ENV = {
+  LOG_STACKTRACE_ON_DEPRECATION: true,
+  LOG_VERSION: true,
+  RAISE_ON_DEPRECATION: false,
+  _APPLICATION_TEMPLATE_WRAPPER: true,
+  _TEMPLATE_ONLY_GLIMMER_COMPONENTS: false,
+  environment: 'development'
+};
+const NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE = 1889444; // 1.89 MB
+const NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 491478; // 491.48 kB
+const NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE = 1898960; // 1.90 MB
+const NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 497096; // 497.10 kB
+const VENDOR_JS_COMPILE_TRESHOLD = 800;
+const VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD = 13000;
 
 test.beforeEach(async () => {
   await fs.remove(VENDOR_JS_OUTPUT_PATH);
 });
 
-// vendorPrepends, vendorAppends works, combi working
-// test data ember-data exclude is working. -> should fastboot booting be delayed and done on application.js?
-
-// assert that there is window.EmberENV assignment (default)
-// assert that there is window.runningTests assignment (default)
-
 test.serial('buildVendor() works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor();
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForVendor) < 600);
-
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
-  const vendorJSCode = vendorJSBuffer.toString();
-
-  t.true(stats.size === FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE);
-
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(codeHasWatchSocket(vendorJSCode));
-
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
   t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
 
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
-  });
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
 
-  window.eval(vendorJSCode.toString());
+  t.true(vendorJSBuffer.length === FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE);
+  t.true(stats.size === FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE);
 
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, window.socket
-  ].forEach((object) => t.truthy(object));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
+
+  t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 test.serial('buildVendor(development) works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({ environment: 'development' }, { fastboot: true });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForVendor) < 600);
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
 
+  t.true(vendorJSBuffer.length === FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE);
 
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(codeHasWatchSocket(vendorJSCode));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
 
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
+  t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
+  t.true(window.runningTests === false);
 
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
+  mock.removeMock();
+});
+
+test.serial('buildVendor(development) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({ environment: 'development', excludeEmberData: true });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[1\.90 MB\] Environment: development/g.test(message));
+
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE);
+  t.true(stats.size === NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: true, fastboot: true, excludeEmberData: true
   });
 
-  window.eval(vendorJSCode.toString());
-
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, window.socket
-  ].forEach((object) => t.truthy(object));
+  t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 test.serial('buildVendor(development, { fastboot: false }) works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({ environment: 'development' }, { fastboot: false });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForVendor) < 600);
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
 
+  t.true(vendorJSBuffer.length === DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE);
 
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(codeHasWatchSocket(vendorJSCode));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: false });
 
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
+  t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
+  t.true(window.runningTests === false);
 
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
+  mock.removeMock();
+});
+
+test.serial('buildVendor(development, { fastboot: false }) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({
+    environment: 'development', excludeEmberData: true
+  }, { fastboot: false });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[1\.89 MB\] Environment: development/g.test(message));
+
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE);
+  t.true(stats.size === NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: true, fastboot: false, excludeEmberData: true
   });
 
-  window.eval(vendorJSCode.toString());
-
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, window.socket
-  ].forEach((object) => t.truthy(object));
+  t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 test.serial('buildVendor(production) works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildVendor({ environment: 'production' }, { fastboot: true, hasSocketWatching: false });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
-
-  t.true(Number(timeTakenForVendor) < 9000);
-
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
-  const vendorJSCode = vendorJSBuffer.toString();
-
-  t.true(stats.size === FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
-
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(!codeHasWatchSocket(vendorJSCode));
-
-  t.true(/BUILT: vendor\.js in \d+ms \[0\.70 MB\] Environment: production/g.test(message));
-
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
+  const { message, stats } = await buildVendor({ environment: 'production' }, {
+    fastboot: true, hasSocketWatching: false
   });
 
-  window.eval(vendorJSCode.toString());
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[698\.55 kB\] Environment: production/g.test(message));
 
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, !window.socket
-  ].forEach((object) => t.truthy(object));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(stats.size === FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
+
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: false, fastboot: true });
+
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'production'
+  }));
+  t.true(window.runningTests === false);
+
+  mock.removeMock();
+});
+
+test.serial('buildVendor(production) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({
+    environment: 'production', excludeEmberData: true
+  }, { fastboot: true, hasSocketWatching: false });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[497\.10 kB\] Environment: production/g.test(message));
+
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(stats.size === NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: false, fastboot: true, excludeEmberData: true
+  });
+
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'production'
+  }));
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildVendor({ environment: 'production' }, { fastboot: false, hasSocketWatching: false });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
+  const { message, stats } = await buildVendor({ environment: 'production' }, {
+    fastboot: false, hasSocketWatching: false
+  });
 
-  t.true(Number(timeTakenForVendor) < 9000);
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[692\.93 kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
 
+  t.true(vendorJSBuffer.length === DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
 
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(!codeHasWatchSocket(vendorJSCode));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: false, fastboot: false });
 
-  t.true(/BUILT: vendor\.js in \d+ms \[0\.69 MB\] Environment: production/g.test(message));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'production'
+  }));
+  t.true(window.runningTests === false);
 
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
+  mock.removeMock();
+});
+
+test.serial('buildVendor(production, { fastboot: false }) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({
+    environment: 'production', excludeEmberData: true
+  }, { fastboot: false, hasSocketWatching: false });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[491\.48 kB\] Environment: production/g.test(message));
+
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(stats.size === NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: false, fastboot: false, excludeEmberData: true
   });
 
-  window.eval(vendorJSCode.toString());
-
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, !window.socket
-  ].forEach((object) => t.truthy(object));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'production'
+  }));
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 test.serial('buildVendor(test) works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({ environment: 'test' });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForVendor) < 600);
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: test/g.test(message));
 
+  const targetSize = FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 8;
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
 
-  t.true(stats.size === (FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 8));
+  t.true(vendorJSBuffer.length === targetSize);
+  t.true(stats.size === targetSize);
 
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(codeHasWatchSocket(vendorJSCode));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
 
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: test/g.test(message));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'test'
+  }));
+  t.true(window.runningTests);
 
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
+  mock.removeMock();
+});
+
+test.serial('buildVendor(test) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({ environment: 'test', excludeEmberData: true });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[1\.90 MB\] Environment: test/g.test(message));
+
+  const targetSize = NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE - 8;
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === targetSize);
+  t.true(stats.size === targetSize);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: true, fastboot: true, excludeEmberData: true
   });
 
-  window.eval(vendorJSCode.toString());
-
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, window.socket
-  ].forEach((object) => t.truthy(object));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'test'
+  }));
+  t.true(window.runningTests);
 
   mock.removeMock();
 });
 
 test.serial('buildVendor(memserver) works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildVendor({ environment: 'memserver' });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
+  const { message, stats } = await buildVendor({
+    environment: 'memserver', modulePrefix: 'izelnakri',
+    _APPLICATION_TEMPLATE_WRAPPER: false, _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
+  });
 
-  t.true(Number(timeTakenForVendor) < 600);
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: memserver/g.test(message));
 
+  const targetSize = FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE + 117;
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
 
-  t.true(stats.size === (FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 2));
+  t.true(vendorJSBuffer.length === targetSize);
+  t.true(stats.size === targetSize);
 
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(codeHasWatchSocket(vendorJSCode));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true }, 'izelnakri');
 
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: memserver/g.test(message));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'memserver',
+    _APPLICATION_TEMPLATE_WRAPPER: false,
+    _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
+  }));
+  t.true(window.runningTests === false);
 
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
+  mock.removeMock();
+});
+
+test.serial('buildVendor(memserver) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({
+    environment: 'memserver', modulePrefix: 'my-app',  excludeEmberData: true
   });
 
-  window.eval(vendorJSCode.toString());
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[1\.90 MB\] Environment: memserver/g.test(message));
 
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, window.socket
-  ].forEach((object) => t.truthy(object));
+  const targetSize = NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE + 9532;
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === targetSize);
+  t.true(stats.size === targetSize);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: true, fastboot: true, excludeEmberData: true
+  }, 'my-app');
+
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'memserver'
+  }));
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 test.serial('buildVendor(demo) works', async (t) => {
-  t.plan(28);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({ environment: 'demo' }, { hasSocketWatching: false });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForVendor) < 9000);
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[823\.86 kB\] Environment: demo/g.test(message));
 
+  const targetSize = FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE + 125304;
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
 
-  // t.true(stats.size === (FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE + 4));
+  t.true(vendorJSBuffer.length === targetSize);
+  t.true(stats.size === targetSize);
 
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(!codeHasWatchSocket(vendorJSCode));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: false, fastboot: true });
 
-  t.true(/BUILT: vendor\.js in \d+ms \[0\.82 MB\] Environment: demo/g.test(message));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'demo'
+  }));
+  t.true(window.runningTests === false);
 
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
+  mock.removeMock();
+});
+
+test.serial('buildVendor(demo) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({
+    environment: 'demo', excludeEmberData: true
+  }, { hasSocketWatching: false });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[622\.23 kB\] Environment: demo/g.test(message));
+
+  const targetSize = NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE + 125131;
+  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === targetSize);
+  t.true(stats.size === targetSize);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: false, fastboot: true, excludeEmberData: true
   });
 
-  window.eval(vendorJSCode.toString());
-
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, !window.socket
-  ].forEach((object) => t.truthy(object));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'demo'
+  }));
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 test('buildVendor(custom) works', async (t) => {
-  t.plan(29);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({ environment: 'custom' });
-  const timeTakenForVendor = message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForVendor) < 600);
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: custom/g.test(message));
 
+  const targetSize = FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 5;
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
 
-  t.true(stats.size === (FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 5));
+  t.true(vendorJSBuffer.length === targetSize)
+  t.true(stats.size === targetSize);
 
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, '@glimmer/di'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-inflector/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-data/model'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-load-initializers/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-resolver/index'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/ember-data'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'ember-cli-fastboot/services/fastboot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/ajax'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/initializers/error-handler'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/instance-initializers/clear-double-boot'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/locations/none'));
-  t.true(codeIncludesAMDModule(vendorJSCode, 'frontend/services/fastboot'));
-  t.true(!codeIncludesAMDModule(vendorJSCode, 'jquery'));
-  t.true(codeHasWatchSocket(vendorJSCode));
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true })
 
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: custom/g.test(message));
-
-  injectBrowserToNode(null, {
-    url: 'http://localhost:1234',
-    resources: 'usable',
-    runScripts: 'outside-only'
-  });
-
-  window.eval(vendorJSCode.toString());
-
-  [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define, window.socket
-  ].forEach((object) => t.truthy(object));
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'custom'
+  }));
+  t.true(window.runningTests === false);
 
   mock.removeMock();
 });
+
+test.serial('buildVendor(custom) works without ember data', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message, stats } = await buildVendor({ environment: 'custom', excludeEmberData: true });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[1\.90 MB\] Environment: custom/g.test(message));
+
+  const targetSize = NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE - 5;
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
+  const vendorJSCode = vendorJSBuffer.toString();
+
+  t.true(vendorJSBuffer.length === targetSize);
+  t.true(stats.size === targetSize);
+
+  await testJavaScriptContents(t, vendorJSCode, {
+    hasSocketWatching: true, fastboot: true, excludeEmberData: true
+  })
+
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'custom'
+  }));
+  t.true(window.runningTests === false);
+
+  mock.removeMock();
+});
+
+test.serial('buildVendor(development, { vendorPrepends }) work', async (t) => {
+  t.plan(31);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message } = await buildVendor({ environment: 'development' }, {
+    vendorPrepends: CODE_TO_PREPEND
+  });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
+
+  const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
+
+  t.true(vendorJSCode.startsWith(CODE_TO_PREPEND));
+
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
+
+  t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
+  t.true(window.runningTests === false);
+
+  mock.removeMock();
+});
+
+test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
+  t.plan(31);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message } = await buildVendor({ environment: 'custom' }, {
+    vendorAppends: CODE_TO_APPEND
+  });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: custom/g.test(message));
+
+  const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
+
+  t.true(vendorJSCode.endsWith(CODE_TO_APPEND));
+
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
+
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'custom'
+  }));
+  t.true(window.runningTests === false);
+
+  mock.removeMock();
+});
+
+test.serial('buildVendor(memserver, { vendorPrepends, vendorAppends }) work', async (t) => {
+  t.plan(32);
+
+  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+
+  const CODE_TO_PREPEND = '(function(){console.log("this is prepending code")})()';
+  const CODE_TO_APPEND = '(function(){console.log("this is appending code")})()';
+  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const { message } = await buildVendor({ environment: 'memserver' }, {
+    hasSocketWatching: true, fastboot: true,
+    vendorPrepends: CODE_TO_PREPEND, vendorAppends: CODE_TO_APPEND
+  });
+
+  t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD);
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: memserver/g.test(message));
+
+  const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
+
+  t.true(vendorJSCode.startsWith(CODE_TO_PREPEND));
+  t.true(vendorJSCode.endsWith(CODE_TO_APPEND));
+
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
+
+  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+    environment: 'memserver'
+  }));
+  t.true(window.runningTests === false);
+
+  mock.removeMock();
+});
+
+function getTimeTakenForBuild(message) {
+  return Number(message.match(/vendor\.js in \d+ms/g)[0]
+    .replace('vendor.js in ', '')
+    .replace('ms', ''));
+}
+
+Object.filter = (object, keys) => {
+  if (!Array.isArray(keys)) {
+    return object;
+  }
+
+  return Object.keys(object).reduce((result, key) => {
+    if (keys.includes(key)) {
+      return Object.assign(result, { [key]: object[key] });
+    }
+
+    return result;
+  }, {});
+}
+
+function getWindowENV(ENV) {
+  return Object.filter(ENV, [
+    'LOG_STACKTRACE_ON_DEPRECATION', 'LOG_VERSION', 'RAISE_ON_DEPRECATION',
+    '_APPLICATION_TEMPLATE_WRAPPER', '_TEMPLATE_ONLY_GLIMMER_COMPONENTS', 'environment'
+  ]);
+}
+
+async function injectToBrowser(javaScriptCode) {
+  await injectBrowserToNode();
+
+  global.window.eval(javaScriptCode);
+}
+
+async function testJavaScriptContents(t, code, options={
+  hasSocketWatching: true, excludeEmberData: false, fastboot: true
+}, modulePrefix='frontend') {
+  t.true(codeIncludesAMDModule(code, '@glimmer/resolver/index'));
+  t.true(codeIncludesAMDModule(code, '@glimmer/di'));
+  t.true(codeIncludesAMDModule(code, 'ember-inflector/index'));
+  t.true(codeIncludesAMDModule(code, 'ember-load-initializers/index'));
+  t.true(codeIncludesAMDModule(code, 'ember-resolver/index'));
+
+  if (options.excludeEmberData) {
+    t.true(!codeIncludesAMDModule(code, 'ember-data/index'));
+    t.true(!codeIncludesAMDModule(code, 'ember-data/model'));
+    t.true(!codeIncludesAMDModule(code, `${modulePrefix}/initializers/ember-data`));
+    t.true(!codeIncludesAMDModule(code, `${modulePrefix}/instance-initializers/ember-data`));
+  } else {
+    t.true(codeIncludesAMDModule(code, 'ember-data/index'));
+    t.true(codeIncludesAMDModule(code, 'ember-data/model'));
+    t.true(codeIncludesAMDModule(code, `${modulePrefix}/initializers/ember-data`));
+    t.true(codeIncludesAMDModule(code, `${modulePrefix}/instance-initializers/ember-data`));
+  }
+
+  if (options.fastboot) {
+    t.true(codeIncludesAMDModule(code, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
+    t.true(codeIncludesAMDModule(code, 'ember-cli-fastboot/locations/none'));
+    t.true(codeIncludesAMDModule(code, 'ember-cli-fastboot/services/fastboot'));
+    t.true(codeIncludesAMDModule(code, `${modulePrefix}/initializers/ajax`));
+    t.true(codeIncludesAMDModule(code, `${modulePrefix}/initializers/error-handler`));
+    t.true(codeIncludesAMDModule(code, `${modulePrefix}/instance-initializers/clear-double-boot`));
+    t.true(codeIncludesAMDModule(code, `${modulePrefix}/locations/none`));
+    t.true(codeIncludesAMDModule(code, `${modulePrefix}/services/fastboot`));
+  } else {
+    t.true(!codeIncludesAMDModule(code, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
+    t.true(!codeIncludesAMDModule(code, 'ember-cli-fastboot/locations/none'));
+    t.true(!codeIncludesAMDModule(code, 'ember-cli-fastboot/services/fastboot'));
+    t.true(!codeIncludesAMDModule(code, `${modulePrefix}/initializers/ajax`));
+    t.true(!codeIncludesAMDModule(code, `${modulePrefix}/initializers/error-handler`));
+    t.true(!codeIncludesAMDModule(code, `${modulePrefix}/instance-initializers/clear-double-boot`));
+    t.true(!codeIncludesAMDModule(code, `${modulePrefix}/locations/none`));
+    t.true(!codeIncludesAMDModule(code, `${modulePrefix}/services/fastboot`));
+  }
+
+  t.true(!codeIncludesAMDModule(code, 'jquery'));
+  options.hasSocketWatching ? t.true(codeHasWatchSocket(code)) : t.true(!codeHasWatchSocket(code));
+
+  await injectToBrowser(code);
+
+  [
+    window.Ember, window.Ember.Object, window.requirejs,
+    window.require, window.define,
+    options.hasSocketWatching ? window.socket : !window.socket
+  ].forEach((object) => t.truthy(object));
+}

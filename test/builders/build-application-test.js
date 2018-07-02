@@ -6,15 +6,15 @@ import buildApplication from '../../lib/builders/build-application.js';
 
 const CWD = process.cwd();
 const APPLICATION_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/application.js`;
-const APPLICATION_JS_TARGET_BYTE_SIZE = 11537;
-const APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE = 8011;
+const APPLICATION_JS_TARGET_BYTE_SIZE = 11537; // 11.54 kB
+const APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE = 8011; // 8.01 kB
 
 test.beforeEach(async () => {
   await fs.remove(APPLICATION_JS_OUTPUT_PATH);
 });
 
 test.serial('buildApplication() works', async (t) => {
-  t.plan(21);
+  t.plan(22);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -62,14 +62,14 @@ test.serial('buildApplication() works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
 
-  // t.true(applicationJsStats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
+  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[0\.01 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.54 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildApplication(development) works', async (t) => {
-  t.plan(21);
+  t.plan(22);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -117,14 +117,14 @@ test.serial('buildApplication(development) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
 
-  // t.true(applicationJsStats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
+  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[0\.01 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.54 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildApplication(production) works', async (t) => {
-  t.plan(21);
+  t.plan(22);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -157,15 +157,15 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
 
-  // t.true(applicationJsStats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(applicationJSBuffer.length === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
 
-  t.true(/BUILT: application\.js in \d+ms \[0\.01 MB\] Environment: production/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.01 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildApplication(test) works', async (t) => {
-  t.plan(21);
+  t.plan(22);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -213,15 +213,15 @@ test.serial('buildApplication(test) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
 
-  // t.true(applicationJsStats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
 
-  t.true(/BUILT: application\.js in \d+ms \[0\.01 MB\] Environment: test/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildApplication(demo) works', async (t) => {
-  t.plan(21);
+  t.plan(22);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -254,15 +254,15 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
 
-  // t.true(applicationJsStats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
+  t.true(applicationJSBuffer.length === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
   t.true(stats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
 
-  t.true(/BUILT: application\.js in \d+ms \[0\.01 MB\] Environment: demo/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.01 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildApplication(custom) works', async (t) => {
-  t.plan(21);
+  t.plan(22);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -312,15 +312,15 @@ test.serial('buildApplication(custom) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/routes/index/unit-test'));
 
-  // t.true(applicationJsStats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
 
-  t.true(/BUILT: application\.js in \d+ms \[0\.01 MB\] Environment: custom/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.50 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildApplication(development, { applicationPrepends }) work', async (t) => {
-  t.plan(4);
+  t.plan(5);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -338,12 +338,13 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
 
   t.true(applicationJSBuffer.toString().trim().startsWith(CODE_TO_PREPEND));
+  t.true(applicationJSBuffer.length === (APPLICATION_JS_TARGET_BYTE_SIZE + 57));
   t.true(stats.size === (APPLICATION_JS_TARGET_BYTE_SIZE + 57));
 
   mock.removeMock();
 });
 test.serial('buildApplication(development, { applicationAppends }) work', async (t) => {
-  t.plan(4);
+  t.plan(5);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -361,12 +362,13 @@ test.serial('buildApplication(development, { applicationAppends }) work', async 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
 
   t.true(applicationJSBuffer.toString().trim().endsWith(CODE_TO_APPEND));
+  t.true(applicationJSBuffer.length === (APPLICATION_JS_TARGET_BYTE_SIZE + 56));
   t.true(stats.size === (APPLICATION_JS_TARGET_BYTE_SIZE + 56));
 
   mock.removeMock();
 });
 test.serial('buildApplication(development, { applicationPrepends, applicationAppends }) work', async (t) => {
-  t.plan(5);
+  t.plan(6);
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
@@ -387,6 +389,7 @@ test.serial('buildApplication(development, { applicationPrepends, applicationApp
 
   t.true(applicationJSCode.startsWith(CODE_TO_PREPEND));
   t.true(applicationJSCode.endsWith(CODE_TO_APPEND));
+  t.true(applicationJSBuffer.length === (APPLICATION_JS_TARGET_BYTE_SIZE + 113));
   t.true(stats.size === (APPLICATION_JS_TARGET_BYTE_SIZE + 113));
 
   mock.removeMock();

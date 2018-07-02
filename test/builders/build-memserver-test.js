@@ -6,15 +6,15 @@ import buildMemserver from '../../lib/builders/build-memserver.js';
 
 const CWD = process.cwd();
 const MEMSERVER_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/memserver.js`;
-const MEMSERVER_JS_TARGET_BYTE_SIZE = 295982;
-const MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE = 127809;
+const MEMSERVER_JS_TARGET_BYTE_SIZE = 295982; // 295.98 kB
+const MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE = 127809; // 127.81 kB
 
 test.beforeEach(async () => {
   await fs.remove(MEMSERVER_JS_OUTPUT_PATH);
 });
 
 test.serial('buildMemserver() works', async (t) => {
-  t.plan(14);
+  t.plan(15);
 
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
@@ -30,7 +30,7 @@ test.serial('buildMemserver() works', async (t) => {
   const memserverJS = memserverJSBuffer.toString();
   const memserverJSCode = memserverJS.trim();
 
-  // t.true(memserverJS.length === MEMSERVER_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(memserverJSCode.startsWith('(function() {'));
   t.true(memserverJSCode.includes('window.fetch = undefined;'));
@@ -42,12 +42,12 @@ test.serial('buildMemserver() works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[0\.30 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.98 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildMemserver(development) works', async (t) => {
-  t.plan(14);
+  t.plan(15);
 
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
@@ -63,7 +63,7 @@ test.serial('buildMemserver(development) works', async (t) => {
   const memserverJS = memserverJSBuffer.toString();
   const memserverJSCode = memserverJS.trim();
 
-  // t.true(memserverJS.length === MEMSERVER_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(memserverJSCode.startsWith('(function() {'));
   t.true(memserverJSCode.includes('window.fetch = undefined;'));
@@ -75,12 +75,12 @@ test.serial('buildMemserver(development) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[0\.30 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.98 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildMemserver(production) works', async (t) => {
-  t.plan(13);
+  t.plan(14);
 
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
@@ -98,7 +98,7 @@ test.serial('buildMemserver(production) works', async (t) => {
   const memserverJS = memserverJSBuffer.toString();
   const memserverJSCode = memserverJS.trim();
 
-  // t.true(memserverJS.length === MEMSERVER_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(memserverJSBuffer.length === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(memserverJSCode.includes('window.fetch='));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
@@ -109,12 +109,12 @@ test.serial('buildMemserver(production) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[0\.13 MB\] Environment: production/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[127\.81 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildMemserver(test) works', async (t) => {
-  t.plan(13);
+  t.plan(14);
 
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
@@ -132,7 +132,7 @@ test.serial('buildMemserver(test) works', async (t) => {
   const memserverJS = memserverJSBuffer.toString();
   const memserverJSCode = memserverJS.trim();
 
-  // t.true(memserverJS.length === MEMSERVER_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(memserverJSCode.includes('window.fetch = undefined'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
@@ -143,12 +143,12 @@ test.serial('buildMemserver(test) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[0\.30 MB\] Environment: test/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.98 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildMemserver(demo) works', async (t) => {
-  t.plan(13);
+  t.plan(14);
 
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
@@ -166,7 +166,7 @@ test.serial('buildMemserver(demo) works', async (t) => {
   const memserverJS = memserverJSBuffer.toString();
   const memserverJSCode = memserverJS.trim();
 
-  // t.true(memserverJS.length === MEMSERVER_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(memserverJSBuffer.length === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(memserverJSCode.includes('window.fetch='));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
@@ -177,12 +177,12 @@ test.serial('buildMemserver(demo) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[0\.13 MB\] Environment: demo/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[127\.81 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
 test.serial('buildMemserver(custom) works', async (t) => {
-  t.plan(13);
+  t.plan(14);
 
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
@@ -200,7 +200,7 @@ test.serial('buildMemserver(custom) works', async (t) => {
   const memserverJS = memserverJSBuffer.toString();
   const memserverJSCode = memserverJS.trim();
 
-  // t.true(memserverJS.length === MEMSERVER_JS_TARGET_BYTE_SIZE); // TODO: assetFormatter
+  t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE - 14);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE - 14);
   t.true(memserverJSCode.includes('window.fetch = undefined;'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
@@ -211,7 +211,7 @@ test.serial('buildMemserver(custom) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[0\.30 MB\] Environment: custom/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.97 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
 });
