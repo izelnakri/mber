@@ -20,15 +20,11 @@ test.serial('buildMemserver() works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver();
-  const timeTakenForBuild = message.match(/memserver\.js in \d+ms/g)[0]
-    .replace('memserver.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 800);
+  t.true(getTimeTakenForBuild(message) < 800);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
-  const memserverJS = memserverJSBuffer.toString();
-  const memserverJSCode = memserverJS.trim();
+  const memserverJSCode = memserverJSBuffer.toString().trim();
 
   t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE);
@@ -53,15 +49,11 @@ test.serial('buildMemserver(development) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver({ environment: 'development' });
-  const timeTakenForBuild = message.match(/memserver\.js in \d+ms/g)[0]
-    .replace('memserver.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 800);
+  t.true(getTimeTakenForBuild(message) < 800);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
-  const memserverJS = memserverJSBuffer.toString();
-  const memserverJSCode = memserverJS.trim();
+  const memserverJSCode = memserverJSBuffer.toString().trim();
 
   t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE);
@@ -88,15 +80,11 @@ test.serial('buildMemserver(production) works', async (t) => {
   const { message, stats } = await buildMemserver({
     environment: 'production', memserver: { enabled: true, minify: true }
   });
-  const timeTakenForBuild = message.match(/memserver\.js in \d+ms/g)[0]
-    .replace('memserver.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 7000);
+  t.true(getTimeTakenForBuild(message) < 7000);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
-  const memserverJS = memserverJSBuffer.toString();
-  const memserverJSCode = memserverJS.trim();
+  const memserverJSCode = memserverJSBuffer.toString().trim();
 
   t.true(memserverJSBuffer.length === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
@@ -122,15 +110,11 @@ test.serial('buildMemserver(test) works', async (t) => {
   const { message, stats } = await buildMemserver({
     environment: 'test', memserver: { enabled: true }
   });
-  const timeTakenForBuild = message.match(/memserver\.js in \d+ms/g)[0]
-    .replace('memserver.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 800);
+  t.true(getTimeTakenForBuild(message) < 800);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
-  const memserverJS = memserverJSBuffer.toString();
-  const memserverJSCode = memserverJS.trim();
+  const memserverJSCode = memserverJSBuffer.toString().trim();
 
   t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE);
@@ -156,15 +140,11 @@ test.serial('buildMemserver(demo) works', async (t) => {
   const { message, stats } = await buildMemserver({
     environment: 'demo', memserver: { enabled: true, minify: true }
   });
-  const timeTakenForBuild = message.match(/memserver\.js in \d+ms/g)[0]
-    .replace('memserver.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 7000);
+  t.true(getTimeTakenForBuild(message) < 7000);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
-  const memserverJS = memserverJSBuffer.toString();
-  const memserverJSCode = memserverJS.trim();
+  const memserverJSCode = memserverJSBuffer.toString().trim();
 
   t.true(memserverJSBuffer.length === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
@@ -190,15 +170,11 @@ test.serial('buildMemserver(custom) works', async (t) => {
   const { message, stats } = await buildMemserver({
     environment: 'custom', memserver: { enabled: true }, modulePrefix: 'my-app'
   });
-  const timeTakenForBuild = message.match(/memserver\.js in \d+ms/g)[0]
-    .replace('memserver.js in ', '')
-    .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 800);
+  t.true(getTimeTakenForBuild(message) < 800);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
-  const memserverJS = memserverJSBuffer.toString();
-  const memserverJSCode = memserverJS.trim();
+  const memserverJSCode = memserverJSBuffer.toString().trim();
 
   t.true(memserverJSBuffer.length === MEMSERVER_JS_TARGET_BYTE_SIZE - 14);
   t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE - 14);
@@ -215,3 +191,10 @@ test.serial('buildMemserver(custom) works', async (t) => {
 
   mock.removeMock();
 });
+
+
+function getTimeTakenForBuild(message) {
+  return Number(message.match(/memserver\.js in \d+ms/g)[0]
+    .replace('memserver.js in ', '')
+    .replace('ms', ''));
+}
