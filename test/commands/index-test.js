@@ -43,8 +43,12 @@ test('$ mber h -> prints options', async (t) => {
 });
 
 test('$ mber unknown -> raises error', async (t) => {
-  const { stdout } = await shell(`node ${process.cwd()}/cli.js dasd`);
+  t.plan(2);
 
-  t.true(stdout.includes('ember unknown command. Available options are:'));
-  t.true(stdout.includes(printedHelpOutput));
+  try {
+    await shell(`node ${process.cwd()}/cli.js dasd`)
+  } catch ({ stdout }) {
+    t.true(stdout.includes('ember unknown command. Available options are:'));
+    t.true(stdout.includes(printedHelpOutput));
+  }
 });
