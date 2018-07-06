@@ -9,8 +9,6 @@ import importAddonFolderToAMD from './lib/transpilers/import-addon-folder-to-amd
 import transpileNPMImports from './lib/transpilers/transpile-npm-imports';
 import parseCLIArguments from './lib/utils/parse-cli-arguments';
 
-const PROJECT_ROOT = findProjectRoot();
-
 export default {
   indexHTMLInjections: {},
   vendorPrepends: [],
@@ -24,6 +22,7 @@ export default {
     this[`${type}${appendMetadata}`].push({ path: path, type: 'library', options: options });
   },
   importAddon(name, path, options={}) {
+    const PROJECT_ROOT = findProjectRoot();
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${name}`;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
@@ -34,6 +33,7 @@ export default {
     });
   },
   importAsAMDModule(npmModuleName, path, options={}) {
+    const PROJECT_ROOT = findProjectRoot();
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${npmModuleName}`;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
@@ -52,6 +52,8 @@ export default {
     });
   },
   build(environment) {
+    const PROJECT_ROOT = findProjectRoot();
+
     return new Promise((resolve) => {
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
       const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
@@ -60,7 +62,7 @@ export default {
       ];
       const buildMeta = metaKeys.reduce((result, key) => {
         if (this[key].length > 0) {
-          return { [key]: readTranspile(this[key], APPLICATION_NAME) };
+          return { [key]: readTranspile(PROJECT_ROOT, this[key], APPLICATION_NAME) };
         }
 
         return result;
@@ -112,7 +114,7 @@ function fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections
   }).catch((error) => reportErrorAndExit(error));
 }
 
-function readTranspile(arrayOfImportableObjects, applicationName) {
+function readTranspile(PROJECT_ROOT, arrayOfImportableObjects, applicationName) {
   return new Promise((resolve) => {
     Promise.all(arrayOfImportableObjects.map((importObject) => {
       // TODO: add appImportTransformation to amdModule and addon types. Check on importObject.options.using

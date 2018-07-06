@@ -8,6 +8,7 @@ const CWD = process.cwd();
 const APPLICATION_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/application.js`;
 const APPLICATION_JS_TARGET_BYTE_SIZE = 11537; // 11.54 kB
 const APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE = 8011; // 8.01 kB
+const APPLICATION_JS_COMPILE_TRESHOLD = 1000;
 
 test.beforeEach(async () => {
   await fs.remove(APPLICATION_JS_OUTPUT_PATH);
@@ -24,7 +25,7 @@ test.serial('buildApplication() works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -79,7 +80,7 @@ test.serial('buildApplication(development) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -134,7 +135,7 @@ test.serial('buildApplication(production) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -175,7 +176,7 @@ test.serial('buildApplication(test) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -231,7 +232,7 @@ test.serial('buildApplication(demo) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -274,7 +275,7 @@ test.serial('buildApplication(custom) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -333,7 +334,7 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
 
@@ -357,7 +358,7 @@ test.serial('buildApplication(development, { applicationAppends }) work', async 
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
 
@@ -382,7 +383,7 @@ test.serial('buildApplication(development, { applicationPrepends, applicationApp
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();

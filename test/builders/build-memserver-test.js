@@ -8,6 +8,8 @@ const CWD = process.cwd();
 const MEMSERVER_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/memserver.js`;
 const MEMSERVER_JS_TARGET_BYTE_SIZE = 295982; // 295.98 kB
 const MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE = 127809; // 127.81 kB
+const MEMSERVER_JS_COMPILE_TRESHOLD = 1000;
+const MEMSERVER_JS_COMPRESSED_COMPILE_TRESHOLD = 13000;
 
 test.beforeEach(async () => {
   await fs.remove(MEMSERVER_JS_OUTPUT_PATH);
@@ -21,7 +23,7 @@ test.serial('buildMemserver() works', async (t) => {
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver();
 
-  t.true(getTimeTakenForBuild(message) < 800);
+  t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPILE_TRESHOLD);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
   const memserverJSCode = memserverJSBuffer.toString().trim();
@@ -50,7 +52,7 @@ test.serial('buildMemserver(development) works', async (t) => {
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver({ environment: 'development' });
 
-  t.true(getTimeTakenForBuild(message) < 800);
+  t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPILE_TRESHOLD);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
   const memserverJSCode = memserverJSBuffer.toString().trim();
@@ -81,7 +83,7 @@ test.serial('buildMemserver(production) works', async (t) => {
     environment: 'production', memserver: { enabled: true, minify: true }
   });
 
-  t.true(getTimeTakenForBuild(message) < 7000);
+  t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPRESSED_COMPILE_TRESHOLD);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
   const memserverJSCode = memserverJSBuffer.toString().trim();
@@ -111,7 +113,7 @@ test.serial('buildMemserver(test) works', async (t) => {
     environment: 'test', memserver: { enabled: true }
   });
 
-  t.true(getTimeTakenForBuild(message) < 800);
+  t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPILE_TRESHOLD);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
   const memserverJSCode = memserverJSBuffer.toString().trim();
@@ -141,7 +143,7 @@ test.serial('buildMemserver(demo) works', async (t) => {
     environment: 'demo', memserver: { enabled: true, minify: true }
   });
 
-  t.true(getTimeTakenForBuild(message) < 7000);
+  t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPRESSED_COMPILE_TRESHOLD);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
   const memserverJSCode = memserverJSBuffer.toString().trim();
@@ -171,7 +173,7 @@ test.serial('buildMemserver(custom) works', async (t) => {
     environment: 'custom', memserver: { enabled: true }, modulePrefix: 'my-app'
   });
 
-  t.true(getTimeTakenForBuild(message) < 800);
+  t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPILE_TRESHOLD);
 
   const memserverJSBuffer = await fs.readFile(MEMSERVER_JS_OUTPUT_PATH);
   const memserverJSCode = memserverJSBuffer.toString().trim();
