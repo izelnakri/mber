@@ -27,6 +27,7 @@
     "@glimmer/resolver": "^0.4.3",
     "ava": "^1.0.0-beta.6",
     "ember-cli-fastboot": "^1.1.4-beta.1",
+    "ember-cli-memserver": "^0.5.5",
     "ember-cli-test-loader": "^2.2.0",
     "ember-data": "3.1.1",
     "ember-devtools": "^6.0.0",
@@ -68,7 +69,7 @@
     "cheerio": "^1.0.0-rc.2",
     "chokidar": "^2.0.4",
     "compression": "^1.7.2",
-    "esm": "^3.0.55",
+    "esm": "^3.0.63",
     "express": "^4.16.3",
     "fastboot": "^1.2.0",
     "fs-extra": "^6.0.1",
@@ -76,13 +77,12 @@
     "klaw": "^2.1.1",
     "memserver": "^1.1.6",
     "mustache": "^2.3.0",
-    "node-sass": "4.9.0",
+    "node-sass": "4.9.1",
     "ora": "^2.1.0",
     "puppeteer": "^1.5.0",
-    "rimraf": "^2.6.2",
     "through2": "^2.0.3",
     "uglify-es": "^3.3.9",
-    "ws": "^5.2.0"
+    "ws": "^5.2.1"
   },
   "ava": {
     "require": [

@@ -1,24 +1,17 @@
 import test from 'ava';
-import fs from 'fs';
-import rimraf from 'rimraf';
-import mkdirp from 'mkdirp';
+import fs from 'fs-extra';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
 const shell = promisify(exec);
-const mkdir = promisify(mkdirp);
 const CWD = process.cwd();
 
 test.beforeEach(async () => {
-  if (fs.existsSync('testapp')) {
-    await rimraf.sync('testapp');
-  }
+  await fs.remove('testapp');
 });
 
 test.afterEach.always(async () => {
-  if (fs.existsSync('testapp')) {
-    await rimraf.sync('testapp');
-  }
+  await fs.remove('testapp');
 });
 
 test.serial('$ mber new -> throws error if applicationName not provided', async (t) => {
@@ -28,13 +21,13 @@ test.serial('$ mber new -> throws error if applicationName not provided', async 
 });
 
 test.serial('$ mber new -> throws error if applicationName folder already exists', async (t) => {
-  await mkdir('existingapp');
+  await fs.mkdirp('existingapp');
 
   const { stdout } = await shell(`node ${CWD}/cli.js new existingapp`);
 
   t.true(stdout.includes('ember existingapp already exists!'));
 
-  await rimraf.sync('existingapp');
+  await fs.remove('existingapp');
 });
 
 test.serial('$ mber new -> creates', async (t) => {
@@ -47,7 +40,7 @@ test.serial('$ mber new -> creates', async (t) => {
   ].forEach((fileOrFolder) => t.true(stdout.includes(`created ${fileOrFolder}`)));
 
   t.true(stdout.includes('ember anotherapp ember application created. Next is to do:'));
-  t.true(stdout.includes('$ cd anotherapp && yarn install && mber s'));
+  t.true(stdout.includes('$ cd anotherapp && npm install && mber s'));
 
   const directoryEntries = fs.readdirSync('anotherapp');
 
@@ -71,9 +64,9 @@ test.serial('$ mber new -> creates', async (t) => {
   // assertContentForFile(t, 'src', ``)
 
   // assertContentForFile(t, 'tests', ``)
-  rimraf.sync('anotherapp');
+  await fs.remove('anotherapp');
 });
 
-function assertContentForFile(t, fileName, content) {
-  t.true(fs.readFileSync(`testapp/${fileName}`).toString().includes(content));
-}
+// function assertContentForFile(t, fileName, content) {
+//   t.true(fs.readFile(`testapp/${fileName}`).toString().includes(content));
+// }

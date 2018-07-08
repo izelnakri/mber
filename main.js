@@ -1,7 +1,5 @@
-import buildApplication from './lib/builders/build-application';
-import buildCSS from './lib/builders/build-css';
-import buildVendor from './lib/builders/build-vendor';
-import buildMemServer from './lib/builders/build-memserver';
+import fs from 'fs-extra';
+import buildAssets from './lib/builders/build-assets';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';
 import appImportTransformation from './lib/transpilers/app-import-transformation';
@@ -46,11 +44,6 @@ export default {
   injectInlineContent(keyName, value) {
     this.indexHTMLInjections[keyName] = value;
   },
-  buildWithCache({ ENV, cliArguments, buildCache, indexHTMLInjections }) {
-    return new Promise((resolve) => {
-      return fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections });
-    });
-  },
   build(environment) {
     const PROJECT_ROOT = findProjectRoot();
 
@@ -68,51 +61,28 @@ export default {
         return result;
       }, {});
 
-      return Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
-        .then((finishedBuild) => {
+      Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
+        .then(async (finishedBuild) => {
           const buildCache = finishedBuild.reduce((result, code, index) => {
             return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
           }, {});
           const cliArguments = parseCLIArguments();
-
-          return fullBuild({
+          const result = await buildAssets(PROJECT_ROOT, {
+            applicationName: ENV.modulePrefix || 'frontend',
             ENV: ENV,
             cliArguments: cliArguments,
-            resolve: resolve,
+            projectRoot: PROJECT_ROOT,
             buildCache: buildCache,
-            indexHTMLInjections: this.indexHTMLInjections
+            indexHTMLInjections: this.indexHTMLInjections,
+            ignoreIndexHTML: global.MBER_BUILD_MODE || false
           });
-      }).catch((error) => reportErrorAndExit(error));
+
+          resolve(result);
+        }).catch((error) => reportErrorAndExit(error));
     });
   }
 }
 
-function fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections }) {
-  const { environment } = ENV;
-
-  return Promise.all([
-    buildCSS(environment),
-    buildVendor(ENV, Object.assign({}, cliArguments, {
-      fastboot: cliArguments.fastboot !== false,
-      hasSocketWatching: cliArguments.watch || !['production', 'demo'].includes(environment),
-      vendorPrepends: buildCache.vendorPrepends,
-      vendorAppends: buildCache.vendorAppends
-    })),
-    buildApplication(ENV, {
-      applicationPrepends: buildCache.applicationPrepends,
-      applicationAppends: buildCache.applicationAppends
-    }),
-    (ENV.memserver && ENV.memserver.enabled) ? buildMemServer(ENV) : null
-  ]).then(() => {
-    return resolve({
-      buildCache: buildCache,
-      applicationName: ENV.modulePrefix || 'frontend',
-      cliArguments: cliArguments,
-      indexHTMLInjections: indexHTMLInjections,
-      ENV: ENV
-    });
-  }).catch((error) => reportErrorAndExit(error));
-}
 
 function readTranspile(PROJECT_ROOT, arrayOfImportableObjects, applicationName) {
   return new Promise((resolve) => {

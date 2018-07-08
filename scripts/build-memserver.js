@@ -1,11 +1,7 @@
-import fs from 'fs';
-import { promisify } from 'util';
+import fs from 'fs-extra';
 import findProjectRoot from '../lib/utils/find-project-root';
 import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd';
 import transpileNPMImport from '../lib/transpilers/transpile-npm-imports';
-
-const readFileAsync = promisify(fs.readFile);
-const writeFileAsync = promisify(fs.writeFile);
 
 const PROJECT_PATH = findProjectRoot();
 const MODULE_PATH = `${PROJECT_PATH}/node_modules`;
@@ -28,22 +24,25 @@ const memserverResponseModule = convertESModuletoAMD(`
 
 function build() {
   return Promise.all([
-    readFileAsync(`${MODULE_PATH}/whatwg-fetch/fetch.js`),
+    fs.readFile(`${MODULE_PATH}/whatwg-fetch/fetch.js`),
     transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),
     transpileNPMImport('memserver', `${MODULE_PATH}/memserver/lib/mem-server-cjs.js`)
   ]).then(([fetchReplacement, memServerModelModule, memServerModule]) => {
-    return writeFileAsync(`${VENDOR_PATH}/memserver.js`, `
-      ${removeFetch}
+    return Promise.all([
+      fs.copy(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
+      fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
+        ${removeFetch}
 
-      ${fetchReplacement}
+        ${fetchReplacement}
 
-      ${memServerModelModule}
+        ${memServerModelModule}
 
-      ${memserverResponseModule}
+        ${memserverResponseModule}
 
-      ${memServerModule}
-    `);
-  })
+        ${memServerModule}
+      `)
+    ])
+  });
 }
 
 build().then(() => console.log('memserver.js built'));
