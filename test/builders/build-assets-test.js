@@ -145,3 +145,42 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
 
   mock.removeMock();
 });
+
+test.serial('buildAssets(projectRoot, buildConfig) works for different endpoint', async (t) => {
+  t.plan(9);
+
+  const mock = mockProcessCWD(PROJECT_ROOT);
+  const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`);
+
+  await fs.remove(`${PROJECT_ROOT}/tmp`);
+
+  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
+
+  await buildAssets(PROJECT_ROOT, {
+    ENV: environmentFunction('test'),
+    entrypoint: `${PROJECT_ROOT}/tests/index.html`
+  });
+
+  const targetFiles = [
+    'assets/application.js',
+    'assets/vendor.js',
+    'assets/application.css',
+    'assets/memserver.js',
+    'assets/test-support.css',
+    'assets/test-support.js',
+    'assets/tests.js'
+  ];
+  const postResult = await Promise.all(targetFiles.map((targetFile) => {
+    return fs.exists(`${PROJECT_ROOT}/tmp/${targetFile}`);
+  }));
+
+  t.deepEqual(postResult, [true, true, true, true, false, false, false]);
+
+  const indexHTML = (await fs.readFile(`${PROJECT_ROOT}/tmp/index.html`)).toString();
+
+  targetFiles.forEach((targetFile) => {
+    t.true(indexHTML.includes(targetFile));
+  })
+
+  mock.removeMock();
+});

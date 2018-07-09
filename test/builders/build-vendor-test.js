@@ -25,8 +25,8 @@ const NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE = 1889444; // 1.89 MB
 const NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 491478; // 491.48 kB
 const NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE = 1898960; // 1.90 MB
 const NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 497096; // 497.10 kB
-const VENDOR_JS_COMPILE_TRESHOLD = 800;
-const VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD = 13000;
+const VENDOR_JS_COMPILE_TRESHOLD = 1500;
+const VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD = 21000;
 
 test.beforeEach(async () => {
   await fs.remove(VENDOR_JS_OUTPUT_PATH);
@@ -466,7 +466,7 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
   mock.removeMock();
 });
 
-test('buildVendor(custom) works', async (t) => {
+test.serial('buildVendor(custom) works', async (t) => {
   t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));

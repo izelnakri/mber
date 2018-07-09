@@ -7,7 +7,7 @@ import buildTests from '../../lib/builders/build-tests.js';
 const CWD = process.cwd();
 const TESTS_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/tests.js`;
 const TESTS_JS_TARGET_BYTE_SIZE = 1890;
-const TESTS_JS_COMPILE_TRESHOLD = 1000;
+const TESTS_JS_COMPILE_TRESHOLD = 1500;
 
 test.beforeEach(async () => {
   await fs.remove(TESTS_JS_OUTPUT_PATH);
