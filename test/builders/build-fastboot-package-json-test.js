@@ -5,8 +5,9 @@ import createExampleENV from '../helpers/create-example-env';
 import buildFastbootPackageJSON from '../../lib/builders/build-fastboot-package-json.js';
 
 const CWD = process.cwd();
-const DEFAULT_PACKAGE_JSON_PATH = `${CWD}/ember-app-boilerplate/dist/package.json`;
-const TMP_PACKAGE_JSON_PATH = `${CWD}/ember-app-boilerplate/tmp/package.json`;
+const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
+const DEFAULT_PACKAGE_JSON_PATH = `${PROJECT_ROOT}/dist/package.json`;
+const TMP_PACKAGE_JSON_PATH = `${PROJECT_ROOT}/tmp/package.json`;
 const EXAMPLE_ASSET_MAP = {
   'assets/application.js': 'assets/application-df0b6cbf528e46c0aa02b74f24252ffd.js',
   'assets/vendor.js': 'assets/vendor-339579265dd86542580d6f7cc296dac7.js',
@@ -20,14 +21,16 @@ const EXAMPLE_ENV = createExampleENV('development');
 const SECOND_EXAMPLE_ENV = createExampleENV('production');
 
 test.beforeEach(async () => {
-  await fs.remove(DEFAULT_PACKAGE_JSON_PATH);
-  await fs.remove(TMP_PACKAGE_JSON_PATH);
+  await fs.remove(`${PROJECT_ROOT}/tmp`);
+  await fs.remove(`${PROJECT_ROOT}/dist`);
+  await fs.mkdirp(`${PROJECT_ROOT}/tmp`);
+  await fs.mkdirp(`${PROJECT_ROOT}/dist`);
 });
 
 test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (t) => {
   t.plan(8);
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
 
   t.true(!(await fs.exists(DEFAULT_PACKAGE_JSON_PATH)));
 
@@ -59,7 +62,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
 test.serial('buildFastbootPackageJSON() works for different dist path and assetMap: tmp and ENV', async (t) => {
   t.plan(8);
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
 
   t.true(!(await fs.exists(TMP_PACKAGE_JSON_PATH)));
 
@@ -92,7 +95,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
   t.plan(8);
 
   const targetENV = createExampleENV('demo');
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
 
   t.true(!(await fs.exists(DEFAULT_PACKAGE_JSON_PATH)));
 

@@ -5,12 +5,14 @@ import buildCSS from '../../lib/builders/build-css.js';
 import { formatSize } from '../../lib/utils/asset-reporter';
 
 const CWD = process.cwd();
-const APPLICATION_CSS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/application.css`;
+const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
+const APPLICATION_CSS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.css`;
 const APPLICATION_CSS_TARGET_BYTE_SIZE = '2.15 kB';
 const APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE = '1.80 kB';
 
 test.beforeEach(async () => {
-  await fs.remove(APPLICATION_CSS_OUTPUT_PATH);
+  await fs.remove(`${PROJECT_ROOT}/tmp`);
+  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 });
 
 test.serial('buildCSS() works', async (t) => {
@@ -18,7 +20,7 @@ test.serial('buildCSS() works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS();
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
@@ -40,7 +42,7 @@ test.serial('buildCSS(development) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS('development');
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
@@ -62,7 +64,7 @@ test.serial('buildCSS(custom) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS('custom');
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
@@ -84,7 +86,7 @@ test.serial('buildCSS(production) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS('production');
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
@@ -106,7 +108,7 @@ test.serial('buildCSS(demo) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS('demo');
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
@@ -128,7 +130,7 @@ test.serial('buildCSS() styles/folder css gets written first, then application c
 
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   await buildCSS();
 
   const applicationCSSBuffer = await fs.readFile(APPLICATION_CSS_OUTPUT_PATH);

@@ -10,7 +10,8 @@ const TESTS_JS_TARGET_BYTE_SIZE = 1890;
 const TESTS_JS_COMPILE_TRESHOLD = 1500;
 
 test.beforeEach(async () => {
-  await fs.remove(TESTS_JS_OUTPUT_PATH);
+  await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
+  await fs.mkdirp(`${CWD}/ember-app-boilerplate/tmp/assets`);
 });
 
 test.serial('buildTests() works', async (t) => {

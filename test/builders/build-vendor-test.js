@@ -26,10 +26,11 @@ const NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 491478; // 491.48 kB
 const NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE = 1898960; // 1.90 MB
 const NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE = 497096; // 497.10 kB
 const VENDOR_JS_COMPILE_TRESHOLD = 1500;
-const VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD = 21000;
+const VENDOR_JS_COMPRESSED_COMPILE_TRESHOLD = 22000;
 
 test.beforeEach(async () => {
-  await fs.remove(VENDOR_JS_OUTPUT_PATH);
+  await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
+  await fs.mkdirp(`${CWD}/ember-app-boilerplate/tmp/assets`);
 });
 
 test.serial('buildVendor() works', async (t) => {

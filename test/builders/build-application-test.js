@@ -5,13 +5,15 @@ import mockProcessCWD from '../helpers/mock-process-cwd';
 import buildApplication from '../../lib/builders/build-application.js';
 
 const CWD = process.cwd();
-const APPLICATION_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/application.js`;
+const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
+const APPLICATION_JS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.js`;
 const APPLICATION_JS_TARGET_BYTE_SIZE = 11537; // 11.54 kB
 const APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE = 8011; // 8.01 kB
-const APPLICATION_JS_COMPILE_TRESHOLD = 1000;
+const APPLICATION_JS_COMPILE_TRESHOLD = 1500;
 
 test.beforeEach(async () => {
-  await fs.remove(APPLICATION_JS_OUTPUT_PATH);
+  await fs.remove(`${PROJECT_ROOT}/tmp`);
+  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 });
 
 test.serial('buildApplication() works', async (t) => {
@@ -19,7 +21,7 @@ test.serial('buildApplication() works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication();
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -74,7 +76,7 @@ test.serial('buildApplication(development) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({ environment: 'development' });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -129,7 +131,7 @@ test.serial('buildApplication(production) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({ environment: 'production' });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -170,7 +172,7 @@ test.serial('buildApplication(test) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({ environment: 'test' });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -226,7 +228,7 @@ test.serial('buildApplication(demo) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({ environment: 'demo' });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -267,7 +269,7 @@ test.serial('buildApplication(custom) works', async (t) => {
 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({
     environment: 'custom', modulePrefix: 'my-app'
   });
@@ -326,7 +328,7 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({ environment: 'development' }, {
     applicationPrepends: CODE_TO_PREPEND
   });
@@ -350,7 +352,7 @@ test.serial('buildApplication(development, { applicationAppends }) work', async 
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({ environment: 'development' }, {
     applicationAppends: CODE_TO_APPEND
   });
@@ -375,7 +377,7 @@ test.serial('buildApplication(development, { applicationPrepends, applicationApp
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
-  const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({ environment: 'development' }, {
     applicationPrepends: CODE_TO_PREPEND, applicationAppends: CODE_TO_APPEND
   });

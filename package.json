@@ -87,6 +87,7 @@
   "ava": {
     "require": [
       "esm"
-    ]
+    ],
+    "concurrency": 1
   }
 }

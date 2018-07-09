@@ -12,7 +12,8 @@ const MEMSERVER_JS_COMPILE_TRESHOLD = 1500;
 const MEMSERVER_JS_COMPRESSED_COMPILE_TRESHOLD = 15000;
 
 test.beforeEach(async () => {
-  await fs.remove(MEMSERVER_JS_OUTPUT_PATH);
+  await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
+  await fs.mkdirp(`${CWD}/ember-app-boilerplate/tmp/assets`);
 });
 
 test.serial('buildMemserver() works', async (t) => {
