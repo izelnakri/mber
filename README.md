@@ -213,7 +213,9 @@ module.exports = function(ENV) {
 
   // your other configuration ..
 
-  app.importAsAMDModule('jquery', 'node_modules/jquery/dist/jquery.min.js', { type: 'vendor', transpile: false });
+  app.import('node_modules/jquery/dist/jquery.min.js', {
+    type: 'vendor', prepend: true
+  });
 
   return app.build(environment);
 }

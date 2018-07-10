@@ -5,6 +5,7 @@ import { promisify } from 'util';
 const shell = promisify(exec);
 const CWD = process.cwd();
 
+// TODO: reset tmp and dist folders
 export default async function(appName='dummyapp') {
   return new Promise(async (resolve) => {
     await shell(`node ${CWD}/cli.js new ${appName}`);

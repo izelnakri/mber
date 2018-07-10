@@ -1,9 +1,11 @@
+Testing todo:
+- e2e tests
+- heavy fastboot middleware tests
+- inject ember-devtools to development(?)
+
 // TODO: dependencies caching for all imports based on package.json version if dependency is provided from node_modules
 // move ember-cli-fastboot, ember-data and ember-devtools to devDependencies
-// check historical 'ajax-service' initializer of memserver for fastboot(its now removed)
 
-make make all internal modules under /vendor (cost vs flexibility) too much lockdown for speed
-replace rimraf with fs-extra
 - add linter (js + hbs)
 - rootURL in the test
 

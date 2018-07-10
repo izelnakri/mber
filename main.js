@@ -55,7 +55,9 @@ export default {
       ];
       const buildMeta = metaKeys.reduce((result, key) => {
         if (this[key].length > 0) {
-          return { [key]: readTranspile(PROJECT_ROOT, this[key], APPLICATION_NAME) };
+          return Object.assign(result, {
+            [key]: readTranspile(PROJECT_ROOT, this[key], APPLICATION_NAME)
+          });
         }
 
         return result;
