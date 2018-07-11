@@ -9,7 +9,7 @@ const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
 const APPLICATION_JS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.js`;
 const APPLICATION_JS_TARGET_BYTE_SIZE = 11537; // 11.54 kB
 const APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE = 8011; // 8.01 kB
-const APPLICATION_JS_COMPILE_TRESHOLD = 1500;
+const APPLICATION_JS_COMPILE_TRESHOLD = 2000;
 
 test.beforeEach(async () => {
   await fs.remove(`${PROJECT_ROOT}/tmp`);

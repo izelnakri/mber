@@ -221,7 +221,7 @@ module.exports = function(ENV) {
 }
 ```
 
-If you want to exclude EmberData from your application. Add excludeJQuery to your config/environment.js:
+If you want to exclude EmberData from your application. Add excludeEmberData to your config/environment.js:
 
 ```js
 'use strict';
