@@ -89,6 +89,7 @@
     "require": [
       "esm"
     ],
-    "concurrency": 1
+    "concurrency": 1,
+    "failFast": true
   }
 }

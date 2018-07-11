@@ -1,3 +1,5 @@
+test that memserver changes works well with latest mber serve
+
 Testing todo:
 - e2e tests
 - heavy fastboot middleware tests

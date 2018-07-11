@@ -56,12 +56,13 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
         sandboxGlobals: options.memserver ? assignSandboxGlobals() : {}
       });
 
-      const lol = app.use((req, res, next) => { // TODO: reload on filesWatcher
+      app.use((req, res, next) => {
         const fastbootByPassQueryParam = req.query.fastboot && (req.query.fastboot === 'false');
 
         if (fastbootByPassQueryParam) {
           return res.sendFile(entrypoint);
         }
+
         const middleware = fastbootMiddleware({
           distPath: DIST_ROOT,
           fastboot: fastboot
@@ -69,8 +70,6 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
 
         return middleware(req, res, next);
       });
-
-      app.get('/*', lol);
     } else {
       app.get('/*', (req, res) => res.sendFile(entrypoint));
     }
@@ -86,11 +85,16 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
 
 function assignSandboxGlobals() { // TODO: maybe add PORT as argument
   const JSDOM = require('jsdom').JSDOM;
-  const dom = new JSDOM('<p>Hello</p>', { url: 'http://localhost' });
+  const dom = new JSDOM('<p>Hello</p>', { url: 'http://localhost:3000' });
 
   global.window = dom.window;
-  global.document = window.document;
-  global.self = window.self;
+  global.document = dom.window.document;
+  global.self = dom.window.self;
+
+  const MemServer = require('memserver');
+  const $ = require('jquery');
+
+  MemServer.start();
 
   return {
     global: global,
@@ -98,35 +102,8 @@ function assignSandboxGlobals() { // TODO: maybe add PORT as argument
     document: global.document,
     location: global.window.location,
     XMLHttpRequest: global.window.XMLHttpRequest,
+    $: $,
+    jQuery: $,
     navigator: global.window.navigator
   };
 }
-// const FastBoot = require('fastboot');
-//
-// global.fastboot = new FastBoot({
-//   distPath: DIST_PATH,
-//   resilient: true,
-//   shouldRender: true,
-//   sandboxGlobals: assignSandboxGlobals(ENV)
-// });
-//
-// const fastbootMiddleware = FastBootExpressMiddleware({
-//   distPath: DIST_PATH,
-//   fastboot: global.fastboot,
-//   resilient: true,
-//   shouldRender: true
-// });
-//
-// server.use((req, res, next) => { // TODO: reload on filesWatcher
-//   if (req.path.includes('.html') || !req.path.includes('.')) {
-//     const fastbootByPassQueryParam = req.query.fastboot && (req.query.fastboot === 'false');
-//
-//     if (fastbootByPassQueryParam) {
-//       return res.sendFile(`${DIST_PATH}/index.html`);
-//     }
-//
-//     return fastbootMiddleware(req, res, next);
-//   }
-//
-//   next();
-// });

@@ -15,8 +15,9 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
           import DS from 'ember-data';
 
           export default DS.Model.extend({
-            firstName: DS.attr(),
-            lastName: DS.attr()
+            firstName: DS.attr('string'),
+            lastName: DS.attr('string'),
+            active: DS.attr('boolean')
           });
         `),
         fs.writeFile(`${APP_ROOT}/src/ui/routes/index/route.js`, `
@@ -81,7 +82,7 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
             this.get('/users', ({ headers, queryParams }) => {
               if (queryParams.active) {
                 return {
-                  users: User.serializer(User.findAll({ active: true }));
+                  users: User.serializer(User.findAll({ active: true }))
                 };
               }
 
