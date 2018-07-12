@@ -10,15 +10,26 @@ export default async function(appName='dummyapp') {
   return new Promise(async (resolve) => {
     await shell(`node ${CWD}/cli.js new ${appName}`);
 
-    if (!(await fs.exists(`${CWD}/${appName}/node_modules`))) {
-      await fs.symlink(`${__dirname}/../../node_modules`, `${CWD}/${appName}/node_modules`); // TODO: this is huge
+    const TARGET_PROJECT_PATH = `${CWD}/${appName}`;
+
+    if (!(await fs.exists(`${TARGET_PROJECT_PATH}/node_modules`))) {
+      await fs.symlink(`${__dirname}/../../node_modules`, `${TARGET_PROJECT_PATH}/node_modules`); // TODO: this is huge
     }
 
-    const contents = (await fs.readFile(`${CWD}/${appName}/index.js`)).toString();
+    const contents = (await fs.readFile(`${TARGET_PROJECT_PATH}/index.js`)).toString();
+
     await fs.writeFile(
-      `${CWD}/${appName}/index.js`,
+      `${TARGET_PROJECT_PATH}/index.js`,
       contents.replace("const app = require('mber');", "const app = require('../index.js');")
     );
+    await Promise.all([
+      fs.remove(`${TARGET_PROJECT_PATH}/dist`),
+      fs.remove(`${TARGET_PROJECT_PATH}/tmp`),
+    ]);
+    await Promise.all([
+      fs.mkdirp(`${TARGET_PROJECT_PATH}/dist`),
+      fs.mkdirp(`${TARGET_PROJECT_PATH}/tmp`)
+    ])
 
     resolve();
   });

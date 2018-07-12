@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import { exec } from 'child_process';
 import test from 'ava';
 import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import http from '../helpers/http';
+import http from 'http';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import {
   getTimeTakenForApplicationCSS,
