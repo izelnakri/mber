@@ -1,9 +1,9 @@
 version: 2
 jobs:
   build:
-    working_directory: /code
     docker:
       - image: docker:dind
+    working_directory: /code
     steps:
       - checkout
       - setup_remote_docker
@@ -42,13 +42,16 @@ jobs:
     working_directory: ~/code
     steps:
       - checkout
+      - run: npm install esm
       - run: npm test
+
 workflows:
   version: 2
   build_and_test:
     jobs:
       - build
-        context: org-global
-      - test
-        context: org-global
+      - test:
+          requires:
+            - build
+
 # https://circleci.com/blog/how-to-build-a-docker-image-on-circleci-2-0/
