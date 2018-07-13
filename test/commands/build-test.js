@@ -4,7 +4,7 @@ import { promisify } from 'util';
 import { exec } from 'child_process';
 import test from 'ava';
 import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import http from 'http';
+import http from '../helpers/http';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import {
   getTimeTakenForApplicationCSS,
@@ -26,7 +26,7 @@ const APPLICATION_CSS_COMPRESSED_BUILD_TIME_TRESHOLD = 15000;
 const VENDOR_JS_BUILD_TIME_TRESHOLD = 1500;
 const VENDOR_JS_COMPRESSED_BUILD_TIME_TRESHOLD = 18000;
 const APPLICATION_JS_BUILD_TIME_TRESHOLD = 1500;
-const APPLICATION_JS_COMPRESSED_BUILD_TIME_TRESHOLD = 18000;
+const APPLICATION_JS_COMPRESSED_BUILD_TIME_TRESHOLD = 25000;
 const MEMSERVER_JS_BUILD_TIME_TRESHOLD = 1500;
 
 test.beforeEach(async () => {
