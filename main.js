@@ -71,12 +71,14 @@ export default {
           const cliArguments = parseCLIArguments();
           const result = await buildAssets(PROJECT_ROOT, {
             applicationName: ENV.modulePrefix || 'frontend',
+            entrypoint: global.MBER_TEST_RUNNER ?
+              `${PROJECT_ROOT}/tests/index.html` : `${PROJECT_ROOT}/index.html`,
             ENV: ENV,
             cliArguments: cliArguments,
             projectRoot: PROJECT_ROOT,
             buildCache: buildCache,
             indexHTMLInjections: this.indexHTMLInjections,
-            ignoreIndexHTML: global.MBER_BUILD_MODE || false
+            runningTests: global.MBER_TEST_RUNNER || false
           });
 
           resolve(result);

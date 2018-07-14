@@ -90,34 +90,34 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
   mock.removeMock();
 });
 
-test.serial('buildAssets(projectRoot, buildConfig) ignoreIndexHTML works', async (t) => {
-  t.plan(2);
-
-  const mock = mockProcessCWD(PROJECT_ROOT);
-  const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`);
-
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
-
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
-
-  await buildAssets(PROJECT_ROOT, {
-    ENV: environmentFunction('development'),
-    entrypoint: `${PROJECT_ROOT}/index.html`,
-    ignoreIndexHTML: true
-  });
-
-  const postResult = await Promise.all([
-    fs.exists(APPLICATION_JS_OUTPUT_PATH),
-    fs.exists(VENDOR_JS_OUTPUT_PATH),
-    fs.exists(CSS_OUTPUT_PATH),
-    fs.exists(INDEX_HTML_OUTPUT_PATH),
-    fs.exists(MEMSERVER_OUTPUT_PATH)
-  ]);
-
-  t.deepEqual(postResult, [true, true, true, false, false]);
-
-  mock.removeMock();
-});
+// test.serial('buildAssets(projectRoot, buildConfig) ignoreIndexHTML works', async (t) => {
+//   t.plan(2);
+//
+//   const mock = mockProcessCWD(PROJECT_ROOT);
+//   const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`);
+//
+//   await fs.remove(`${PROJECT_ROOT}/tmp`);
+//
+//   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
+//
+//   await buildAssets(PROJECT_ROOT, {
+//     ENV: environmentFunction('development'),
+//     entrypoint: `${PROJECT_ROOT}/index.html`,
+//     ignoreIndexHTML: true
+//   });
+//
+//   const postResult = await Promise.all([
+//     fs.exists(APPLICATION_JS_OUTPUT_PATH),
+//     fs.exists(VENDOR_JS_OUTPUT_PATH),
+//     fs.exists(CSS_OUTPUT_PATH),
+//     fs.exists(INDEX_HTML_OUTPUT_PATH),
+//     fs.exists(MEMSERVER_OUTPUT_PATH)
+//   ]);
+//
+//   t.deepEqual(postResult, [true, true, true, false, false]);
+//
+//   mock.removeMock();
+// });
 
 test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async (t) => {
   t.plan(2);
