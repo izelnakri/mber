@@ -19,16 +19,21 @@ test.beforeEach(async () => {
   await fs.remove('dummyapp');
 
   try {
-    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT}) | grep LISTEN | awk '{print $2}'`);
+    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
   } catch(error) {
   }
 });
 
 test.afterEach.always(async () => {
-  await fs.remove('dummyapp');
-
   childProcessTree.forEach((childProcess) => childProcess.kill('SIGKILL'));
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
+
+  await fs.remove('dummyapp');
+
+  try {
+    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
+  } catch(error) {
+  }
 });
 
 // TODO: memserver test cases, --debug mode works, backend-tests

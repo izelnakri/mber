@@ -254,8 +254,8 @@ async function testSuccessfullBuild(t, stdout, options={ memserver: false, fastb
     window.require, window.define
   ].forEach((object) => t.truthy(object));
 
-  t.true(document.querySelector('#title').innerHTML === 'Congratulations, you made it!');
-  t.deepEqual(Array.from(document.querySelectorAll('#users h4')).map((li) => li.innerHTML), [
+  t.true(window.document.querySelector('#title').innerHTML === 'Congratulations, you made it!');
+  t.deepEqual(Array.from(window.document.querySelectorAll('#users h4')).map((li) => li.innerHTML), [
     'Izel Nakri', 'Ash Belmokadem', 'Constantijn van de Wetering'
   ]);
 

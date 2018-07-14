@@ -39,19 +39,24 @@ test.beforeEach(async () => {
   await fs.remove('dummyapp');
 
   try {
-    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT}) | grep LISTEN | awk '{print $2}'`);
+    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
   } catch(error) {
   }
 });
 
 test.afterEach.always(async () => {
-  await fs.remove('dummyapp');
-
   childProcessTree.forEach((childProcess) => childProcess.kill('SIGKILL'));
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
+
+  await fs.remove('dummyapp');
+
+  try {
+    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
+  } catch(error) {
+  }
 });
 
-test('$ mber serve -> builds and watches successfully', async (t) => {
+test.serial('$ mber serve -> builds and watches successfully', async (t) => {
   t.plan(48);
 
   const mock = mockProcessCWD(CWD);
@@ -170,6 +175,7 @@ test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => 
 
   t.true(newHTML.includes(CONTENT_TO_INJECT));
 
+  childProcess.kill('SIGKILL');
   mock.removeMock();
 });
 
