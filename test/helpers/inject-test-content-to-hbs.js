@@ -8,6 +8,7 @@ export default function(projectRoot, contentToInject, targetProcess) {
 
     targetProcess.stdout.on('data', (data) => {
       stdout.push(data);
+
       if (data.includes('ember BUILT: application.js')) {
         const result = stdout.join('');
 
@@ -36,7 +37,7 @@ export default function(projectRoot, contentToInject, targetProcess) {
       console.log('stdout is');
       console.log(result);
       resolve({ stdoutAfterInjection: result });
-    }, 10000);
+    }, 50000);
   });
 }
 

@@ -19,3 +19,6 @@ test('$ mber test -> runs successfully on ci mode', (t) => {
 // test('$ mber test --server -> can run fail successfully and then succeed on watch', (t) => {
 //   t.true(true);
 // });
+
+
+// TODO: --debug mode works

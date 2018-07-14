@@ -1,7 +1,7 @@
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import cheerio from 'cheerio';
 import fs from 'fs-extra';
-import {  promisify } from 'util';
-import child_process from 'child_process'; // TODO: instead spawn or fork
 import test from 'ava';
 import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
 import http from '../helpers/http';
@@ -26,12 +26,12 @@ import {
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 
 const CWD = process.cwd();
-const shell = promisify(child_process.exec);
+const shell = promisify(exec);
 const PROJECT_ROOT = `${process.cwd()}/dummyapp`;
 const OUTPUT_INDEX_HTML = `${PROJECT_ROOT}/tmp/index.html`;
 const OUTPUT_PACKAGE_JSON = `${PROJECT_ROOT}/tmp/package.json`;
 const HTTP_PORT = 1234;
-const contentToInject = '<h1 id="inject">injectedTestcontent</h1>'
+const CONTENT_TO_INJECT = '<h1 id="inject">injectedTestcontent</h1>'
 
 let childProcessTree = [];
 
@@ -45,6 +45,8 @@ test.beforeEach(async () => {
 });
 
 test.afterEach.always(async () => {
+  await fs.remove('dummyapp');
+  
   childProcessTree.forEach((childProcess) => childProcess.kill('SIGKILL'));
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 });
@@ -73,12 +75,12 @@ test('$ mber serve -> builds and watches successfully', async (t) => {
   t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_TRESHOLD);
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
 
-  const { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
+  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
 
-  t.true(!document.querySelector('html').innerHTML.includes(contentToInject));
-  t.true(!html.includes(contentToInject));
+  t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
+  t.true(!html.includes(CONTENT_TO_INJECT));
 
-  const { stdoutAfterInjection } = await injectTestContentToHTML(PROJECT_ROOT, contentToInject, childProcess);
+  const { stdoutAfterInjection } = await injectTestContentToHTML(PROJECT_ROOT, CONTENT_TO_INJECT, childProcess);
 
   t.true(stdoutAfterInjection.includes('ember CHANGED: /src/ui/routes/index/template.hbs'));
   t.true(stdoutAfterInjection.includes('ember BUILDING: application.js...'));
@@ -86,38 +88,230 @@ test('$ mber serve -> builds and watches successfully', async (t) => {
 
   const result = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
   const newHTML = result.html;
-  // TODO: injectBrowserToNode -> USE pupetteer for content changes, jsdom doesnt support refreshes
-  // const newDocument = result.document;
 
-  t.true(newHTML.includes(contentToInject));
-  // t.true(newDocument.querySelector('html').innerHTMl.includes(contentToInject))
+  t.true(newHTML.includes(CONTENT_TO_INJECT));
 
   server.close();
   mock.removeMock();
 });
 
-// test.serial('$ mber serve --env=production -> serves successfully', async (t) => {
-//
-// });
+test.serial('$ mber serve --env=production -> serves successfully', async (t) => {
+  t.plan(28);
 
-// test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => {
-//
-// });
+  const mock = mockProcessCWD(CWD);
 
-// test.serial('$ mber serve --env=custom -> serves successfully', async (t) => {
-//
-// });
+  await createAdvancedDummyApp();
 
-// test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) => {
+  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
-// test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfully', async (t) => {
+  const server = await startBackendAPIServer(3000);
+  const { stdout } = await spawnProcess(`node ${CWD}/cli.js serve --env=production`, {
+    cwd: PROJECT_ROOT
+  });
+
+  t.true(stdout.includes('ember BUILDING: application.css...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_COMPRESSED_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: vendor.js...'));
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_COMPRESSED_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_COMPRESSED_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
+
+  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
+
+  t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
+  t.true(!html.includes(CONTENT_TO_INJECT));
+
+  server.close();
+  mock.removeMock();
+});
+
+test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => {
+  t.plan(53);
+
+  const mock = mockProcessCWD(CWD);
+
+  await createAdvancedDummyApp('dummyapp', { memserver: true });
+
+  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js s --env=memserver`, {
+    cwd: PROJECT_ROOT
+  });
+
+  t.true(stdout.includes('ember BUILDING: application.css...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: vendor.js...'));
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: memserver/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: memserver.js...'));
+  t.true(getTimeTakenForMemServerJS(stdout) < MEMSERVER_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: memserver\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+
+  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: true, fastboot: true });
+
+  t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
+  t.true(!html.includes(CONTENT_TO_INJECT));
+
+  const { stdoutAfterInjection } = await injectTestContentToHTML(PROJECT_ROOT, CONTENT_TO_INJECT, childProcess);
+
+  t.true(stdoutAfterInjection.includes('ember CHANGED: /src/ui/routes/index/template.hbs'));
+  t.true(stdoutAfterInjection.includes('ember BUILDING: application.js...'));
+  t.true(stdoutAfterInjection.includes('ember BUILT: application.js'));
+
+  const result = await testSuccessfullServe(t, stdout, { memserver: true, fastboot: true });
+  const newHTML = result.html;
+
+  t.true(newHTML.includes(CONTENT_TO_INJECT));
+
+  mock.removeMock();
+});
+
+test.serial('$ mber serve --env=custom -> serves successfully', async (t) => {
+  t.plan(48);
+
+  const mock = mockProcessCWD(CWD);
+
+  await createAdvancedDummyApp();
+
+  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+
+  const server = await startBackendAPIServer(3000);
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=custom`, {
+    cwd: PROJECT_ROOT
+  });
+
+  t.true(stdout.includes('ember BUILDING: application.css...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: custom/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: vendor.js...'));
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: custom/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: custom/g.test(stdout));
+
+  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
+
+  t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
+  t.true(!html.includes(CONTENT_TO_INJECT));
+
+  const { stdoutAfterInjection } = await injectTestContentToHTML(PROJECT_ROOT, CONTENT_TO_INJECT, childProcess);
+
+  t.true(stdoutAfterInjection.includes('ember CHANGED: /src/ui/routes/index/template.hbs'));
+  t.true(stdoutAfterInjection.includes('ember BUILDING: application.js...'));
+  t.true(stdoutAfterInjection.includes('ember BUILT: application.js'));
+
+  const result = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
+  const newHTML = result.html;
+
+  t.true(newHTML.includes(CONTENT_TO_INJECT));
+
+  server.close();
+  mock.removeMock();
+});
+
+test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) => {
+  t.plan(38);
+
+  const mock = mockProcessCWD(CWD);
+
+  await createAdvancedDummyApp();
+
+  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+
+  const server = await startBackendAPIServer(3000);
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --fastboot=false`, {
+    cwd: PROJECT_ROOT
+  });
+
+  t.true(stdout.includes('ember BUILDING: application.css...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: vendor.js...'));
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: development/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
+
+  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
+
+  t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
+  t.true(!html.includes(CONTENT_TO_INJECT));
+
+  const { stdoutAfterInjection } = await injectTestContentToHTML(PROJECT_ROOT, CONTENT_TO_INJECT, childProcess);
+
+  t.true(stdoutAfterInjection.includes('ember CHANGED: /src/ui/routes/index/template.hbs'));
+  t.true(stdoutAfterInjection.includes('ember BUILDING: application.js...'));
+  t.true(stdoutAfterInjection.includes('ember BUILT: application.js'));
+
+  const result = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
+  const newHTML = result.html;
+
+  t.true(newHTML.includes(CONTENT_TO_INJECT));
+
+  server.close();
+  mock.removeMock();
+});
+
+test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfully', async (t) => {
+  t.plan(41);
+
+  const mock = mockProcessCWD(CWD);
+
+  await createAdvancedDummyApp('dummyapp', { memserver: true });
+
+  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=memserver --fastboot=false`, {
+    cwd: PROJECT_ROOT
+  });
+
+  t.true(stdout.includes('ember BUILDING: application.css...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: vendor.js...'));
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: memserver/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+  t.true(stdout.includes('ember BUILDING: memserver.js...'));
+  t.true(getTimeTakenForMemServerJS(stdout) < MEMSERVER_JS_BUILD_TIME_TRESHOLD);
+  t.true(/ember BUILT: memserver\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+
+  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
+
+  t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
+  t.true(!html.includes(CONTENT_TO_INJECT));
+
+  const { stdoutAfterInjection } = await injectTestContentToHTML(PROJECT_ROOT, CONTENT_TO_INJECT, childProcess);
+
+  t.true(stdoutAfterInjection.includes('ember CHANGED: /src/ui/routes/index/template.hbs'));
+  t.true(stdoutAfterInjection.includes('ember BUILDING: application.js...'));
+  t.true(stdoutAfterInjection.includes('ember BUILT: application.js'));
+
+  const result = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
+  const newHTML = result.html;
+
+  t.true(newHTML.includes(CONTENT_TO_INJECT));
+
+  mock.removeMock();
+});
 
 // TODO: different port and socketPort
 
 async function spawnProcess(command, options) {
   return new Promise((resolve, reject) => {
     let stdout = [];
-    let childProcess = child_process.exec(command, options);
+    let childProcess = exec(command, options);
 
     childProcessTree.push(childProcess);
     childProcess.stdout.on('data', (data) => {
@@ -129,7 +323,7 @@ async function spawnProcess(command, options) {
           console.log('stdout is');
           console.log(result);
           resolve({ stdout: result, childProcess });
-        }, 2000);
+        }, 1000);
       }
     });
     childProcess.stderr.on('data', (data) => {
@@ -144,7 +338,7 @@ async function spawnProcess(command, options) {
       console.log('stdout is');
       console.log(result);
       resolve({ stdout: result, childProcess });
-    }, 10000);
+    }, 50000);
   });
 }
 
