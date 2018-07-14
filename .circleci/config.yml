@@ -33,7 +33,7 @@ jobs:
       - deploy:
           name: Push application Docker image
           command: |
-            docker login -u $HUB_USERNAME -p $HUB_KEY
+            echo $HUB_KEY | docker login -u $HUB_USERNAME --password-stdin
             docker tag mber "${HUB_USERNAME}/mber:${CIRCLE_BRANCH}"
             docker push "${HUB_USERNAME}/mber:${CIRCLE_BRANCH}"
   test:
