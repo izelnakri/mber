@@ -25,10 +25,10 @@ test.beforeEach(async () => {
 });
 
 test.afterEach.always(async () => {
+  await fs.remove('dummyapp');
+
   childProcessTree.forEach((childProcess) => childProcess.kill('SIGKILL'));
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
-
-  await fs.remove('dummyapp');
 });
 
 // TODO: memserver test cases, --debug mode works, backend-tests
@@ -125,7 +125,7 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   t.true(QUNIT_RESULT.total === 4);
   t.true(QUNIT_RESULT.runtime < 1000);
 
-  await browser.close(); // TODO: move this to top! there is a bug!!!
+  await browser.close();
 
   await fs.writeFile(`${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`, `
     import { module, test } from 'qunit';
@@ -218,7 +218,7 @@ test.serial('$ mber test --server -> can run fail successfully and then watches 
   t.true(QUNIT_RESULT.total === 6);
   t.true(QUNIT_RESULT.runtime < 1000);
 
-  await browser.close(); // TODO: move this to top! there is a bug!!!
+  await browser.close();
 
   await fs.writeFile(`${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`, `
     import { module, test } from 'qunit';
