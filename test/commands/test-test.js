@@ -19,7 +19,7 @@ test.beforeEach(async () => {
   await fs.remove('dummyapp');
 
   try {
-    await shell(`kill -9 $(lsof -i TCP:${HTTP_PORT} | grep LISTEN | awk '{print $2}'`);
+    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT}) | grep LISTEN | awk '{print $2}'`);
   } catch(error) {
   }
 });
@@ -284,7 +284,7 @@ async function waitForRecompile(waitTime) {
 async function runTestsInBrowser(url) {
   const browser = await Puppeteer.launch({
     headless: true,
-    args: ['--disable-gpu', '--remote-debugging-port=0', '--window-size=1440,900']
+    args: ['--no-sandbox', '--disable-gpu', '--remote-debugging-port=0', '--window-size=1440,900']
   });
   const page = await browser.newPage();
 
