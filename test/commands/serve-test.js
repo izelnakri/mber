@@ -1,10 +1,10 @@
 import { exec } from 'child_process';
-import { promisify } from 'util';
 import cheerio from 'cheerio';
 import fs from 'fs-extra';
 import test from 'ava';
 import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
 import http from '../helpers/http';
+import killProcessOnPort from '../helpers/kill-process-on-port';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import startBackendAPIServer from '../helpers/start-backend-api-server';
 import injectTestContentToHTML from '../helpers/inject-test-content-to-hbs';
@@ -26,7 +26,6 @@ import {
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 
 const CWD = process.cwd();
-const shell = promisify(exec);
 const PROJECT_ROOT = `${process.cwd()}/dummyapp`;
 const OUTPUT_INDEX_HTML = `${PROJECT_ROOT}/tmp/index.html`;
 const OUTPUT_PACKAGE_JSON = `${PROJECT_ROOT}/tmp/package.json`;
@@ -37,11 +36,7 @@ let childProcessTree = [];
 
 test.beforeEach(async () => {
   await fs.remove('dummyapp');
-
-  try {
-    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
-  } catch(error) {
-  }
+  await killProcessOnPort(HTTP_PORT);
 });
 
 test.afterEach.always(async () => {
@@ -49,11 +44,7 @@ test.afterEach.always(async () => {
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 
   await fs.remove('dummyapp');
-
-  try {
-    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
-  } catch(error) {
-  }
+  await killProcessOnPort(HTTP_PORT);
 });
 
 test.serial('$ mber serve -> builds and watches successfully', async (t) => {

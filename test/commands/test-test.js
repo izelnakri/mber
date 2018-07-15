@@ -5,6 +5,7 @@ import test from 'ava';
 import Puppeteer from 'puppeteer';
 import countTime from '../../lib/utils/count-time';
 import createDummyApp from '../helpers/create-dummy-app';
+import killProcessOnPort from '../helpers/kill-process-on-port';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 
 const CWD = process.cwd();
@@ -17,11 +18,7 @@ let childProcessTree = [];
 
 test.beforeEach(async () => {
   await fs.remove('dummyapp');
-
-  try {
-    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
-  } catch(error) {
-  }
+  await killProcessOnPort(HTTP_PORT);
 });
 
 test.afterEach.always(async () => {
@@ -29,11 +26,7 @@ test.afterEach.always(async () => {
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 
   await fs.remove('dummyapp');
-
-  try {
-    await shell(`kill -9 $(lsof -i tcp:${HTTP_PORT} | grep LISTEN | awk '{print $2}')`);
-  } catch(error) {
-  }
+  await killProcessOnPort(HTTP_PORT);
 });
 
 // TODO: memserver test cases, --debug mode works, backend-tests

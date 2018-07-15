@@ -12,6 +12,15 @@ import {
   getTimeTakenForVendorJS,
   getTimeTakenForMemServerJS
 } from '../helpers/parse-time-taken-for-build';
+import {
+  APPLICATION_CSS_BUILD_TIME_TRESHOLD,
+  APPLICATION_CSS_COMPRESSED_BUILD_TIME_TRESHOLD,
+  VENDOR_JS_BUILD_TIME_TRESHOLD,
+  VENDOR_JS_COMPRESSED_BUILD_TIME_TRESHOLD,
+  APPLICATION_JS_BUILD_TIME_TRESHOLD,
+  APPLICATION_JS_COMPRESSED_BUILD_TIME_TRESHOLD,
+  MEMSERVER_JS_BUILD_TIME_TRESHOLD
+} from '../helpers/asset-build-tresholds';
 import startHTTPServer from '../helpers/start-http-server';
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 
@@ -21,13 +30,6 @@ const PROJECT_ROOT = `${process.cwd()}/dummyapp`;
 const OUTPUT_INDEX_HTML = `${PROJECT_ROOT}/dist/index.html`;
 const OUTPUT_PACKAGE_JSON = `${PROJECT_ROOT}/dist/package.json`;
 const HTTP_PORT = 3000;
-const APPLICATION_CSS_BUILD_TIME_TRESHOLD = 1500; // NOTE: maybe move these to a file
-const APPLICATION_CSS_COMPRESSED_BUILD_TIME_TRESHOLD = 15000;
-const VENDOR_JS_BUILD_TIME_TRESHOLD = 1500;
-const VENDOR_JS_COMPRESSED_BUILD_TIME_TRESHOLD = 18000;
-const APPLICATION_JS_BUILD_TIME_TRESHOLD = 1500;
-const APPLICATION_JS_COMPRESSED_BUILD_TIME_TRESHOLD = 25000;
-const MEMSERVER_JS_BUILD_TIME_TRESHOLD = 1500;
 
 test.beforeEach(async () => {
   await fs.remove('dummyapp');
