@@ -1,13 +1,8 @@
 test that memserver changes works well with latest mber serve
 
 Testing todo:
-- e2e tests
 - heavy fastboot middleware tests
 - inject ember-devtools to development(?)
-
-// TODO: dependencies caching for all imports based on package.json version if dependency is provided from node_modules
-// move ember-cli-fastboot, ember-data and ember-devtools to devDependencies
-
 - add linter (js + hbs)
 - rootURL in the test
 
@@ -28,7 +23,5 @@ test:
 "_TEMPLATE_ONLY_GLIMMER_COMPONENTS": true
 
 - write appTransform tests
-
 - utils/fastboot-express-middleware unit tests are missing
-
 - add backend-test environment with tests
