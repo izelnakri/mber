@@ -30,7 +30,7 @@ function transpileFastbootModules() {
     return Promise.all([
       importAddonFolderToAMD('ember-cli-fastboot', 'ember-cli-fastboot/addon'),
       copyFileAsync(`${MODULE_PATH}/fastboot/initializers/ajax.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/ajax.js`),
-      copyFileAsync(`${MODULE_PATH}/fastboot/initializers/error-handler.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/error-handler.js`),
+      copyFileAsync(`${PROJECT_PATH}/scripts/fastboot/initializers/error-handler.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/error-handler.js`),
       copyFileAsync(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
       copyFileAsync(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
       copyFileAsync(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot/fastboot-app-module.js`)

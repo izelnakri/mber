@@ -83,7 +83,7 @@ function injectEmberJS(modulePath, environment) {
 }
 
 function buildEmberData(projectPath) {
-  const emberDataVersion = require(`${projectPath}/package.json`).dependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
+  const emberDataVersion = require(`${projectPath}/package.json`).devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
 
   return [
     importAddonFolderToAMD('ember-data', 'ember-data/addon'),
