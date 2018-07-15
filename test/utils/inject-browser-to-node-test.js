@@ -1,6 +1,151 @@
 import test from 'ava';
+import fs from 'fs-extra';
+import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
+import mockProcessCWD from '../helpers/mock-process-cwd';
+import buildApplication from '../../lib/builders/build-application';
+import buildVendor from '../../lib/builders/build-vendor';
+import buildCSS from '../../lib/builders/build-css';
+import startHTTPServer from '../../lib/runners/start-http-server';
 
-test('injectBrowserToNode() works when there is no server running with index.html', (t) => {
-  t.true(true); // TODO: do this
+const CWD = process.cwd();
+
+test.serial('injectBrowserToNode() works when there is no html or http server running with index.html', async (t) => {
+  t.plan(6);
+
+  await injectBrowserToNode();
+
+  [
+    global.window, global.mainContext, global.document, global.self
+  ].forEach((reference) => t.truthy(reference));
+  t.true(global.window.location.href === 'http://localhost/');
+  t.true(document.querySelector('body').innerHTML.includes('<h1>Welcome to future, browser inside your node.js process</h1>'));
 });
-test.todo('injectBrowserToNode() works when there is server running with index.html');
+
+test.serial('injectBrowserToNode() works when there is a provided html and no http server running with index.html', async (t) => {
+  t.plan(14);
+
+  await injectBrowserToNode({
+    html: `
+      <html>
+        <head>
+          <title>Random title for test</title>
+        </head>
+        <body>
+          <h5 id="title">My title</h5>
+          <p id="text">This is a placeholder text</p>
+        </body>
+      </html>
+    `
+  });
+
+  [
+    global.window, global.mainContext, global.document, global.self
+  ].forEach((reference) => t.truthy(reference));
+  t.true(global.window.location.href === 'http://localhost/');
+  t.true(document.getElementById('title').innerHTML === 'My title');
+  t.true(document.getElementById('text').innerHTML === 'This is a placeholder text');
+
+  await injectBrowserToNode({
+    html: `
+      <html>
+        <head>
+          <title>Random title for test</title>
+        </head>
+        <body>
+          <h5 id="title">Some other title</h5>
+          <p id="text">Other text</p>
+        </body>
+      </html>
+    `,
+    url: 'http://localhost:8081'
+  });
+
+  [
+    global.window, global.mainContext, global.document, global.self
+  ].forEach((reference) => t.truthy(reference));
+  t.true(global.window.location.href === 'http://localhost:8081/');
+  t.true(document.getElementById('title').innerHTML === 'Some other title');
+  t.true(document.getElementById('text').innerHTML === 'Other text');
+});
+
+test.serial('injectBrowserToNode() works htmlPath is provided', async (t) => {
+  await fs.writeFile(`${CWD}/ember-app-boilerplate/tmp/foo.html`, `
+    <html>
+      <head></head>
+      <body>
+        <p>This is a written file</p>
+
+        <script>
+          window.THIS_IS_TESTING = true;
+        </script>
+      </body>
+    </html>
+  `);
+
+  await injectBrowserToNode({ htmlPath: `${CWD}/ember-app-boilerplate/tmp/foo.html` });
+
+  [
+    global.window, global.mainContext, global.document, global.self, global.window.THIS_IS_TESTING
+  ].forEach((reference) => t.truthy(reference));
+  t.true(global.window.location.href === 'http://localhost/');
+  t.true(document.querySelector('p').innerHTML === 'This is a written file');
+
+  await fs.writeFile(`${CWD}/ember-app-boilerplate/tmp/foo.html`, `
+    <html>
+      <head></head>
+      <body>
+        <p>This is another written file</p>
+
+        <script>
+          window.THIS_IS_ANOTHER_TESTING = true;
+        </script>
+      </body>
+    </html>
+  `);
+
+  await injectBrowserToNode({
+    htmlPath: `${CWD}/ember-app-boilerplate/tmp/foo.html`,
+    url: 'http://localhost:5555'
+  });
+
+  [
+    global.window, global.mainContext, global.document, global.self,
+    global.window.THIS_IS_ANOTHER_TESTING
+  ].forEach((reference) => t.truthy(reference));
+  t.true(global.window.location.href === 'http://localhost:5555/');
+  t.true(document.querySelector('p').innerHTML === 'This is another written file');
+});
+
+test.cb('injectBrowserToNode() works url is provided', (t) => {
+  t.plan(10);
+  
+  (async () => {
+    const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
+    const mock = mockProcessCWD(PROJECT_ROOT);
+    const ENV = { modulePrefix: 'izelnakri', environment: 'development' };
+    await Promise.all([
+      buildApplication(ENV),
+      buildVendor(ENV),
+      buildCSS(),
+      fs.copyFile(`${PROJECT_ROOT}/index.html`, `${PROJECT_ROOT}/tmp/index.html`)
+    ]);
+
+    startHTTPServer({ environment: 'development' }, { fastboot: false, port: 1234 });
+
+    await injectBrowserToNode({ url: 'http://localhost:1234' });
+
+    const window = global.window;
+
+    setTimeout(() => {
+      [
+        window, global.mainContext, global.document, global.self, window.Ember,
+        window.Ember.Object, window.requirejs, window.require, window.define
+      ].forEach((reference) => t.truthy(reference));
+      t.true(global.window.location.href === 'http://localhost:1234/');
+
+      mock.removeMock();
+
+      t.end();
+    }, 1000);
+  })();
+});

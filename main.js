@@ -1,15 +1,11 @@
-import buildApplication from './lib/builders/build-application';
-import buildCSS from './lib/builders/build-css';
-import buildVendor from './lib/builders/build-vendor';
-import buildMemServer from './lib/builders/build-memserver';
+import fs from 'fs-extra';
+import buildAssets from './lib/builders/build-assets';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';
 import appImportTransformation from './lib/transpilers/app-import-transformation';
 import importAddonFolderToAMD from './lib/transpilers/import-addon-folder-to-amd';
 import transpileNPMImports from './lib/transpilers/transpile-npm-imports';
 import parseCLIArguments from './lib/utils/parse-cli-arguments';
-
-const PROJECT_ROOT = findProjectRoot();
 
 export default {
   indexHTMLInjections: {},
@@ -24,6 +20,7 @@ export default {
     this[`${type}${appendMetadata}`].push({ path: path, type: 'library', options: options });
   },
   importAddon(name, path, options={}) {
+    const PROJECT_ROOT = findProjectRoot();
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${name}`;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
@@ -34,6 +31,7 @@ export default {
     });
   },
   importAsAMDModule(npmModuleName, path, options={}) {
+    const PROJECT_ROOT = findProjectRoot();
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${npmModuleName}`;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
@@ -46,12 +44,9 @@ export default {
   injectInlineContent(keyName, value) {
     this.indexHTMLInjections[keyName] = value;
   },
-  buildWithCache({ ENV, cliArguments, buildCache, indexHTMLInjections }) {
-    return new Promise((resolve) => {
-      return fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections });
-    });
-  },
   build(environment) {
+    const PROJECT_ROOT = findProjectRoot();
+
     return new Promise((resolve) => {
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
       const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
@@ -60,59 +55,40 @@ export default {
       ];
       const buildMeta = metaKeys.reduce((result, key) => {
         if (this[key].length > 0) {
-          return { [key]: readTranspile(this[key], APPLICATION_NAME) };
+          return Object.assign(result, {
+            [key]: readTranspile(PROJECT_ROOT, this[key], APPLICATION_NAME)
+          });
         }
 
         return result;
       }, {});
 
-      return Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
-        .then((finishedBuild) => {
+      Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
+        .then(async (finishedBuild) => {
           const buildCache = finishedBuild.reduce((result, code, index) => {
             return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
           }, {});
           const cliArguments = parseCLIArguments();
-
-          return fullBuild({
+          const result = await buildAssets(PROJECT_ROOT, {
+            applicationName: ENV.modulePrefix || 'frontend',
+            entrypoint: global.MBER_TEST_RUNNER ?
+              `${PROJECT_ROOT}/tests/index.html` : `${PROJECT_ROOT}/index.html`,
             ENV: ENV,
             cliArguments: cliArguments,
-            resolve: resolve,
+            projectRoot: PROJECT_ROOT,
             buildCache: buildCache,
-            indexHTMLInjections: this.indexHTMLInjections
+            indexHTMLInjections: this.indexHTMLInjections,
+            runningTests: global.MBER_TEST_RUNNER || false
           });
-      }).catch((error) => reportErrorAndExit(error));
+
+          resolve(result);
+        }).catch((error) => reportErrorAndExit(error));
     });
   }
 }
 
-function fullBuild({ ENV, cliArguments, resolve, buildCache, indexHTMLInjections }) {
-  const { environment } = ENV;
 
-  return Promise.all([
-    buildCSS(environment),
-    buildVendor(environment, ENV, Object.assign({}, cliArguments, {
-      fastboot: cliArguments.fastboot !== false,
-      hasSocketWatching: cliArguments.watch || !['production', 'demo'].includes(environment),
-      vendorPrepends: buildCache.vendorPrepends,
-      vendorAppends: buildCache.vendorAppends
-    })),
-    buildApplication(environment, ENV, {
-      applicationPrepends: buildCache.applicationPrepends,
-      applicationAppends: buildCache.applicationAppends
-    }),
-    (ENV.memserver && ENV.memserver.enabled) ? buildMemServer(environment, ENV) : null
-  ]).then(() => {
-    return resolve({
-      buildCache: buildCache,
-      applicationName: ENV.modulePrefix || 'frontend',
-      cliArguments: cliArguments,
-      indexHTMLInjections: indexHTMLInjections,
-      ENV: ENV
-    });
-  }).catch((error) => reportErrorAndExit(error));
-}
-
-function readTranspile(arrayOfImportableObjects, applicationName) {
+function readTranspile(PROJECT_ROOT, arrayOfImportableObjects, applicationName) {
   return new Promise((resolve) => {
     Promise.all(arrayOfImportableObjects.map((importObject) => {
       // TODO: add appImportTransformation to amdModule and addon types. Check on importObject.options.using

@@ -1,26 +1,24 @@
+test that memserver changes works well with latest mber serve
 
-- component-integration-test, component-unit-test filtering
+Testing todo:
+- e2e tests
+- heavy fastboot middleware tests
+- inject ember-devtools to development(?)
+
+// TODO: dependencies caching for all imports based on package.json version if dependency is provided from node_modules
+// move ember-cli-fastboot, ember-data and ember-devtools to devDependencies
+
 - add linter (js + hbs)
-- memserver ships with mber.
-content.push(`<meta name="${config.modulePrefix}/config/environment" content="${escape(JSON.stringify(config))}" />`);
 - rootURL in the test
 
 All I need:
-- ENV.APP.API_HOST (tests)
 - investigate how people use engines
 
 addons to investigate:
 - ember-cli-sri, https://github.com/jonathanKingston/broccoli-sri-hash/blob/master/index.js adds integrity
 - ember-cli-csp
-- ember-cli-flash
-- ember-i18n
-- ember-flash
-- investigate new ember test helpers
-
-- check fastboot-asset-rev-rewrite (https://github.com/rickharrison/broccoli-asset-rev/blob/master/lib/fastboot-manifest-rewrite.js)
 // add generators
 CDN
-
 - allow overriding sandbox
 
 add eslint-plugin-ember + eslint
@@ -29,5 +27,8 @@ test:
 "_APPLICATION_TEMPLATE_WRAPPER": false,
 "_TEMPLATE_ONLY_GLIMMER_COMPONENTS": true
 
-
 - write appTransform tests
+
+- utils/fastboot-express-middleware unit tests are missing
+
+- add backend-test environment with tests

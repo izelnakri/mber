@@ -1,6 +1,6 @@
 # mber: Modern Ember.js, without broccoli.
 
-My hobby take on replacing ember-cli. This build system uses module unification and fastboot by default. I've recently rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much counter-intuitive magic. One day after reading ember-cli source code, I've realized rewriting this beast from scratch is the only way to move forward.
+This build system uses [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default. I've recently rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much counter-intuitive magic. One day after reading ember-cli source code, I've realized rewriting this beast from scratch is the only way to move forward.
 
 It currently looks like I've made a good long term investment by taking the painful path to salvation.
 
@@ -201,9 +201,28 @@ module.exports = function(ENV) {
 }
 ```
 
-#### Extra: How to exclude ember-data or jquery from your application:
+#### Extra: How to exclude ember-data from your application:
 
-add excludeEmberData or excludeJQuery to your config/environment.js:
+By default mber builds an ember application without jQuery. If want jquery in your application do this:
+
+```js
+const app = require('mber');
+
+module.exports = function(ENV) {
+  const { environment } = ENV;
+
+  // your other configuration ..
+
+  app.import('node_modules/jquery/dist/jquery.min.js', {
+    type: 'vendor', prepend: true
+  });
+
+  return app.build(environment);
+}
+```
+
+If you want to exclude EmberData from your application. Add excludeEmberData to your config/environment.js:
+
 ```js
 'use strict';
 
@@ -211,8 +230,7 @@ module.exports = function(environment) {
   let ENV = {
     modulePrefix: '{{applicationName}}',
     environment,
-    excludeEmberData: true, // to exclude ember-data
-    excludeJQuery: true // to exclude jQuery
+    excludeEmberData: true // to exclude ember-data
   }
 
   // .. remaining code
@@ -264,6 +282,19 @@ module.exports = function(ENV) {
 
   return app.build(environment);
 }
+```
+
+#### Enabling Ember optional features
+
+Currently ember-source builds toggle two features based on environment configurations. You can toggle them in your `environment.js`:
+
+```js
+module.exports = function(environment) {
+  let ENV = {
+    _APPLICATION_TEMPLATE_WRAPPER: false, // NOTE: true by default
+    _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true // NOTE: false by default
+  }
+};
 ```
 
 # CREDITS

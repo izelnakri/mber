@@ -40,6 +40,12 @@ CLI.command(['console', 'c'], () => require('./lib/commands/console').default())
 CLI.command(['help', 'h'], () => printCommand());
 CLI.command(['print', 'p'], () => printCommand());
 CLI.command(['init', 'new'], () => require('./lib/commands/new').default());
+CLI.command(['generate', 'g', 'create'], () => {
+  require('./lib/commands/generate').default(process.argv[3], process.argv[4]);
+});
+CLI.command(['delete', 'd', 'destroy', 'remove'], () => {
+  require('./lib/commands/delete').default(process.argv[3], process.argv[4]);
+});
 
 if (!shouldRunCommand) {
   Console.log(require('chalk').red('unknown command. Available options are:'));

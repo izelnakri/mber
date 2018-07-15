@@ -2,17 +2,56 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:10.1
-    working_directory: ~/repo
+      - image: docker:dind
+    working_directory: /code
     steps:
       - checkout
+      - setup_remote_docker
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          - v1-dependencies-
-      - run: yarn install
-      - save_cache:
+            - v1-{{ .Branch }}
           paths:
-            - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-      - run: yarn test
+            - /caches/mber.tar
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i /caches/mber.tar | true
+      - run:
+          name: Build application Docker image
+          command: |
+            docker build --cache-from=mber -t mber .
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p /caches
+            docker save -o /caches/mber.tar mber
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /caches/mber.tar
+      - deploy:
+          name: Push application Docker image
+          command: |
+            echo $HUB_KEY | docker login -u $HUB_USERNAME --password-stdin
+            docker tag mber "${HUB_USERNAME}/mber:${CIRCLE_BRANCH}"
+            docker push "${HUB_USERNAME}/mber:${CIRCLE_BRANCH}"
+  test:
+    docker:
+      - image: inakri/mber:${CIRCLE_BRANCH}
+    working_directory: ~/code
+    steps:
+      - checkout
+      - run: npm install esm
+      - run: npm test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+
+# https://circleci.com/blog/how-to-build-a-docker-image-on-circleci-2-0/

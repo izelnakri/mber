@@ -10,6 +10,8 @@ mber serve | server                # Starts your ember development server [alias
 mber build | b                     # Builds your ember application and outputs to /dist folder
 mber console | c                   # Boots your ember application with DOM in a node.js repl
 mber test | t                      # Runs your ember tests (--server to run them in browser)
+mber generate | g [type] [name]    # Generate ember files for certain abstraction type
+mber delete | d [type] [name]      # Remove ember files for certain abstraction type
 `;
 
 test('$ mber -> prints options', async (t) => {
@@ -43,8 +45,12 @@ test('$ mber h -> prints options', async (t) => {
 });
 
 test('$ mber unknown -> raises error', async (t) => {
-  const { stdout } = await shell(`node ${process.cwd()}/cli.js dasd`);
+  t.plan(2);
 
-  t.true(stdout.includes('ember unknown command. Available options are:'));
-  t.true(stdout.includes(printedHelpOutput));
+  try {
+    await shell(`node ${process.cwd()}/cli.js dasd`)
+  } catch ({ stdout }) {
+    t.true(stdout.includes('ember unknown command. Available options are:'));
+    t.true(stdout.includes(printedHelpOutput));
+  }
 });

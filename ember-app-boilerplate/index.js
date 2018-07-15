@@ -4,6 +4,9 @@ const app = require('../index.js');
 module.exports = function(ENV) {
   const { environment } = ENV;
 
+  app.import('node_modules/jquery/dist/jquery.min.js', {
+    type: 'vendor', prepend: true
+  });
   app.importAddon('mber-head', { type: 'vendor' });
   // app.importAsAMDModule('moment', 'node_modules/moment/min/moment.min.js');
   // app.importAsAMDModule('bip39');

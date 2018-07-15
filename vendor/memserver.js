@@ -1,11 +1,11 @@
 
-      
+        
   (function() {
     window.fetch = undefined;
   })();
 
 
-      (function(self) {
+        (function(self) {
   'use strict';
 
   if (self.fetch) {
@@ -473,7 +473,7 @@
 })(typeof self !== 'undefined' ? self : this);
 
 
-      
+        
       ;(function() {
         function vendorModule() {
           'use strict';
@@ -814,7 +814,7 @@ module.exports.supportsColor = stdoutColor;
 module.exports.default = module.exports; // For TypeScript
 
 }).call(this,require('_process'))
-},{"./templates.js":4,"_process":20,"ansi-styles":2,"escape-string-regexp":10,"supports-color":3}],2:[function(require,module,exports){
+},{"./templates.js":4,"_process":19,"ansi-styles":2,"escape-string-regexp":10,"supports-color":3}],2:[function(require,module,exports){
 'use strict';
 const colorConvert = require('color-convert');
 
@@ -3211,13 +3211,47 @@ if (typeof Object.create === 'function') {
 (function (global){
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-exports.default = function (options) {
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _interopDefault(ex) {
+  return ex && (typeof ex === 'undefined' ? 'undefined' : _typeof(ex)) === 'object' && 'default' in ex ? ex['default'] : ex;
+}
+
+var util = _interopDefault(require('util'));
+var chalk = _interopDefault(require('chalk'));
+var Inflector = _interopDefault(require('i'));
+var emberCliStringUtils = require('ember-cli-string-utils');
+
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0,
+        v = c === 'x' ? r : r & 0x3 | 0x8;
+
+    return v.toString(16);
+  });
+}
+
+function primaryKeyTypeSafetyCheck(targetPrimaryKeyType, primaryKey, modelName) {
+  var primaryKeyType = typeof primaryKey === 'undefined' ? 'undefined' : _typeof(primaryKey);
+
+  if (targetPrimaryKeyType === 'id' && primaryKeyType !== 'number') {
+    throw new Error(chalk.red('[MemServer] ' + modelName + ' model primaryKey type is \'id\'. Instead you\'ve tried to enter id: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
+  } else if (targetPrimaryKeyType === 'uuid' && primaryKeyType !== 'string') {
+    throw new Error(chalk.red('[MemServer] ' + modelName + ' model primaryKey type is \'uuid\'. Instead you\'ve tried to enter uuid: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
+  }
+
+  return targetPrimaryKeyType;
+}
+
+var _Inflector = Inflector(),
+    singularize = _Inflector.singularize,
+    pluralize = _Inflector.pluralize;
+
+var targetNamespace = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
+
+var model = function model(options) {
   return Object.assign({}, {
     modelName: null,
     primaryKey: null,
@@ -3230,7 +3264,7 @@ exports.default = function (options) {
     },
     find: function find(param) {
       if (!param) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.find(id) cannot be called without a valid id'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.find(id) cannot be called without a valid id'));
       } else if (Array.isArray(param)) {
         var _models = Array.from(targetNamespace.MemServer.DB[this.modelName] || []);
 
@@ -3240,7 +3274,7 @@ exports.default = function (options) {
           return foundModel ? result.concat([foundModel]) : result;
         }, []);
       } else if (typeof param !== 'number') {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.find(id) cannot be called without a valid id'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.find(id) cannot be called without a valid id'));
       }
 
       var models = Array.from(targetNamespace.MemServer.DB[this.modelName] || []);
@@ -3251,7 +3285,7 @@ exports.default = function (options) {
     },
     findBy: function findBy(options) {
       if (!options) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.findBy(id) cannot be called without a parameter'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.findBy(id) cannot be called without a parameter'));
       }
 
       var keys = Object.keys(options);
@@ -3289,7 +3323,7 @@ exports.default = function (options) {
 
       var defaultAttributes = this.attributes.reduce(function (result, attribute) {
         if (attribute === _this.primaryKey) {
-          result[attribute] = _this.primaryKey === 'id' ? incrementId(_this) : (0, _utils.generateUUID)();
+          result[attribute] = _this.primaryKey === 'id' ? incrementId(_this) : generateUUID();
 
           return result;
         }
@@ -3302,12 +3336,12 @@ exports.default = function (options) {
       }, {});
       var target = Object.assign(defaultAttributes, options);
 
-      (0, _utils.primaryKeyTypeSafetyCheck)(this.primaryKey, target[this.primaryKey], this.modelName);
+      primaryKeyTypeSafetyCheck(this.primaryKey, target[this.primaryKey], this.modelName);
 
       var existingRecord = target.id ? this.find(target.id) : this.findBy({ uuid: target.uuid });
 
       if (existingRecord) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + ' ' + this.primaryKey + ' ' + target[this.primaryKey] + ' already exists in the database! ' + this.modelName + '.insert(' + _util2.default.inspect(options) + ') fails'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + ' ' + this.primaryKey + ' ' + target[this.primaryKey] + ' already exists in the database! ' + this.modelName + '.insert(' + util.inspect(options) + ') fails'));
       }
 
       Object.keys(target).filter(function (attribute) {
@@ -3324,13 +3358,13 @@ exports.default = function (options) {
       var _this2 = this;
 
       if (!record || !record.id && !record.uuid) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.update(record) requires id or uuid primary key to update a record'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.update(record) requires id or uuid primary key to update a record'));
       }
 
       var targetRecord = record.id ? this.find(record.id) : this.findBy({ uuid: record.uuid });
 
       if (!targetRecord) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.update(record) failed because ' + this.modelName + ' with ' + this.primaryKey + ': ' + record[this.primaryKey] + ' does not exist'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.update(record) failed because ' + this.modelName + ' with ' + this.primaryKey + ': ' + record[this.primaryKey] + ' does not exist'));
       }
 
       var recordsUnknownAttribute = Object.keys(record).find(function (attribute) {
@@ -3338,7 +3372,7 @@ exports.default = function (options) {
       });
 
       if (recordsUnknownAttribute) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.update ' + this.primaryKey + ': ' + record[this.primaryKey] + ' fails, ' + this.modelName + ' model does not have ' + recordsUnknownAttribute + ' attribute to update'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.update ' + this.primaryKey + ': ' + record[this.primaryKey] + ' fails, ' + this.modelName + ' model does not have ' + recordsUnknownAttribute + ' attribute to update'));
       }
 
       return Object.assign(targetRecord, record);
@@ -3347,15 +3381,15 @@ exports.default = function (options) {
       var models = targetNamespace.MemServer.DB[this.modelName] || [];
 
       if (models.length === 0) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + ' has no records in the database to delete. ' + this.modelName + '.delete(' + _util2.default.inspect(record) + ') failed'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + ' has no records in the database to delete. ' + this.modelName + '.delete(' + util.inspect(record) + ') failed'));
       } else if (!record) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.delete(model) model object parameter required to delete a model'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.delete(model) model object parameter required to delete a model'));
       }
 
       var targetRecord = record.id ? this.find(record.id) : this.findBy({ uuid: record.uuid });
 
       if (!targetRecord) {
-        throw new Error(_chalk2.default.red('[MemServer] Could not find ' + this.modelName + ' with ' + this.primaryKey + ' ' + record[this.primaryKey] + ' to delete. ' + this.modelName + '.delete(' + _util2.default.inspect(record) + ') failed'));
+        throw new Error(chalk.red('[MemServer] Could not find ' + this.modelName + ' with ' + this.primaryKey + ' ' + record[this.primaryKey] + ' to delete. ' + this.modelName + '.delete(' + util.inspect(record) + ') failed'));
       }
 
       var targetIndex = models.indexOf(targetRecord);
@@ -3367,13 +3401,13 @@ exports.default = function (options) {
     embed: function embed(relationship) {
       // EXAMPLE: { comments: Comment }
       if ((typeof relationship === 'undefined' ? 'undefined' : _typeof(relationship)) !== 'object' || relationship.modelName) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.embed(relationshipObject) requires an object as a parameter: { relationshipKey: $RelationshipModel }'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.embed(relationshipObject) requires an object as a parameter: { relationshipKey: $RelationshipModel }'));
       }
 
       var key = Object.keys(relationship)[0];
 
       if (!relationship[key]) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.embed() fails: ' + key + ' Model reference is not a valid. Please put a valid $ModelName to ' + this.modelName + '.embed()'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.embed() fails: ' + key + ' Model reference is not a valid. Please put a valid $ModelName to ' + this.modelName + '.embed()'));
       }
 
       return Object.assign(this.embedReferences, relationship);
@@ -3398,7 +3432,7 @@ exports.default = function (options) {
 
       // NOTE: add links object ?
       if (Array.isArray(object)) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.serialize(object) expects an object not an array. Use ' + this.modelName + '.serializer(data) for serializing array of records'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.serialize(object) expects an object not an array. Use ' + this.modelName + '.serializer(data) for serializing array of records'));
       }
 
       var objectWithAllAttributes = this.attributes.reduce(function (result, attribute) {
@@ -3418,27 +3452,27 @@ exports.default = function (options) {
     },
     getRelationship: function getRelationship(parentObject, relationshipName, relationshipModel) {
       if (Array.isArray(parentObject)) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + this.modelName + '.getRelationship expects model input to be an object not an array'));
+        throw new Error(chalk.red('[MemServer] ' + this.modelName + '.getRelationship expects model input to be an object not an array'));
       }
 
-      var targetRelationshipModel = relationshipModel || targetNamespace.MemServer.Models[(0, _emberCliStringUtils.classify)(singularize(relationshipName))];
+      var targetRelationshipModel = relationshipModel || targetNamespace.MemServer.Models[emberCliStringUtils.classify(singularize(relationshipName))];
       var hasManyRelationship = pluralize(relationshipName) === relationshipName;
 
       if (!targetRelationshipModel) {
-        throw new Error(_chalk2.default.red('[MemServer] ' + relationshipName + ' relationship could not be found on ' + this.modelName + ' model. Please put the ' + relationshipName + ' Model object as the third parameter to ' + this.modelName + '.getRelationship function'));
+        throw new Error(chalk.red('[MemServer] ' + relationshipName + ' relationship could not be found on ' + this.modelName + ' model. Please put the ' + relationshipName + ' Model object as the third parameter to ' + this.modelName + '.getRelationship function'));
       } else if (hasManyRelationship) {
         if (parentObject.id) {
-          var hasManyIDRecords = targetRelationshipModel.findAll(_defineProperty({}, (0, _emberCliStringUtils.underscore)(this.modelName) + '_id', parentObject.id));
+          var hasManyIDRecords = targetRelationshipModel.findAll(_defineProperty({}, emberCliStringUtils.underscore(this.modelName) + '_id', parentObject.id));
 
           return hasManyIDRecords.length > 0 ? hasManyIDRecords : [];
         } else if (parentObject.uuid) {
-          var hasManyUUIDRecords = targetRelationshipModel.findAll(_defineProperty({}, (0, _emberCliStringUtils.underscore)(this.modelName) + '_uuid', parentObject.uuid));
+          var hasManyUUIDRecords = targetRelationshipModel.findAll(_defineProperty({}, emberCliStringUtils.underscore(this.modelName) + '_uuid', parentObject.uuid));
 
           return hasManyUUIDRecords.length > 0 ? hasManyUUIDRecords : [];
         }
       }
 
-      var objectRef = parentObject[(0, _emberCliStringUtils.underscore)(relationshipName) + '_id'] || parentObject[(0, _emberCliStringUtils.underscore)(relationshipName) + '_uuid'];
+      var objectRef = parentObject[emberCliStringUtils.underscore(relationshipName) + '_id'] || parentObject[emberCliStringUtils.underscore(relationshipName) + '_uuid'];
 
       if (objectRef && typeof objectRef === 'number') {
         return targetRelationshipModel.find(objectRef);
@@ -3447,39 +3481,13 @@ exports.default = function (options) {
       }
 
       if (parentObject.id) {
-        return targetRelationshipModel.findBy(_defineProperty({}, (0, _emberCliStringUtils.underscore)(this.modelName) + '_id', parentObject.id));
+        return targetRelationshipModel.findBy(_defineProperty({}, emberCliStringUtils.underscore(this.modelName) + '_id', parentObject.id));
       } else if (parentObject.uuid) {
-        return targetRelationshipModel.findBy(_defineProperty({}, (0, _emberCliStringUtils.underscore)(this.modelName) + '_uuid', parentObject.uuid));
+        return targetRelationshipModel.findBy(_defineProperty({}, emberCliStringUtils.underscore(this.modelName) + '_uuid', parentObject.uuid));
       }
     }
   }, options);
 };
-
-var _util = require('util');
-
-var _util2 = _interopRequireDefault(_util);
-
-var _chalk = require('chalk');
-
-var _chalk2 = _interopRequireDefault(_chalk);
-
-var _i = require('i');
-
-var _i2 = _interopRequireDefault(_i);
-
-var _emberCliStringUtils = require('ember-cli-string-utils');
-
-var _utils = require('./utils');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var _Inflector = (0, _i2.default)(),
-    singularize = _Inflector.singularize,
-    pluralize = _Inflector.pluralize;
-
-var targetNamespace = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
 
 function incrementId(Model) {
   var ids = targetNamespace.MemServer.DB[Model.modelName];
@@ -3514,47 +3522,10 @@ function comparison(model, options, keys) {
   return false;
 }
 
+module.exports = model;
+
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./utils":19,"chalk":1,"ember-cli-string-utils":9,"i":12,"util":22}],19:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.generateUUID = generateUUID;
-exports.primaryKeyTypeSafetyCheck = primaryKeyTypeSafetyCheck;
-
-var _chalk = require('chalk');
-
-var _chalk2 = _interopRequireDefault(_chalk);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0,
-        v = c === 'x' ? r : r & 0x3 | 0x8;
-
-    return v.toString(16);
-  });
-}
-
-function primaryKeyTypeSafetyCheck(targetPrimaryKeyType, primaryKey, modelName) {
-  var primaryKeyType = typeof primaryKey === 'undefined' ? 'undefined' : _typeof(primaryKey);
-
-  if (targetPrimaryKeyType === 'id' && primaryKeyType !== 'number') {
-    throw new Error(_chalk2.default.red('[MemServer] ' + modelName + ' model primaryKey type is \'id\'. Instead you\'ve tried to enter id: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
-  } else if (targetPrimaryKeyType === 'uuid' && primaryKeyType !== 'string') {
-    throw new Error(_chalk2.default.red('[MemServer] ' + modelName + ' model primaryKey type is \'uuid\'. Instead you\'ve tried to enter uuid: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
-  }
-
-  return targetPrimaryKeyType;
-}
-
-},{"chalk":1}],20:[function(require,module,exports){
+},{"chalk":1,"ember-cli-string-utils":9,"i":12,"util":21}],19:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -3740,7 +3711,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -3749,7 +3720,7 @@ module.exports = function isBuffer(arg) {
   return arg && (typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && typeof arg.copy === 'function' && typeof arg.fill === 'function' && typeof arg.readUInt8 === 'function';
 };
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4339,7 +4310,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":21,"_process":20,"inherits":17}]},{},[18])(18)
+},{"./support/isBuffer":20,"_process":19,"inherits":17}]},{},[18])(18)
 });
 
 
@@ -4352,7 +4323,7 @@ function hasOwnProperty(obj, prop) {
       })();
     
 
-      define('memserver/response', ['exports'], function (exports) {
+        define('memserver/response', ['exports'], function (exports) {
   'use strict';
 
   exports.__esModule = true;
@@ -4366,7 +4337,7 @@ function hasOwnProperty(obj, prop) {
   };
 });
 
-      
+        
       ;(function() {
         function vendorModule() {
           'use strict';
@@ -4707,7 +4678,7 @@ module.exports.supportsColor = stdoutColor;
 module.exports.default = module.exports; // For TypeScript
 
 }).call(this,require('_process'))
-},{"./templates.js":4,"_process":23,"ansi-styles":2,"escape-string-regexp":10,"supports-color":3}],2:[function(require,module,exports){
+},{"./templates.js":4,"_process":20,"ansi-styles":2,"escape-string-regexp":10,"supports-color":3}],2:[function(require,module,exports){
 'use strict';
 const colorConvert = require('color-convert');
 
@@ -7589,177 +7560,122 @@ var u = module.exports = {
 (function (global){
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-exports.default = function (modelFixtureTree, Server) {
-  var initializer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
-
-  if (!Server) {
-    throw new Error('memserver/server.js doesnt exist! Please create a memserver/server.js to use MemServer');
-  }
-
-  targetNamespace.MemServer = {
-    DB: {},
-    Server: {},
-    Models: registerModels(modelFixtureTree),
-    start: function start() {
-      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { logging: true };
-
-      this.DB = resetDatabase(this.Models, modelFixtureTree);
-      this.Server = (0, _server2.default)(Server, options);
-
-      initializer(this.Models);
-
-      return this;
-    },
-    shutdown: function shutdown() {
-      this.Server.shutdown();
-      this.DB = {};
-
-      return this;
-    }
-  };
-
-  return targetNamespace.MemServer;
-};
-
-var _chalk = require('chalk');
-
-var _chalk2 = _interopRequireDefault(_chalk);
-
-var _utils = require('./utils');
-
-var _fakeXmlHttpRequest = require('fake-xml-http-request');
-
-var _fakeXmlHttpRequest2 = _interopRequireDefault(_fakeXmlHttpRequest);
-
-var _routeRecognizer = require('route-recognizer');
-
-var _routeRecognizer2 = _interopRequireDefault(_routeRecognizer);
-
-var _server = require('./server');
-
-var _server2 = _interopRequireDefault(_server);
-
-require('pretender');
-
-require('./pretender-hacks.js');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var ENVIRONMENT_IS_NODE = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object';
-var targetNamespace = ENVIRONMENT_IS_NODE ? global : window;
-
-if (ENVIRONMENT_IS_NODE) {
-  global.self = window.self;
-}
-
-window.FakeXMLHttpRequest = _fakeXmlHttpRequest2.default;
-window.RouteRecognizer = _routeRecognizer2.default;
-
-function registerModels(modelFixtureTree) {
-  return Object.keys(modelFixtureTree).reduce(function (result, ModelName) {
-    result[ModelName] = Object.assign(modelFixtureTree[ModelName].model, {
-      modelName: ModelName,
-      primaryKey: null,
-      attributes: Object.keys(modelFixtureTree[ModelName].model.defaultAttributes)
-    });
-
-    return result;
-  }, {});
-}
-
-function resetDatabase(models, modelFixtureTree) {
-  return Object.keys(models).reduce(function (result, modelName) {
-    result[modelName] = Array.from(modelFixtureTree[modelName].fixtures, function (fixtureObject) {
-      return Object.assign({}, fixtureObject);
-    });
-
-    var modelPrimaryKey = result[modelName].reduce(function (_ref, model) {
-      var _ref2 = _slicedToArray(_ref, 2),
-          existingPrimaryKey = _ref2[0],
-          primaryKeys = _ref2[1];
-
-      var primaryKey = getModelPrimaryKey(model, existingPrimaryKey, modelName);
-
-      if (!primaryKey) {
-        throw new Error(_chalk2.default.red('[MemServer] DATABASE ERROR: At least one of your ' + modelName + ' fixtures missing a primary key. Please make sure all your ' + modelName + ' fixtures have either id or uuid primaryKey'));
-      } else if (primaryKeys.includes(model[primaryKey])) {
-        throw new Error(_chalk2.default.red('[MemServer] DATABASE ERROR: Duplication in ' + modelName + ' fixtures with ' + primaryKey + ': ' + model[primaryKey]));
-      }
-
-      var existingAttributes = targetNamespace.MemServer.Models[modelName].attributes;
-
-      Object.keys(model).forEach(function (key) {
-        if (!existingAttributes.includes(key)) {
-          targetNamespace.MemServer.Models[modelName].attributes.push(key);
-        }
-      });
-
-      return [primaryKey, primaryKeys.concat([model[primaryKey]])];
-    }, [targetNamespace.MemServer.Models[modelName].primaryKey, []])[0];
-
-    targetNamespace.MemServer.Models[modelName].primaryKey = modelPrimaryKey;
-
-    return result;
-  }, {});
-}
-
-function getModelPrimaryKey(model, existingPrimaryKeyType, modelName) {
-  if (existingPrimaryKeyType) {
-    return (0, _utils.primaryKeyTypeSafetyCheck)(existingPrimaryKeyType, model[existingPrimaryKeyType], modelName);
-  }
-
-  var primaryKey = model.id || model.uuid;
-
-  if (!primaryKey) {
-    return;
-  }
-
-  existingPrimaryKeyType = model.id ? 'id' : 'uuid';
-
-  return (0, _utils.primaryKeyTypeSafetyCheck)(existingPrimaryKeyType, primaryKey, modelName);
-}
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./pretender-hacks.js":19,"./server":20,"./utils":21,"chalk":1,"fake-xml-http-request":11,"pretender":22,"route-recognizer":29}],19:[function(require,module,exports){
-(function (global){
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _qs = require('qs');
-
-var _qs2 = _interopRequireDefault(_qs);
-
-var _chalk = require('chalk');
-
-var _chalk2 = _interopRequireDefault(_chalk);
-
-var _i = require('i');
-
-var _i2 = _interopRequireDefault(_i);
-
-var _emberCliStringUtils = require('ember-cli-string-utils');
-
-var _emberCliStringUtils2 = _interopRequireDefault(_emberCliStringUtils);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var classify = _emberCliStringUtils2.default.classify;
+function _interopDefault(ex) {
+  return ex && (typeof ex === 'undefined' ? 'undefined' : _typeof(ex)) === 'object' && 'default' in ex ? ex['default'] : ex;
+}
 
-var _Inflector = (0, _i2.default)(),
+var chalk = _interopDefault(require('chalk'));
+var FakeXMLHttpRequest = _interopDefault(require('fake-xml-http-request'));
+var RouteRecognizer = _interopDefault(require('route-recognizer'));
+require('pretender');
+var qs = _interopDefault(require('qs'));
+var Inflector = _interopDefault(require('i'));
+var stringUtils = _interopDefault(require('ember-cli-string-utils'));
+
+function primaryKeyTypeSafetyCheck(targetPrimaryKeyType, primaryKey, modelName) {
+  var primaryKeyType = typeof primaryKey === 'undefined' ? 'undefined' : _typeof(primaryKey);
+
+  if (targetPrimaryKeyType === 'id' && primaryKeyType !== 'number') {
+    throw new Error(chalk.red('[MemServer] ' + modelName + ' model primaryKey type is \'id\'. Instead you\'ve tried to enter id: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
+  } else if (targetPrimaryKeyType === 'uuid' && primaryKeyType !== 'string') {
+    throw new Error(chalk.red('[MemServer] ' + modelName + ' model primaryKey type is \'uuid\'. Instead you\'ve tried to enter uuid: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
+  }
+
+  return targetPrimaryKeyType;
+}
+
+var targetNamespace$1 = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
+var DEFAULT_PASSTHROUGHS = ['http://localhost:0/chromecheckurl', 'http://localhost:30820/socket.io'];
+
+var startServer = function startServer(Server) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  window.Pretender.prototype.namespace = options.namespace;
+  window.Pretender.prototype.urlPrefix = options.urlPrefix;
+  window.Pretender.prototype.timing = options.timing;
+
+  var pretender$$1 = new window.Pretender(function () {
+    var MemServer = chalk.cyan('[MemServer]');
+
+    if (options.logging) {
+      this.handledRequest = function (verb, path, request) {
+        var method = verb.toUpperCase();
+
+        console.log(MemServer, colorStatusCode(request.status), method, request.url);
+
+        if (['POST', 'PUT'].includes(method)) {
+          console.log(method + ' REQUEST BODY IS:', request.params);
+        }
+
+        console.log(JSON.parse(request.responseText));
+      };
+      this.passthroughRequest = function (verb, path, request) {
+        console.log(MemServer, chalk.yellow('[PASSTHROUGH]'), verb, request.url);
+      };
+    }
+
+    this.unhandledRequest = function (verb, path, request) {
+      console.log(MemServer, chalk.red('[UNHANDLED REQUEST]', verb, path));
+      console.log(chalk.red('UNHANDLED REQUEST WAS:\n'), request);
+      console.log(request);
+    };
+  }, { trackRequests: false });
+
+  // HACK: Pretender this.passthrough for better UX
+  // TODO: this doesnt passthrough full http:// https://
+  pretender$$1.passthrough = function (url) {
+    var parent = window.Pretender.prototype;
+    var verbs = ['get', 'post', 'put', 'delete'];
+
+    if (!url) {
+      ['/**', '/', '/*'].forEach(function (path) {
+        verbs.forEach(function (verb) {
+          return pretender$$1[verb](path, parent.passthrough);
+        });
+      });
+
+      return;
+    }
+
+    var fullUrl = (this.urlPrefix || '') + (this.namespace ? '/' + this.namespace : '') + url;
+
+    verbs.forEach(function (verb) {
+      return pretender$$1[verb](fullUrl, parent.passthrough);
+    });
+  };
+
+  DEFAULT_PASSTHROUGHS.forEach(function (url) {
+    return pretender$$1.passthrough(url);
+  });
+  // END: Pretender this.passthrough for better UX
+
+  Server.apply(pretender$$1, [targetNamespace$1.MemServer.Models]);
+
+  return pretender$$1;
+};
+
+function colorStatusCode(statusCode) {
+  if (statusCode === 200 || statusCode === 201) {
+    return chalk.green(statusCode);
+  } else if (statusCode === 404 || statusCode === 204) {
+    return chalk.cyan(statusCode);
+  }
+
+  return chalk.red(statusCode);
+}
+
+var classify = stringUtils.classify;
+
+var _Inflector = Inflector(),
     singularize = _Inflector.singularize;
 
-var targetNamespace = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
+var targetNamespace$2 = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
 
 // HACK START: Pretender Request Parameter Type Casting Hack: Because types are important.
 window.Pretender.prototype._handlerFor = function (verb, url, request) {
@@ -7787,7 +7703,7 @@ window.Pretender.prototype._handlerFor = function (verb, url, request) {
     if (request.requestBody && contentHeader && contentHeader.includes('application/json')) {
       request.params = nilifyStrings(Object.assign(request.params, JSON.parse(request.requestBody)));
     } else {
-      request.params = nilifyStrings(Object.assign(request.params, _qs2.default.parse(request.requestBody)));
+      request.params = nilifyStrings(Object.assign(request.params, qs.parse(request.requestBody)));
     }
   }
 
@@ -7825,49 +7741,49 @@ function nilifyStrings(value) {
 
 // HACK START: Pretender Response Defaults UX Hack: Because Pretender Response types suck UX-wise.
 window.Pretender.prototype.handleRequest = function (request) {
-  var pretender = this;
+  var pretender$$1 = this;
   var verb = request.method.toUpperCase();
   var path = request.url;
-  var handler = pretender._handlerFor(verb, path, request);
+  var handler = pretender$$1._handlerFor(verb, path, request);
 
   var _handleRequest = function _handleRequest(result) {
     var statusCode, headers, body;
 
     if (Array.isArray(result) && result.length === 3) {
       statusCode = result[0];
-      headers = pretender.prepareHeaders(result[1]);
-      body = pretender.prepareBody(result[2], headers);
+      headers = pretender$$1.prepareHeaders(result[1]);
+      body = pretender$$1.prepareBody(result[2], headers);
 
-      return pretender.handleResponse(request, async, function () {
+      return pretender$$1.handleResponse(request, async, function () {
         request.respond(statusCode, headers, body);
-        pretender.handledRequest(verb, path, request);
+        pretender$$1.handledRequest(verb, path, request);
       });
     } else if (!result) {
-      headers = pretender.prepareHeaders({ 'Content-Type': 'application/json' });
+      headers = pretender$$1.prepareHeaders({ 'Content-Type': 'application/json' });
 
       if (verb === 'DELETE') {
-        return pretender.handleResponse(request, async, function () {
-          request.respond(204, headers, pretender.prepareBody('{}', headers));
-          pretender.handledRequest(verb, path, request);
+        return pretender$$1.handleResponse(request, async, function () {
+          request.respond(204, headers, pretender$$1.prepareBody('{}', headers));
+          pretender$$1.handledRequest(verb, path, request);
         });
       }
 
-      return pretender.handleResponse(request, async, function () {
-        request.respond(500, headers, pretender.prepareBody(JSON.stringify({
+      return pretender$$1.handleResponse(request, async, function () {
+        request.respond(500, headers, pretender$$1.prepareBody(JSON.stringify({
           error: '[MemServer] ' + verb + ' ' + path + ' route handler did not return anything to respond to the request!'
         }), headers));
-        pretender.handledRequest(verb, path, request);
+        pretender$$1.handledRequest(verb, path, request);
       });
     }
 
     statusCode = getDefaultStatusCode(verb);
-    headers = pretender.prepareHeaders({ 'Content-Type': 'application/json' });
+    headers = pretender$$1.prepareHeaders({ 'Content-Type': 'application/json' });
     var targetResult = typeof result === 'string' ? result : JSON.stringify(result);
-    body = pretender.prepareBody(targetResult, headers);
+    body = pretender$$1.prepareBody(targetResult, headers);
 
-    return pretender.handleResponse(request, async, function () {
+    return pretender$$1.handleResponse(request, async, function () {
       request.respond(statusCode, headers, body);
-      pretender.handledRequest(verb, path, request);
+      pretender$$1.handledRequest(verb, path, request);
     });
   };
 
@@ -7926,10 +7842,10 @@ function getDefaultRouteHandler(verb, path) {
   var lastPath = paths[paths.length - 1];
   var pluralResourceName = lastPath.includes(':') ? paths[paths.length - 2] : lastPath;
   var resourceName = singularize(pluralResourceName);
-  var ResourceModel = targetNamespace.MemServer.Models[classify(resourceName)];
+  var ResourceModel = targetNamespace$2.MemServer.Models[classify(resourceName)];
 
   if (!ResourceModel) {
-    throw new Error(_chalk2.default.red('[MemServer] ' + verb + ' ' + path + ' route handler cannot be generated automatically: ' + classify(resourceName) + ' is not a valid MemServer.Model, please check that your route name matches the model reference or create a custom handler function'));
+    throw new Error(chalk.red('[MemServer] ' + verb + ' ' + path + ' route handler cannot be generated automatically: ' + classify(resourceName) + ' is not a valid MemServer.Model, please check that your route name matches the model reference or create a custom handler function'));
   } else if (verb === 'GET') {
     if (lastPath.includes(':')) {
       return function (request) {
@@ -7959,144 +7875,116 @@ function getDefaultRouteHandler(verb, path) {
   }
 }
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"chalk":1,"ember-cli-string-utils":9,"i":13,"qs":25}],20:[function(require,module,exports){
-(function (global){
-'use strict';
+var ENVIRONMENT_IS_NODE = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object';
+var targetNamespace = ENVIRONMENT_IS_NODE ? global : window;
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+if (ENVIRONMENT_IS_NODE) {
+  global.self = window.self;
+}
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+window.FakeXMLHttpRequest = FakeXMLHttpRequest;
+window.RouteRecognizer = RouteRecognizer;
 
-exports.default = function (Server) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+var memServer = function memServer(modelFixtureTree, Server) {
+  var initializer = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
 
-  window.Pretender.prototype.namespace = options.namespace;
-  window.Pretender.prototype.urlPrefix = options.urlPrefix;
-  window.Pretender.prototype.timing = options.timing;
+  if (!Server) {
+    throw new Error('memserver/server.js doesnt exist! Please create a memserver/server.js to use MemServer');
+  }
 
-  var pretender = new window.Pretender(function () {
-    var MemServer = _chalk2.default.cyan('[MemServer]');
+  targetNamespace.MemServer = {
+    DB: {},
+    Server: {},
+    Models: registerModels(modelFixtureTree),
+    start: function start() {
+      var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { logging: true };
 
-    if (options.logging) {
-      this.handledRequest = function (verb, path, request) {
-        var method = verb.toUpperCase();
+      this.DB = resetDatabase(this.Models, modelFixtureTree);
+      this.Server = startServer(Server, options);
 
-        console.log(MemServer, colorStatusCode(request.status), method, request.url);
+      initializer(this.Models);
 
-        if (['POST', 'PUT'].includes(method)) {
-          console.log(method + ' REQUEST BODY IS:', request.params);
-        }
+      return this;
+    },
+    shutdown: function shutdown() {
+      this.Server.shutdown();
+      this.DB = {};
 
-        console.log(JSON.parse(request.responseText));
-      };
-      this.passthroughRequest = function (verb, path, request) {
-        console.log(MemServer, _chalk2.default.yellow('[PASSTHROUGH]'), verb, request.url);
-      };
+      return this;
     }
-
-    this.unhandledRequest = function (verb, path, request) {
-      console.log(MemServer, _chalk2.default.red('[UNHANDLED REQUEST]', verb, path));
-      console.log(_chalk2.default.red('UNHANDLED REQUEST WAS:\n'), request);
-      console.log(request);
-    };
-  }, { trackRequests: false });
-
-  // HACK: Pretender this.passthrough for better UX
-  // TODO: this doesnt passthrough full http:// https://
-  pretender.passthrough = function (url) {
-    var parent = window.Pretender.prototype;
-    var verbs = ['get', 'post', 'put', 'delete'];
-
-    if (!url) {
-      ['/**', '/', '/*'].forEach(function (path) {
-        verbs.forEach(function (verb) {
-          return pretender[verb](path, parent.passthrough);
-        });
-      });
-
-      return;
-    }
-
-    var fullUrl = (this.urlPrefix || '') + (this.namespace ? '/' + this.namespace : '') + url;
-
-    verbs.forEach(function (verb) {
-      return pretender[verb](fullUrl, parent.passthrough);
-    });
   };
 
-  DEFAULT_PASSTHROUGHS.forEach(function (url) {
-    return pretender.passthrough(url);
-  });
-  // END: Pretender this.passthrough for better UX
-
-  Server.apply(pretender, [targetNamespace.MemServer.Models]);
-
-  return pretender;
+  return targetNamespace.MemServer;
 };
 
-var _chalk = require('chalk');
+function registerModels(modelFixtureTree) {
+  return Object.keys(modelFixtureTree).reduce(function (result, ModelName) {
+    result[ModelName] = Object.assign(modelFixtureTree[ModelName].model, {
+      modelName: ModelName,
+      primaryKey: null,
+      attributes: Object.keys(modelFixtureTree[ModelName].model.defaultAttributes)
+    });
 
-var _chalk2 = _interopRequireDefault(_chalk);
+    return result;
+  }, {});
+}
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function resetDatabase(models, modelFixtureTree) {
+  return Object.keys(models).reduce(function (result, modelName) {
+    result[modelName] = Array.from(modelFixtureTree[modelName].fixtures, function (fixtureObject) {
+      return Object.assign({}, fixtureObject);
+    });
 
-var targetNamespace = (typeof global === 'undefined' ? 'undefined' : _typeof(global)) === 'object' ? global : window;
-var DEFAULT_PASSTHROUGHS = ['http://localhost:0/chromecheckurl', 'http://localhost:30820/socket.io'];
+    var modelPrimaryKey = result[modelName].reduce(function (_ref5, model) {
+      var _ref6 = _slicedToArray(_ref5, 2),
+          existingPrimaryKey = _ref6[0],
+          primaryKeys = _ref6[1];
 
-function colorStatusCode(statusCode) {
-  if (statusCode === 200 || statusCode === 201) {
-    return _chalk2.default.green(statusCode);
-  } else if (statusCode === 404 || statusCode === 204) {
-    return _chalk2.default.cyan(statusCode);
+      var primaryKey = getModelPrimaryKey(model, existingPrimaryKey, modelName);
+
+      if (!primaryKey) {
+        throw new Error(chalk.red('[MemServer] DATABASE ERROR: At least one of your ' + modelName + ' fixtures missing a primary key. Please make sure all your ' + modelName + ' fixtures have either id or uuid primaryKey'));
+      } else if (primaryKeys.includes(model[primaryKey])) {
+        throw new Error(chalk.red('[MemServer] DATABASE ERROR: Duplication in ' + modelName + ' fixtures with ' + primaryKey + ': ' + model[primaryKey]));
+      }
+
+      var existingAttributes = targetNamespace.MemServer.Models[modelName].attributes;
+
+      Object.keys(model).forEach(function (key) {
+        if (!existingAttributes.includes(key)) {
+          targetNamespace.MemServer.Models[modelName].attributes.push(key);
+        }
+      });
+
+      return [primaryKey, primaryKeys.concat([model[primaryKey]])];
+    }, [targetNamespace.MemServer.Models[modelName].primaryKey, []])[0];
+
+    targetNamespace.MemServer.Models[modelName].primaryKey = modelPrimaryKey;
+
+    return result;
+  }, {});
+}
+
+function getModelPrimaryKey(model, existingPrimaryKeyType, modelName) {
+  if (existingPrimaryKeyType) {
+    return primaryKeyTypeSafetyCheck(existingPrimaryKeyType, model[existingPrimaryKeyType], modelName);
   }
 
-  return _chalk2.default.red(statusCode);
+  var primaryKey = model.id || model.uuid;
+
+  if (!primaryKey) {
+    return;
+  }
+
+  existingPrimaryKeyType = model.id ? 'id' : 'uuid';
+
+  return primaryKeyTypeSafetyCheck(existingPrimaryKeyType, primaryKey, modelName);
 }
+
+module.exports = memServer;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"chalk":1}],21:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-exports.generateUUID = generateUUID;
-exports.primaryKeyTypeSafetyCheck = primaryKeyTypeSafetyCheck;
-
-var _chalk = require('chalk');
-
-var _chalk2 = _interopRequireDefault(_chalk);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0,
-        v = c === 'x' ? r : r & 0x3 | 0x8;
-
-    return v.toString(16);
-  });
-}
-
-function primaryKeyTypeSafetyCheck(targetPrimaryKeyType, primaryKey, modelName) {
-  var primaryKeyType = typeof primaryKey === 'undefined' ? 'undefined' : _typeof(primaryKey);
-
-  if (targetPrimaryKeyType === 'id' && primaryKeyType !== 'number') {
-    throw new Error(_chalk2.default.red('[MemServer] ' + modelName + ' model primaryKey type is \'id\'. Instead you\'ve tried to enter id: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
-  } else if (targetPrimaryKeyType === 'uuid' && primaryKeyType !== 'string') {
-    throw new Error(_chalk2.default.red('[MemServer] ' + modelName + ' model primaryKey type is \'uuid\'. Instead you\'ve tried to enter uuid: ' + primaryKey + ' with ' + primaryKeyType + ' type'));
-  }
-
-  return targetPrimaryKeyType;
-}
-
-},{"chalk":1}],22:[function(require,module,exports){
+},{"chalk":1,"ember-cli-string-utils":9,"fake-xml-http-request":11,"i":13,"pretender":19,"qs":22,"route-recognizer":26}],19:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -8584,7 +8472,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 })(self);
 
 }).call(this,require('_process'))
-},{"_process":23,"fake-xml-http-request":11,"route-recognizer":29}],23:[function(require,module,exports){
+},{"_process":20,"fake-xml-http-request":11,"route-recognizer":26}],20:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -8770,7 +8658,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],24:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var replace = String.prototype.replace;
@@ -8790,7 +8678,7 @@ module.exports = {
     RFC3986: 'RFC3986'
 };
 
-},{}],25:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 'use strict';
 
 var stringify = require('./stringify');
@@ -8803,7 +8691,7 @@ module.exports = {
     stringify: stringify
 };
 
-},{"./formats":24,"./parse":26,"./stringify":27}],26:[function(require,module,exports){
+},{"./formats":21,"./parse":23,"./stringify":24}],23:[function(require,module,exports){
 'use strict';
 
 var utils = require('./utils');
@@ -8973,7 +8861,7 @@ module.exports = function (str, opts) {
     return utils.compact(obj);
 };
 
-},{"./utils":28}],27:[function(require,module,exports){
+},{"./utils":25}],24:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -9140,7 +9028,7 @@ module.exports = function (object, opts) {
     return joined.length > 0 ? prefix + joined : '';
 };
 
-},{"./formats":24,"./utils":28}],28:[function(require,module,exports){
+},{"./formats":21,"./utils":25}],25:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -9179,7 +9067,7 @@ var compactQueue = function compactQueue(queue) {
     return obj;
 };
 
-var arrayToObject = function arrayToObject(source, options) {
+exports.arrayToObject = function arrayToObject(source, options) {
     var obj = options && options.plainObjects ? Object.create(null) : {};
     for (var i = 0; i < source.length; ++i) {
         if (typeof source[i] !== 'undefined') {
@@ -9190,7 +9078,7 @@ var arrayToObject = function arrayToObject(source, options) {
     return obj;
 };
 
-var merge = function merge(target, source, options) {
+exports.merge = function merge(target, source, options) {
     if (!source) {
         return target;
     }
@@ -9215,14 +9103,14 @@ var merge = function merge(target, source, options) {
 
     var mergeTarget = target;
     if (Array.isArray(target) && !Array.isArray(source)) {
-        mergeTarget = arrayToObject(target, options);
+        mergeTarget = exports.arrayToObject(target, options);
     }
 
     if (Array.isArray(target) && Array.isArray(source)) {
         source.forEach(function (item, i) {
             if (has.call(target, i)) {
                 if (target[i] && _typeof(target[i]) === 'object') {
-                    target[i] = merge(target[i], item, options);
+                    target[i] = exports.merge(target[i], item, options);
                 } else {
                     target.push(item);
                 }
@@ -9237,7 +9125,7 @@ var merge = function merge(target, source, options) {
         var value = source[key];
 
         if (has.call(acc, key)) {
-            acc[key] = merge(acc[key], value, options);
+            acc[key] = exports.merge(acc[key], value, options);
         } else {
             acc[key] = value;
         }
@@ -9245,14 +9133,14 @@ var merge = function merge(target, source, options) {
     }, mergeTarget);
 };
 
-var assign = function assignSingleSource(target, source) {
+exports.assign = function assignSingleSource(target, source) {
     return Object.keys(source).reduce(function (acc, key) {
         acc[key] = source[key];
         return acc;
     }, target);
 };
 
-var decode = function decode(str) {
+exports.decode = function (str) {
     try {
         return decodeURIComponent(str.replace(/\+/g, ' '));
     } catch (e) {
@@ -9260,7 +9148,7 @@ var decode = function decode(str) {
     }
 };
 
-var encode = function encode(str) {
+exports.encode = function encode(str) {
     // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
     // It has been adapted here for stricter adherence to RFC 3986
     if (str.length === 0) {
@@ -9308,7 +9196,7 @@ var encode = function encode(str) {
     return out;
 };
 
-var compact = function compact(value) {
+exports.compact = function compact(value) {
     var queue = [{ obj: { o: value }, prop: 'o' }];
     var refs = [];
 
@@ -9330,11 +9218,11 @@ var compact = function compact(value) {
     return compactQueue(queue);
 };
 
-var isRegExp = function isRegExp(obj) {
+exports.isRegExp = function isRegExp(obj) {
     return Object.prototype.toString.call(obj) === '[object RegExp]';
 };
 
-var isBuffer = function isBuffer(obj) {
+exports.isBuffer = function isBuffer(obj) {
     if (obj === null || typeof obj === 'undefined') {
         return false;
     }
@@ -9342,18 +9230,7 @@ var isBuffer = function isBuffer(obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-module.exports = {
-    arrayToObject: arrayToObject,
-    assign: assign,
-    compact: compact,
-    decode: decode,
-    encode: encode,
-    isBuffer: isBuffer,
-    isRegExp: isRegExp,
-    merge: merge
-};
-
-},{}],29:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -10051,4 +9928,4 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
         define('memserver', [], vendorModule);
       })();
     
-    
+      
