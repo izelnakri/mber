@@ -3,11 +3,11 @@ import test from 'ava';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import buildTests from '../../lib/builders/build-tests.js';
+import { TESTS_JS_DEFAULT_TARGET_BYTE_SIZE } from '../helpers/asset-sizes';
+import { TESTS_JS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds';
 
 const CWD = process.cwd();
 const TESTS_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/tests.js`;
-const TESTS_JS_TARGET_BYTE_SIZE = 1890;
-const TESTS_JS_COMPILE_TRESHOLD = 1500;
 
 test.beforeEach(async () => {
   await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
@@ -25,13 +25,13 @@ test.serial('buildTests() works', async (t) => {
     .replace('tests.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < TESTS_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE);
-  t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE);
+  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
@@ -52,13 +52,13 @@ test.serial('buildTests(development) works', async (t) => {
     .replace('tests.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < TESTS_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE);
-  t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE);
+  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
@@ -79,13 +79,13 @@ test.serial('buildTests(test) works', async (t) => {
     .replace('tests.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < TESTS_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE);
-  t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE);
+  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
@@ -108,13 +108,13 @@ test.serial('buildTests(custom) works', async (t) => {
     .replace('tests.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < TESTS_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_TARGET_BYTE_SIZE - 7);
-  t.true(stats.size === TESTS_JS_TARGET_BYTE_SIZE - 7);
+  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 7);
+  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 7);
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/routes/index/unit-test'));

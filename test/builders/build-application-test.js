@@ -3,13 +3,15 @@ import test from 'ava';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import buildApplication from '../../lib/builders/build-application.js';
+import { APPLICATION_JS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds';
+import {
+  APPLICATION_JS_TARGET_BYTE_SIZE,
+  APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE,
+} from '../helpers/asset-sizes';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
 const APPLICATION_JS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.js`;
-const APPLICATION_JS_TARGET_BYTE_SIZE = 11537; // 11.54 kB
-const APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE = 8011; // 8.01 kB
-const APPLICATION_JS_COMPILE_TRESHOLD = 2000;
 
 test.beforeEach(async () => {
   await fs.remove(`${PROJECT_ROOT}/tmp`);
@@ -27,7 +29,7 @@ test.serial('buildApplication() works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -64,7 +66,6 @@ test.serial('buildApplication() works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(/BUILT: application\.js in \d+ms \[11\.54 kB\] Environment: development/g.test(message));
@@ -82,7 +83,7 @@ test.serial('buildApplication(development) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -119,7 +120,6 @@ test.serial('buildApplication(development) works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(/BUILT: application\.js in \d+ms \[11\.54 kB\] Environment: development/g.test(message));
@@ -137,7 +137,7 @@ test.serial('buildApplication(production) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -159,10 +159,8 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(codeIncludesAMDModule(applicationJSCode, '~fastboot/app-factory'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-
   t.true(applicationJSBuffer.length === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
-
   t.true(/BUILT: application\.js in \d+ms \[8\.01 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
@@ -178,7 +176,7 @@ test.serial('buildApplication(test) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -215,10 +213,8 @@ test.serial('buildApplication(test) works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
-
   t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
@@ -234,7 +230,7 @@ test.serial('buildApplication(demo) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -256,10 +252,8 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(codeIncludesAMDModule(applicationJSCode, '~fastboot/app-factory'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-
   t.true(applicationJSBuffer.length === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
   t.true(stats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
-
   t.true(/BUILT: application\.js in \d+ms \[8\.01 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
@@ -277,7 +271,7 @@ test.serial('buildApplication(custom) works', async (t) => {
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();
@@ -314,10 +308,8 @@ test.serial('buildApplication(custom) works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/routes/index/unit-test'));
-
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
-
   t.true(/BUILT: application\.js in \d+ms \[11\.50 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
@@ -336,7 +328,7 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
 
@@ -360,7 +352,7 @@ test.serial('buildApplication(development, { applicationAppends }) work', async 
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
 
@@ -385,7 +377,7 @@ test.serial('buildApplication(development, { applicationPrepends, applicationApp
     .replace('application.js in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < APPLICATION_JS_COMPILE_TRESHOLD);
+  t.true(Number(timeTakenForBuild) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
 
   const applicationJSBuffer = await fs.readFile(APPLICATION_JS_OUTPUT_PATH);
   const applicationJSCode = applicationJSBuffer.toString().trim();

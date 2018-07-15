@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import test from 'ava';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import buildCSS from '../../lib/builders/build-css.js';
+import { APPLICATION_CSS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds';
 import { formatSize } from '../../lib/utils/asset-reporter';
 
 const CWD = process.cwd();
@@ -26,7 +27,7 @@ test.serial('buildCSS() works', async (t) => {
     .replace('application.css in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
 
   const applicationCSSStats = await fs.stat(APPLICATION_CSS_OUTPUT_PATH);
 
@@ -48,7 +49,7 @@ test.serial('buildCSS(development) works', async (t) => {
     .replace('application.css in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
 
   const applicationCSSStats = await fs.stat(APPLICATION_CSS_OUTPUT_PATH);
 
@@ -70,7 +71,7 @@ test.serial('buildCSS(custom) works', async (t) => {
     .replace('application.css in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
 
   const applicationCSSStats = await fs.stat(APPLICATION_CSS_OUTPUT_PATH);
 
@@ -92,7 +93,7 @@ test.serial('buildCSS(production) works', async (t) => {
     .replace('application.css in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
 
   const applicationCSSStats = await fs.stat(APPLICATION_CSS_OUTPUT_PATH);
 
@@ -114,7 +115,7 @@ test.serial('buildCSS(demo) works', async (t) => {
     .replace('application.css in ', '')
     .replace('ms', '')
 
-  t.true(Number(timeTakenForBuild) < 500);
+  t.true(Number(timeTakenForBuild) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
 
   const applicationCSSStats = await fs.stat(APPLICATION_CSS_OUTPUT_PATH);
 

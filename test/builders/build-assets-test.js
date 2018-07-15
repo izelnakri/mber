@@ -42,6 +42,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
     fs.exists(INDEX_HTML_OUTPUT_PATH),
     fs.exists(MEMSERVER_OUTPUT_PATH)
   ]);
+
   t.deepEqual(result, [false, false, false, false, false]);
 
   await buildAssets(PROJECT_ROOT, {
@@ -124,6 +125,7 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`);
+
   await fs.remove(`${PROJECT_ROOT}/tmp`);
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));

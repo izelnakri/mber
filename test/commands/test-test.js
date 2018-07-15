@@ -12,7 +12,7 @@ const CWD = process.cwd();
 const shell = promisify(exec);
 const PROJECT_ROOT = `${CWD}/dummyapp`;
 const HTTP_PORT = 4200;
-const BASE_CI_TEST_TIME_TRESHOLD = 15000;
+const BASE_CI_TEST_TIME_THRESHOLD = 15000;
 
 let childProcessTree = [];
 
@@ -48,7 +48,7 @@ test.serial('$ mber test -> runs successfully on ci mode', async (t) => {
   t.true(stdout.includes('Unit | Route | index:'));
   t.true(stdout.includes('✔ it exists'));
   t.true(stdout.includes('ember ALL TESTS PASS!'));
-  t.true(timeTakenForTests < BASE_CI_TEST_TIME_TRESHOLD)
+  t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD)
 });
 
 test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
@@ -86,7 +86,7 @@ test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
   t.true(stdout.includes('ember Server is running on http://localhost:4200 (Environment: test)'));
   t.true(stdout.includes('Acceptance | /'));
   t.true(stdout.includes('✘ visitor can go to / and see the right content'));
-  t.true(timeTakenForTests < BASE_CI_TEST_TIME_TRESHOLD + 5000)
+  t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD + 5000)
 
   childProcess.kill('SIGKILL');
   mock.removeMock();
@@ -123,7 +123,9 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   await createDummyApp();
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js test --server`, { cwd: PROJECT_ROOT });
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js test --server`, {
+    cwd: PROJECT_ROOT
+  });
 
   childProcess.stdout.on('data', (data) => console.log(data));
 
@@ -312,7 +314,6 @@ async function runTestsInBrowser(url) {
       window.QUNIT_RESULT = details;
     });
   });
-
   await page.waitForFunction('window.QUNIT_RESULT', { timeout: 0 });
 
   const QUNIT_RESULT = await page.evaluate(() => window.QUNIT_RESULT);

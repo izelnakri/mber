@@ -5,11 +5,11 @@ import createDummyApp from '../helpers/create-dummy-app';
 import buildAssets from '../../lib/builders/build-assets';
 import buildDistFolder from '../../lib/builders/build-dist-folder';
 import countTime from '../../lib/utils/count-time';
+import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/some-app`;
 const environmentFunc = require(`${CWD}/ember-app-boilerplate/config/environment.js`);
-const TIME_TO_BUILD_DIST_TRESHOLD = 1000;
 const INITIAL_BUILD_FILES = ['application.css', 'application.js', 'vendor.js'];
 const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/index.html`;
 
@@ -46,7 +46,7 @@ test.serial('buildDistFolder() works', async (t) => {
   const timePassed = timer.stop();
 
   t.true(files.length === 3);
-  t.true(timePassed < TIME_TO_BUILD_DIST_TRESHOLD);
+  t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
 
   const fileNames = files.map((file) => file.fileName);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
@@ -105,7 +105,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   const timePassed = timer.stop();
 
   t.true(files.length === 4);
-  t.true(timePassed < TIME_TO_BUILD_DIST_TRESHOLD);
+  t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
 
   const fileNames = files.map((file) => file.fileName);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
@@ -166,7 +166,7 @@ test.serial('buildDistFolder() works for fastboot: false', async (t) => {
   const timePassed = timer.stop();
 
   t.true(files.length === 3);
-  t.true(timePassed < TIME_TO_BUILD_DIST_TRESHOLD);
+  t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
 
   const fileNames = files.map((file) => file.fileName);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
@@ -225,7 +225,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   const timePassed = timer.stop();
 
   t.true(files.length === 4);
-  t.true(timePassed < TIME_TO_BUILD_DIST_TRESHOLD);
+  t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
 
   const fileNames = files.map((file) => file.fileName);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
