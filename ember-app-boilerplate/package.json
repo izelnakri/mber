@@ -28,6 +28,6 @@
     "ember-data": "^3.3.0",
     "jquery": "^3.3.1",
     "mber-head": "^0.1.0",
-    "memserver": "^1.1.6"
+    "memserver": "^1.1.7"
   }
 }
