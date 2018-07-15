@@ -20,7 +20,7 @@ import {
   APPLICATION_JS_BUILD_TIME_TRESHOLD,
   APPLICATION_JS_COMPRESSED_BUILD_TIME_TRESHOLD,
   MEMSERVER_JS_BUILD_TIME_TRESHOLD
-} from '../helpers/asset-build-tresholds';
+} from '../helpers/asset-build-thresholds';
 import startHTTPServer from '../helpers/start-http-server';
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
 
@@ -42,12 +42,11 @@ test.afterEach.always(async () => {
 test.serial('$ mber build -> builds successfully', async (t) => {
   t.plan(31);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp();
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node ${CWD}/cli.js build`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
@@ -69,12 +68,11 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 test.serial('$ mber build --env=production -> builds successfully', async (t) => {
   t.plan(31);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp();
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node ${CWD}/cli.js build --env=production`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
@@ -96,12 +94,11 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
 test.serial('$ mber build --env=memserver -> builds successfully', async (t) => {
   t.plan(36);
 
-  const mock = mockProcessCWD(PROJECT_ROOT);
-
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node ${CWD}/cli.js build --env=memserver`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
@@ -126,12 +123,11 @@ test.serial('$ mber build --env=memserver -> builds successfully', async (t) => 
 test.serial('$ mber build --env=custom -> builds successfully', async (t) => {
   t.plan(31);
 
-  const mock = mockProcessCWD(PROJECT_ROOT);
-
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node ${CWD}/cli.js build --env=custom`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
@@ -153,12 +149,11 @@ test.serial('$ mber build --env=custom -> builds successfully', async (t) => {
 test.serial('$ mber build --fastboot=false -> builds successfully', async (t) => {
   t.plan(26);
 
-  const mock = mockProcessCWD(PROJECT_ROOT);
-
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node ${CWD}/cli.js build --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
@@ -182,12 +177,11 @@ test.serial('$ mber build --fastboot=false -> builds successfully', async (t) =>
 test.serial('$ mber build --env=memserver --fastboot=false -> builds successfully', async (t) => {
   t.plan(31);
 
-  const mock = mockProcessCWD(PROJECT_ROOT);
-
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node ${CWD}/cli.js build --env=memserver --fastboot=false`, {
     cwd: PROJECT_ROOT
   });

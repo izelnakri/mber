@@ -50,12 +50,11 @@ test.afterEach.always(async () => {
 test.serial('$ mber serve -> builds and watches successfully', async (t) => {
   t.plan(48);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp();
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
   const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve`, {
     cwd: PROJECT_ROOT
@@ -88,20 +87,20 @@ test.serial('$ mber serve -> builds and watches successfully', async (t) => {
   t.true(newHTML.includes(CONTENT_TO_INJECT));
 
   server.close();
+  childProcess.kill('SIGKILL');
   mock.removeMock();
 });
 
 test.serial('$ mber serve --env=production -> serves successfully', async (t) => {
   t.plan(28);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp();
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
-  const { stdout } = await spawnProcess(`node ${CWD}/cli.js serve --env=production`, {
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=production`, {
     cwd: PROJECT_ROOT
   });
 
@@ -115,24 +114,26 @@ test.serial('$ mber serve --env=production -> serves successfully', async (t) =>
   t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_COMPRESSED_BUILD_TIME_TRESHOLD);
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
 
-  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
+  let { html, document } = await testSuccessfullServe(t, stdout, {
+    memserver: false, fastboot: true
+  });
 
   t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
   t.true(!html.includes(CONTENT_TO_INJECT));
 
   server.close();
+  childProcess.kill('SIGKILL');
   mock.removeMock();
 });
 
 test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => {
   t.plan(53);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js s --env=memserver`, {
     cwd: PROJECT_ROOT
   });
@@ -173,12 +174,11 @@ test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => 
 test.serial('$ mber serve --env=custom -> serves successfully', async (t) => {
   t.plan(48);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp();
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
   const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=custom`, {
     cwd: PROJECT_ROOT
@@ -211,18 +211,18 @@ test.serial('$ mber serve --env=custom -> serves successfully', async (t) => {
   t.true(newHTML.includes(CONTENT_TO_INJECT));
 
   server.close();
+  childProcess.kill('SIGKILL');
   mock.removeMock();
 });
 
 test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) => {
   t.plan(38);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp();
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
   const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --fastboot=false`, {
     cwd: PROJECT_ROOT
@@ -255,18 +255,18 @@ test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) =>
   t.true(newHTML.includes(CONTENT_TO_INJECT));
 
   server.close();
+  childProcess.kill('SIGKILL');
   mock.removeMock();
 });
 
 test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfully', async (t) => {
   t.plan(41);
 
-  const mock = mockProcessCWD(CWD);
-
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=memserver --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
@@ -301,6 +301,7 @@ test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfull
   t.true(newHTML.includes(CONTENT_TO_INJECT));
 
   mock.removeMock();
+  childProcess.kill('SIGKILL');
 });
 
 // TODO: different port and socketPort

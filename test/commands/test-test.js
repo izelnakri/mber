@@ -72,8 +72,11 @@ test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
     });
   `);
 
+  const mock = mockProcessCWD(PROJECT_ROOT);
   const counter = countTime();
-  const { exitCode, stdout } = await spawnProcess(`node ${CWD}/cli.js test`, { cwd: PROJECT_ROOT });
+  const { exitCode, stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js test`, {
+    cwd: PROJECT_ROOT
+  });
   const timeTakenForTests = counter.stop();
 
   console.log('stdout', stdout);
@@ -84,6 +87,9 @@ test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
   t.true(stdout.includes('Acceptance | /'));
   t.true(stdout.includes('✘ visitor can go to / and see the right content'));
   t.true(timeTakenForTests < BASE_CI_TEST_TIME_TRESHOLD + 5000)
+
+  childProcess.kill('SIGKILL');
+  mock.removeMock();
 });
 
 test.serial('$ mber test --server -> builds test files successfully', async (t) => {
@@ -91,7 +97,10 @@ test.serial('$ mber test --server -> builds test files successfully', async (t) 
 
   await createDummyApp();
 
-  const { stdout } = await spawnProcess(`node ${CWD}/cli.js test --server`, { cwd: PROJECT_ROOT });
+  const mock = mockProcessCWD(PROJECT_ROOT);
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js test --server`, {
+    cwd: PROJECT_ROOT
+  });
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
   console.log('QUNIT_RESULT is', QUNIT_RESULT);
@@ -103,6 +112,9 @@ test.serial('$ mber test --server -> builds test files successfully', async (t) 
   t.true(QUNIT_RESULT.runtime < 1000);
 
   await browser.close();
+
+  childProcess.kill('SIGKILL');
+  mock.removeMock();
 });
 
 test.serial('$ mber test --server -> can run successfully and then fail on watch', async (t) => {
@@ -204,7 +216,9 @@ test.serial('$ mber test --server -> can run fail successfully and then watches 
   `);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js test --server`, { cwd: PROJECT_ROOT });
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js test --server`, {
+    cwd: PROJECT_ROOT
+  });
 
   childProcess.stdout.on('data', (data) => console.log(data));
 
