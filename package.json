@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.4.6",
+  "version": "0.4.9",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "index.js",
   "engines": {
@@ -34,7 +34,7 @@
     "ember-load-initializers": "^1.1.0",
     "ember-qunit": "^3.4.1",
     "ember-resolver": "^4.5.6",
-    "ember-source": "3.2.2",
+    "ember-source": "3.3.0-beta.5",
     "eslint": "^5.0.0",
     "loader.js": "^4.2.3",
     "mber-head": "^0.1.0",

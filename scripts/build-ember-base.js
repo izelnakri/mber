@@ -55,6 +55,7 @@ function readBuildFiles(projectPath, environment, options={ excludeEmberData: fa
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/commonjs/es2017'),
     readFileAsync(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     injectEmberJS(MODULE_PATH, environment),
+    // TODO: investigate the latest version of this:
     new Promise((resolve) => resolve(`
       define('@ember/ordered-set/index', ['exports'], function (exports) {
         exports.default = Ember.OrderedSet;
