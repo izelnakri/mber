@@ -1,3 +1,5 @@
+optimize findProjectRoot() calls and then projectRoot passdowns from options
+
 test that memserver changes works well with latest mber serve
 
 Testing todo:
