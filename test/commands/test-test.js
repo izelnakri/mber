@@ -12,7 +12,7 @@ const CWD = process.cwd();
 const shell = promisify(exec);
 const PROJECT_ROOT = `${CWD}/dummyapp`;
 const HTTP_PORT = 4200;
-const BASE_CI_TEST_TIME_THRESHOLD = 15000;
+const BASE_CI_TEST_TIME_THRESHOLD = 25000;
 
 let childProcessTree = [];
 
