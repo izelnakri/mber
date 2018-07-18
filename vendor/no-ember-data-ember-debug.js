@@ -869,7 +869,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.3.0-beta.5
+ * @version   3.3.0
  */
 
 /*globals process */
@@ -46563,7 +46563,7 @@ enifed('ember/index', ['exports', 'require', 'ember-environment', 'node-module',
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.3.0-beta.5";
+  exports.default = "3.3.0";
 });
 /*global enifed, module */
 enifed('node-module', ['exports'], function(_exports) {
@@ -51573,7 +51573,7 @@ requireModule('ember')
 
 
       define('@ember/ordered-set/index', ['exports'], function (exports) {
-        exports.default = Ember.OrderedSet;
+        exports.default = Ember.__OrderedSet__ || Ember.OrderedSet;
       });
     
 define('ember-inflector/index', ['exports', 'ember-inflector/lib/system', 'ember-inflector/lib/ext/string'], function (exports, _system) {

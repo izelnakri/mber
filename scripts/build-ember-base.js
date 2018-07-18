@@ -1,5 +1,4 @@
-import fs from 'fs';
-import { promisify } from 'util';
+import fs from 'fs-extra';
 import chalk from 'chalk';
 import UglifyJS from 'uglify-es';
 import Console from '../lib/utils/console';
@@ -7,9 +6,6 @@ import countTime from '../lib/utils/count-time';
 import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
 import findProjectRoot from '../lib/utils/find-project-root';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
-
-const readFileAsync = promisify(fs.readFile);
-const writeFileAsync = promisify(fs.writeFile);
 
 function build(environment, options={ excludeEmberData: false }) {
   const FILENAME = getFileName(environment, options);
@@ -26,7 +22,7 @@ function build(environment, options={ excludeEmberData: false }) {
       .then(() => {
         const timePassed = timer.stop();
 
-        readFileAsync(OUTPUT_PATH).then((fileBuffer) => {
+        fs.readFile(OUTPUT_PATH).then((fileBuffer) => {
           Console.log(`${chalk.green('BUILT:')} ${FILENAME}.js in ${formatTimePassed(timePassed)} [${formatSize(fileBuffer.length)}] Environment: ${environment}`);
 
           resolve({
@@ -51,16 +47,15 @@ function readBuildFiles(projectPath, environment, options={ excludeEmberData: fa
   const MODULE_PATH = `${projectPath}/node_modules`;
 
   let baseBuilds = [
-    readFileAsync(`${MODULE_PATH}/loader.js/dist/loader/loader.js`),
+    fs.readFile(`${MODULE_PATH}/loader.js/dist/loader/loader.js`),
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/commonjs/es2017'),
-    readFileAsync(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
+    fs.readFile(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     injectEmberJS(MODULE_PATH, environment),
-    // TODO: investigate the latest version of this:
     new Promise((resolve) => resolve(`
       define('@ember/ordered-set/index', ['exports'], function (exports) {
-        exports.default = Ember.OrderedSet;
+        exports.default = Ember.__OrderedSet__ || Ember.OrderedSet;
       });
-    `)),
+    `)), // NOTE: investigate this after 3.5 gte
     importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon'),
   ];
 
@@ -78,13 +73,15 @@ function readBuildFiles(projectPath, environment, options={ excludeEmberData: fa
 function injectEmberJS(modulePath, environment) {
   const emberDist = `${modulePath}/ember-source/dist`;
   const targetEmberBuild = environment === 'production' ? `${emberDist}/ember.prod.js` :
-    `${emberDist}/ember.debug.js`;
+    `${emberDist}/ember.debug.js`; // TODO: should this move to ember-min?
 
-  return readFileAsync(targetEmberBuild);
+  return fs.readFile(targetEmberBuild);
 }
 
-function buildEmberData(projectPath) {
+function buildEmberData(projectPath, environment) {
   const emberDataVersion = require(`${projectPath}/package.json`).devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
+
+  process.env.EMBER_ENV = environment === 'production' ? 'production' : undefined; // NOTE: hack for hacky ember-data builds
 
   return [
     importAddonFolderToAMD('ember-data', 'ember-data/addon'),
@@ -97,8 +94,6 @@ function buildEmberData(projectPath) {
 }
 
 function writeVendorJS(path, content, environment) {
-  // console.log('content is', content);
-
   if (environment === 'production') {
     const minified = UglifyJS.minify(content, {
       compress: {
@@ -110,10 +105,13 @@ function writeVendorJS(path, content, environment) {
       }
     }).code;
 
-    return writeFileAsync(path, minified);
+    return fs.writeFile(path, minified);
   }
 
-  return writeFileAsync(path, content);
+  return fs.writeFile(path, content.replace(
+    'this._najaxRequest(options);',
+    'window.MemServer ? this._ajaxRequest(options) : this._najaxRequest(options);'
+  ));
 }
 
 function readArguments() {
