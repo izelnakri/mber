@@ -54416,7 +54416,7 @@ define('ember-data/adapters/rest', ['exports', 'ember-data/adapter', 'ember-data
     },
     _ajax: function (options) {
       if (Ember.get(this, 'fastboot.isFastBoot')) {
-        window.MemServer ? this._ajaxRequest(options) : this._najaxRequest(options);
+        (window.$ && window.$.ajax) ? this._ajaxRequest(options) : this._najaxRequest(options);
       } else {
         this._ajaxRequest(options);
       }

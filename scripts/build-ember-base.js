@@ -110,7 +110,7 @@ function writeVendorJS(path, content, environment) {
 
   return fs.writeFile(path, content.replace(
     'this._najaxRequest(options);',
-    'window.MemServer ? this._ajaxRequest(options) : this._najaxRequest(options);'
+    '(window.$ && window.$.ajax) ? this._ajaxRequest(options) : this._najaxRequest(options);'
   ));
 }
 
