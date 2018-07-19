@@ -1,4 +1,4 @@
- # mber: Modern Ember.js CLI alternative, without broccoli.
+# mber: Modern Ember.js CLI alternative, without broccoli.
 
 This build system uses [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default. I've recently rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much counter-intuitive magic. One day after reading ember-cli source code, I've realized rewriting this beast from scratch is the only way to move forward.  
 
