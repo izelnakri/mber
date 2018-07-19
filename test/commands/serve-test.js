@@ -61,13 +61,13 @@ test.serial('$ mber serve -> builds and watches successfully', async (t) => {
   });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
-  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: development/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: development/g.test(stdout));
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
 
   let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
@@ -105,13 +105,13 @@ test.serial('$ mber serve --env=production -> serves successfully', async (t) =>
   });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
-  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
   t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
 
   let { html, document } = await testSuccessfullServe(t, stdout, {
@@ -139,16 +139,16 @@ test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => 
   });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
-  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: memserver/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: application.js...'));
-  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: memserver.js...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
   t.true(getTimeTakenForMemServerJS(stdout) < MEMSERVER_JS_BUILD_TIME_THRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: memserver/g.test(stdout));
+  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
   t.true(/ember BUILT: memserver\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
 
   let { html, document } = await testSuccessfullServe(t, stdout, { memserver: true, fastboot: true });
@@ -185,13 +185,13 @@ test.serial('$ mber serve --env=custom -> serves successfully', async (t) => {
   });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
-  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: custom/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: custom/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: custom/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: custom/g.test(stdout));
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: custom/g.test(stdout));
 
   let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: true });
@@ -229,13 +229,13 @@ test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) =>
   });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
-  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: development/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: application.js...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: development/g.test(stdout));
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: development/g.test(stdout));
 
   let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
@@ -272,16 +272,16 @@ test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfull
   });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
-  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: vendor.js...'));
-  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: memserver/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: application.js...'));
-  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
-  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
   t.true(stdout.includes('ember BUILDING: memserver.js...'));
+  t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForVendorJS(stdout) < VENDOR_JS_BUILD_TIME_THRESHOLD);
+  t.true(getTimeTakenForApplicationJS(stdout) < APPLICATION_JS_BUILD_TIME_THRESHOLD);
   t.true(getTimeTakenForMemServerJS(stdout) < MEMSERVER_JS_BUILD_TIME_THRESHOLD);
+  t.true(/ember BUILT: application\.css in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
+  t.true(/ember BUILT: vendor\.js in \d+ms \[\d+\.\d+ MB\] Environment: memserver/g.test(stdout));
+  t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
   t.true(/ember BUILT: memserver\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
 
   let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
@@ -314,7 +314,7 @@ async function spawnProcess(command, options) {
     childProcessTree.push(childProcess);
     childProcess.stdout.on('data', (data) => {
       stdout.push(data);
-
+      // TODO: this causes problems in the CI
       if (data.includes('Server is running on http://localhost:')) {
         setTimeout(() => {
           const result = stdout.join('');
@@ -392,3 +392,5 @@ async function testSuccessfullServe(t, stdout, options={ memserver: false, fastb
 
   return { html: document.querySelector('html').innerHTML, document: document };
 }
+// ember TypeError: Cannot read property 'registerWaiter' of undefined
+// TypeError: Cannot read property 'registerWaiter' of undefined

@@ -1,4 +1,12 @@
+might be missing babel deps:
+"babel6-plugin-strip-class-callcheck": "^6.0.0",
+
+add qunit-dom
+test command time taken on CI mode + on test fail better assertion description
+console command can also create a mock localStorage
+
 test that memserver changes works well with latest mber serve
+use streams instead of fs.readFile and fs.writeFile
 
 Testing todo:
 - heavy fastboot middleware tests

@@ -13,7 +13,7 @@ module.exports = function(environment) {
     rootURL: '/',
     locationType: 'auto',
     fastboot: {
-      hostWhitelist: [/^localhost:\d+$/]
+      hostWhitelist: ['localhost:1234', 'localhost:3000', /^localhost:\d+$/]
     },
     'ember-devtools': {
       global: true,

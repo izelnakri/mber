@@ -1,4 +1,4 @@
-# mber: Modern Ember.js CLI alternative, without broccoli.
+ # mber: Modern Ember.js CLI alternative, without broccoli.
 
 This build system uses [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default. I've recently rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much counter-intuitive magic. One day after reading ember-cli source code, I've realized rewriting this beast from scratch is the only way to move forward.  
 
@@ -104,7 +104,7 @@ module.exports = function(ENV) {
 
 ### Whitelisting npm modules
 
-Mber supports importing npm modules and browser javascript as AMD modules. However you need to explicitly state these imports in your build config(index.js). The reason why this is needed is explained [here](https://github.com/izelnakri/mber/blob/master/npm-import-explanation.md):
+Mber supports importing npm modules or browser javascript as AMD modules. However you need to explicitly state these imports in your build config(index.js). The reason why this is needed is explained [here](https://github.com/izelnakri/mber/blob/master/npm-import-explanation.md):
 
 ```js
 // in your index.js
@@ -305,4 +305,4 @@ This would have been impossible without the great interop libraries, structures,
 
 This library is also a message to inspire and demonstrate Embers superiority in design and community to other frontend developers who are not yet fully knowledgeable of Ember.js framework.
 
-The software is currently in very alpha stage, expect it to become stable shortly with no backward-compatibility promises.
+The software is currently in beta stage, expect it to become stable shortly with no backward-compatibility promises.
