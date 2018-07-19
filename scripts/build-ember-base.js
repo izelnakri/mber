@@ -126,4 +126,10 @@ function readArguments() {
 
 const ARGUMENTS = readArguments();
 
-['development', 'production'].forEach((environment) => build(environment, ARGUMENTS));
+build('development', ARGUMENTS).then(() => {
+  process.env.EMBER_ENV = 'production';
+
+  return build('production', ARGUMENTS);
+}).then(() => {
+  process.env.EMBER_ENV = 'development';
+}).catch((error) => console.log('Ember Build DIST ERROR:', error));
