@@ -1,4 +1,3 @@
-import fs from 'fs-extra';
 import buildAssets from './lib/builders/build-assets';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';

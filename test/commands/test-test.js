@@ -47,7 +47,7 @@ test.serial('$ mber test -> runs successfully on ci mode', async (t) => {
   t.true(stdout.includes('✔ should render correctly'));
   t.true(stdout.includes('Unit | Route | index:'));
   t.true(stdout.includes('✔ it exists'));
-  t.true(stdout.includes('ember ALL TESTS PASS!'));
+  t.true(stdout.includes('ember ALL TESTS PASS'));
   t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD)
 });
 
