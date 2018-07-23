@@ -1,4 +1,8 @@
+FIX FAILING TEST
+
+
 gracefull handling of js and css parse errors
+display the error messages for hbs errors, css errors: js syntax errors and dont stop the watcher.
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",
 ember-data prod might have polymorphic issue
