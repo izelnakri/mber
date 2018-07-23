@@ -20,7 +20,8 @@
     "node": "^10.*"
   },
   "devDependencies": {
-    "mber": "{{mberVersion}}"
+    "mber": "{{mberVersion}}",
+    "eslint-plugin-ember": "^5.2.0"
   },
   "dependencies": {
     "ember-devtools": "^6.0.0",
