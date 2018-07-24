@@ -41,12 +41,12 @@ test.serial('buildMemserver() works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver'));
-  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/initializers/memserver'));
+  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/instance-initializers/memserver'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/server'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.73 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.76 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -71,12 +71,12 @@ test.serial('buildMemserver(development) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver'));
-  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/initializers/memserver'));
+  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/instance-initializers/memserver'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/server'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.73 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.76 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -102,12 +102,12 @@ test.serial('buildMemserver(production) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver'));
-  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/initializers/memserver'));
+  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/instance-initializers/memserver'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/server'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[127\.69 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[127\.72 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
@@ -133,12 +133,12 @@ test.serial('buildMemserver(test) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver'));
-  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/initializers/memserver'));
+  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/instance-initializers/memserver'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/server'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.73 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.76 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -164,12 +164,12 @@ test.serial('buildMemserver(demo) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver'));
-  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/initializers/memserver'));
+  t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/instance-initializers/memserver'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/server'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[127\.69 kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[127\.72 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
@@ -195,12 +195,12 @@ test.serial('buildMemserver(custom) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver'));
-  t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/initializers/memserver'));
+  t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/instance-initializers/memserver'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/server'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.71 kB\] Environment: custom/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.75 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
 });
