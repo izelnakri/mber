@@ -37,7 +37,7 @@ test.serial('buildTests() works', async (t) => {
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[1\.89 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3\.15 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -64,7 +64,7 @@ test.serial('buildTests(development) works', async (t) => {
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[1\.89 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3\.15 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -91,7 +91,7 @@ test.serial('buildTests(test) works', async (t) => {
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[1\.89 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3\.15 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -113,14 +113,14 @@ test.serial('buildTests(custom) works', async (t) => {
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 7);
-  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 7);
+  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 11);
+  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 11);
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('coolapp/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[1\.88 kB\] Environment: test-backend/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3\.14 kB\] Environment: test-backend/g.test(message));
 
   mock.removeMock();
 });
