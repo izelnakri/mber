@@ -46,8 +46,9 @@ jobs:
     working_directory: ~/code
     steps:
       - setup_remote_docker
-      - run: docker pull inakri/mber:${CIRCLE_BRANCH}
-      - run: docker exec -it inakri/mber:${CIRCLE_BRANCH} npm test
+      - run: docker pull ${HUB_USERNAME}/mber:${CIRCLE_BRANCH}
+      - run: docker run -t -d --name="mber" ${HUB_USERNAME}/mber:${CIRCLE_BRANCH} /bin/bash
+      - run: docker exec -it mber npm test
 
 workflows:
   version: 2
