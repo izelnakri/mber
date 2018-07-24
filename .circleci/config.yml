@@ -42,11 +42,12 @@ jobs:
             docker push "${HUB_USERNAME}/mber:${CIRCLE_BRANCH}"
   test:
     docker:
-      - image: inakri/mber:${CIRCLE_BRANCH}
+      - image: docker:dind
     working_directory: ~/code
     steps:
-      - checkout
-      - run: npm test
+      - setup_remote_docker
+      - run: docker pull inakri/mber:${CIRCLE_BRANCH}
+      - run: docker exec -it inakri/mber:${CIRCLE_BRANCH} npm test
 
 workflows:
   version: 2
