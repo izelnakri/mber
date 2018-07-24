@@ -46,7 +46,6 @@ jobs:
     working_directory: ~/code
     steps:
       - checkout
-      - run: npm install esm
       - run: npm test
 
 workflows:
