@@ -1,6 +1,6 @@
 FIX FAILING TEST
 
-
+autoassign sockerPort if its in use
 gracefull handling of js and css parse errors
 display the error messages for hbs errors, css errors: js syntax errors and dont stop the watcher.
 might be missing babel deps:
