@@ -1,15 +1,13 @@
-FIX FAILING TEST
-
 autoassign sockerPort if its in use
 gracefull handling of js and css parse errors
-display the error messages for hbs errors, css errors: js syntax errors and dont stop the watcher.
+display the error html page for hbs errors, css errors: js syntax errors and dont stop the watcher.
+
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",
 ember-data prod might have polymorphic issue
 make <!-- EMBER_CLI_FASTBOOT_TITLE --><!-- EMBER_CLI_FASTBOOT_HEAD --> optional
 
 add qunit-dom
-test command time taken on CI mode + on test fail better assertion description
 console command can also create a mock localStorage
 
 test that memserver changes works well with latest mber serve
