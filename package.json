@@ -36,10 +36,12 @@
     "ember-resolver": "^4.5.6",
     "ember-source": "3.3.0",
     "eslint": "^5.0.0",
+    "intercept-stdout": "^0.1.2",
     "loader.js": "^4.2.3",
     "mber-head": "^0.1.0",
     "morgan": "^1.9.0",
     "qunit": "2.6.1",
+    "strip-ansi": "^4.0.0",
     "whatwg-fetch": "^2.0.4"
   },
   "repository": {
