@@ -1,3 +1,6 @@
+// TODO: make watchers before socket visit
+// TODO: make graceful error handling
+
 import fs from 'fs-extra';
 import intercept from 'intercept-stdout';
 import test from 'ava';
@@ -7,13 +10,19 @@ import applicationFilesWatcher from '../../lib/runners/application-files-watcher
 import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import mockProcessCWD from '../helpers/mock-process-cwd';
-import { APPLICATION_JS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds.js';
+import {
+  APPLICATION_JS_BUILD_TIME_THRESHOLD,
+  MEMSERVER_JS_BUILD_TIME_THRESHOLD,
+  TESTS_JS_BUILD_TIME_THRESHOLD
+} from '../helpers/asset-build-thresholds.js';
 
 test.beforeEach(async () => {
+  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
   await fs.remove('dummyapp');
 });
 
 test.afterEach.always(async () => {
+  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
   await fs.remove('dummyapp');
 });
 
@@ -42,12 +51,43 @@ export default Component.extend({
   }
 });`;
 const DEFAULT_TEMPLATE_HBS = `<h1>Find this edit on application.js</h1>`;
-const DEFAULT_MEMSERVER_CODE_TO_ADD = ``;
-const DEFAULT_ACCEPTANCE_TEST_TO_ADD = ``;
-const DEFAULT_UNIT_TEST_TO_ADD = ``;
+const DEFAULT_EDITED_MEMSERVER_MODEL_JS = `
+import Model from 'memserver/model';
 
-test('it watches correctly on development mode', async (t) => {
-  t.plan(46);
+export default Model({
+  modelEditPlaceholder: true
+});
+`;
+const DEFAULT_ACCEPTANCE_TEST_TO_ADD = `
+import { module, test } from 'qunit';
+import { visit, currentURL } from '@ember/test-helpers';
+import { setupApplicationTest } from 'dummyapp/tests/helpers';
+
+module('Acceptance | route', function(hooks) {
+  setupApplicationTest(hooks);
+
+  test('visiting /route', async function(assert) {
+    await visit('/route');
+    console.log('this is added by this test');
+    assert.equal(currentURL(), '/route');
+  });
+});`;
+const DEFAULT_UNIT_TEST_TO_ADD = `
+import { module, test } from 'qunit';
+import { setupTest } from '../../../../tests/helpers';
+
+module('Unit | Route | index', function(hooks) {
+  setupTest(hooks);
+
+  test('it exists', function(assert) {
+    const route = this.owner.lookup('route:index');
+    console.log('this is added by this test');
+    assert.ok(route);
+  });
+});`;
+
+test.serial('it watches correctly on development mode', async (t) => {
+  t.plan(60);
 
   global.fastboot = {
     reload() {
@@ -56,7 +96,7 @@ test('it watches correctly on development mode', async (t) => {
   };
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-
+  const TARGET_SOCKET_PORT = 8080;
   await createAdvancedDummyApp();
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
@@ -66,7 +106,60 @@ test('it watches correctly on development mode', async (t) => {
   });
   // TODO: change file here so watcher runs even if there were no webSockerServer connection
   const WebSocketServer = applicationFilesWatcher('development', {
-    buildConfig: { ENV: { environment: 'development', modulePrefix: 'watchapp' }, buildCache: {} },
+    buildConfig: {
+      ENV: { environment: 'development', modulePrefix: 'dummyapp' },
+      buildCache: {}
+    },
+    buildDist: false,
+    entryPoint: null,
+    fastboot: true,
+    socketPort: TARGET_SOCKET_PORT
+  });
+
+  const firstSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
+  const secondSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
+
+  assertThatSocketReceivesMessage(firstSocket, t);
+  assertThatSocketReceivesMessage(secondSocket, t);
+
+  await applicationFileWatcherTests(t, stdout, 'development');
+
+  WebSocketServer.cleanWatchers();
+  WebSocketServer.close();
+  stopStdoutInterception();
+  mock.removeMock();
+});
+
+test.serial('it watches memserver files correctly', async (t) => {
+  t.plan(31);
+
+  global.fastboot = {
+    reload() {
+      t.true(true);
+    }
+  };
+
+  const mock = mockProcessCWD(PROJECT_ROOT);
+
+  await createAdvancedDummyApp('dummyapp', { memserver: true });
+  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+
+  let stdout = [];
+  let stopStdoutInterception = intercept(function(text) {
+    stdout.push(stripANSI(text));
+  });
+  // TODO: change file here so watcher runs even if there were no webSockerServer connection
+  const WebSocketServer = applicationFilesWatcher('memserver', {
+    buildConfig: {
+      ENV: {
+        environment: 'memserver',
+        modulePrefix: 'dummyapp',
+        memserver: {
+          enabled: true
+        }
+      },
+      buildCache: {}
+    },
     buildDist: false,
     entryPoint: null,
     fastboot: true,
@@ -79,69 +172,42 @@ test('it watches correctly on development mode', async (t) => {
   assertThatSocketReceivesMessage(firstSocket, t);
   assertThatSocketReceivesMessage(secondSocket, t);
 
-  await writeComponentCode('/dummy-component/component.js');
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/email.js') === 0);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 0);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
-  t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
-  t.true(getBuiltNotificationCount(stdout, 'application.js', 'development') === 1);
+  await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
 
-  const firstContent = await readApplicationJS();
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 1);
 
-  t.true(codeIncludesAMDModule(firstContent, 'watchapp/src/ui/components/dummy-component/component'));
-  t.true(!firstContent.includes(`console.log('there is edited code');`));
+  const firstContent = await readMemServerJS();
 
-  await writeComponentCode('/dummy-component/component.js', DEFAULT_EDITED_COMPONENT_JS);
+  t.true(codeIncludesAMDModule(firstContent, 'dummyapp/memserver/models/email'));
+  t.true(occurrenceCount(firstContent, /modelEditPlaceholder: true/g) === 1);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 2);
-  t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
-  t.true(getBuiltNotificationCount(stdout, 'application.js', 'development') === 2);
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 0);
 
-  const secondContent = await readApplicationJS();
+  await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
 
-  t.true(codeIncludesAMDModule(secondContent, 'watchapp/src/ui/components/dummy-component/component'));
-  t.true(occurrenceCount(secondContent, /there is edited code/g) === 1);
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 2);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 0);
+  await removeFile(`${PROJECT_ROOT}/memserver/models/email.js`);
 
-  await writeComponentCode('/welcome-page/component.js', DEFAULT_EDITED_COMPONENT_JS);
+  t.true(getRemovalNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 3);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 3);
+  t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
-  t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
-  t.true(getBuiltNotificationCount(stdout, 'application.js', 'development') === 3);
 
-  const thirdContent = await readApplicationJS();
+  await removeFile(`${PROJECT_ROOT}/memserver/models/user.js`);
 
-  t.true(codeIncludesAMDModule(thirdContent, 'watchapp/src/ui/components/dummy-component/component'));
-  t.true(codeIncludesAMDModule(thirdContent, 'watchapp/src/ui/components/welcome-page/component'));
-  t.true(occurrenceCount(thirdContent, /there is edited code/g) === 2);
-
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 0);
-
-  await removeFile(`${PROJECT_ROOT}/src/ui/components/dummy-component/component.js`);
-
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
-  t.true(getBuildingNotificationCount(stdout, 'application.js') === 4);
-  t.true(getBuiltNotificationCount(stdout, 'application.js', 'development') === 4);
-
-  const fourthContent = await readApplicationJS();
-
-  t.true(codeIncludesAMDModule(fourthContent, 'watchapp/src/ui/components/welcome-page/component'));
-  t.true(!codeIncludesAMDModule(fourthContent, 'watchapp/src/ui/components/dummy-component/component'));
-  t.true(occurrenceCount(fourthContent, /there is edited code/g) === 1);
-
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 0);
-
-  await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/component.js`);
-
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
-  t.true(getBuildingNotificationCount(stdout, 'application.js') === 5);
-  t.true(getBuiltNotificationCount(stdout, 'application.js', 'development') === 5);
-
-  const fifthContent = await readApplicationJS();
-
-  t.true(!codeIncludesAMDModule(fifthContent, 'watchapp/src/ui/components/welcome-page/component'));
-  t.true(!codeIncludesAMDModule(fifthContent, 'watchapp/src/ui/components/dummy-component/component'));
-  t.true(occurrenceCount(fifthContent, /there is edited code/g) === 0);
+  t.true(getRemovalNotificationCount(stdout, '/memserver/models/user.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 4);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 4);
+  t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/user'));
 
   WebSocketServer.cleanWatchers();
   WebSocketServer.close();
@@ -149,17 +215,72 @@ test('it watches correctly on development mode', async (t) => {
   mock.removeMock();
 });
 
-// test('it watches memserver files correctly', async (t) => {
-//
-// });
+test.serial('it watches test files correctly', async (t) => {
+  t.plan(66);
 
-// test('it watches test files correctly', async (t) => {
-//
-// });
+  const mock = mockProcessCWD(PROJECT_ROOT);
 
-// test('it can run on different sockerPort and endpoint', async (t) => {
-//
-// });
+  await createAdvancedDummyApp('dummyapp', { memserver: true });
+  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+
+  let stdout = [];
+  let stopStdoutInterception = intercept(function(text) {
+    stdout.push(stripANSI(text));
+  });
+  // TODO: change file here so watcher runs even if there were no webSockerServer connection
+  const WebSocketServer = applicationFilesWatcher('test', {
+    buildConfig: {
+      ENV: {
+        environment: 'test',
+        modulePrefix: 'dummyapp',
+        memserver: {
+          enabled: true
+        }
+      },
+      buildCache: {}
+     },
+    buildDist: false,
+    entryPoint: null,
+    fastboot: false
+  });
+
+  const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
+  const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
+
+  assertThatSocketReceivesMessage(firstSocket, t);
+  assertThatSocketReceivesMessage(secondSocket, t);
+
+  await applicationFileWatcherTests(t, stdout, 'test');
+
+  await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'test') === 1);
+
+  const firstContent = await readMemServerJS();
+
+  t.true(codeIncludesAMDModule(firstContent, 'dummyapp/memserver/models/email'));
+  t.true(occurrenceCount(firstContent, /modelEditPlaceholder: true/g) === 1);
+
+  await removeFile(`${PROJECT_ROOT}/memserver/models/email.js`);
+
+  t.true(getRemovalNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'test') === 2);
+  t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
+
+  // one acceptance, one unit(in-app);
+
+  // changes to the existing test!!
+
+  // TODO: do the test insertion changes!!
+
+  WebSocketServer.cleanWatchers();
+  WebSocketServer.close();
+  stopStdoutInterception();
+  mock.removeMock();
+});
 
 // test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
 //
@@ -182,7 +303,7 @@ function writeComponentCode(path='/dummy-component/component.js', content=DEFAUL
     await fs.ensureFile(`${PROJECT_ROOT}/src/ui/components${path}`);
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
-    setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD);
+    setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD + 250);
   });
 }
 
@@ -190,26 +311,44 @@ function removeFile(codePath) {
   return new Promise(async (resolve) => {
     await fs.remove(codePath);
 
-    setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD);
+    setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD + 250);
   });
 }
 
-function writeMemServerCode() {
+function writeMemServerCode(path, content=DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
+  return new Promise(async (resolve) => {
+    await fs.ensureFile(`${PROJECT_ROOT}/memserver{path}`);
+    await fs.writeFile(`${PROJECT_ROOT}/memserver${path}`, content);
 
+    setTimeout(() => resolve(), MEMSERVER_JS_BUILD_TIME_THRESHOLD + 250);
+  });
 }
 
-function writeAcceptanceTestOnTestFolder() {
+function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_TO_ADD) {
+  return new Promise(async (resolve) => {
+    await fs.ensureFile(`${PROJECT_ROOT}/tests/acceptance${path}`);
+    await fs.writeFile(`${PROJECT_ROOT}/tests/acceptance${path}`, content);
 
+    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 250);
+  });
 }
 
-function writeUnitTestOnComponent() {
+function writeUnitTestOnComponent(path='/email/unit-test.js', content=DEFAULT_UNIT_TEST_TO_ADD) {
+  return new Promise(async (resolve) => {
+    await fs.ensureFile(`${PROJECT_ROOT}/src/data/models${path}`);
+    await fs.writeFile(`${PROJECT_ROOT}/src/ui/models${path}`, content);
 
+    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 250);
+  });
 }
 
 function assertThatSocketReceivesMessage(socket, t) {
   socket.on('message', () => t.true(true));
 }
 
+function getAddNotificationCount(stdout, path) {
+  return stdout.filter((text) => text.includes(`ADDED: ${path}`)).length;
+}
 function getChangeNotificationCount(stdout, path) {
   return stdout.filter((text) => text.includes(`CHANGED: ${path}`)).length;
 }
@@ -240,6 +379,82 @@ async function readMemServerJS() {
   return (await fs.readFile(`${PROJECT_ROOT}/tmp/assets/memserver.js`)).toString();
 }
 
-// async function testApplicationWatcherExists() {
-//
-// }
+async function applicationFileWatcherTests(t, stdout, environment) {
+  await writeComponentCode('/dummy-component/component.js');
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
+
+  const firstContent = await readApplicationJS();
+
+  t.true(codeIncludesAMDModule(firstContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(!firstContent.includes(`console.log('there is edited code');`));
+
+  await writeComponentCode('/dummy-component/component.js', DEFAULT_EDITED_COMPONENT_JS);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 2);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 2);
+
+  const secondContent = await readApplicationJS();
+
+  t.true(codeIncludesAMDModule(secondContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(occurrenceCount(secondContent, /there is edited code/g) === 1);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 0);
+
+  await writeComponentCode('/welcome-page/component.js', DEFAULT_EDITED_COMPONENT_JS);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
+
+  const thirdContent = await readApplicationJS();
+
+  t.true(codeIncludesAMDModule(thirdContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(codeIncludesAMDModule(thirdContent, 'dummyapp/src/ui/components/welcome-page/component'));
+  t.true(occurrenceCount(thirdContent, /there is edited code/g) === 2);
+
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 0);
+
+  await removeFile(`${PROJECT_ROOT}/src/ui/components/dummy-component/component.js`);
+
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 4);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 4);
+
+  const fourthContent = await readApplicationJS();
+
+  t.true(codeIncludesAMDModule(fourthContent, 'dummyapp/src/ui/components/welcome-page/component'));
+  t.true(!codeIncludesAMDModule(fourthContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(occurrenceCount(fourthContent, /there is edited code/g) === 1);
+
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 0);
+
+  await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/component.js`);
+
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 5);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 5);
+
+  const fifthContent = await readApplicationJS();
+
+  t.true(!codeIncludesAMDModule(fifthContent, 'dummyapp/src/ui/components/welcome-page/component'));
+  t.true(!codeIncludesAMDModule(fifthContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(occurrenceCount(fifthContent, /there is edited code/g) === 0);
+
+  await writeComponentCode('/dummy-component/template.hbs', DEFAULT_TEMPLATE_HBS);
+
+  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 6);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 6);
+  t.true(codeIncludesAMDModule(await readApplicationJS(), 'dummyapp/src/ui/components/dummy-component/template'));
+
+  await removeFile(`${PROJECT_ROOT}/src/ui/components/dummy-component/template.hbs`);
+
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 7);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 7);
+  t.true(!codeIncludesAMDModule(await readApplicationJS(), 'dummyapp/src/ui/components/dummy-component/template'));
+}
