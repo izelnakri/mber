@@ -68,7 +68,7 @@ test.serial('buildApplication() works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.56 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -122,7 +122,7 @@ test.serial('buildApplication(development) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.56 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -161,7 +161,7 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[8\.04 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.01 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
@@ -215,7 +215,7 @@ test.serial('buildApplication(test) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
-  t.true(/BUILT: application\.js in \d+ms \[11\.56 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -254,7 +254,7 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
   t.true(stats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
-  t.true(/BUILT: application\.js in \d+ms \[8\.03 kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.00 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
@@ -310,7 +310,7 @@ test.serial('buildApplication(custom) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
-  t.true(/BUILT: application\.js in \d+ms \[11\.52 kB\] Environment: custom/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.49 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
 });

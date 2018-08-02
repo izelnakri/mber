@@ -1,6 +1,4 @@
 // TODO: make watchers before socket visit
-// TODO: make graceful error handling
-
 import fs from 'fs-extra';
 import intercept from 'intercept-stdout';
 import test from 'ava';
@@ -11,18 +9,19 @@ import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import {
+  APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
   MEMSERVER_JS_BUILD_TIME_THRESHOLD,
   TESTS_JS_BUILD_TIME_THRESHOLD
 } from '../helpers/asset-build-thresholds.js';
 
 test.beforeEach(async () => {
-  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
+  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
   await fs.remove('dummyapp');
 });
 
 test.afterEach.always(async () => {
-  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
+  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
   await fs.remove('dummyapp');
 });
 
@@ -72,22 +71,27 @@ module('Acceptance | route', function(hooks) {
     assert.equal(currentURL(), '/route');
   });
 });`;
-const DEFAULT_UNIT_TEST_TO_ADD = `
+const DEFAULT_INTEGRATION_TEST_TO_ADD = `
 import { module, test } from 'qunit';
-import { setupTest } from '../../../../tests/helpers';
+import { render } from '@ember/test-helpers';
+import hbs from 'htmlbars-inline-precompile';
+import { setupRenderingTest } from '../../../../tests/helpers';
 
-module('Unit | Route | index', function(hooks) {
-  setupTest(hooks);
+module('Integration | Component | welcome-page', function(hooks) {
+  setupRenderingTest(hooks);
 
-  test('it exists', function(assert) {
-    const route = this.owner.lookup('route:index');
+  test('should render correctly', async function(assert) {
+    assert.expect(1);
     console.log('this is added by this test');
-    assert.ok(route);
-  });
-});`;
+    await render(hbs\`{{welcome-page}}\`);
+
+    assert.ok(this.element.querySelector('#ember-welcome-page-id-selector'));
+ });
+});
+`;
 
 test.serial('it watches correctly on development mode', async (t) => {
-  t.plan(60);
+  t.plan(73);
 
   global.fastboot = {
     reload() {
@@ -216,7 +220,7 @@ test.serial('it watches memserver files correctly', async (t) => {
 });
 
 test.serial('it watches test files correctly', async (t) => {
-  t.plan(66);
+  t.plan(97);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
@@ -239,9 +243,8 @@ test.serial('it watches test files correctly', async (t) => {
       },
       buildCache: {}
      },
-    buildDist: false,
-    entryPoint: null,
-    fastboot: false
+    fastboot: false,
+    testing: true
   });
 
   const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
@@ -270,11 +273,35 @@ test.serial('it watches test files correctly', async (t) => {
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'test') === 2);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
 
-  // one acceptance, one unit(in-app);
+  await writeAcceptanceTestOnTestFolder('/homepage-test.js', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
 
-  // changes to the existing test!!
+  t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 1);
+  t.true(codeIncludesAMDModule(await readTestsJS(), 'dummyapp/tests/acceptance/homepage-test'));
 
-  // TODO: do the test insertion changes!!
+  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', DEFAULT_INTEGRATION_TEST_TO_ADD);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.j') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 2);
+
+  const testsFirstContent = await readTestsJS();
+
+  t.true(codeIncludesAMDModule(testsFirstContent, 'dummyapp/tests/acceptance/homepage-test'));
+
+  t.true(occurrenceCount(testsFirstContent, /this is added by this test/g) === 2);
+
+  await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/integration-test.js`);
+
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.j') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 3);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 3);
+
+  const testsLastContent = await readTestsJS();
+
+  t.true(codeIncludesAMDModule(testsLastContent, 'dummyapp/tests/acceptance/homepage-test'));
+  t.true(occurrenceCount(testsLastContent, /this is added by this test/g) === 1);
 
   WebSocketServer.cleanWatchers();
   WebSocketServer.close();
@@ -282,20 +309,20 @@ test.serial('it watches test files correctly', async (t) => {
   mock.removeMock();
 });
 
-// test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
-//
-// });
-
-// test('it handles css, js, hbs syntax errors gracefully without fastboot', async (t) => {
-//
-// });
-
-
 // it can change the ENV by changing the environment.js
 // TODO: also test start-http-server, then transpilers
 
 function occurrenceCount(sourceString, targetString) {
   return (sourceString.match(targetString) || []).length;
+}
+
+function writeCSSCode(path, content) {
+  return new Promise(async (resolve) => {
+    await fs.ensureFile(`${PROJECT_ROOT}${path}`);
+    await fs.writeFile(`${PROJECT_ROOT}${path}`, content);
+
+    setTimeout(() => resolve(), APPLICATION_CSS_BUILD_TIME_THRESHOLD + 250);
+  });
 }
 
 function writeComponentCode(path='/dummy-component/component.js', content=DEFAULT_COMPONENT_JS) {
@@ -333,10 +360,10 @@ function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_T
   });
 }
 
-function writeUnitTestOnComponent(path='/email/unit-test.js', content=DEFAULT_UNIT_TEST_TO_ADD) {
+function writeIntegrationTestOnComponent(path='/welcome-page/integration-test.js', content=DEFAULT_INTEGRATION_TEST_TO_ADD) {
   return new Promise(async (resolve) => {
-    await fs.ensureFile(`${PROJECT_ROOT}/src/data/models${path}`);
-    await fs.writeFile(`${PROJECT_ROOT}/src/ui/models${path}`, content);
+    await fs.ensureFile(`${PROJECT_ROOT}/src/ui/components${path}`);
+    await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
     setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 250);
   });
@@ -367,6 +394,10 @@ function getBuiltNotificationCount(stdout, fileName, environment) {
   }).length;
 }
 
+async function readApplicationCSS() {
+  return (await fs.readFile(`${PROJECT_ROOT}/tmp/assets/application.css`)).toString();
+}
+
 async function readApplicationJS() {
   return (await fs.readFile(`${PROJECT_ROOT}/tmp/assets/application.js`)).toString();
 }
@@ -380,9 +411,25 @@ async function readMemServerJS() {
 }
 
 async function applicationFileWatcherTests(t, stdout, environment) {
+  await writeCSSCode('/src/ui/styles/vendor/dummy.scss', '.lol {}');
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/styles/vendor/dummy.scss') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.css') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
+
+  await writeCSSCode('/src/ui/components/some-component/styles.scss', '.awesomeness { color: blue }');
+
+  t.true(getAddNotificationCount(stdout, '/src/ui/components/some-component/styles.scss') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.css') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 2);
+
+  const cssContent = await readApplicationCSS();
+
+  t.true(occurrenceCount(cssContent, /\.awesomeness {/g) === 1);
+
   await writeComponentCode('/dummy-component/component.js');
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
 
@@ -393,7 +440,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
 
   await writeComponentCode('/dummy-component/component.js', DEFAULT_EDITED_COMPONENT_JS);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 2);
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 2);
 
