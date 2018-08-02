@@ -14,13 +14,7 @@ import {
   TESTS_JS_BUILD_TIME_THRESHOLD
 } from '../helpers/asset-build-thresholds.js';
 
-test.beforeEach(async () => {
-  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
-  await fs.remove('dummyapp');
-});
-
 test.afterEach.always(async () => {
-  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
   await fs.remove('dummyapp');
 });
 
@@ -90,6 +84,8 @@ module('Integration | Component | welcome-page', function(hooks) {
 `;
 
 test.serial('it watches correctly on development mode', async (t) => {
+  await fs.remove('dummyapp');
+
   t.plan(73);
 
   global.fastboot = {
@@ -133,6 +129,8 @@ test.serial('it watches correctly on development mode', async (t) => {
 });
 
 test.serial('it watches memserver files correctly', async (t) => {
+  await fs.remove('dummyapp');
+
   t.plan(29);
 
   global.fastboot = {
@@ -217,6 +215,8 @@ test.serial('it watches memserver files correctly', async (t) => {
 });
 
 test.serial('it watches test files correctly', async (t) => {
+  await fs.remove('dummyapp');
+
   t.plan(97);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
