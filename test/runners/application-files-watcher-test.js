@@ -14,10 +14,6 @@ import {
   TESTS_JS_BUILD_TIME_THRESHOLD
 } from '../helpers/asset-build-thresholds.js';
 
-test.afterEach.always(async () => {
-  await fs.remove('dummyapp');
-});
-
 const DEFAULT_SOCKET_PORT = 65511;
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/dummyapp`;
@@ -48,8 +44,7 @@ import Model from 'memserver/model';
 
 export default Model({
   modelEditPlaceholder: true
-});
-`;
+});`;
 const DEFAULT_ACCEPTANCE_TEST_TO_ADD = `
 import { module, test } from 'qunit';
 import { visit, currentURL } from '@ember/test-helpers';
@@ -80,8 +75,7 @@ module('Integration | Component | welcome-page', function(hooks) {
 
     assert.ok(this.element.querySelector('#ember-welcome-page-id-selector'));
  });
-});
-`;
+});`;
 
 test.serial('it watches correctly on development mode', async (t) => {
   await fs.remove('dummyapp');
@@ -96,6 +90,7 @@ test.serial('it watches correctly on development mode', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const TARGET_SOCKET_PORT = 8080;
+  
   await createAdvancedDummyApp();
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
@@ -114,6 +109,9 @@ test.serial('it watches correctly on development mode', async (t) => {
     fastboot: true,
     socketPort: TARGET_SOCKET_PORT
   });
+
+  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
+
   const firstSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
 
@@ -126,6 +124,7 @@ test.serial('it watches correctly on development mode', async (t) => {
   WebSocketServer.close();
   stopStdoutInterception();
   mock.removeMock();
+  await fs.remove('dummyapp');
 });
 
 test.serial('it watches memserver files correctly', async (t) => {
@@ -166,12 +165,15 @@ test.serial('it watches memserver files correctly', async (t) => {
     socketPort: 65511
   });
 
-  t.true(getChangeNotificationCount(stdout, '/memserver/models/email.js') === 0);
+  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
+
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 0);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 0);
 
+  await fs.mkdirp(`${PROJECT_ROOT}/memserver/models`);
   await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
 
-  t.true(getChangeNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 1);
 
@@ -212,8 +214,10 @@ test.serial('it watches memserver files correctly', async (t) => {
   WebSocketServer.close();
   stopStdoutInterception();
   mock.removeMock();
+  await fs.remove('dummyapp');
 });
 
+// TODO: calledOnce test with sinon
 test.serial('it watches test files correctly', async (t) => {
   await fs.remove('dummyapp');
 
@@ -243,6 +247,9 @@ test.serial('it watches test files correctly', async (t) => {
     fastboot: false,
     testing: true
   });
+
+  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
+
   const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
 
@@ -269,6 +276,7 @@ test.serial('it watches test files correctly', async (t) => {
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'test') === 2);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
 
+  await fs.mkdirp(`${PROJECT_ROOT}/tests/acceptance`);
   await writeAcceptanceTestOnTestFolder('/homepage-test.js', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
 
   t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
@@ -303,6 +311,7 @@ test.serial('it watches test files correctly', async (t) => {
   WebSocketServer.close();
   stopStdoutInterception();
   mock.removeMock();
+  await fs.remove('dummyapp');
 });
 
 // it can change the ENV by changing the environment.js
@@ -317,13 +326,12 @@ function writeCSSCode(path, content) {
     await fs.ensureFile(`${PROJECT_ROOT}${path}`);
     await fs.writeFile(`${PROJECT_ROOT}${path}`, content);
 
-    setTimeout(() => resolve(), APPLICATION_CSS_BUILD_TIME_THRESHOLD + 500);
+    setTimeout(() => resolve(), APPLICATION_CSS_BUILD_TIME_THRESHOLD + 700);
   });
 }
 
 function writeComponentCode(path='/dummy-component/component.js', content=DEFAULT_COMPONENT_JS) {
   return new Promise(async (resolve) => {
-    await fs.ensureFile(`${PROJECT_ROOT}/src/ui/components${path}`);
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
     setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD + 250);
@@ -340,16 +348,14 @@ function removeFile(codePath) {
 
 function writeMemServerCode(path, content=DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
   return new Promise(async (resolve) => {
-    await fs.ensureFile(`${PROJECT_ROOT}/memserver{path}`);
     await fs.writeFile(`${PROJECT_ROOT}/memserver${path}`, content);
 
-    setTimeout(() => resolve(), MEMSERVER_JS_BUILD_TIME_THRESHOLD + 250);
+    setTimeout(() => resolve(), MEMSERVER_JS_BUILD_TIME_THRESHOLD + 700);
   });
 }
 
 function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_TO_ADD) {
   return new Promise(async (resolve) => {
-    await fs.ensureFile(`${PROJECT_ROOT}/tests/acceptance${path}`);
     await fs.writeFile(`${PROJECT_ROOT}/tests/acceptance${path}`, content);
 
     setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 250);
@@ -358,7 +364,6 @@ function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_T
 
 function writeIntegrationTestOnComponent(path='/welcome-page/integration-test.js', content=DEFAULT_INTEGRATION_TEST_TO_ADD) {
   return new Promise(async (resolve) => {
-    await fs.ensureFile(`${PROJECT_ROOT}/src/ui/components${path}`);
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
     setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 250);
@@ -409,10 +414,11 @@ async function readMemServerJS() {
 async function applicationFileWatcherTests(t, stdout, environment) {
   await writeCSSCode('/src/ui/styles/vendor/dummy.scss', '.lol {}');
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/styles/vendor/dummy.scss') === 1);
+  t.true(getAddNotificationCount(stdout, '/src/ui/styles/vendor/dummy.scss') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 1);
   t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
 
+  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component`);
   await writeCSSCode('/src/ui/components/some-component/styles.scss', '.awesomeness { color: blue }');
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/some-component/styles.scss') === 1);
@@ -423,6 +429,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
 
   t.true(occurrenceCount(cssContent, /\.awesomeness {/g) === 1);
 
+    await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
   await writeComponentCode('/dummy-component/component.js');
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
