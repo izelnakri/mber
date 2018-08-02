@@ -1,4 +1,3 @@
-// TODO: make watchers before socket visit
 import fs from 'fs-extra';
 import intercept from 'intercept-stdout';
 import test from 'ava';
@@ -16,12 +15,12 @@ import {
 } from '../helpers/asset-build-thresholds.js';
 
 test.beforeEach(async () => {
-  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
+  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
   await fs.remove('dummyapp');
 });
 
 test.afterEach.always(async () => {
-  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
+  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
   await fs.remove('dummyapp');
 });
 
@@ -108,8 +107,8 @@ test.serial('it watches correctly on development mode', async (t) => {
   let stopStdoutInterception = intercept(function(text) {
     stdout.push(stripANSI(text));
   });
-  // TODO: change file here so watcher runs even if there were no webSockerServer connection
-  const WebSocketServer = applicationFilesWatcher('development', {
+
+  const WebSocketServer = applicationFilesWatcher({
     buildConfig: {
       ENV: { environment: 'development', modulePrefix: 'dummyapp' },
       buildCache: {}
@@ -119,7 +118,6 @@ test.serial('it watches correctly on development mode', async (t) => {
     fastboot: true,
     socketPort: TARGET_SOCKET_PORT
   });
-
   const firstSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
 
@@ -128,14 +126,14 @@ test.serial('it watches correctly on development mode', async (t) => {
 
   await applicationFileWatcherTests(t, stdout, 'development');
 
-  WebSocketServer.cleanWatchers();
+  WebSocketServer.killWatchers();
   WebSocketServer.close();
   stopStdoutInterception();
   mock.removeMock();
 });
 
 test.serial('it watches memserver files correctly', async (t) => {
-  t.plan(31);
+  t.plan(29);
 
   global.fastboot = {
     reload() {
@@ -152,8 +150,8 @@ test.serial('it watches memserver files correctly', async (t) => {
   let stopStdoutInterception = intercept(function(text) {
     stdout.push(stripANSI(text));
   });
-  // TODO: change file here so watcher runs even if there were no webSockerServer connection
-  const WebSocketServer = applicationFilesWatcher('memserver', {
+
+  const WebSocketServer = applicationFilesWatcher({
     buildConfig: {
       ENV: {
         environment: 'memserver',
@@ -170,12 +168,6 @@ test.serial('it watches memserver files correctly', async (t) => {
     socketPort: 65511
   });
 
-  const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
-  const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
-
-  assertThatSocketReceivesMessage(firstSocket, t);
-  assertThatSocketReceivesMessage(secondSocket, t);
-
   t.true(getChangeNotificationCount(stdout, '/memserver/models/email.js') === 0);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 0);
 
@@ -189,6 +181,12 @@ test.serial('it watches memserver files correctly', async (t) => {
 
   t.true(codeIncludesAMDModule(firstContent, 'dummyapp/memserver/models/email'));
   t.true(occurrenceCount(firstContent, /modelEditPlaceholder: true/g) === 1);
+
+  const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
+  const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
+
+  assertThatSocketReceivesMessage(firstSocket, t);
+  assertThatSocketReceivesMessage(secondSocket, t);
 
   t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 0);
 
@@ -205,7 +203,6 @@ test.serial('it watches memserver files correctly', async (t) => {
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 3);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
 
-
   await removeFile(`${PROJECT_ROOT}/memserver/models/user.js`);
 
   t.true(getRemovalNotificationCount(stdout, '/memserver/models/user.js') === 1);
@@ -213,7 +210,7 @@ test.serial('it watches memserver files correctly', async (t) => {
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 4);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/user'));
 
-  WebSocketServer.cleanWatchers();
+  WebSocketServer.killWatchers();
   WebSocketServer.close();
   stopStdoutInterception();
   mock.removeMock();
@@ -231,8 +228,8 @@ test.serial('it watches test files correctly', async (t) => {
   let stopStdoutInterception = intercept(function(text) {
     stdout.push(stripANSI(text));
   });
-  // TODO: change file here so watcher runs even if there were no webSockerServer connection
-  const WebSocketServer = applicationFilesWatcher('test', {
+
+  const WebSocketServer = applicationFilesWatcher({
     buildConfig: {
       ENV: {
         environment: 'test',
@@ -246,7 +243,6 @@ test.serial('it watches test files correctly', async (t) => {
     fastboot: false,
     testing: true
   });
-
   const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
 
@@ -303,7 +299,7 @@ test.serial('it watches test files correctly', async (t) => {
   t.true(codeIncludesAMDModule(testsLastContent, 'dummyapp/tests/acceptance/homepage-test'));
   t.true(occurrenceCount(testsLastContent, /this is added by this test/g) === 1);
 
-  WebSocketServer.cleanWatchers();
+  WebSocketServer.killWatchers();
   WebSocketServer.close();
   stopStdoutInterception();
   mock.removeMock();
@@ -321,7 +317,7 @@ function writeCSSCode(path, content) {
     await fs.ensureFile(`${PROJECT_ROOT}${path}`);
     await fs.writeFile(`${PROJECT_ROOT}${path}`, content);
 
-    setTimeout(() => resolve(), APPLICATION_CSS_BUILD_TIME_THRESHOLD + 250);
+    setTimeout(() => resolve(), APPLICATION_CSS_BUILD_TIME_THRESHOLD + 500);
   });
 }
 
