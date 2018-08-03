@@ -1,12 +1,11 @@
 import fs from 'fs-extra';
-import intercept from 'intercept-stdout';
 import test from 'ava';
 import WebSocket from 'ws';
-import stripANSI from 'strip-ansi';
 import applicationFilesWatcher from '../../lib/runners/application-files-watcher';
 import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import mockProcessCWD from '../helpers/mock-process-cwd';
+import listenCurrentStdout from '../helpers/listen-current-stdout';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
@@ -94,10 +93,7 @@ test.serial('it watches correctly on development mode', async (t) => {
   await createAdvancedDummyApp();
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
-  let stdout = [];
-  let stopStdoutInterception = intercept(function(text) {
-    stdout.push(stripANSI(text));
-  });
+  const { stdout, stopStdoutListening } = listenCurrentStdout();
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
@@ -124,7 +120,7 @@ test.serial('it watches correctly on development mode', async (t) => {
 
   WebSocketServer.killWatchers();
   WebSocketServer.close();
-  stopStdoutInterception();
+  stopStdoutListening();
   mock.removeMock();
   await fs.remove('dummyapp');
 });
@@ -145,10 +141,7 @@ test.serial('it watches memserver files correctly', async (t) => {
   await createAdvancedDummyApp('dummyapp', { memserver: true });
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
-  let stdout = [];
-  let stopStdoutInterception = intercept(function(text) {
-    stdout.push(stripANSI(text));
-  });
+  const { stdout, stopStdoutListening } = listenCurrentStdout();
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
@@ -216,7 +209,7 @@ test.serial('it watches memserver files correctly', async (t) => {
 
   WebSocketServer.killWatchers();
   WebSocketServer.close();
-  stopStdoutInterception();
+  stopStdoutListening();
   mock.removeMock();
   await fs.remove('dummyapp');
 });
@@ -232,10 +225,7 @@ test.serial('it watches test files correctly', async (t) => {
   await createAdvancedDummyApp('dummyapp', { memserver: true });
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
-  let stdout = [];
-  let stopStdoutInterception = intercept(function(text) {
-    stdout.push(stripANSI(text));
-  });
+  const { stdout, stopStdoutListening } = listenCurrentStdout();
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
@@ -315,7 +305,7 @@ test.serial('it watches test files correctly', async (t) => {
 
   WebSocketServer.killWatchers();
   WebSocketServer.close();
-  stopStdoutInterception();
+  stopStdoutListening();
   mock.removeMock();
   await fs.remove('dummyapp');
 });
@@ -435,7 +425,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
 
   t.true(occurrenceCount(cssContent, /\.awesomeness {/g) === 1);
 
-    await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
+  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
   await writeComponentCode('/dummy-component/component.js');
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);

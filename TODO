@@ -41,3 +41,18 @@ test:
 - write appTransform tests
 - utils/fastboot-express-middleware unit tests are missing
 - add backend-test environment with tests
+
+
+
+ERROR:
+build-css:
+// { Error: Invalid CSS after "": expected 1 selector or at-rule, was ".this-class-has-err"
+//     at options.error (/Users/izelnakri/mber-lib/node_modules/node-sass/lib/index.js:291:26)
+//   status: 1,
+//   file: 'stdin',
+//   line: 1,
+//   column: 1,
+//   message:
+//    'Invalid CSS after "": expected 1 selector or at-rule, was ".this-class-has-err"',
+//   formatted:
+//    'Error: Invalid CSS after "": expected 1 selector or at-rule, was ".this-class-has-err"\n        on line 1 of stdin\n>> \n\n   ^\n' }
