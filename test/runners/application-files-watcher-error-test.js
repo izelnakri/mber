@@ -101,7 +101,7 @@ const HBS_SYNTAX_ERROR = `
 test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
   await fs.remove('dummyapp');
 
-  t.plan(89);
+  t.plan(117);
 
   global.fastboot = {
     reload() {
@@ -145,7 +145,7 @@ test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) =
   await testCSSErrorHandlingWorks(t, stdout, 'memserver');
   await testApplicationJSErrorHandlingWorks(t, stdout, 'memserver');
   await testApplicationHBSErrorHandlingWorks(t, stdout, 'memserver');
-  // await memserverJSErrorHandlingWorks(t, stdout);
+  await testMemserverJSErrorHandlingWorks(t, stdout, 'memserver');
   // await testJSErrorHandlingWorks(t, stdout);
   console.log('stdout is');
   console.log(stdout);
@@ -310,10 +310,51 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/template'));
 }
 
-// async function testMemServerJSErrorHandlingWorks(t, stdout, environment)  {
-//
-// }
-//
+async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
+  await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
+
+  const firstContent = await readMemServerJS();
+
+  t.true(occurrenceCount(firstContent, /modelEditPlaceholder: true/g) === 1);
+
+  await writeMemServerCode('/models/email.js', JS_TYPO_ERROR);
+
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
+  t.true(stdoutOccurenceCount(stdout, /ember memserver\.js build error:/g) === 1);
+  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ,/g) === 3); // NOTE: this doesnt tell which file!!
+
+  t.true(firstContent === await readMemServerJS());
+
+  await writeMemServerCode('/models/user.js', JS_FILE_ERROR);
+
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 2);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 3);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
+  t.true(stdoutOccurenceCount(stdout, /ember memserver\.js build error:/g) === 3);
+  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ;/g) === 3);
+
+  t.true(firstContent === await readMemServerJS());
+
+  await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+  await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 5);
+  t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 2);
+
+  const lastContent = await readMemServerJS();
+
+  t.true(occurrenceCount(lastContent, /modelEditPlaceholder: true/g) === 2);
+  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/memserver/models/email'));
+  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/memserver/models/user'));
+}
+
 // async function testTestJSErrorHandlingWorks(t, stdout, environment) {
 //
 // }
