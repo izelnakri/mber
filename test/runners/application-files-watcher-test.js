@@ -90,7 +90,7 @@ test.serial('it watches correctly on development mode', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const TARGET_SOCKET_PORT = 8080;
-  
+
   await createAdvancedDummyApp();
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
@@ -98,6 +98,8 @@ test.serial('it watches correctly on development mode', async (t) => {
   let stopStdoutInterception = intercept(function(text) {
     stdout.push(stripANSI(text));
   });
+
+  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
   const WebSocketServer = applicationFilesWatcher({
     buildConfig: {
@@ -147,6 +149,8 @@ test.serial('it watches memserver files correctly', async (t) => {
   let stopStdoutInterception = intercept(function(text) {
     stdout.push(stripANSI(text));
   });
+
+  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
   const WebSocketServer = applicationFilesWatcher({
     buildConfig: {
@@ -232,6 +236,8 @@ test.serial('it watches test files correctly', async (t) => {
   let stopStdoutInterception = intercept(function(text) {
     stdout.push(stripANSI(text));
   });
+
+  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
   const WebSocketServer = applicationFilesWatcher({
     buildConfig: {
