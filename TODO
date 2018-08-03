@@ -44,7 +44,7 @@ test:
 
 
 
-ERROR:
+ERROR Structures:
 build-css:
 // { Error: Invalid CSS after "": expected 1 selector or at-rule, was ".this-class-has-err"
 //     at options.error (/Users/izelnakri/mber-lib/node_modules/node-sass/lib/index.js:291:26)
@@ -56,3 +56,57 @@ build-css:
 //    'Invalid CSS after "": expected 1 selector or at-rule, was ".this-class-has-err"',
 //   formatted:
 //    'Error: Invalid CSS after "": expected 1 selector or at-rule, was ".this-class-has-err"\n        on line 1 of stdin\n>> \n\n   ^\n' }
+build-application:
+  js:
+  { SyntaxError: unknown: Unexpected token, expected , (3:33)
+  1 |
+  2 |   export default {
+> 3 |     JavaScript: 'sometimes sucks';
+    |                                  ^
+  4 |   }
+  5 |
+    at Parser.pp$5.raise (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:4454:13)
+    at Parser.pp.unexpected (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:1761:8)
+    at Parser.pp.expect (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:1749:33)
+    at Parser.pp$3.parseObj (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:3978:12)
+    at Parser.pp$3.parseExprAtom (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:3719:19)
+    at Parser.pp$3.parseExprSubscripts (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:3494:19)
+    at Parser.pp$3.parseMaybeUnary (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:3474:19)
+    at Parser.pp$3.parseExprOps (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:3404:19)
+    at Parser.pp$3.parseMaybeConditional (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:3381:19)
+    at Parser.pp$3.parseMaybeAssign (/Users/izelnakri/mber-lib/node_modules/babylon/lib/index.js:3344:19)
+  pos: 53,
+  loc: Position { line: 3, column: 33 },
+  _babel: true,
+  codeFrame:
+   '\u001b[0m \u001b[90m 1 | \u001b[39m\n \u001b[90m 2 | \u001b[39m  \u001b[36mexport\u001b[39m \u001b[36mdefault\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 3 | \u001b[39m    \u001b[33mJavaScript\u001b[39m\u001b[33m:\u001b[39m \u001b[32m\'sometimes sucks\'\u001b[39m\u001b[33m;\u001b[39m\n \u001b[90m   | \u001b[39m                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 4 | \u001b[39m  }\n \u001b[90m 5 | \u001b[39m\u001b[0m' }
+  hbs:
+  { Error: Unclosed element `h1` (on line 2).
+    at new SyntaxError (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:2854:31)
+    at TokenizerEventHandlers.HandlebarsNodeVisitors.Program (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:3063:23)
+    at TokenizerEventHandlers.Parser.acceptNode (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:2946:35)
+    at preprocess (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:4125:56)
+    at exports.precompile (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:2563:42)
+    at Object.exports.default (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:6154:37)
+    at default‍ (/Users/izelnakri/mber-lib/lib/transpilers/convert-hbs-to-amd.js:4:36)
+    at fs.readFile.then (/Users/izelnakri/mber-lib/lib/builders/build-application.js:95:24)
+  message: 'Unclosed element `h1` (on line 2).',
+  stack:
+   'Error: Unclosed element `h1` (on line 2).\n    at new SyntaxError (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:2854:31)\n    at TokenizerEventHandlers.HandlebarsNodeVisitors.Program (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:3063:23)\n    at TokenizerEventHandlers.Parser.acceptNode (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:2946:35)\n    at preprocess (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:4125:56)\n    at exports.precompile (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:2563:42)\n    at Object.exports.default (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:6154:37)\n    at default‍ (/Users/izelnakri/mber-lib/lib/transpilers/convert-hbs-to-amd.js:4:36)\n    at fs.readFile.then (/Users/izelnakri/mber-lib/lib/builders/build-application.js:95:24)',
+  location:
+   { source: null,
+     start: { line: 2, column: 0 },
+     end: { line: undefined, column: undefined } } }
+  anotherHBSERROR:
+  Error: Parse error on line 3:
+...h1>This is mee</h1>{{/another-component
+----------------------^
+Expecting 'EOF', got 'OPEN_ENDBLOCK'
+  at Parser.parseError (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:7996:15)
+  at Parser.parse (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:8060:20)
+  at exports.parse (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:9106:36)
+  at preprocess (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:4119:75)
+  at exports.precompile (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:2563:42)
+  at Object.exports.default (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:6154:37)
+  at default‍ (/Users/izelnakri/mber-lib/lib/transpilers/convert-hbs-to-amd.js:4:36)
+  at fs.readFile.then (/Users/izelnakri/mber-lib/lib/builders/build-application.js:95:24)

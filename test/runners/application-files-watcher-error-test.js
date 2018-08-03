@@ -37,7 +37,7 @@ export default Component.extend({
     console.log('there is edited code');
   }
 });`;
-const DEFAULT_TEMPLATE_HBS = `<h1>Find this edit on application.js</h1>`;
+const DEFAULT_TEMPLATE_HBS = `<h1>in component template.hbs for test</h1>`;
 const DEFAULT_EDITED_MEMSERVER_MODEL_JS = `
 import Model from 'memserver/model';
 
@@ -85,17 +85,23 @@ const JS_TYPO_ERROR = `
     JavaScript: 'sometimes sucks';
   }
 `;
+const JS_FILE_ERROR = `
+ASLDASmdasmd{E{!R!@R}}
+`;
 const HBS_TYPO_ERROR = `
+<h1>This is mee
+{{another-component}}
+`;
+const HBS_SYNTAX_ERROR = `
 <h1>This is mee</h1>
 {{/another-component}}
 `;
-
 // one do it on a new file one on an existing file change
 // TODO: later assert error html content
 test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
   await fs.remove('dummyapp');
 
-  t.plan(28);
+  t.plan(89);
 
   global.fastboot = {
     reload() {
@@ -136,49 +142,13 @@ test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) =
   assertThatSocketReceivesMessage(firstSocket, t);
   assertThatSocketReceivesMessage(secondSocket, t);
 
-  await testCSSErrorHandlingWorks(t, stdout);
+  await testCSSErrorHandlingWorks(t, stdout, 'memserver');
+  await testApplicationJSErrorHandlingWorks(t, stdout, 'memserver');
+  await testApplicationHBSErrorHandlingWorks(t, stdout, 'memserver');
+  // await memserverJSErrorHandlingWorks(t, stdout);
+  // await testJSErrorHandlingWorks(t, stdout);
   console.log('stdout is');
   console.log(stdout);
-
-
-
-// TODO: fail on new file also on existing file and then fix it.
-
-  // TODO: also assert content
-
-  // t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
-
-  // await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component/styles`);
-  // TODO: can fix both
-  // await writeCSSCode('/src/ui/components/some-component/styles.scss', '.lol {}');
-
-  // t.true(getAddNotificationCount(stdout, '/src/ui/styles/vendor/dummy.scss') === 1);
-  // t.true(getBuildingNotificationCount(stdout, 'application.css') === 1);
-  // t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
-  //
-  // await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component`);
-  // await writeCSSCode('/src/ui/components/some-component/styles.scss', '.awesomeness { color: blue }');
-  //
-  // t.true(getAddNotificationCount(stdout, '/src/ui/components/some-component/styles.scss') === 1);
-  // t.true(getBuildingNotificationCount(stdout, 'application.css') === 2);
-  // t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 2);
-  //
-  // const cssContent = await readApplicationCSS();
-  //
-  // t.true(occurrenceCount(cssContent, /\.awesomeness {/g) === 1);
-  //
-  // await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
-  // await writeComponentCode('/dummy-component/component.js');
-  //
-  // t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
-  // t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
-  // t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
-
-
-  // assertThatSocketReceivesMessage(firstSocket, t);
-  // assertThatSocketReceivesMessage(secondSocket, t);
-  //
-  // await applicationFileWatcherTests(t, stdout, 'development');
 
   WebSocketServer.killWatchers();
   WebSocketServer.close();
@@ -192,7 +162,7 @@ test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) =
 // const { stdout, stopStdoutListening } = listenCurrentStdout();
 // });
 
-async function testCSSErrorHandlingWorks(t, stdout) {
+async function testCSSErrorHandlingWorks(t, stdout, environment) {
   await writeCSSCode('/src/ui/styles/application.scss', `@import "vendor";
   @import "components";
   .testing-class {
@@ -202,30 +172,32 @@ async function testCSSErrorHandlingWorks(t, stdout) {
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/styles/application.scss') === 2);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 2);
-  t.true(getBuiltNotificationCount(stdout, 'application.css', 'memserver') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
 
-  // TODO: assert application.css content
+  const firstContent = await readApplicationCSS();
+
+  t.true(occurrenceCount(firstContent, '.testing-class') === 1);
 
   await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component`);
   await writeCSSCode('/src/ui/components/some-component/styles.scss', '.some-component { color, purple }');
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/some-component/styles.scss') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 3);
-  t.true(getBuiltNotificationCount(stdout, 'application.css', 'memserver') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember CSS build error:/g) === 2);
   t.true(stdoutOccurenceCount(stdout, /{ Error: property "color" must be followed by a ':'/g) === 1);
 
-  // TODO: assert application.css content
+  t.true(firstContent === await readApplicationCSS());
 
   await writeCSSCode('/src/ui/styles/application.scss', CSS_ERROR);
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/styles/application.scss') === 3);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 4);
-  t.true(getBuiltNotificationCount(stdout, 'application.css', 'memserver') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember CSS build error:/g) === 3);
   t.true(stdoutOccurenceCount(stdout, /{ Error: Invalid CSS after "": expected 1 selector or at-rule, was "\.testing-class \[/g) === 2);
 
-  // TODO: assert application.css content
+  t.true(firstContent === await readApplicationCSS());
 
   await writeCSSCode('/src/ui/components/some-component/styles.scss', '.some-component { color: purple; }');
   await writeCSSCode('/src/ui/styles/application.scss', `@import "vendor";
@@ -237,11 +209,114 @@ async function testCSSErrorHandlingWorks(t, stdout) {
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/styles/application.scss') === 4);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 6);
-  t.true(getBuiltNotificationCount(stdout, 'application.css', 'memserver') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 2);
   t.true(stdoutOccurenceCount(stdout, /ember CSS build error:/g) === 4);
 
-  // TODO: assert application.css content
+  const lastContent = await readApplicationCSS();
+
+  t.true(firstContent !== lastContent);
+  t.true(occurrenceCount(lastContent, '.testing-class') === 1);
+  t.true(occurrenceCount(lastContent, '.some-component') === 1);
 }
+
+async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
+  await writeComponentCode('/welcome-page/component.js', DEFAULT_EDITED_COMPONENT_JS);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
+
+  const firstContent = await readApplicationJS();
+
+  t.true(occurrenceCount(firstContent, /there is edited code/g) === 1);
+
+  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
+  await writeComponentCode('/dummy-component/component.js', JS_TYPO_ERROR);
+
+  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
+  t.true(stdoutOccurenceCount(stdout, /ember application\.js build error:/g) === 1);
+  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ,/g) === 1); // NOTE: this doesnt tell which file!!
+
+  t.true(firstContent === await readApplicationJS());
+
+  await writeComponentCode('/welcome-page/component.js', JS_FILE_ERROR);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 2);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
+  t.true(stdoutOccurenceCount(stdout, /ember application\.js build error:/g) === 3);
+  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ;/g) ===1);
+
+  t.true(firstContent === await readApplicationJS());
+
+  await writeComponentCode('/dummy-component/component.js', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/welcome-page/component.js', DEFAULT_EDITED_COMPONENT_JS);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 3);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 5);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 2);
+
+  const lastContent = await readApplicationJS();
+
+  t.true(occurrenceCount(lastContent, /there is edited code/g) === 2);
+  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/component'));
+}
+
+async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
+  await writeComponentCode('/welcome-page/template.hbs', DEFAULT_TEMPLATE_HBS);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/template.hbs') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 6);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
+
+  const firstContent = await readApplicationJS();
+
+  t.true(codeIncludesAMDModule(firstContent, 'dummyapp/src/ui/components/welcome-page/template'));
+
+  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
+  await writeComponentCode('/dummy-component/template.hbs', HBS_TYPO_ERROR);
+
+  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 7);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
+  t.true(stdoutOccurenceCount(stdout, /ember application\.js build error:/g) === 5);
+  t.true(stdoutOccurenceCount(stdout, /message: 'Unclosed element `h1`/g) === 1); // NOTE: this doesnt tell which file!!
+
+  t.true(firstContent === await readApplicationJS());
+
+  await writeComponentCode('/welcome-page/template.hbs', HBS_SYNTAX_ERROR);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/template.hbs') === 2);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 8);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
+  t.true(stdoutOccurenceCount(stdout, /ember application\.js build error:/g) === 7);
+  t.true(stdoutOccurenceCount(stdout, /Error: Parse error on line 3:/g) === 1);
+
+  t.true(firstContent === await readApplicationJS());
+
+  await writeComponentCode('/dummy-component/template.hbs', DEFAULT_TEMPLATE_HBS);
+  await writeComponentCode('/welcome-page/template.hbs', DEFAULT_TEMPLATE_HBS);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/template.hbs') === 3);
+  t.true(getBuildingNotificationCount(stdout, 'application.js') === 10);
+  t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 4);
+
+  const lastContent = await readApplicationJS();
+
+  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/dummy-component/template'));
+  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/template'));
+}
+
+// async function testMemServerJSErrorHandlingWorks(t, stdout, environment)  {
+//
+// }
+//
+// async function testTestJSErrorHandlingWorks(t, stdout, environment) {
+//
+// }
 
 function stdoutOccurenceCount(stdout, targetString) {
   return occurrenceCount(stdout.join('\n'), targetString);
