@@ -1,9 +1,7 @@
 autoassign sockerPort if its in use
-
-watchers work correcly
 eslint works
-gracefull handling of js and css parse errors
-display the error html page for hbs errors, css errors: js syntax errors and dont stop the watcher.
+display the error html page for hbs errors, css errors: js syntax errors also play a sound
+configuration file: .mber
 
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",

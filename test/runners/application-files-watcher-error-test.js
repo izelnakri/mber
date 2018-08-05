@@ -96,12 +96,12 @@ const HBS_SYNTAX_ERROR = `
 <h1>This is mee</h1>
 {{/another-component}}
 `;
-// one do it on a new file one on an existing file change
+
 // TODO: later assert error html content
-test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
+test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
   await fs.remove('dummyapp');
 
-  t.plan(117);
+  t.plan(155);
 
   global.fastboot = {
     reload() {
@@ -124,6 +124,7 @@ test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) =
       buildCache: {}
     },
     fastboot: true,
+    testing: true,
     socketPort: DEFAULT_SOCKET_PORT
   });
 
@@ -146,21 +147,70 @@ test('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) =
   await testApplicationJSErrorHandlingWorks(t, stdout, 'memserver');
   await testApplicationHBSErrorHandlingWorks(t, stdout, 'memserver');
   await testMemserverJSErrorHandlingWorks(t, stdout, 'memserver');
-  // await testJSErrorHandlingWorks(t, stdout);
-  console.log('stdout is');
-  console.log(stdout);
+  await testTestJSErrorHandlingWorks(t, stdout, 'memserver');
 
   WebSocketServer.killWatchers();
   WebSocketServer.close();
   stopStdoutListening();
   mock.removeMock();
+
   await fs.remove('dummyapp');
 });
 
-// test('it handles css, js, hbs syntax errors gracefully without fastboot', async (t) => {
-//  const TARGET_SOCKET_PORT = 8080;
-// const { stdout, stopStdoutListening } = listenCurrentStdout();
-// });
+test.serial('it handles css, js, hbs syntax errors gracefully without fastboot', async (t) => {
+  await fs.remove('dummyapp');
+
+  t.plan(144);
+
+  const TARGET_SOCKET_PORT = 8080;
+  const mock = mockProcessCWD(PROJECT_ROOT);
+
+  await createAdvancedDummyApp();
+  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+
+  const { stdout, stopStdoutListening } = listenCurrentStdout();
+  const WebSocketServer = applicationFilesWatcher({
+    buildConfig: {
+      ENV: {
+        environment: 'test', modulePrefix: 'dummyapp',
+        memserver: { enabled: true }
+      },
+      buildCache: {}
+    },
+    fastboot: false,
+    testing: true,
+    socketPort: TARGET_SOCKET_PORT
+  });
+
+  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
+  stdout.length = 0;
+  await writeCSSCode('/src/ui/styles/application.scss', CSS_ERROR);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/styles/application.scss') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'application.css') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'application.css', 'test') === 0);
+  t.true(stdoutOccurenceCount(stdout, /ember CSS build error:/g) === 1);
+  t.true(stdoutOccurenceCount(stdout, /{ Error: Invalid CSS after "": expected 1 selector or at-rule, was "\.testing-class \[/g) === 1);
+
+  const firstSocket = new WebSocket(`ws://localhost:${TARGET_SOCKET_PORT}`);
+  const secondSocket = new WebSocket(`ws://localhost:${TARGET_SOCKET_PORT}`);
+
+  assertThatSocketReceivesMessage(firstSocket, t);
+  assertThatSocketReceivesMessage(secondSocket, t);
+
+  await testCSSErrorHandlingWorks(t, stdout, 'test');
+  await testApplicationJSErrorHandlingWorks(t, stdout, 'test');
+  await testApplicationHBSErrorHandlingWorks(t, stdout, 'test');
+  await testMemserverJSErrorHandlingWorks(t, stdout, 'test');
+  await testTestJSErrorHandlingWorks(t, stdout, 'test');
+
+  WebSocketServer.killWatchers();
+  WebSocketServer.close();
+  stopStdoutListening();
+  mock.removeMock();
+
+  await fs.remove('dummyapp');
+});
 
 async function testCSSErrorHandlingWorks(t, stdout, environment) {
   await writeCSSCode('/src/ui/styles/application.scss', `@import "vendor";
@@ -355,9 +405,64 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/memserver/models/user'));
 }
 
-// async function testTestJSErrorHandlingWorks(t, stdout, environment) {
-//
-// }
+async function testTestJSErrorHandlingWorks(t, stdout, environment) {
+  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', DEFAULT_INTEGRATION_TEST_TO_ADD);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 1);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
+
+  const firstContent = await readTestsJS();
+
+  t.true(occurrenceCount(firstContent, /this is added by this test/g) === 1);
+
+  await fs.mkdirp(`${PROJECT_ROOT}/tests/acceptance`);
+  await writeAcceptanceTestOnTestFolder('/homepage-test.js', JS_FILE_ERROR);
+
+  t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 2);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
+  t.true(stdoutOccurenceCount(stdout, /ember tests\.js build error:/g) === 1);
+  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ;/g) === 5); // NOTE: this doesnt tell which file
+
+  t.true(firstContent === await readTestsJS());
+
+  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', JS_TYPO_ERROR);
+
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 2);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 3);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
+  t.true(stdoutOccurenceCount(stdout, /ember tests\.js build error:/g) === 3);
+  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ,/g) === 5); // NOTE: this doesnt tell which file!!
+
+  t.true(firstContent === await readTestsJS());
+
+  await writeAcceptanceTestOnTestFolder('/homepage-test.js', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
+  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', DEFAULT_INTEGRATION_TEST_TO_ADD);
+
+  t.true(getChangeNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 5);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 2);
+
+  const secondContent = await readTestsJS();
+
+  t.true(occurrenceCount(secondContent, /this is added by this test'/g) === 2);
+  t.true(codeIncludesAMDModule(secondContent, 'dummyapp/src/ui/components/welcome-page/integration-test'));
+  t.true(codeIncludesAMDModule(secondContent, 'dummyapp/tests/acceptance/homepage-test'));
+
+  await removeIntegrationTestOnComponent('/welcome-page/integration-test.js');
+
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
+  t.true(getBuildingNotificationCount(stdout, 'tests.js') === 6);
+  t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 3);
+
+  const lastContent = await readTestsJS();
+
+  t.true(secondContent !== lastContent);
+  t.true(occurrenceCount(lastContent, /this is added by this test'/g) === 1);
+  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/tests/acceptance/homepage-test'));
+  t.true(!codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/integration-test'));
+}
 
 function stdoutOccurenceCount(stdout, targetString) {
   return occurrenceCount(stdout.join('\n'), targetString);
@@ -383,14 +488,6 @@ function writeComponentCode(path='/dummy-component/component.js', content=DEFAUL
   });
 }
 
-function removeFile(codePath) {
-  return new Promise(async (resolve) => {
-    await fs.remove(codePath);
-
-    setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD + 250);
-  });
-}
-
 function writeMemServerCode(path, content=DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/memserver${path}`, content);
@@ -403,7 +500,7 @@ function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_T
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/tests/acceptance${path}`, content);
 
-    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 250);
+    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 500);
   });
 }
 
@@ -411,7 +508,15 @@ function writeIntegrationTestOnComponent(path='/welcome-page/integration-test.js
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
-    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 250);
+    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 500);
+  });
+}
+
+function removeIntegrationTestOnComponent(path='/welcome-page/integration-test.js') {
+  return new Promise(async (resolve) => {
+    await fs.remove(`${PROJECT_ROOT}/src/ui/components${path}`);
+
+    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 500);
   });
 }
 

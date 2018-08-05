@@ -282,7 +282,7 @@ test.serial('it watches test files correctly', async (t) => {
 
   await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', DEFAULT_INTEGRATION_TEST_TO_ADD);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.j') === 1);
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 2);
 
@@ -294,7 +294,7 @@ test.serial('it watches test files correctly', async (t) => {
 
   await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/integration-test.js`);
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.j') === 1);
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 3);
 

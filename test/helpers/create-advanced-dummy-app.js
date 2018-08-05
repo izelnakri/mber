@@ -6,11 +6,11 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
   const PROJECT_ROOT = findProjectRoot();
   const APP_ROOT = `${PROJECT_ROOT}/${appName}`;
 
-  return new Promise((resolve) => {
+  return new Promise((resolvePromise) => {
     createDummyApp(appName).then(() => {
       return fs.mkdirp(`${APP_ROOT}/src/data/models/user`);
     }).then(() => {
-      return Promise.all([
+      const operations = [
         fs.writeFile(`${APP_ROOT}/src/data/models/user/model.js`, `
           import DS from 'ember-data';
 
@@ -90,8 +90,10 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
             })
           }
         `)
-      ] : []));
-    }).then(() => resolve(true))
+      ] : []);
+
+      return Promise.all(operations);
+    }).then(() => resolvePromise(true))
       .catch((error) => console.log('createDummyApp error:', error));
   });
 }

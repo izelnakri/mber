@@ -6,6 +6,7 @@ export default function() {
   const stopStdoutInterception = intercept(function(text) {
     stdout.push(stripANSI(text));
   });
-
+  stdout.length = 0;
+  
   return { stdout, stopStdoutListening: stopStdoutInterception };
 }
