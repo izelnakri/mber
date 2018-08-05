@@ -19,7 +19,8 @@ export default {
     this[`${type}${appendMetadata}`].push({ path: path, type: 'library', options: options });
   },
   importAddon(name, path, options={}) {
-    const PROJECT_ROOT = findProjectRoot();
+    const PROJECT_ROOT = (async () => await findProjectRoot())();
+
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${name}`;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
@@ -30,7 +31,7 @@ export default {
     });
   },
   importAsAMDModule(npmModuleName, path, options={}) {
-    const PROJECT_ROOT = findProjectRoot();
+    const PROJECT_ROOT = (async () => await findProjectRoot())();
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${npmModuleName}`;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
@@ -44,7 +45,7 @@ export default {
     this.indexHTMLInjections[keyName] = value;
   },
   build(environment) {
-    const PROJECT_ROOT = findProjectRoot();
+    const PROJECT_ROOT = (async () => await findProjectRoot())();
 
     return new Promise((resolve) => {
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));

@@ -3,10 +3,6 @@ import findProjectRoot from '../lib/utils/find-project-root';
 import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd';
 import transpileNPMImport from '../lib/transpilers/transpile-npm-imports';
 
-const PROJECT_PATH = findProjectRoot();
-const MODULE_PATH = `${PROJECT_PATH}/node_modules`;
-const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
-
 const removeFetch = `
   (function() {
     window.fetch = undefined;
@@ -22,7 +18,11 @@ const memserverResponseModule = convertESModuletoAMD(`
   }
 `, { moduleName: 'memserver/response' });
 
-function build() {
+async function build() {
+  const PROJECT_PATH = await findProjectRoot();
+  const MODULE_PATH = `${PROJECT_PATH}/node_modules`;
+  const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
+
   return Promise.all([
     fs.readFile(`${MODULE_PATH}/whatwg-fetch/fetch.js`),
     transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),

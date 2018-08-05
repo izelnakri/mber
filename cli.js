@@ -27,7 +27,7 @@ const CLI = {
     if (commandMatchesArray || (commandName === process.argv[2])) {
       shouldRunCommand = true;
 
-      return commandHandler();
+      return await commandHandler();
     }
   }
 };

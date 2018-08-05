@@ -9,10 +9,6 @@ import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-am
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
 const compileScssAsync = promisify(sass.render);
-
-const PROJECT_PATH = findProjectRoot();
-const MODULE_PATH = `${PROJECT_PATH}/node_modules`;
-const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
 const CSS_FILENAME = 'test-support.css';
 const JS_FILENAME = 'test-support.js';
 
@@ -26,7 +22,11 @@ function build() {
 build();
 
 function buildTestVendorCSS() {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
+    const PROJECT_PATH = await findProjectRoot();
+    const MODULE_PATH = `${PROJECT_PATH}/node_modules`;
+    const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
+
     Console.log(chalk.yellow('BUILDING:'), CSS_FILENAME);
 
     const timer = countTime();
@@ -55,10 +55,13 @@ function buildTestVendorCSS() {
 }
 
 function buildTestVendorJS() {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     Console.log(chalk.yellow('BUILDING:'), JS_FILENAME);
-
+    const PROJECT_PATH = await findProjectRoot();
+    const MODULE_PATH = `${PROJECT_PATH}/node_modules`;
+    const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
     const timer = countTime();
+
     return Promise.all([
       fs.readFile(`${VENDOR_PATH}/ember-testing.js`),
       fs.readFile(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),

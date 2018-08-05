@@ -14,7 +14,7 @@ function transpileFastbootModules() {
 
     const timer = countTime();
 
-    const PROJECT_PATH = findProjectRoot();
+    const PROJECT_PATH = await findProjectRoot();
     const OUTPUT_PATH = `${PROJECT_PATH}/vendor/fastboot/${FILENAME}`;
     const MODULE_PATH = `${PROJECT_PATH}/node_modules/ember-cli-fastboot`;
 

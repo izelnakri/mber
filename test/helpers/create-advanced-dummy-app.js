@@ -3,7 +3,7 @@ import findProjectRoot from '../../lib/utils/find-project-root';
 import createDummyApp from './create-dummy-app';
 
 export default async function(appName='dummyapp', options={ memserver: false }) {
-  const PROJECT_ROOT = findProjectRoot();
+  const PROJECT_ROOT = await findProjectRoot();
   const APP_ROOT = `${PROJECT_ROOT}/${appName}`;
 
   return new Promise((resolvePromise) => {

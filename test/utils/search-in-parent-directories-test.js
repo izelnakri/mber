@@ -33,36 +33,36 @@ test.after(async () => {
 });
 
 test.serial('searchInParentDirectories(directory, file) works for current directory', async (t) => {
-  const content = await fs.readFile(searchInParentDirectories(`${CWD}/online-shop/shoes`, 'shoe.js'));
+  const content = await fs.readFile(await searchInParentDirectories(`${CWD}/online-shop/shoes`, 'shoe.js'));
 
   t.deepEqual(content.toString(), '// find me in online-shop/shoes/shoe.js');
 });
 
 test.serial('searchInParentDirectories(directory, file) works for parent directory', async (t) => {
-  const content = await fs.readFile(searchInParentDirectories(`${CWD}/online-shop/shoes`, 'details.js'));
+  const content = await fs.readFile(await searchInParentDirectories(`${CWD}/online-shop/shoes`, 'details.js'));
 
   t.deepEqual(content.toString(), '// find me in online-shop/details.js');
 });
 
 test.serial('searchInParentDirectories(directory, file) works for 2 level parent directory', async (t) => {
-  const content = await fs.readFile(searchInParentDirectories(`${CWD}/online-shop/shoes/shoe`, 'details.js'));
+  const content = await fs.readFile(await searchInParentDirectories(`${CWD}/online-shop/shoes/shoe`, 'details.js'));
 
   t.deepEqual(content.toString(), '// find me in online-shop/details.js');
 });
 
 test.serial('searchInParentDirectories(directory, file) gets the right files when its duplicate in parents', async (t) => {
-  const content = await fs.readFile(searchInParentDirectories(`${CWD}/online-shop/shoes`, 'index.js'));
+  const content = await fs.readFile(await searchInParentDirectories(`${CWD}/online-shop/shoes`, 'index.js'));
 
   t.deepEqual(content.toString(), '// find me in online-shop/shoes/index.js');
 });
 
-test.serial('searchInParentDirectories(directory, file) should return undefined when nothing is find', (t) => {
-  t.deepEqual(searchInParentDirectories(`${CWD}/online-shop/shoes`, 'lol.js'), undefined);
+test.serial('searchInParentDirectories(directory, file) should return undefined when nothing is find', async (t) => {
+  t.deepEqual(await searchInParentDirectories(`${CWD}/online-shop/shoes`, 'lol.js'), undefined);
 });
 
 test.serial('searchInParentDirectories(".", file) works for current directory', async (t) => {
   const mock = mockProcessCWD(`${CWD}/online-shop/shoes`);
-  const content = await fs.readFile(searchInParentDirectories('.', 'shoe.js'));
+  const content = await fs.readFile(await searchInParentDirectories('.', 'shoe.js'));
 
   t.deepEqual(process.cwd(), `${CWD}/online-shop/shoes`);
   t.deepEqual(content.toString(), '// find me in online-shop/shoes/shoe.js');
@@ -72,7 +72,7 @@ test.serial('searchInParentDirectories(".", file) works for current directory', 
 
 test.serial('searchInParentDirectories(".", file) works for parent directory', async (t) => {
   const mock = mockProcessCWD(`${CWD}/online-shop/shoes`);
-  const content = await fs.readFile(searchInParentDirectories('.', 'details.js'));
+  const content = await fs.readFile(await searchInParentDirectories('.', 'details.js'));
 
   t.deepEqual(process.cwd(), `${CWD}/online-shop/shoes`);
   t.deepEqual(content.toString(), '// find me in online-shop/details.js');
@@ -82,7 +82,7 @@ test.serial('searchInParentDirectories(".", file) works for parent directory', a
 
 test.serial('searchInParentDirectories(".", file) works for 2 level parent directory', async (t) => {
   const mock = mockProcessCWD(`${CWD}/online-shop/shoes/shoe`);
-  const content = await fs.readFile(searchInParentDirectories('.', 'details.js'));
+  const content = await fs.readFile(await searchInParentDirectories('.', 'details.js'));
 
   t.deepEqual(process.cwd(), `${CWD}/online-shop/shoes/shoe`);
   t.deepEqual(content.toString(), '// find me in online-shop/details.js');
@@ -92,7 +92,7 @@ test.serial('searchInParentDirectories(".", file) works for 2 level parent direc
 
 test.serial('searchInParentDirectories(".", file) gets the right files when its duplicate in parents', async (t) => {
   const mock = mockProcessCWD(`${CWD}/online-shop/shoes`);
-  const content = await fs.readFile(searchInParentDirectories('.', 'index.js'));
+  const content = await fs.readFile(await searchInParentDirectories('.', 'index.js'));
 
   t.deepEqual(process.cwd(), `${CWD}/online-shop/shoes`);
   t.deepEqual(content.toString(), '// find me in online-shop/shoes/index.js');
@@ -100,10 +100,10 @@ test.serial('searchInParentDirectories(".", file) gets the right files when its 
   mock.removeMock();
 });
 
-test.serial('searchInParentDirectories(".", file) should return undefined when nothing is find', (t) => {
+test.serial('searchInParentDirectories(".", file) should return undefined when nothing is find', async (t) => {
   const mock = mockProcessCWD(`${CWD}/online-shop/shoes`);
 
-  t.deepEqual(searchInParentDirectories('.', 'lol.js'), undefined);
+  t.deepEqual(await searchInParentDirectories('.', 'lol.js'), undefined);
 
   mock.removeMock();
 });
