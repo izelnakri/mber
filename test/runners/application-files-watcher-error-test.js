@@ -101,7 +101,7 @@ const HBS_SYNTAX_ERROR = `
 test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
   await fs.remove('dummyapp');
 
-  t.plan(155);
+  t.plan(154);
 
   global.fastboot = {
     reload() {
@@ -160,7 +160,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
 test.serial('it handles css, js, hbs syntax errors gracefully without fastboot', async (t) => {
   await fs.remove('dummyapp');
 
-  t.plan(144);
+  t.plan(143);
 
   const TARGET_SOCKET_PORT = 8080;
   const mock = mockProcessCWD(PROJECT_ROOT);
@@ -296,7 +296,6 @@ async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 2);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
-  t.true(stdoutOccurenceCount(stdout, /ember application\.js build error:/g) === 3);
   t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ;/g) ===1);
 
   t.true(firstContent === await readApplicationJS());

@@ -52209,7 +52209,6 @@ define('ember-resolver/resolvers/classic/container-debug-adapter', ['exports', '
   'use strict';
 
   exports.__esModule = true;
-  var ContainerDebugAdapter = Ember.ContainerDebugAdapter;
 
 
   function getPod(type, key, prefix) {
@@ -52224,7 +52223,7 @@ define('ember-resolver/resolvers/classic/container-debug-adapter', ['exports', '
    * support for resolving from modules.
    *
    */
-  exports.default = ContainerDebugAdapter.extend({
+  exports.default = Ember.ContainerDebugAdapter.extend({
     _moduleRegistry: null,
 
     init: function () {
@@ -52344,13 +52343,17 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
     return ModuleRegistry;
   }();
 
-  var _Ember$String = Ember.String,
-      underscore = _Ember$String.underscore,
-      classify = _Ember$String.classify,
-      dasherize = _Ember$String.dasherize;
-  var get = Ember.get,
-      DefaultResolver = Ember.DefaultResolver;
-
+  /**
+   * This module defines a subclass of Ember.DefaultResolver that adds two
+   * important features:
+   *
+   *  1) The resolver makes the container aware of es6 modules via the AMD
+   *     output. The loader's _moduleEntries is consulted so that classes can be
+   *     resolved directly via the module loader, without needing a manual
+   *     `import`.
+   *  2) is able to provide injections to classes that implement `extend`
+   *     (as is typical with Ember).
+   */
 
   function parseName(fullName) {
     if (fullName.parsedName === true) {
@@ -52391,7 +52394,7 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
     }
 
     var fullNameWithoutType = name;
-    var namespace = get(this, 'namespace');
+    var namespace = Ember.get(this, 'namespace');
     var root = namespace;
 
     return {
@@ -52402,12 +52405,13 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
       fullNameWithoutType: fullNameWithoutType,
       name: name,
       root: root,
-      resolveMethodName: "resolve" + classify(type)
+      resolveMethodName: "resolve" + Ember.String.classify(type)
     };
   }
 
   function resolveOther(parsedName) {
-    Ember.assert('`modulePrefix` must be defined', this.namespace.modulePrefix);
+    (true && Ember.assert('`modulePrefix` must be defined', this.namespace.modulePrefix));
+
 
     var normalizedModuleName = this.findModuleName(parsedName);
 
@@ -52423,17 +52427,14 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
       }
 
       return defaultExport;
-    } else {
-      return this._super(parsedName);
     }
   }
 
   // Ember.DefaultResolver docs:
   //   https://github.com/emberjs/ember.js/blob/master/packages/ember-application/lib/system/resolver.js
-  var Resolver = DefaultResolver.extend({
+  var Resolver = Ember.Object.extend({
     resolveOther: resolveOther,
     parseName: parseName,
-    resolveTemplate: resolveOther,
     pluralizedTypes: null,
     moduleRegistry: null,
 
@@ -52463,6 +52464,21 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
     normalize: function (fullName) {
       return this._normalizeCache[fullName] || (this._normalizeCache[fullName] = this._normalize(fullName));
     },
+    resolve: function (fullName) {
+      var parsedName = this.parseName(fullName);
+      var resolveMethodName = parsedName.resolveMethodName;
+      var resolved = void 0;
+
+      if (typeof this[resolveMethodName] === 'function') {
+        resolved = this[resolveMethodName](parsedName);
+      }
+
+      if (resolved == null) {
+        resolved = this.resolveOther(parsedName);
+      }
+
+      return resolved;
+    },
     _normalize: function (fullName) {
       // A) Convert underscores to dashes
       // B) Convert camelCase to dash-case, except for helpers where we want to avoid shadowing camelCase expressions
@@ -52476,7 +52492,7 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
         if (split[0] === 'helper') {
           return split[0] + ':' + split[1].replace(/_/g, '-');
         } else {
-          return split[0] + ':' + dasherize(split[1].replace(/\./g, '/'));
+          return split[0] + ':' + Ember.String.dasherize(split[1].replace(/\./g, '/'));
         }
       } else {
         return fullName;
@@ -52522,10 +52538,18 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
       if (this._moduleRegistry.has(engineRoutesModule)) {
         var routeMap = this._extractDefaultExport(engineRoutesModule);
 
-        Ember.assert('The route map for ' + engineName + ' should be wrapped by \'buildRoutes\' before exporting.', routeMap.isRouteMap);
+        (true && Ember.assert('The route map for ' + engineName + ' should be wrapped by \'buildRoutes\' before exporting.', routeMap.isRouteMap));
+
 
         return routeMap;
       }
+    },
+    resolveTemplate: function (parsedName) {
+      var resolved = this.resolveOther(parsedName);
+      if (resolved == null) {
+        resolved = Ember.TEMPLATES[parsedName.fullNameWithoutType];
+      }
+      return resolved;
     },
     mainModuleName: function (parsedName) {
       if (parsedName.fullNameWithoutType === 'main') {
@@ -52587,9 +52611,7 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
       }
     },
     chooseModuleName: function (moduleName, parsedName) {
-      var _this = this;
-
-      var underscoredModuleName = underscore(moduleName);
+      var underscoredModuleName = Ember.String.underscore(moduleName);
 
       if (moduleName !== underscoredModuleName && this._moduleRegistry.has(moduleName) && this._moduleRegistry.has(underscoredModuleName)) {
         throw new TypeError('Ambiguous module names: \'' + moduleName + '\' and \'' + underscoredModuleName + '\'');
@@ -52605,22 +52627,23 @@ define('ember-resolver/resolvers/classic/index', ['exports', 'ember-resolver/uti
       var partializedModuleName = moduleName.replace(/\/-([^/]*)$/, '/_$1');
 
       if (this._moduleRegistry.has(partializedModuleName)) {
-        Ember.deprecate('Modules should not contain underscores. ' + 'Attempted to lookup "' + moduleName + '" which ' + 'was not found. Please rename "' + partializedModuleName + '" ' + 'to "' + moduleName + '" instead.', false, { id: 'ember-resolver.underscored-modules', until: '3.0.0' });
+        (true && !(false) && Ember.deprecate('Modules should not contain underscores. ' + 'Attempted to lookup "' + moduleName + '" which ' + 'was not found. Please rename "' + partializedModuleName + '" ' + 'to "' + moduleName + '" instead.', false, { id: 'ember-resolver.underscored-modules', until: '3.0.0' }));
+
 
         return partializedModuleName;
       }
 
-      Ember.runInDebug(function () {
+      if (true) {
         var isCamelCaseHelper = parsedName.type === 'helper' && /[a-z]+[A-Z]+/.test(moduleName);
         if (isCamelCaseHelper) {
-          _this._camelCaseHelperWarnedNames = _this._camelCaseHelperWarnedNames || [];
-          var alreadyWarned = _this._camelCaseHelperWarnedNames.indexOf(parsedName.fullName) > -1;
-          if (!alreadyWarned && _this._moduleRegistry.has(dasherize(moduleName))) {
-            _this._camelCaseHelperWarnedNames.push(parsedName.fullName);
-            Ember.warn('Attempted to lookup "' + parsedName.fullName + '" which ' + 'was not found. In previous versions of ember-resolver, a bug would have ' + 'caused the module at "' + dasherize(moduleName) + '" to be ' + 'returned for this camel case helper name. This has been fixed. ' + 'Use the dasherized name to resolve the module that would have been ' + 'returned in previous versions.', false, { id: 'ember-resolver.camelcase-helper-names', until: '3.0.0' });
+          this._camelCaseHelperWarnedNames = this._camelCaseHelperWarnedNames || [];
+          var alreadyWarned = this._camelCaseHelperWarnedNames.indexOf(parsedName.fullName) > -1;
+          if (!alreadyWarned && this._moduleRegistry.has(Ember.String.dasherize(moduleName))) {
+            this._camelCaseHelperWarnedNames.push(parsedName.fullName);
+            (true && Ember.warn('Attempted to lookup "' + parsedName.fullName + '" which ' + 'was not found. In previous versions of ember-resolver, a bug would have ' + 'caused the module at "' + Ember.String.dasherize(moduleName) + '" to be ' + 'returned for this camel case helper name. This has been fixed. ' + 'Use the dasherized name to resolve the module that would have been ' + 'returned in previous versions.', false, { id: 'ember-resolver.camelcase-helper-names', until: '3.0.0' }));
           }
         }
-      });
+      }
     },
     lookupDescription: function (fullName) {
       var parsedName = this.parseName(fullName);
@@ -52991,10 +53014,6 @@ define('ember-resolver/resolvers/glimmer-wrapper/index', ['exports', '@glimmer/r
     };
   }();
 
-  var DefaultResolver = Ember.DefaultResolver,
-      dasherize = Ember.String.dasherize;
-
-
   function slasherize(dotted) {
     return dotted.replace(/\./g, '/');
   }
@@ -53019,7 +53038,7 @@ define('ember-resolver/resolvers/glimmer-wrapper/index', ['exports', '@glimmer/r
       specifier = type + ':' + name;
     } else if (type === 'service') {
       /* Services may be camelCased */
-      specifier = 'service:' + dasherize(name);
+      specifier = 'service:' + Ember.String.dasherize(name);
     } else if (type === 'route') {
       /* Routes may have.dot.paths */
       specifier = 'route:' + slasherize(name);
@@ -53064,7 +53083,7 @@ define('ember-resolver/resolvers/glimmer-wrapper/index', ['exports', '@glimmer/r
    * this code extends from the DefaultResolver, it should never
    * call `_super` or call into that code.
    */
-  var Resolver = DefaultResolver.extend({
+  var Resolver = Ember.DefaultResolver.extend({
     init: function () {
       this._super.apply(this, arguments);
 

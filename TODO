@@ -1,5 +1,7 @@
+not upgraded: loader.js, ember-data, ember-source | ember babel-plugin-htmlbars-inline-precompile upgraded along with higher ember-resolver
 autoassign sockerPort if its in use
 eslint works
+make fs.exists lookups async
 display the error html page for hbs errors, css errors: js syntax errors also play a sound
 configuration file: .mber
 
@@ -10,8 +12,6 @@ make <!-- EMBER_CLI_FASTBOOT_TITLE --><!-- EMBER_CLI_FASTBOOT_HEAD --> optional
 
 add qunit-dom
 console command can also create a mock localStorage
-
-test that memserver changes works well with latest mber serve
 use streams instead of fs.readFile and fs.writeFile
 
 Testing todo:

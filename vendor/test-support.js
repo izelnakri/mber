@@ -8823,12 +8823,12 @@ define('@ember/test-helpers/setup-rendering-context', ['exports', '@ember/test-h
   /* globals EmberENV */
   var RENDERING_CLEANUP = exports.RENDERING_CLEANUP = Object.create(null);
   var OUTLET_TEMPLATE = Ember.HTMLBars.template({
-    "id": "em3WhaQV",
+    "id": null,
     "block": "{\"symbols\":[],\"statements\":[[1,[21,\"outlet\"],false]],\"hasEval\":false}",
     "meta": {}
   });
   var EMPTY_TEMPLATE = Ember.HTMLBars.template({
-    "id": "xOcW61lH",
+    "id": null,
     "block": "{\"symbols\":[],\"statements\":[],\"hasEval\":false}",
     "meta": {}
   });

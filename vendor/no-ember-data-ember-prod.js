@@ -3005,41 +3005,39 @@ e.__esModule=!0,Object.defineProperty(e,"default",{enumerable:!0,get:function(){
 e.__esModule=!0,e.default=function(e){return{create:function(t){return"function"==typeof e.extend?e.extend(t):e}}}}),define("ember-resolver/utils/make-dictionary",["exports"],function(e){"use strict"
 e.__esModule=!0,e.default=function(){var e=Object.create(null)
 return e._dict=null,delete e._dict,e}}),define("ember-resolver/resolvers/classic/container-debug-adapter",["exports","ember-resolver/resolvers/classic/index"],function(e,t){"use strict"
-e.__esModule=!0
-var n=Ember.ContainerDebugAdapter
-function r(e,t,n){var r=t.match(new RegExp("^/?"+n+"/(.+)/"+e+"$"))
-if(null!==r)return r[1]}e.default=n.extend({_moduleRegistry:null,init:function(){this._super.apply(this,arguments),this._moduleRegistry||(this._moduleRegistry=new t.ModuleRegistry)},canCatalogEntriesByType:function(e){return"model"===e||this._super.apply(this,arguments)},catalogEntriesByType:function(e){for(var t=this._moduleRegistry.moduleNames(),n=Ember.A(),i=this.namespace.modulePrefix,o=0,s=t.length;o<s;o++){var a=t[o]
-if(-1!==a.indexOf(e)){var u=r(e,a,this.namespace.podModulePrefix||i)
-u||(u=a.split(e+"s/").pop()),n.addObject(u)}}return n}})}),define("ember-resolver/resolvers/classic/index",["exports","ember-resolver/utils/class-factory","ember-resolver/utils/make-dictionary"],function(e,t,n){"use strict"
+function n(e,t,n){var r=t.match(new RegExp("^/?"+n+"/(.+)/"+e+"$"))
+if(null!==r)return r[1]}e.__esModule=!0,e.default=Ember.ContainerDebugAdapter.extend({_moduleRegistry:null,init:function(){this._super.apply(this,arguments),this._moduleRegistry||(this._moduleRegistry=new t.ModuleRegistry)},canCatalogEntriesByType:function(e){return"model"===e||this._super.apply(this,arguments)},catalogEntriesByType:function(e){for(var t=this._moduleRegistry.moduleNames(),r=Ember.A(),i=this.namespace.modulePrefix,o=0,s=t.length;o<s;o++){var a=t[o]
+if(-1!==a.indexOf(e)){var u=n(e,a,this.namespace.podModulePrefix||i)
+u||(u=a.split(e+"s/").pop()),r.addObject(u)}}return r}})}),define("ember-resolver/resolvers/classic/index",["exports","ember-resolver/utils/class-factory","ember-resolver/utils/make-dictionary"],function(e,t,n){"use strict"
 e.__esModule=!0,e.ModuleRegistry=void 0,void 0===requirejs.entries&&(requirejs.entries=requirejs._eak_seen)
-var r=e.ModuleRegistry=function(){function e(t){(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,e),this._entries=t||requirejs.entries}return e.prototype.moduleNames=function(){return Object.keys(this._entries)},e.prototype.has=function(e){return e in this._entries},e.prototype.get=function(e){return require(e)},e}(),i=Ember.String,o=i.underscore,s=i.classify,a=i.dasherize,u=Ember.get
-function l(e){Ember.assert("`modulePrefix` must be defined",this.namespace.modulePrefix)
-var n=this.findModuleName(e)
+var r=e.ModuleRegistry=function(){function e(t){(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,e),this._entries=t||requirejs.entries}return e.prototype.moduleNames=function(){return Object.keys(this._entries)},e.prototype.has=function(e){return e in this._entries},e.prototype.get=function(e){return require(e)},e}()
+var i=Ember.Object.extend({resolveOther:function(e){var n=this.findModuleName(e)
 if(n){var r=this._extractDefaultExport(n,e)
 if(void 0===r)throw new Error(" Expected to find: '"+e.fullName+"' within '"+n+"' but got 'undefined'. Did you forget to 'export default' within '"+n+"'?")
-return this.shouldWrapInClassFactory(r,e)&&(r=(0,t.default)(r)),r}return this._super(e)}var c=Ember.DefaultResolver.extend({resolveOther:l,parseName:function(e){if(!0===e.parsedName)return e
+return this.shouldWrapInClassFactory(r,e)&&(r=(0,t.default)(r)),r}},parseName:function(e){if(!0===e.parsedName)return e
 var t=void 0,n=void 0,r=void 0,i=e.split("@")
 if("helper:@content-helper"!==e&&2===i.length){var o=i[0].split(":")
 if(2===o.length)t=o[1],n=o[0],r=i[1]
-else{var a=i[1].split(":")
-t=i[0],n=a[0],r=a[1]}"template"===n&&0===t.lastIndexOf("components/",0)&&(r="components/"+r,t=t.slice(11))}else n=(i=e.split(":"))[0],r=i[1]
-var l=r,c=u(this,"namespace")
-return{parsedName:!0,fullName:e,prefix:t||this.prefix({type:n}),type:n,fullNameWithoutType:l,name:r,root:c,resolveMethodName:"resolve"+s(n)}},resolveTemplate:l,pluralizedTypes:null,moduleRegistry:null,makeToString:function(e,t){return this.namespace.modulePrefix+"@"+t+":"},shouldWrapInClassFactory:function(){return!1},init:function(){this._super(),this.moduleBasedResolver=!0,this._moduleRegistry||(this._moduleRegistry=new r),this._normalizeCache=(0,n.default)(),this.pluralizedTypes=this.pluralizedTypes||(0,n.default)(),this.pluralizedTypes.config||(this.pluralizedTypes.config="config"),this._deprecatedPodModulePrefix=!1},normalize:function(e){return this._normalizeCache[e]||(this._normalizeCache[e]=this._normalize(e))},_normalize:function(e){var t=e.split(":")
-return t.length>1?"helper"===t[0]?t[0]+":"+t[1].replace(/_/g,"-"):t[0]+":"+a(t[1].replace(/\./g,"/")):e},pluralize:function(e){return this.pluralizedTypes[e]||(this.pluralizedTypes[e]=e+"s")},podBasedLookupWithPrefix:function(e,t){var n=t.fullNameWithoutType
+else{var s=i[1].split(":")
+t=i[0],n=s[0],r=s[1]}"template"===n&&0===t.lastIndexOf("components/",0)&&(r="components/"+r,t=t.slice(11))}else n=(i=e.split(":"))[0],r=i[1]
+var a=r,u=Ember.get(this,"namespace")
+return{parsedName:!0,fullName:e,prefix:t||this.prefix({type:n}),type:n,fullNameWithoutType:a,name:r,root:u,resolveMethodName:"resolve"+Ember.String.classify(n)}},pluralizedTypes:null,moduleRegistry:null,makeToString:function(e,t){return this.namespace.modulePrefix+"@"+t+":"},shouldWrapInClassFactory:function(){return!1},init:function(){this._super(),this.moduleBasedResolver=!0,this._moduleRegistry||(this._moduleRegistry=new r),this._normalizeCache=(0,n.default)(),this.pluralizedTypes=this.pluralizedTypes||(0,n.default)(),this.pluralizedTypes.config||(this.pluralizedTypes.config="config"),this._deprecatedPodModulePrefix=!1},normalize:function(e){return this._normalizeCache[e]||(this._normalizeCache[e]=this._normalize(e))},resolve:function(e){var t=this.parseName(e),n=t.resolveMethodName,r=void 0
+return"function"==typeof this[n]&&(r=this[n](t)),null==r&&(r=this.resolveOther(t)),r},_normalize:function(e){var t=e.split(":")
+return t.length>1?"helper"===t[0]?t[0]+":"+t[1].replace(/_/g,"-"):t[0]+":"+Ember.String.dasherize(t[1].replace(/\./g,"/")):e},pluralize:function(e){return this.pluralizedTypes[e]||(this.pluralizedTypes[e]=e+"s")},podBasedLookupWithPrefix:function(e,t){var n=t.fullNameWithoutType
 return"template"===t.type&&(n=n.replace(/^components\//,"")),e+"/"+n+"/"+t.type},podBasedModuleName:function(e){var t=this.namespace.podModulePrefix||this.namespace.modulePrefix
 return this.podBasedLookupWithPrefix(t,e)},podBasedComponentsInSubdir:function(e){var t=this.namespace.podModulePrefix||this.namespace.modulePrefix
 if(t+="/components","component"===e.type||/^components/.test(e.fullNameWithoutType))return this.podBasedLookupWithPrefix(t,e)},resolveEngine:function(e){var t=e.fullNameWithoutType+"/engine"
 if(this._moduleRegistry.has(t))return this._extractDefaultExport(t)},resolveRouteMap:function(e){var t=e.fullNameWithoutType,n=t+"/routes"
 if(this._moduleRegistry.has(n)){var r=this._extractDefaultExport(n)
-return Ember.assert("The route map for "+t+" should be wrapped by 'buildRoutes' before exporting.",r.isRouteMap),r}},mainModuleName:function(e){if("main"===e.fullNameWithoutType)return e.prefix+"/"+e.type},defaultModuleName:function(e){return e.prefix+"/"+this.pluralize(e.type)+"/"+e.fullNameWithoutType},prefix:function(e){var t=this.namespace.modulePrefix
+return r}},resolveTemplate:function(e){var t=this.resolveOther(e)
+return null==t&&(t=Ember.TEMPLATES[e.fullNameWithoutType]),t},mainModuleName:function(e){if("main"===e.fullNameWithoutType)return e.prefix+"/"+e.type},defaultModuleName:function(e){return e.prefix+"/"+this.pluralize(e.type)+"/"+e.fullNameWithoutType},prefix:function(e){var t=this.namespace.modulePrefix
 return this.namespace[e.type+"Prefix"]&&(t=this.namespace[e.type+"Prefix"]),t},moduleNameLookupPatterns:Ember.computed(function(){return[this.podBasedModuleName,this.podBasedComponentsInSubdir,this.mainModuleName,this.defaultModuleName]}).readOnly(),findModuleName:function(e,t){for(var n=this.get("moduleNameLookupPatterns"),r=void 0,i=0,o=n.length;i<o;i++){var s=n[i].call(this,e)
-if(s&&(s=this.chooseModuleName(s,e)),s&&this._moduleRegistry.has(s)&&(r=s),t||this._logLookup(r,e,s),r)return r}},chooseModuleName:function(e,t){var n=this,r=o(e)
-if(e!==r&&this._moduleRegistry.has(e)&&this._moduleRegistry.has(r))throw new TypeError("Ambiguous module names: '"+e+"' and '"+r+"'")
+if(s&&(s=this.chooseModuleName(s,e)),s&&this._moduleRegistry.has(s)&&(r=s),t||this._logLookup(r,e,s),r)return r}},chooseModuleName:function(e,t){var n=Ember.String.underscore(e)
+if(e!==n&&this._moduleRegistry.has(e)&&this._moduleRegistry.has(n))throw new TypeError("Ambiguous module names: '"+e+"' and '"+n+"'")
 if(this._moduleRegistry.has(e))return e
-if(this._moduleRegistry.has(r))return r
-var i=e.replace(/\/-([^/]*)$/,"/_$1")
-if(this._moduleRegistry.has(i))return Ember.deprecate('Modules should not contain underscores. Attempted to lookup "'+e+'" which was not found. Please rename "'+i+'" to "'+e+'" instead.',!1,{id:"ember-resolver.underscored-modules",until:"3.0.0"}),i
-Ember.runInDebug(function(){"helper"===t.type&&/[a-z]+[A-Z]+/.test(e)&&(n._camelCaseHelperWarnedNames=n._camelCaseHelperWarnedNames||[],!(n._camelCaseHelperWarnedNames.indexOf(t.fullName)>-1)&&n._moduleRegistry.has(a(e))&&(n._camelCaseHelperWarnedNames.push(t.fullName),Ember.warn('Attempted to lookup "'+t.fullName+'" which was not found. In previous versions of ember-resolver, a bug would have caused the module at "'+a(e)+'" to be returned for this camel case helper name. This has been fixed. Use the dasherized name to resolve the module that would have been returned in previous versions.',!1,{id:"ember-resolver.camelcase-helper-names",until:"3.0.0"})))})},lookupDescription:function(e){var t=this.parseName(e)
+if(this._moduleRegistry.has(n))return n
+var r=e.replace(/\/-([^/]*)$/,"/_$1")
+return this._moduleRegistry.has(r)?r:void 0},lookupDescription:function(e){var t=this.parseName(e)
 return this.findModuleName(t,!0)},_logLookup:function(e,t,n){if(Ember.ENV.LOG_MODULE_RESOLVER||t.root.LOG_RESOLVER){var r=void 0,i=e?"[✓]":"[ ]"
 r=t.fullName.length>60?".":new Array(60-t.fullName.length).join("."),n||(n=this.lookupDescription(t)),console&&console.info&&console.info(i,t.fullName,r,n)}},knownForType:function(e){for(var t=this._moduleRegistry.moduleNames(),r=(0,n.default)(),i=0,o=t.length;i<o;i++){var s=t[i],a=this.translateToContainerFullname(e,s)
 a&&(r[a]=!0)}return r},translateToContainerFullname:function(e,t){var n=this.prefix({type:e}),r=n+"/",i="/"+e,o=t.indexOf(r),s=t.indexOf(i)
@@ -3047,7 +3045,7 @@ if(0===o&&s===t.length-i.length&&t.length>r.length+i.length)return e+":"+t.slice
 var a=n+"/"+this.pluralize(e)+"/"
 return 0===t.indexOf(a)&&t.length>a.length?e+":"+t.slice(a.length):void 0},_extractDefaultExport:function(e){var t=require(e,null,null,!0)
 return t&&t.default&&(t=t.default),t}})
-c.reopenClass({moduleBasedResolver:!0}),e.default=c}),define("ember-resolver/ember-config",["exports"],function(e){"use strict"
+i.reopenClass({moduleBasedResolver:!0}),e.default=i}),define("ember-resolver/ember-config",["exports"],function(e){"use strict"
 e.__esModule=!0,e.default=function(e){return{app:{name:e,rootName:e},types:{adapter:{definitiveCollection:"models"},application:{definitiveCollection:"main"},config:{definitiveCollection:"config"},controller:{definitiveCollection:"routes"},component:{definitiveCollection:"components"},"component-lookup":{definitiveCollection:"main"},event_dispatcher:{definitiveCollection:"main"},helper:{definitiveCollection:"components"},initializer:{definitiveCollection:"initializers"},"instance-initializers":{definitiveCollection:"instance-initializer"},location:{definitiveCollection:"main"},model:{definitiveCollection:"models"},partial:{definitiveCollection:"partials"},renderer:{definitiveCollection:"main"},route:{definitiveCollection:"routes"},router:{definitiveCollection:"main"},serializer:{definitiveCollection:"models"},service:{definitiveCollection:"services"},template:{definitiveCollection:"components"},"template-compiler":{definitiveCollection:"main"},transform:{definitiveCollection:"transforms"},view:{definitiveCollection:"views"},"-view-registry":{definitiveCollection:"main"},"-bucket-cache":{definitiveCollection:"main"},"-environment":{definitiveCollection:"main"},"-application-instance":{definitiveCollection:"main"}},collections:{main:{types:["router","-bucket-cache","component-lookup","-view-registry","event_dispatcher","application","location","renderer","-environment","-application-instance"]},components:{group:"ui",privateCollections:["utils"],types:["component","helper","template"]},config:{unresolvable:!0},initializers:{group:"init",defaultType:"initializer",privateCollections:["utils"],types:["initializer"]},"instance-initializers":{group:"init",defaultType:"instance-initializer",privateCollections:["utils"],types:["instance-initializers"]},models:{group:"data",defaultType:"model",privateCollections:["utils"],types:["model","adapter","serializer"]},partials:{group:"ui",defaultType:"partial",privateCollections:["utils"],types:["partial"]},routes:{group:"ui",defaultType:"route",privateCollections:["components","utils"],types:["route","controller","template"]},services:{defaultType:"service",privateCollections:["utils"],types:["service"]},utils:{unresolvable:!0},views:{defaultType:"view",privateCollections:["utils"],types:["view"]},transforms:{group:"data",defaultType:"transform",privateCollections:["utils"],types:["transform"]}}}}}),define("ember-resolver/module-registries/requirejs",["exports","@glimmer/di"],function(e,t){"use strict"
 e.__esModule=!0
 var n=function(){function e(t,n){var r=arguments.length>2&&void 0!==arguments[2]?arguments[2]:self.requirejs;(function(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")})(this,e),this._config=t,this._modulePrefix=n,this._require=r}return e.prototype._baseSegments=function(e){var t=this._config.collections[e.collection],n=t&&t.group,r=[e.rootName,this._modulePrefix]
@@ -3065,23 +3063,23 @@ e.__esModule=!0
 var r=function(){return function(e,t){if(Array.isArray(e))return e
 if(Symbol.iterator in Object(e))return function(e,t){var n=[],r=!0,i=!1,o=void 0
 try{for(var s,a=e[Symbol.iterator]();!(r=(s=a.next()).done)&&(n.push(s.value),!t||n.length!==t);r=!0);}catch(e){i=!0,o=e}finally{try{!r&&a.return&&a.return()}finally{if(i)throw o}}return n}(e,t)
-throw new TypeError("Invalid attempt to destructure non-iterable instance")}}(),i=Ember.DefaultResolver,o=Ember.String.dasherize
-function s(e){return e.replace(/\./g,"/")}var a=/^template:(.*\/)?_([\w-]+)/
-function u(e){return-1!==e.indexOf(":/")}function l(e,t,n){var i=e.split(":"),u=r(i,2),l=u[0],c=u[1]
-if(!c)return[e,null]
-if("component"===l&&c)e=l+":"+c
-else if("service"===l)e="service:"+o(c)
-else if("route"===l)e="route:"+s(c)
-else if("controller"===l)e="controller:"+s(c)
-else if("template"===l)if(c&&0===c.indexOf("components/")){e="template:"+c.slice(11)}else{var p=a.exec(e)
-if(p){e="partial:"+(p[1]||"")+p[2]}else{if(t)throw new Error("Cannot look up a route template "+e+" with a source")
-e="template",t="route:/"+n+"/routes/"+s(c)}}return[e,t]}var c=i.extend({init:function(){this._super.apply(this,arguments),this._configRootName=this.config.app.rootName||"app",this.glimmerModuleRegistry||(this.glimmerModuleRegistry=new n.default(this.config,"src")),this._glimmerResolver=new t.default(this.config,this.glimmerModuleRegistry)},normalize:null,expandLocalLookup:function(e,t,n){if(u(e))return e
-if(t||n){var i=n||this._configRootName,o=e.split(":"),s=r(o,1)[0]
-if(n)t=s+":/"+i+"/"
-else if(t){var a=t.split(":src/ui/")
-t=(t=a[0]+":/"+i+"/"+a[1]).split("/template.hbs")[0]}var c=l(e,t,i),p=r(c,2),h=p[0],f=p[1],d=this._glimmerResolver.identify(h,f)
+throw new TypeError("Invalid attempt to destructure non-iterable instance")}}()
+function i(e){return e.replace(/\./g,"/")}var o=/^template:(.*\/)?_([\w-]+)/
+function s(e){return-1!==e.indexOf(":/")}function a(e,t,n){var s=e.split(":"),a=r(s,2),u=a[0],l=a[1]
+if(!l)return[e,null]
+if("component"===u&&l)e=u+":"+l
+else if("service"===u)e="service:"+Ember.String.dasherize(l)
+else if("route"===u)e="route:"+i(l)
+else if("controller"===u)e="controller:"+i(l)
+else if("template"===u)if(l&&0===l.indexOf("components/")){e="template:"+l.slice(11)}else{var c=o.exec(e)
+if(c){e="partial:"+(c[1]||"")+c[2]}else{if(t)throw new Error("Cannot look up a route template "+e+" with a source")
+e="template",t="route:/"+n+"/routes/"+i(l)}}return[e,t]}var u=Ember.DefaultResolver.extend({init:function(){this._super.apply(this,arguments),this._configRootName=this.config.app.rootName||"app",this.glimmerModuleRegistry||(this.glimmerModuleRegistry=new n.default(this.config,"src")),this._glimmerResolver=new t.default(this.config,this.glimmerModuleRegistry)},normalize:null,expandLocalLookup:function(e,t,n){if(s(e))return e
+if(t||n){var i=n||this._configRootName,o=e.split(":"),u=r(o,1)[0]
+if(n)t=u+":/"+i+"/"
+else if(t){var l=t.split(":src/ui/")
+t=(t=l[0]+":/"+i+"/"+l[1]).split("/template.hbs")[0]}var c=a(e,t,i),p=r(c,2),h=p[0],f=p[1],d=this._glimmerResolver.identify(h,f)
 if(d)return d
 if(d=this._glimmerResolver.identify(h))return e}return e},resolve:function(e){var t=null
-if(!u(e)){var n=l(e,t,this._configRootName),i=r(n,2)
+if(!s(e)){var n=a(e,t,this._configRootName),i=r(n,2)
 e=i[0],t=i[1]}return this._glimmerResolver.resolve(e,t)}})
-e.default=c})
+e.default=u})
