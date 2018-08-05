@@ -499,7 +499,7 @@ function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_T
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/tests/acceptance${path}`, content);
 
-    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 500);
+    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 600);
   });
 }
 
@@ -507,7 +507,7 @@ function writeIntegrationTestOnComponent(path='/welcome-page/integration-test.js
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
-    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 500);
+    setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 600);
   });
 }
 
