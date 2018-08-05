@@ -2,6 +2,7 @@ NOTE: ember babel-plugin-htmlbars-inline-precompile upgraded along with higher e
 autoassign sockerPort if its in use
 eslint works
 make fs.exists lookups async
+investigate if you can make port and reload port the same
 display the error html page for hbs errors, css errors: js syntax errors also play a sound
 configuration file: .mber
 
