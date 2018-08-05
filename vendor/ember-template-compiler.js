@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.3.0
+ * @version   3.3.1
  */
 
 /*globals process */
@@ -153,6 +153,7 @@ enifed('@ember/canary-features/index', ['exports', '@ember/polyfills', 'ember-en
 
     /**
      @module ember/canary-features
+     @private
     */
     var DEFAULT_FEATURES = exports.DEFAULT_FEATURES = {
         EMBER_LIBRARIES_ISREGISTERED: false,
@@ -7721,7 +7722,7 @@ enifed('ember-utils', ['exports'], function (exports) {
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.3.0";
+  exports.default = "3.3.1";
 });
 enifed("handlebars", ["exports"], function (exports) {
   "use strict";

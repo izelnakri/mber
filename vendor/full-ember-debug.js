@@ -869,7 +869,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.3.0
+ * @version   3.3.1
  */
 
 /*globals process */
@@ -2382,6 +2382,7 @@ enifed('@ember/canary-features/index', ['exports', '@ember/polyfills', 'ember-en
 
     /**
      @module ember/canary-features
+     @private
     */
     var DEFAULT_FEATURES = exports.DEFAULT_FEATURES = {
         EMBER_LIBRARIES_ISREGISTERED: false,
@@ -38263,9 +38264,7 @@ enifed('ember-runtime/lib/copy', ['exports', '@ember/debug', 'ember-runtime/lib/
 
   /**
    @module @ember/object
-   @private
-   @deprecated Use 'ember-copy' addon instead
-   */
+  */
   function _copy(obj, deep, seen, copies) {
     // primitive data types are immutable, just return them.
     if (typeof obj !== 'object' || obj === null) {
@@ -38338,6 +38337,7 @@ enifed('ember-runtime/lib/copy', ['exports', '@ember/debug', 'ember-runtime/lib/
     is simply returned.
   
     @method copy
+    @deprecated Use 'ember-copy' addon instead
     @static
     @for @ember/object/internals
     @param {Object} obj The object to clone
@@ -46563,7 +46563,7 @@ enifed('ember/index', ['exports', 'require', 'ember-environment', 'node-module',
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.3.0";
+  exports.default = "3.3.1";
 });
 /*global enifed, module */
 enifed('node-module', ['exports'], function(_exports) {
@@ -58026,7 +58026,7 @@ define('ember-data/-private/system/many-array', ['exports', 'ember-data/-private
         if (isInitialized && diff.addedCount > 0) {
           //notify only on additions
           //TODO only notify if unloaded
-          this.relationship.notifyHasManyChanged();
+          this.relationship.notifyHasManyChange();
         }
       }
     },
@@ -62029,7 +62029,7 @@ define('ember-data/-private/system/store', ['exports', 'ember-data/-private/syst
 
         if (_relationshipData.links) {
           var isAsync = relationshipMeta.options && relationshipMeta.options.async !== false;
-          (true && Ember.warn('You pushed a record of type \'' + internalModel.type.modelName + '\' with a relationship \'' + relationshipName + '\' configured as \'async: false\'. You\'ve included a link but no primary data, this may be an error in your payload.', isAsync || _relationshipData.data, {
+          (true && Ember.warn('You pushed a record of type \'' + internalModel.modelName + '\' with a relationship \'' + relationshipName + '\' configured as \'async: false\'. You\'ve included a link but no primary data, this may be an error in your payload. EmberData will treat this relationship as known-to-be-empty.', isAsync || _relationshipData.data, {
             id: 'ds.store.push-link-for-sync-relationship'
           }));
         } else if (_relationshipData.data) {
@@ -63165,9 +63165,9 @@ define('ember-data/-private/system/model/internal-model', ['exports', 'ember-dat
       }
     };
 
-    InternalModel.prototype.notifyBelongsToChanged = function notifyBelongsToChanged(key, record) {
+    InternalModel.prototype.notifyBelongsToChange = function notifyBelongsToChange(key, record) {
       if (this.hasRecord) {
-        this._record.notifyBelongsToChanged(key, record);
+        this._record.notifyBelongsToChange(key, record);
       }
     };
 
@@ -64254,7 +64254,7 @@ define('ember-data/-private/system/model/model', ['exports', 'ember-data/-privat
         }
       };
     },
-    notifyBelongsToChanged: function (key) {
+    notifyBelongsToChange: function (key) {
       this.notifyPropertyChange(key);
     },
     eachRelationship: function (callback, binding) {
@@ -67748,6 +67748,7 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
       } else if (this.inverseInternalModel) {
         this.removeInternalModel(this.inverseInternalModel);
       }
+
       this.setHasAnyRelationshipData(true);
       this.setRelationshipIsStale(false);
       this.setRelationshipIsEmpty(false);
@@ -67791,7 +67792,7 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
 
     BelongsToRelationship.prototype.inverseDidDematerialize = function inverseDidDematerialize() {
       _Relationship.prototype.inverseDidDematerialize.call(this, this.inverseInternalModel);
-      this.notifyBelongsToChanged();
+      this.notifyBelongsToChange();
     };
 
     BelongsToRelationship.prototype.removeCompletelyFromOwn = function removeCompletelyFromOwn(internalModel) {
@@ -67803,7 +67804,7 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
 
       if (this.inverseInternalModel === internalModel) {
         this.inverseInternalModel = null;
-        this.notifyBelongsToChanged();
+        this.notifyBelongsToChange();
       }
     };
 
@@ -67822,7 +67823,7 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
       if (this.inverseInternalModel !== this.canonicalState) {
         this.inverseInternalModel = this.canonicalState;
         this._promiseProxy = null;
-        this.notifyBelongsToChanged();
+        this.notifyBelongsToChange();
       }
 
       _Relationship.prototype.flushCanonical.call(this);
@@ -67841,7 +67842,7 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
 
       this.inverseInternalModel = internalModel;
       _Relationship.prototype.addInternalModel.call(this, internalModel);
-      this.notifyBelongsToChanged();
+      this.notifyBelongsToChange();
     };
 
     BelongsToRelationship.prototype.setRecordPromise = function setRecordPromise(belongsToPromise) {
@@ -67862,18 +67863,24 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
       this.inverseInternalModel = null;
       this._promiseProxy = null;
       _Relationship.prototype.removeInternalModelFromOwn.call(this, internalModel);
-      this.notifyBelongsToChanged();
+      this.notifyBelongsToChange();
     };
 
     BelongsToRelationship.prototype.removeAllInternalModelsFromOwn = function removeAllInternalModelsFromOwn() {
       _Relationship.prototype.removeAllInternalModelsFromOwn.call(this);
       this.inverseInternalModel = null;
       this._promiseProxy = null;
-      this.notifyBelongsToChanged();
+      this.notifyBelongsToChange();
     };
 
-    BelongsToRelationship.prototype.notifyBelongsToChanged = function notifyBelongsToChanged() {
-      this.internalModel.notifyBelongsToChanged(this.key);
+    BelongsToRelationship.prototype.notifyBelongsToChange = function notifyBelongsToChange() {
+      if (this._promiseProxy !== null) {
+        var iM = this.inverseInternalModel;
+
+        this._updateLoadingPromise(proxyRecord(iM), iM ? iM.getRecord() : null);
+      }
+
+      this.internalModel.notifyBelongsToChange(this.key);
     };
 
     BelongsToRelationship.prototype.removeCanonicalInternalModelFromOwn = function removeCanonicalInternalModelFromOwn(internalModel) {
@@ -67954,9 +67961,7 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
 
       if (this.isAsync) {
         if (this._promiseProxy === null) {
-          var _promise = Ember.RSVP.resolve(this.inverseInternalModel).then(function (internalModel) {
-            return internalModel ? internalModel.getRecord() : null;
-          });
+          var _promise = proxyRecord(this.inverseInternalModel);
           this._updateLoadingPromise(_promise, record);
         }
 
@@ -68002,6 +68007,12 @@ define('ember-data/-private/system/relationships/state/belongs-to', ['exports', 
 
   exports.default = BelongsToRelationship;
 
+
+  function proxyRecord(internalModel) {
+    return Ember.RSVP.resolve(internalModel).then(function (resolvedInternalModel) {
+      return resolvedInternalModel ? resolvedInternalModel.getRecord() : null;
+    });
+  }
 
   function handleCompletedFind(relationship, error) {
     var internalModel = relationship.inverseInternalModel;
@@ -68257,7 +68268,7 @@ define('ember-data/-private/system/relationships/state/has-many', ['exports', 'e
         }
         this._removeInternalModelFromManyArray(this._retainedManyArray, inverseInternalModel);
       }
-      this.notifyHasManyChanged();
+      this.notifyHasManyChange();
     };
 
     ManyRelationship.prototype.addInternalModel = function addInternalModel(internalModel, idx) {
@@ -68513,7 +68524,7 @@ define('ember-data/-private/system/relationships/state/has-many', ['exports', 'e
       }
     };
 
-    ManyRelationship.prototype.notifyHasManyChanged = function notifyHasManyChanged() {
+    ManyRelationship.prototype.notifyHasManyChange = function notifyHasManyChange() {
       this.internalModel.notifyHasManyAdded(this.key);
     };
 
@@ -68674,6 +68685,7 @@ define('ember-data/-private/system/relationships/state/relationship', ['exports'
       this.canonicalMembers = new _orderedSet.default();
       this.store = store;
       this.key = relationshipMeta.key;
+      this.kind = relationshipMeta.kind;
       this.inverseKey = inverseKey;
       this.internalModel = internalModel;
       this.isAsync = typeof async === 'undefined' ? true : async;
@@ -69062,7 +69074,7 @@ define('ember-data/-private/system/relationships/state/relationship', ['exports'
     };
 
     Relationship.prototype.updateLink = function updateLink(link, initial) {
-      (true && Ember.warn('You pushed a record of type \'' + this.internalModel.modelName + '\' with a relationship \'' + this.key + '\' configured as \'async: false\'. You\'ve included a link but no primary data, this may be an error in your payload.', this.isAsync || this.hasAnyRelationshipData, {
+      (true && Ember.warn('You pushed a record of type \'' + this.internalModel.modelName + '\' with a relationship \'' + this.key + '\' configured as \'async: false\'. You\'ve included a link but no primary data, this may be an error in your payload. EmberData will treat this relationship as known-to-be-empty.', this.isAsync || this.hasAnyRelationshipData, {
         id: 'ds.store.push-link-for-sync-relationship'
       }));
       (true && Ember.assert('You have pushed a record of type \'' + this.internalModel.modelName + '\' with \'' + this.key + '\' as a link, but the value of that link is not a string.', typeof link === 'string' || link === null));
@@ -69206,6 +69218,11 @@ define('ember-data/-private/system/relationships/state/relationship', ['exports'
         this.updateData(payload.data, initial);
       } else if (payload._partialData !== undefined) {
         this.updateData(payload._partialData, initial);
+      } else if (this.isAsync === false) {
+        hasRelationshipDataProperty = true;
+        var data = this.kind === 'hasMany' ? [] : null;
+
+        this.updateData(data, initial);
       }
 
       if (payload.links && payload.links.related) {
@@ -69284,7 +69301,7 @@ define('ember-data/-private/system/relationships/state/relationship', ['exports'
 });
 
       define('ember-data/version', ['exports'], function (exports) {
-        exports.default = '3.3.0';
+        exports.default = '3.3.1';
       });
     
 define('ember-load-initializers/index', ['exports'], function (exports) {

@@ -1,4 +1,4 @@
-not upgraded: loader.js, ember-data, ember-source | ember babel-plugin-htmlbars-inline-precompile upgraded along with higher ember-resolver
+NOTE: ember babel-plugin-htmlbars-inline-precompile upgraded along with higher ember-resolver
 autoassign sockerPort if its in use
 eslint works
 make fs.exists lookups async

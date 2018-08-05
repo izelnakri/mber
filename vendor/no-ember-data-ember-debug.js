@@ -869,7 +869,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.3.0
+ * @version   3.3.1
  */
 
 /*globals process */
@@ -2382,6 +2382,7 @@ enifed('@ember/canary-features/index', ['exports', '@ember/polyfills', 'ember-en
 
     /**
      @module ember/canary-features
+     @private
     */
     var DEFAULT_FEATURES = exports.DEFAULT_FEATURES = {
         EMBER_LIBRARIES_ISREGISTERED: false,
@@ -38263,9 +38264,7 @@ enifed('ember-runtime/lib/copy', ['exports', '@ember/debug', 'ember-runtime/lib/
 
   /**
    @module @ember/object
-   @private
-   @deprecated Use 'ember-copy' addon instead
-   */
+  */
   function _copy(obj, deep, seen, copies) {
     // primitive data types are immutable, just return them.
     if (typeof obj !== 'object' || obj === null) {
@@ -38338,6 +38337,7 @@ enifed('ember-runtime/lib/copy', ['exports', '@ember/debug', 'ember-runtime/lib/
     is simply returned.
   
     @method copy
+    @deprecated Use 'ember-copy' addon instead
     @static
     @for @ember/object/internals
     @param {Object} obj The object to clone
@@ -46563,7 +46563,7 @@ enifed('ember/index', ['exports', 'require', 'ember-environment', 'node-module',
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.3.0";
+  exports.default = "3.3.1";
 });
 /*global enifed, module */
 enifed('node-module', ['exports'], function(_exports) {
