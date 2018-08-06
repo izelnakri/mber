@@ -115,7 +115,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
-  const WebSocketServer = applicationFilesWatcher({
+  const WebSocketServer = await applicationFilesWatcher({
     buildConfig: {
       ENV: {
         environment: 'memserver', modulePrefix: 'dummyapp',
@@ -169,7 +169,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
-  const WebSocketServer = applicationFilesWatcher({
+  const WebSocketServer = await applicationFilesWatcher({
     buildConfig: {
       ENV: {
         environment: 'test', modulePrefix: 'dummyapp',

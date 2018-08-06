@@ -97,7 +97,7 @@ test.serial('it watches correctly on development mode', async (t) => {
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
-  const WebSocketServer = applicationFilesWatcher({
+  const WebSocketServer = await applicationFilesWatcher({
     buildConfig: {
       ENV: { environment: 'development', modulePrefix: 'dummyapp' },
       buildCache: {}
@@ -145,7 +145,7 @@ test.serial('it watches memserver files correctly', async (t) => {
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
-  const WebSocketServer = applicationFilesWatcher({
+  const WebSocketServer = await applicationFilesWatcher({
     buildConfig: {
       ENV: {
         environment: 'memserver',
@@ -229,7 +229,7 @@ test.serial('it watches test files correctly', async (t) => {
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
-  const WebSocketServer = applicationFilesWatcher({
+  const WebSocketServer = await applicationFilesWatcher({
     buildConfig: {
       ENV: {
         environment: 'test',

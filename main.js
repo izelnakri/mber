@@ -8,6 +8,7 @@ import parseCLIArguments from './lib/utils/parse-cli-arguments';
 
 export default {
   indexHTMLInjections: {},
+  projectRoot: null,
   vendorPrepends: [],
   vendorAppends: [],
   applicationPrepends: [],
@@ -19,10 +20,8 @@ export default {
     this[`${type}${appendMetadata}`].push({ path: path, type: 'library', options: options });
   },
   importAddon(name, path, options={}) {
-    const PROJECT_ROOT = (async () => await findProjectRoot())();
-
     const OPTIONS = typeof path === 'object' ? path : options;
-    const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${name}`;
+    const PATH = typeof path === 'string' ? path : name;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
     const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
 
@@ -31,9 +30,8 @@ export default {
     });
   },
   importAsAMDModule(npmModuleName, path, options={}) {
-    const PROJECT_ROOT = (async () => await findProjectRoot())();
     const OPTIONS = typeof path === 'object' ? path : options;
-    const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${npmModuleName}`;
+    const PATH = typeof path === 'string' ? path : npmModuleName;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
     const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
 
@@ -45,9 +43,8 @@ export default {
     this.indexHTMLInjections[keyName] = value;
   },
   build(environment) {
-    const PROJECT_ROOT = (async () => await findProjectRoot())();
-
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      const PROJECT_ROOT = await findProjectRoot();
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
       const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
       const metaKeys = [
