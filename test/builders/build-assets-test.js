@@ -45,7 +45,8 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
 
   t.deepEqual(result, [false, false, false, false, false]);
 
-  await buildAssets(PROJECT_ROOT, {
+  await buildAssets({
+    projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('development'),
     entrypoint: `${PROJECT_ROOT}/index.html`
   });
@@ -73,7 +74,8 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
 
-  await buildAssets(PROJECT_ROOT, {
+  await buildAssets({
+    projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('development'),
     entrypoint: `${PROJECT_ROOT}/index.html`
   });
@@ -91,35 +93,6 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
   mock.removeMock();
 });
 
-// test.serial('buildAssets(projectRoot, buildConfig) ignoreIndexHTML works', async (t) => {
-//   t.plan(2);
-//
-//   const mock = mockProcessCWD(PROJECT_ROOT);
-//   const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`);
-//
-//   await fs.remove(`${PROJECT_ROOT}/tmp`);
-//
-//   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
-//
-//   await buildAssets(PROJECT_ROOT, {
-//     ENV: environmentFunction('development'),
-//     entrypoint: `${PROJECT_ROOT}/index.html`,
-//     ignoreIndexHTML: true
-//   });
-//
-//   const postResult = await Promise.all([
-//     fs.exists(APPLICATION_JS_OUTPUT_PATH),
-//     fs.exists(VENDOR_JS_OUTPUT_PATH),
-//     fs.exists(CSS_OUTPUT_PATH),
-//     fs.exists(INDEX_HTML_OUTPUT_PATH),
-//     fs.exists(MEMSERVER_OUTPUT_PATH)
-//   ]);
-//
-//   t.deepEqual(postResult, [true, true, true, false, false]);
-//
-//   mock.removeMock();
-// });
-
 test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async (t) => {
   t.plan(2);
 
@@ -130,7 +103,8 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
 
-  await buildAssets(PROJECT_ROOT, {
+  await buildAssets({
+    projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('memserver'),
     entrypoint: `${PROJECT_ROOT}/index.html`,
   });
@@ -158,9 +132,11 @@ test.serial('buildAssets(projectRoot, buildConfig) works for different endpoint'
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
 
-  await buildAssets(PROJECT_ROOT, {
+  global.MBER_TEST_RUNNER = true;
+
+  await buildAssets({
+    projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('test'),
-    entrypoint: `${PROJECT_ROOT}/tests/index.html`
   });
 
   const targetFiles = [
@@ -185,4 +161,6 @@ test.serial('buildAssets(projectRoot, buildConfig) works for different endpoint'
   })
 
   mock.removeMock();
+  
+  delete global.MBER_TEST_RUNNER;
 });

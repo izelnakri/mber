@@ -68,7 +68,8 @@ export default {
             cliArguments: Object.assign({
               fastboot: true,
               port: 1234,
-              socketPort: (global.MBER_BUILD && ENV.environment === 'production') ? null : 65511
+              socketPort: (global.MBER_BUILD && ENV.environment === 'production') ? null : 65511,
+              talk: true
             }, parseCLIArguments()),
             projectRoot: PROJECT_ROOT,
             buildCache: finishedBuild.reduce((result, code, index) => {

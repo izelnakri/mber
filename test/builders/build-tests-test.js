@@ -47,7 +47,7 @@ test.serial('buildTests(development) works', async (t) => {
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({ environment: 'development' });
+  const { message, stats } = await buildTests({ ENV: { environment: 'development' } });
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
@@ -74,7 +74,7 @@ test.serial('buildTests(test) works', async (t) => {
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({ environment: 'test' });
+  const { message, stats } = await buildTests({ ENV: { environment: 'test' } });
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
@@ -102,7 +102,7 @@ test.serial('buildTests(custom) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests({
-    environment: 'test-backend', modulePrefix: 'coolapp'
+    ENV: { environment: 'test-backend', modulePrefix: 'coolapp' }
   });
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
