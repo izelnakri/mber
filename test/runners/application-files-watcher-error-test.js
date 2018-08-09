@@ -116,16 +116,14 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
   const WebSocketServer = await applicationFilesWatcher({
-    buildConfig: {
-      ENV: {
-        environment: 'memserver', modulePrefix: 'dummyapp',
-        memserver: { enabled: true }
-      },
-      buildCache: {}
+    applicationName: 'dummyapp',
+    ENV: {
+      environment: 'memserver', modulePrefix: 'dummyapp',
+      memserver: { enabled: true }
     },
-    fastboot: true,
+    buildCache: {},
+    cliArguments: { fastboot: true, socketPort: DEFAULT_SOCKET_PORT },
     testing: true,
-    socketPort: DEFAULT_SOCKET_PORT
   });
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
@@ -170,16 +168,14 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
   const WebSocketServer = await applicationFilesWatcher({
-    buildConfig: {
-      ENV: {
-        environment: 'test', modulePrefix: 'dummyapp',
-        memserver: { enabled: true }
-      },
-      buildCache: {}
+    applicationName: 'dummyapp',
+    ENV: {
+      environment: 'test', modulePrefix: 'dummyapp',
+      memserver: { enabled: true }
     },
-    fastboot: false,
+    buildCache: {},
+    cliArguments: { fastboot: true, socketPort: TARGET_SOCKET_PORT },
     testing: true,
-    socketPort: TARGET_SOCKET_PORT
   });
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));

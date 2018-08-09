@@ -98,14 +98,10 @@ test.serial('it watches correctly on development mode', async (t) => {
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
   const WebSocketServer = await applicationFilesWatcher({
-    buildConfig: {
-      ENV: { environment: 'development', modulePrefix: 'dummyapp' },
-      buildCache: {}
-    },
-    buildDist: false,
-    entryPoint: null,
-    fastboot: true,
-    socketPort: TARGET_SOCKET_PORT
+    applicationName: 'dummyapp',
+    ENV: { environment: 'development', modulePrefix: 'dummyapp' },
+    buildCache: {},
+    cliArguments: { fastboot: true, socketPort: TARGET_SOCKET_PORT }
   });
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
@@ -146,20 +142,16 @@ test.serial('it watches memserver files correctly', async (t) => {
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
   const WebSocketServer = await applicationFilesWatcher({
-    buildConfig: {
-      ENV: {
-        environment: 'memserver',
-        modulePrefix: 'dummyapp',
-        memserver: {
-          enabled: true
-        }
-      },
-      buildCache: {}
+    applicationName: 'dummyapp',
+    ENV: {
+      environment: 'memserver',
+      modulePrefix: 'dummyapp',
+      memserver: {
+        enabled: true
+      }
     },
-    buildDist: false,
-    entryPoint: null,
-    fastboot: true,
-    socketPort: 65511
+    buildCache: {},
+    cliArguments: { fastboot: true, socketPort: 65511 }
   });
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
@@ -230,17 +222,16 @@ test.serial('it watches test files correctly', async (t) => {
   await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
   const WebSocketServer = await applicationFilesWatcher({
-    buildConfig: {
-      ENV: {
-        environment: 'test',
-        modulePrefix: 'dummyapp',
-        memserver: {
-          enabled: true
-        }
-      },
-      buildCache: {}
-     },
-    fastboot: false,
+    applicationName: 'dummyapp',
+    ENV: {
+      environment: 'test',
+      modulePrefix: 'dummyapp',
+      memserver: {
+        enabled: true
+      }
+    },
+    buildCache: {},
+    cliArguments: { fastboot: false, socketPort: DEFAULT_SOCKET_PORT },
     testing: true
   });
 

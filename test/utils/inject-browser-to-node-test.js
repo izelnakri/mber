@@ -129,7 +129,10 @@ test.serial('injectBrowserToNode() works url is provided', async (t) => {
     fs.copyFile(`${PROJECT_ROOT}/index.html`, `${PROJECT_ROOT}/tmp/index.html`)
   ]);
 
-  startHTTPServer({ environment: 'development' }, { fastboot: false, port: 1234 });
+  await startHTTPServer({
+    ENV: { environment: 'development', modulePrefix: 'frontend' },
+    cliArguments: { fastboot: false, port: 1234 }
+  });
 
   await injectBrowserToNode({ url: 'http://localhost:1234' });
 

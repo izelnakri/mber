@@ -1,3 +1,4 @@
+upgrade node-sass
 NOTE: ember babel-plugin-htmlbars-inline-precompile upgraded along with higher ember-resolver
 merge application server with tests
 autoassign sockerPort if its in use

@@ -11,7 +11,7 @@ import mockProcessCWD from '../helpers/mock-process-cwd';
 const CWD = process.cwd();
 const shell = promisify(exec);
 const PROJECT_ROOT = `${CWD}/dummyapp`;
-const HTTP_PORT = 4200;
+const HTTP_PORT = 1234;
 const BASE_CI_TEST_TIME_THRESHOLD = 25000;
 
 let childProcessTree = [];
@@ -42,7 +42,7 @@ test.serial('$ mber test -> runs successfully on ci mode', async (t) => {
 
   console.log(stdout);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:4200 (Environment: test)'));
+  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(stdout.includes('Integration | Component | welcome-page:'));
   t.true(stdout.includes('✔ should render correctly'));
   t.true(stdout.includes('Unit | Route | index:'));
@@ -83,7 +83,7 @@ test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
 
   t.true(exitCode === 1);
   t.true(stdout.includes('ember THERE IS A FAILED TEST!'));
-  t.true(stdout.includes('ember Server is running on http://localhost:4200 (Environment: test)'));
+  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(stdout.includes('Acceptance | /'));
   t.true(stdout.includes('✘ visitor can go to / and see the right content'));
   t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD + 5000)
@@ -105,7 +105,7 @@ test.serial('$ mber test --server -> builds test files successfully', async (t) 
 
   console.log('QUNIT_RESULT is', QUNIT_RESULT);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:4200 (Environment: test)'));
+  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(QUNIT_RESULT.passed === 4);
   t.true(QUNIT_RESULT.failed === 0);
   t.true(QUNIT_RESULT.total === 4);
@@ -131,7 +131,7 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
 
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:4200 (Environment: test)'));
+  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(QUNIT_RESULT.passed === 4);
   t.true(QUNIT_RESULT.failed === 0);
   t.true(QUNIT_RESULT.total === 4);
@@ -226,7 +226,7 @@ test.serial('$ mber test --server -> can run fail successfully and then watches 
 
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:4200 (Environment: test)'));
+  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(QUNIT_RESULT.passed === 5);
   t.true(QUNIT_RESULT.failed === 1);
   t.true(QUNIT_RESULT.total === 6);
@@ -273,7 +273,7 @@ async function spawnProcess(command, options) {
     childProcess.stdout.on('data', (data) => {
       stdout.push(data);
 
-      if (data.includes('Visit http://localhost:4200 to run your tests')) {
+      if (data.includes('Visit http://localhost:1234 to run your tests')) {
         setTimeout(() => {
           const result = stdout.join('');
           console.log('stdout is');
