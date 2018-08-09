@@ -34,12 +34,16 @@ test.serial('buildDistFolder() works', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
+
   const ENV = environmentFunc('development');
 
-  await buildAssets(PROJECT_ROOT, { ENV: ENV, entrypoint: `${PROJECT_ROOT}/index.html` });
+  await buildAssets({
+    applicationName: 'some-app',
+    ENV: ENV
+  });
 
   const timer = countTime();
-  const files = await buildDistFolder(`${PROJECT_ROOT}/tmp/index.html`, {
+  const files = await buildDistFolder({
     applicationName: 'some-app',
     ENV: ENV
   });
@@ -95,10 +99,10 @@ test.serial('buildDistFolder() works for different applicationName and memserver
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
-  await buildAssets(PROJECT_ROOT, { ENV: ENV, entrypoint: `${PROJECT_ROOT}/index.html` });
+  await buildAssets({ ENV: ENV });
 
   const timer = countTime();
-  const files = await buildDistFolder(`${PROJECT_ROOT}/tmp/index.html`, {
+  const files = await buildDistFolder({
     applicationName: 'some-app',
     ENV: ENV
   });
@@ -156,13 +160,14 @@ test.serial('buildDistFolder() works for fastboot: false', async (t) => {
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
-  await buildAssets(PROJECT_ROOT, { ENV: ENV, entrypoint: `${PROJECT_ROOT}/index.html` });
+  await buildAssets({ ENV: ENV });
 
   const timer = countTime();
-  const files = await buildDistFolder(`${PROJECT_ROOT}/tmp/index.html`, {
+  const files = await buildDistFolder({
     applicationName: 'some-app',
-    ENV: ENV
-  }, { fastboot: false });
+    ENV: ENV,
+    cliArguments: { fastboot: false }
+  });
   const timePassed = timer.stop();
 
   t.true(files.length === 3);
@@ -215,13 +220,17 @@ test.serial('buildDistFolder() works for different applicationName and memserver
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
-  await buildAssets(PROJECT_ROOT, { ENV: ENV, entrypoint: `${PROJECT_ROOT}/index.html` });
+  await buildAssets({
+    projectRoot: PROJECT_ROOT,
+    ENV: ENV
+  });
 
   const timer = countTime();
-  const files = await buildDistFolder(`${PROJECT_ROOT}/tmp/index.html`, {
+  const files = await buildDistFolder({
     applicationName: 'lol',
-    ENV: ENV
-  }, { fastboot: false });
+    ENV: ENV,
+    cliArguments: { fastboot: false }
+  });
   const timePassed = timer.stop();
 
   t.true(files.length === 4);
@@ -280,12 +289,13 @@ test.serial('buildDistFolder() works for different endpoint and resets dist when
   t.true(await fs.exists(`${PROJECT_ROOT}/dist`));
   t.true(await fs.exists(`${PROJECT_ROOT}/dist/assets/izel.js`));
 
-  await buildAssets(PROJECT_ROOT, { ENV: ENV, entrypoint: `${PROJECT_ROOT}/index.html` });
+  await buildAssets({ projectRoot: PROJECT_ROOT, ENV: ENV });
 
-  await buildDistFolder(`${PROJECT_ROOT}/tmp/index.html`, {
+  await buildDistFolder({
     applicationName: 'frontend',
-    ENV: ENV
-  }, { fastboot: false });
+    ENV: ENV,
+    cliArguments: { fastboot: false }
+  });
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets/izel.js`)));
 

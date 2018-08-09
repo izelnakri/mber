@@ -42,7 +42,7 @@ test.serial('$ mber new -> creates', async (t) => {
   t.true(stdout.includes('ember anotherapp ember application created. Next is to do:'));
   t.true(stdout.includes('$ cd anotherapp && npm install && mber s'));
 
-  const directoryEntries = fs.readdirSync('anotherapp');
+  const directoryEntries = await fs.readdir('anotherapp');
 
   [
     '.dockerignore', '.editorconfig', '.eslintrc.js', '.gitignore', 'config', 'index.html',

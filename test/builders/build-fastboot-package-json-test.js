@@ -34,7 +34,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
 
   t.true(!(await fs.exists(DEFAULT_PACKAGE_JSON_PATH)));
 
-  await buildFastbootPackageJSON(EXAMPLE_ASSET_MAP, EXAMPLE_ENV);
+  await buildFastbootPackageJSON(EXAMPLE_ASSET_MAP, { ENV: EXAMPLE_ENV });
 
   const packageJSONBuffer = await fs.readFile(DEFAULT_PACKAGE_JSON_PATH);
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
@@ -66,7 +66,7 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
 
   t.true(!(await fs.exists(TMP_PACKAGE_JSON_PATH)));
 
-  await buildFastbootPackageJSON(SECOND_EXAMPLE_ASSET_MAP, SECOND_EXAMPLE_ENV, 'tmp');
+  await buildFastbootPackageJSON(SECOND_EXAMPLE_ASSET_MAP, { ENV: SECOND_EXAMPLE_ENV }, 'tmp');
 
   const packageJSONBuffer = await fs.readFile(TMP_PACKAGE_JSON_PATH);
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
@@ -99,7 +99,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
 
   t.true(!(await fs.exists(DEFAULT_PACKAGE_JSON_PATH)));
 
-  await buildFastbootPackageJSON(EXAMPLE_ASSET_MAP, targetENV);
+  await buildFastbootPackageJSON(EXAMPLE_ASSET_MAP, { ENV: targetENV });
 
   const packageJSONBuffer = await fs.readFile(DEFAULT_PACKAGE_JSON_PATH);
   const packageJSON = JSON.parse(packageJSONBuffer.toString());

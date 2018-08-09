@@ -116,36 +116,35 @@ test.serial('injectBrowserToNode() works htmlPath is provided', async (t) => {
   t.true(document.querySelector('p').innerHTML === 'This is another written file');
 });
 
-test.cb('injectBrowserToNode() works url is provided', (t) => {
+test.serial('injectBrowserToNode() works url is provided', async (t) => {
   t.plan(10);
-  
-  (async () => {
-    const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
-    const mock = mockProcessCWD(PROJECT_ROOT);
-    const ENV = { modulePrefix: 'izelnakri', environment: 'development' };
-    await Promise.all([
-      buildApplication(ENV),
-      buildVendor(ENV),
-      buildCSS(),
-      fs.copyFile(`${PROJECT_ROOT}/index.html`, `${PROJECT_ROOT}/tmp/index.html`)
-    ]);
 
-    startHTTPServer({ environment: 'development' }, { fastboot: false, port: 1234 });
+  const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
+  const mock = mockProcessCWD(PROJECT_ROOT);
+  const ENV = { modulePrefix: 'izelnakri', environment: 'development' };
+  await Promise.all([
+    buildApplication(ENV),
+    buildVendor(ENV),
+    buildCSS(),
+    fs.copyFile(`${PROJECT_ROOT}/index.html`, `${PROJECT_ROOT}/tmp/index.html`)
+  ]);
 
-    await injectBrowserToNode({ url: 'http://localhost:1234' });
+  await startHTTPServer({
+    ENV: { environment: 'development', modulePrefix: 'frontend' },
+    cliArguments: { fastboot: false, port: 1234 }
+  });
 
-    const window = global.window;
+  await injectBrowserToNode({ url: 'http://localhost:1234' });
 
-    setTimeout(() => {
-      [
-        window, global.mainContext, global.document, global.self, window.Ember,
-        window.Ember.Object, window.requirejs, window.require, window.define
-      ].forEach((reference) => t.truthy(reference));
-      t.true(global.window.location.href === 'http://localhost:1234/');
+  const window = global.window;
 
-      mock.removeMock();
+  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
 
-      t.end();
-    }, 1000);
-  })();
+  [
+    window, global.mainContext, global.document, global.self, window.Ember,
+    window.Ember.Object, window.requirejs, window.require, window.define
+  ].forEach((reference) => t.truthy(reference));
+  t.true(global.window.location.href === 'http://localhost:1234/');
+
+  mock.removeMock();
 });

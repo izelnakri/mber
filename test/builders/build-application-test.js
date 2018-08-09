@@ -68,7 +68,7 @@ test.serial('buildApplication() works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.56 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -78,7 +78,9 @@ test.serial('buildApplication(development) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' });
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'development', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -122,7 +124,7 @@ test.serial('buildApplication(development) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.56 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -132,7 +134,9 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'production' });
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'production', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -161,7 +165,7 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[8\.01 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.03 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
@@ -171,7 +175,9 @@ test.serial('buildApplication(test) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'test' });
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'test', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -215,7 +221,7 @@ test.serial('buildApplication(test) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
-  t.true(/BUILT: application\.js in \d+ms \[11\.53 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.55 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -225,7 +231,9 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'demo' });
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'demo', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -254,7 +262,7 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
   t.true(stats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
-  t.true(/BUILT: application\.js in \d+ms \[8\.00 kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.03 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
@@ -265,7 +273,8 @@ test.serial('buildApplication(custom) works', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({
-    environment: 'custom', modulePrefix: 'my-app'
+    applicationName: 'my-app',
+    ENV: { environment: 'custom', modulePrefix: 'my-app' }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -308,8 +317,8 @@ test.serial('buildApplication(custom) works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/routes/index/unit-test'));
-  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
-  t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 41);
+  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 67);
+  t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 67);
   t.true(/BUILT: application\.js in \d+ms \[11\.49 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
@@ -321,8 +330,9 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' }, {
-    applicationPrepends: CODE_TO_PREPEND
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'development', modulePrefix: 'frontend' },
+    buildCache: { applicationPrepends: CODE_TO_PREPEND }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -345,8 +355,9 @@ test.serial('buildApplication(development, { applicationAppends }) work', async 
 
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' }, {
-    applicationAppends: CODE_TO_APPEND
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'development', modulePrefix: 'frontend' },
+    buildCache: { applicationAppends: CODE_TO_APPEND }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -370,8 +381,9 @@ test.serial('buildApplication(development, { applicationPrepends, applicationApp
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' }, {
-    applicationPrepends: CODE_TO_PREPEND, applicationAppends: CODE_TO_APPEND
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'development', modulePrefix: 'frontend' },
+    buildCache: { applicationPrepends: CODE_TO_PREPEND, applicationAppends: CODE_TO_APPEND }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')

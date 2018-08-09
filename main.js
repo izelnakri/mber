@@ -19,9 +19,8 @@ export default {
     this[`${type}${appendMetadata}`].push({ path: path, type: 'library', options: options });
   },
   importAddon(name, path, options={}) {
-    const PROJECT_ROOT = findProjectRoot();
     const OPTIONS = typeof path === 'object' ? path : options;
-    const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${name}`;
+    const PATH = typeof path === 'string' ? path : name;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
     const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
 
@@ -30,9 +29,8 @@ export default {
     });
   },
   importAsAMDModule(npmModuleName, path, options={}) {
-    const PROJECT_ROOT = findProjectRoot();
     const OPTIONS = typeof path === 'object' ? path : options;
-    const PATH = typeof path === 'string' ? path : `${PROJECT_ROOT}/node_modules/${npmModuleName}`;
+    const PATH = typeof path === 'string' ? path : npmModuleName;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
     const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
 
@@ -44,15 +42,13 @@ export default {
     this.indexHTMLInjections[keyName] = value;
   },
   build(environment) {
-    const PROJECT_ROOT = findProjectRoot();
-
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
+      const PROJECT_ROOT = await findProjectRoot();
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
       const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
-      const metaKeys = [
+      const buildMeta = [
         'vendorPrepends', 'vendorAppends', 'applicationPrepends', 'applicationAppends'
-      ];
-      const buildMeta = metaKeys.reduce((result, key) => {
+      ].reduce((result, key) => {
         if (this[key].length > 0) {
           return Object.assign(result, {
             [key]: readTranspile(PROJECT_ROOT, this[key], APPLICATION_NAME)
@@ -64,20 +60,23 @@ export default {
 
       Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
         .then(async (finishedBuild) => {
-          const buildCache = finishedBuild.reduce((result, code, index) => {
-            return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
-          }, {});
-          const cliArguments = parseCLIArguments();
-          const result = await buildAssets(PROJECT_ROOT, {
+          const result = await buildAssets({
             applicationName: ENV.modulePrefix || 'frontend',
             entrypoint: global.MBER_TEST_RUNNER ?
               `${PROJECT_ROOT}/tests/index.html` : `${PROJECT_ROOT}/index.html`,
             ENV: ENV,
-            cliArguments: cliArguments,
+            cliArguments: Object.assign({
+              fastboot: true,
+              port: 1234,
+              socketPort: (global.MBER_BUILD && ENV.environment === 'production') ? null : 65511,
+              talk: true
+            }, parseCLIArguments()),
             projectRoot: PROJECT_ROOT,
-            buildCache: buildCache,
+            buildCache: finishedBuild.reduce((result, code, index) => {
+              return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
+            }, {}),
             indexHTMLInjections: this.indexHTMLInjections,
-            runningTests: global.MBER_TEST_RUNNER || false
+            testing: global.MBER_TEST_RUNNER || false
           });
 
           resolve(result);
@@ -87,18 +86,16 @@ export default {
 }
 
 
-function readTranspile(PROJECT_ROOT, arrayOfImportableObjects, applicationName) {
+function readTranspile(projectRoot, arrayOfImportableObjects, applicationName) {
   return new Promise((resolve) => {
     Promise.all(arrayOfImportableObjects.map((importObject) => {
-      // TODO: add appImportTransformation to amdModule and addon types. Check on importObject.options.using
-
       if (importObject.type === 'amdModule') {
         return transpileNPMImports(importObject.name, importObject.path, importObject.options);
       } else if (importObject.type === 'addon') {
-        return importAddonToAMD(importObject.name, importObject.path, applicationName);
+        return importAddonToAMD(importObject.name, importObject.path, { applicationName, projectRoot });
       }
 
-      return appImportTransformation(importObject, PROJECT_ROOT);
+      return appImportTransformation(importObject, projectRoot);
     })).then((contents) => resolve(contents.join('\n')))
       .catch((error) => console.log('readTranspile error', error));
   });
@@ -111,11 +108,11 @@ function reportErrorAndExit(error)  {
   process.exit();
 }
 
-function importAddonToAMD(name, path, applicationName) {
+function importAddonToAMD(name, path, { applicationName, projectRoot }) {
   return new Promise((resolve) => {
     Promise.all([
-      importAddonFolderToAMD(name, `${path}/addon`),
-      importAddonFolderToAMD(applicationName, `${path}/app`)
+      importAddonFolderToAMD(name, `${path}/addon`, projectRoot),
+      importAddonFolderToAMD(applicationName, `${path}/app`, projectRoot)
     ]).then((content) => resolve(content.join('\n')));
   });
 }

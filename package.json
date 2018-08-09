@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "index.js",
   "engines": {
@@ -77,7 +77,7 @@
     "klaw": "^3.0.0",
     "memserver": "^1.1.7",
     "mustache": "^2.3.0",
-    "node-sass": "4.9.2",
+    "node-sass": "4.9.3",
     "ora": "^3.0.0",
     "puppeteer": "^1.6.2",
     "say": "^0.15.0",

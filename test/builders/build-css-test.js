@@ -44,7 +44,9 @@ test.serial('buildCSS(development) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, size } = await buildCSS('development');
+  const { message, size } = await buildCSS({
+    ENV: { environment: 'development', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
     .replace('ms', '')
@@ -66,7 +68,9 @@ test.serial('buildCSS(custom) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, size } = await buildCSS('custom');
+  const { message, size } = await buildCSS({
+    ENV: { environment: 'custom', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
     .replace('ms', '')
@@ -88,7 +92,9 @@ test.serial('buildCSS(production) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, size } = await buildCSS('production');
+  const { message, size } = await buildCSS({
+    ENV: { environment: 'production', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
     .replace('ms', '')
@@ -110,7 +116,9 @@ test.serial('buildCSS(demo) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, size } = await buildCSS('demo');
+  const { message, size } = await buildCSS({
+    ENV: { environment: 'demo', modulePrefix: 'frontend' }
+  });
   const timeTakenForBuild = message.match(/application\.css in \d+ms/g)[0]
     .replace('application.css in ', '')
     .replace('ms', '')

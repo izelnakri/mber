@@ -1,8 +1,8 @@
-NOTE: ember babel-plugin-htmlbars-inline-precompile upgraded along with higher ember-resolver
+merge application server with tests
+investigate if you can make port and reload port the same
 autoassign sockerPort if its in use
 eslint works
-make fs.exists lookups async
-display the error html page for hbs errors, css errors: js syntax errors also play a sound
+display the error html page for hbs errors, css errors: js syntax errors
 configuration file: .mber
 
 might be missing babel deps:
@@ -32,15 +32,9 @@ CDN
 
 add eslint-plugin-ember + eslint
 
-test:
-"_APPLICATION_TEMPLATE_WRAPPER": false,
-"_TEMPLATE_ONLY_GLIMMER_COMPONENTS": true
-
 - write appTransform tests
 - utils/fastboot-express-middleware unit tests are missing
 - add backend-test environment with tests
-
-
 
 ERROR Structures:
 build-css:

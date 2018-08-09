@@ -56,7 +56,7 @@ test.serial('buildMemserver(development) works', async (t) => {
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildMemserver({ environment: 'development' });
+  const { message, stats } = await buildMemserver({ ENV: { environment: 'development' } });
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_BUILD_TIME_THRESHOLD);
 
@@ -87,7 +87,7 @@ test.serial('buildMemserver(production) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver({
-    environment: 'production', memserver: { enabled: true, minify: true }
+    ENV: { environment: 'production', memserver: { enabled: true, minify: true } }
   });
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPRESSED_BUILD_THRESHOLD);
@@ -118,7 +118,7 @@ test.serial('buildMemserver(test) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver({
-    environment: 'test', memserver: { enabled: true }
+    ENV: { environment: 'test', memserver: { enabled: true } }
   });
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_BUILD_TIME_THRESHOLD);
@@ -149,7 +149,7 @@ test.serial('buildMemserver(demo) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver({
-    environment: 'demo', memserver: { enabled: true, minify: true }
+    ENV: { environment: 'demo', memserver: { enabled: true, minify: true } }
   });
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPRESSED_BUILD_THRESHOLD);
@@ -180,7 +180,7 @@ test.serial('buildMemserver(custom) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver({
-    environment: 'custom', memserver: { enabled: true }, modulePrefix: 'my-app'
+    ENV: { environment: 'custom', memserver: { enabled: true }, modulePrefix: 'my-app' }
   });
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_BUILD_TIME_THRESHOLD);

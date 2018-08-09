@@ -10,11 +10,11 @@ import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 function build(environment, options={ excludeEmberData: false }) {
   const FILENAME = getFileName(environment, options);
 
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     Console.log(chalk.yellow('BUILDING:'), `${FILENAME}...`);
 
     const timer = countTime();
-    const PROJECT_PATH = findProjectRoot();
+    const PROJECT_PATH = await findProjectRoot();
     const OUTPUT_PATH = `${PROJECT_PATH}/vendor/${FILENAME}.js`;
 
     return Promise.all(readBuildFiles(PROJECT_PATH, environment, options))
