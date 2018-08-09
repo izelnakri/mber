@@ -42,7 +42,6 @@ export default {
     this.indexHTMLInjections[keyName] = value;
   },
   build(environment) {
-    // TODO: many projectRoot caching could be done here
     return new Promise(async (resolve) => {
       const PROJECT_ROOT = await findProjectRoot();
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
@@ -69,7 +68,7 @@ export default {
             cliArguments: Object.assign({
               fastboot: true,
               port: 1234,
-              socketPort: 65511
+              socketPort: (global.MBER_BUILD && ENV.environment === 'production') ? null : 65511
             }, parseCLIArguments()),
             projectRoot: PROJECT_ROOT,
             buildCache: finishedBuild.reduce((result, code, index) => {

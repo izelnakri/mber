@@ -78,7 +78,7 @@ test.serial('buildApplication(development) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' });
+  const { message, stats } = await buildApplication({ ENV: { environment: 'development' } });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -132,7 +132,7 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'production' });
+  const { message, stats } = await buildApplication({ ENV: { environment: 'production' } });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -171,7 +171,7 @@ test.serial('buildApplication(test) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'test' });
+  const { message, stats } = await buildApplication({ ENV: { environment: 'test' } });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -225,7 +225,7 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'demo' });
+  const { message, stats } = await buildApplication({ ENV: { environment: 'demo' } });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -265,7 +265,8 @@ test.serial('buildApplication(custom) works', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({
-    environment: 'custom', modulePrefix: 'my-app'
+    applicationName: 'my-app',
+    ENV: { environment: 'custom', modulePrefix: 'my-app' }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -321,8 +322,9 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' }, {
-    applicationPrepends: CODE_TO_PREPEND
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'development' },
+    buildCache: { applicationPrepends: CODE_TO_PREPEND }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -345,8 +347,9 @@ test.serial('buildApplication(development, { applicationAppends }) work', async 
 
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' }, {
-    applicationAppends: CODE_TO_APPEND
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'development' },
+    buildCache: { applicationAppends: CODE_TO_APPEND }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
@@ -370,8 +373,9 @@ test.serial('buildApplication(development, { applicationPrepends, applicationApp
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { message, stats } = await buildApplication({ environment: 'development' }, {
-    applicationPrepends: CODE_TO_PREPEND, applicationAppends: CODE_TO_APPEND
+  const { message, stats } = await buildApplication({
+    ENV: { environment: 'development' } ,
+    buildCache: { applicationPrepends: CODE_TO_PREPEND, applicationAppends: CODE_TO_APPEND }
   });
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
