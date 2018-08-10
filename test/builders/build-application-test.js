@@ -62,13 +62,13 @@ test.serial('buildApplication() works', async (t) => {
         }
 
         if (typeof FastBoot === 'undefined' && !runningTests) {
-          require('frontend/src/main')['default'].create(require('frontend/config/environment').default.APP);
+          require('frontend/src/main')['default'].create(require('frontend/config/environment').default);
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.56 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.55 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -118,13 +118,13 @@ test.serial('buildApplication(development) works', async (t) => {
         }
 
         if (typeof FastBoot === 'undefined' && !runningTests) {
-          require('frontend/src/main')['default'].create(require('frontend/config/environment').default.APP);
+          require('frontend/src/main')['default'].create(require('frontend/config/environment').default);
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.56 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.55 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -215,7 +215,7 @@ test.serial('buildApplication(test) works', async (t) => {
         }
 
         if (typeof FastBoot === 'undefined' && !runningTests) {
-          require('frontend/src/main')['default'].create(require('frontend/config/environment').default.APP);
+          require('frontend/src/main')['default'].create(require('frontend/config/environment').default);
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
@@ -262,7 +262,7 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
   t.true(stats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
-  t.true(/BUILT: application\.js in \d+ms \[8\.03 kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.02 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
@@ -313,7 +313,7 @@ test.serial('buildApplication(custom) works', async (t) => {
         }
 
         if (typeof FastBoot === 'undefined' && !runningTests) {
-          require('my-app/src/main')['default'].create(require('my-app/config/environment').default.APP);
+          require('my-app/src/main')['default'].create(require('my-app/config/environment').default);
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/routes/index/unit-test'));
