@@ -115,7 +115,7 @@ test.serial('$ mber serve --env=production -> serves successfully', async (t) =>
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: production/g.test(stdout));
 
   let { html, document } = await testSuccessfullServe(t, stdout, {
-    memserver: false, fastboot: true
+    memserver: false, fastboot: true, production: true
   });
 
   t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
@@ -340,7 +340,7 @@ async function spawnProcess(command, options) {
   });
 }
 
-async function testSuccessfullServe(t, stdout, options={ memserver: false, fastboot: true }) {
+async function testSuccessfullServe(t, stdout, options={ memserver: false, fastboot: true, production: false }) {
   const [tmpAssetsFolder, indexHTMLBuffer, packageJSONExists] = await Promise.all([
     fs.readdir('./dummyapp/tmp/assets'),
     fs.readFile(OUTPUT_INDEX_HTML),
@@ -356,7 +356,7 @@ async function testSuccessfullServe(t, stdout, options={ memserver: false, fastb
     t.true(tmpAssetsFolder.some((entity) => /memserver\.js/g.test(entity)));
   }
 
-  options.fastboot ? t.true(packageJSONExists) : t.true(!packageJSONExists);
+  options.production ? t.true(!packageJSONExists) : t.true(packageJSONExists);
 
   if (options.fastboot) {
     t.true(indexHTML.includes('<!-- EMBER_CLI_FASTBOOT_TITLE -->'));
