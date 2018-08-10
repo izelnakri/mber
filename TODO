@@ -4,6 +4,7 @@ eslint works
 display the error html page for hbs errors, css errors: js syntax errors
 configuration file: .mber
 
+maybe fixate tests always to /tests so I can run fastboot tests on actual pages
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",
 ember-data prod might have polymorphic issue
