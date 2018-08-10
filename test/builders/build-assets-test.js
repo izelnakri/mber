@@ -134,8 +134,6 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
 
-  global.MBER_TEST_RUNNER = true;
-
   await buildAssets({
     projectRoot: PROJECT_ROOT,
     cliArguments: { testing: true },
@@ -166,6 +164,4 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
   t.true((await fs.exists(`${PROJECT_ROOT}/tmp/package.json`)));
 
   mock.removeMock();
-
-  delete global.MBER_TEST_RUNNER;
 });

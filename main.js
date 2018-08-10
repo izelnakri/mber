@@ -75,8 +75,6 @@ export default {
 
           const result = await buildAssets({
             applicationName: ENV.modulePrefix || 'frontend',
-            entrypoint: global.MBER_TEST_RUNNER ?
-              `${PROJECT_ROOT}/tests/index.html` : `${PROJECT_ROOT}/index.html`,
             ENV: ENV,
             cliArguments: Object.assign({}, CLI_ARGUMENTS, {
               port: targetPort,
