@@ -122,8 +122,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
       memserver: { enabled: true }
     },
     buildCache: {},
-    cliArguments: { fastboot: true, socketPort: DEFAULT_SOCKET_PORT },
-    testing: true,
+    cliArguments: { fastboot: true, socketPort: DEFAULT_SOCKET_PORT, testing: true }
   });
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
@@ -174,8 +173,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
       memserver: { enabled: true }
     },
     buildCache: {},
-    cliArguments: { fastboot: true, socketPort: TARGET_SOCKET_PORT },
-    testing: true,
+    cliArguments: { fastboot: true, socketPort: TARGET_SOCKET_PORT, testing: true }
   });
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));

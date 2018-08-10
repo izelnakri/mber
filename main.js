@@ -65,7 +65,8 @@ export default {
             fastboot: !global.MBER_TEST_RUNNER,
             port: 1234,
             socketPort: (global.MBER_BUILD || ENV.environment === 'production') ? null : 65511,
-            talk: true
+            talk: true,
+            testing: ENV.environment !== 'production'
           }, parseCLIArguments());
           const { socketPort, port } = CLI_ARGUMENTS;
           const targetPort = await resolvePortNumberFor('Web server', port);
@@ -85,8 +86,7 @@ export default {
             buildCache: finishedBuild.reduce((result, code, index) => {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
-            indexHTMLInjections: this.indexHTMLInjections,
-            testing: ENV.environment !== 'production'
+            indexHTMLInjections: this.indexHTMLInjections
           });
 
           resolve(result);
