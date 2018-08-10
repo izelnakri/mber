@@ -86,7 +86,7 @@ export default {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
             indexHTMLInjections: this.indexHTMLInjections,
-            testing: global.MBER_TEST_RUNNER || false
+            testing: ENV.environment !== 'production'
           });
 
           resolve(result);
