@@ -273,7 +273,7 @@ async function spawnProcess(command, options) {
     childProcess.stdout.on('data', (data) => {
       stdout.push(data);
 
-      if (data.includes('Visit http://localhost:1234 to run your tests')) {
+      if (data.includes('Visit http://localhost:1234/tests to run your tests')) {
         setTimeout(() => {
           const result = stdout.join('');
           console.log('stdout is');
@@ -308,9 +308,9 @@ async function runTestsInBrowser(url) {
     console.log(...args);
   });
 
-  await page.goto(url, { timeout: 0 });
+  await page.goto(`${url}/tests`, { timeout: 0 });
   await page.evaluate(() => {
-    QUnit.done((details) => {
+    window.QUnit.done((details) => {
       window.QUNIT_RESULT = details;
     });
   });

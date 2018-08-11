@@ -356,7 +356,7 @@ async function testSuccessfullServe(t, stdout, options={ memserver: false, fastb
     t.true(tmpAssetsFolder.some((entity) => /memserver\.js/g.test(entity)));
   }
 
-  options.fastboot ? t.true(packageJSONExists) : t.true(!packageJSONExists);
+  t.true(packageJSONExists);
 
   if (options.fastboot) {
     t.true(indexHTML.includes('<!-- EMBER_CLI_FASTBOOT_TITLE -->'));

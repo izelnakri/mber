@@ -1,9 +1,7 @@
-merge application server with tests
-investigate if you can make port and reload port the same
-autoassign sockerPort if its in use
+- add unit tests for resolvePortNumberFor + add e2e test for mber s + mber t while port is in use(so it changes)
 eslint works
-display the error html page for hbs errors, css errors: js syntax errors
 configuration file: .mber
+display the error html page for hbs errors, css errors: js syntax errors
 
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",
@@ -11,7 +9,6 @@ ember-data prod might have polymorphic issue
 make <!-- EMBER_CLI_FASTBOOT_TITLE --><!-- EMBER_CLI_FASTBOOT_HEAD --> optional
 
 add qunit-dom
-console command can also create a mock localStorage
 use streams instead of fs.readFile and fs.writeFile
 
 Testing todo:
@@ -28,7 +25,6 @@ addons to investigate:
 - ember-cli-csp
 // add generators
 CDN
-- allow overriding sandbox
 
 add eslint-plugin-ember + eslint
 

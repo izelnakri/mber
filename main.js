@@ -5,6 +5,7 @@ import appImportTransformation from './lib/transpilers/app-import-transformation
 import importAddonFolderToAMD from './lib/transpilers/import-addon-folder-to-amd';
 import transpileNPMImports from './lib/transpilers/transpile-npm-imports';
 import parseCLIArguments from './lib/utils/parse-cli-arguments';
+import resolvePortNumberFor from './lib/utils/resolve-port-number-for';
 
 export default {
   indexHTMLInjections: {},
@@ -60,23 +61,30 @@ export default {
 
       Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
         .then(async (finishedBuild) => {
+          const CLI_ARGUMENTS = Object.assign({
+            fastboot: true,
+            port: 1234,
+            socketPort: (global.MBER_BUILD || ENV.environment === 'production') ? null : 65511,
+            talk: true,
+            testing: ENV.environment !== 'production'
+          }, parseCLIArguments());
+          const { socketPort, port } = CLI_ARGUMENTS;
+          const targetPort = await resolvePortNumberFor('Web server', port);
+          const targetSocketPort = socketPort ?
+            (await resolvePortNumberFor('Websocket server', socketPort)) : null;
+
           const result = await buildAssets({
             applicationName: ENV.modulePrefix || 'frontend',
-            entrypoint: global.MBER_TEST_RUNNER ?
-              `${PROJECT_ROOT}/tests/index.html` : `${PROJECT_ROOT}/index.html`,
             ENV: ENV,
-            cliArguments: Object.assign({
-              fastboot: true,
-              port: 1234,
-              socketPort: (global.MBER_BUILD && ENV.environment === 'production') ? null : 65511,
-              talk: true
-            }, parseCLIArguments()),
+            cliArguments: Object.assign({}, CLI_ARGUMENTS, {
+              port: targetPort,
+              socketPort: targetSocketPort,
+            }),
             projectRoot: PROJECT_ROOT,
             buildCache: finishedBuild.reduce((result, code, index) => {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
-            indexHTMLInjections: this.indexHTMLInjections,
-            testing: global.MBER_TEST_RUNNER || false
+            indexHTMLInjections: this.indexHTMLInjections
           });
 
           resolve(result);

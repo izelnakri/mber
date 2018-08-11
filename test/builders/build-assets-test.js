@@ -47,8 +47,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
 
   await buildAssets({
     projectRoot: PROJECT_ROOT,
-    ENV: environmentFunction('development'),
-    entrypoint: `${PROJECT_ROOT}/index.html`
+    ENV: environmentFunction('development')
   });
 
   const postResult = await Promise.all([
@@ -56,10 +55,14 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
     fs.exists(VENDOR_JS_OUTPUT_PATH),
     fs.exists(CSS_OUTPUT_PATH),
     fs.exists(INDEX_HTML_OUTPUT_PATH),
-    fs.exists(MEMSERVER_OUTPUT_PATH)
+    fs.exists(MEMSERVER_OUTPUT_PATH),
+    fs.exists(`${PROJECT_ROOT}/tmp/assets/tests.js`),
+    fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.js`),
+    fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.css`),
+    fs.exists(`${PROJECT_ROOT}/tmp/package.json`),
   ]);
 
-  t.deepEqual(postResult, [true, true, true, true, false]);
+  t.deepEqual(postResult, [true, true, true, true, false, false, false, false, true]);
 
   mock.removeMock();
 });
@@ -105,8 +108,7 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
 
   await buildAssets({
     projectRoot: PROJECT_ROOT,
-    ENV: environmentFunction('memserver'),
-    entrypoint: `${PROJECT_ROOT}/index.html`,
+    ENV: environmentFunction('memserver')
   });
 
   const postResult = await Promise.all([
@@ -122,8 +124,8 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
   mock.removeMock();
 });
 
-test.serial('buildAssets(projectRoot, buildConfig) works for different endpoint', async (t) => {
-  t.plan(9);
+test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t) => {
+  t.plan(10);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`);
@@ -132,10 +134,9 @@ test.serial('buildAssets(projectRoot, buildConfig) works for different endpoint'
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
 
-  global.MBER_TEST_RUNNER = true;
-
   await buildAssets({
     projectRoot: PROJECT_ROOT,
+    cliArguments: { testing: true },
     ENV: environmentFunction('test'),
   });
 
@@ -152,15 +153,15 @@ test.serial('buildAssets(projectRoot, buildConfig) works for different endpoint'
     return fs.exists(`${PROJECT_ROOT}/tmp/${targetFile}`);
   }));
 
-  t.deepEqual(postResult, [true, true, true, true, false, false, false]);
+  t.deepEqual(postResult, [true, true, true, true, true, true, true]);
 
-  const indexHTML = (await fs.readFile(`${PROJECT_ROOT}/tmp/index.html`)).toString();
+  const testsHTML = (await fs.readFile(`${PROJECT_ROOT}/tmp/tests.html`)).toString();
 
   targetFiles.forEach((targetFile) => {
-    t.true(indexHTML.includes(targetFile));
+    t.true(testsHTML.includes(targetFile));
   })
 
+  t.true((await fs.exists(`${PROJECT_ROOT}/tmp/package.json`)));
+
   mock.removeMock();
-  
-  delete global.MBER_TEST_RUNNER;
 });

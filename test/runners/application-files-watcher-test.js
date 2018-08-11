@@ -231,8 +231,7 @@ test.serial('it watches test files correctly', async (t) => {
       }
     },
     buildCache: {},
-    cliArguments: { fastboot: false, socketPort: DEFAULT_SOCKET_PORT },
-    testing: true
+    cliArguments: { fastboot: false, socketPort: DEFAULT_SOCKET_PORT, testing: true }
   });
 
   await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));

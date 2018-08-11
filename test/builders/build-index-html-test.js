@@ -7,6 +7,7 @@ const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
 const DEFAULT_ENDPOINT = `${PROJECT_ROOT}/index.html`
 const OUTPUT_HTML_PATH = `${PROJECT_ROOT}/tmp/index.html`;
+const OUTPUT_TESTS_PATH = `${PROJECT_ROOT}/tmp/tests.html`;
 
 test.beforeEach(async () => {
   await fs.remove(`${PROJECT_ROOT}/tmp`);
@@ -45,7 +46,7 @@ test.serial('buildIndexHTML() works for different endpoint', async (t) => {
 
   t.true(result);
 
-  const html = (await fs.readFile(OUTPUT_HTML_PATH)).toString();
+  const html = (await fs.readFile(OUTPUT_TESTS_PATH)).toString();
 
   t.true(html.includes('assets/application.css'));
   t.true(html.includes('assets/application.js'));

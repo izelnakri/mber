@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="/assets/application.css">
     <link rel="stylesheet" href="/assets/test-support.css">
   </head>
-  <body>
+  <body style="margin: 0;">
     <div id="qunit"></div>
     <div id="qunit-fixture"></div>
 
@@ -18,15 +18,17 @@
       <div id="ember-testing"></div>
     </div>
 
+    <script type="text/javascript">
+      window.MBER_TEST_RUNNER = true; // NOTE: important to run the tests
+    </script>
     <script src="/assets/vendor.js"></script>
-    <script src="/assets/test-support.js"></script>
-    <script src="/assets/application.js"></script>
-    <script src="/assets/tests.js"></script>
-
     <script type="text/javascript">
       $(document).on('keydown', function(event) {
         event.keyCode === 80 ? $('#qunit-abort-tests-button').click() : null;
       });
     </script>
+    <script src="/assets/test-support.js"></script>
+    <script src="/assets/application.js"></script>
+    <script src="/assets/tests.js"></script>
   </body>
 </html>
