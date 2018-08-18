@@ -2,9 +2,7 @@
 eslint works
 configuration file: .mber
 make append/prepend JS to tests-support
-make ENV.locationType = 'none' always on test mode
 styleguide solution
-instead of window.MBER_TEST_RUNNER do smt like /tests lookup
 display the error html page for hbs errors, css errors: js syntax errors
 
 might be missing babel deps:
