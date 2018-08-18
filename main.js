@@ -61,7 +61,7 @@ export default {
 
       Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
         .then(async (finishedBuild) => {
-          const CLI_ARGUMENTS = Object.assign({
+          const CLI_ARGUMENTS = Object.assign({}, {
             fastboot: true,
             port: 1234,
             socketPort: (global.MBER_BUILD || ENV.environment === 'production') ? null : 65511,

@@ -11,7 +11,7 @@ module.exports = function(environment) {
     modulePrefix: '{{applicationName}}',
     environment,
     rootURL: '/',
-    locationType: 'none', // NOTE: important if you want to run your tests under /tests
+    locationType: 'auto',
     fastboot: {
       hostWhitelist: ['localhost:1234', 'localhost:3000', /^localhost:\d+$/]
     },
