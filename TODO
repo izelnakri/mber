@@ -4,6 +4,8 @@ configuration file: .mber
 make append/prepend JS to tests-support
 styleguide solution
 display the error html page for hbs errors, css errors: js syntax errors
+- we need to inject fastboot still to vendor.js because of fastboot service injections
+
 
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",

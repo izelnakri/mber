@@ -165,7 +165,7 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[8\.26 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.27 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
