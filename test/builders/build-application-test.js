@@ -68,7 +68,7 @@ test.serial('buildApplication() works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.69 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.99 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -124,7 +124,7 @@ test.serial('buildApplication(development) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[11\.69 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[11\.99 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -165,7 +165,7 @@ test.serial('buildApplication(production) works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE);
-  t.true(/BUILT: application\.js in \d+ms \[8\.13 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: application\.js in \d+ms \[8\.26 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
@@ -219,9 +219,9 @@ test.serial('buildApplication(test) works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
-  t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 7);
-  t.true(/BUILT: application\.js in \d+ms \[11\.69 kB\] Environment: test/g.test(message));
+  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 14);
+  t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 14);
+  t.true(/BUILT: application\.js in \d+ms \[11\.97 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -260,9 +260,9 @@ test.serial('buildApplication(demo) works', async (t) => {
   t.true(codeIncludesAMDModule(applicationJSCode, '~fastboot/app-factory'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-  t.true(applicationJSBuffer.length === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
-  t.true(stats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 6));
-  t.true(/BUILT: application\.js in \d+ms \[8\.12 kB\] Environment: demo/g.test(message));
+  t.true(applicationJSBuffer.length === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 12));
+  t.true(stats.size === (APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE - 12));
+  t.true(/BUILT: application\.js in \d+ms \[8\.25 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
@@ -317,9 +317,9 @@ test.serial('buildApplication(custom) works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'my-app/src/ui/routes/index/unit-test'));
-  t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE - 67);
-  t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE - 67);
-  t.true(/BUILT: application\.js in \d+ms \[11\.63 kB\] Environment: custom/g.test(message));
+  t.true(applicationJSBuffer.length < APPLICATION_JS_TARGET_BYTE_SIZE);
+  t.true(stats.size < APPLICATION_JS_TARGET_BYTE_SIZE);
+  t.true(/BUILT: application\.js in \d+ms \[11\.91 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
 });
