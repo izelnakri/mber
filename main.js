@@ -13,9 +13,11 @@ export default {
   vendorAppends: [],
   applicationPrepends: [],
   applicationAppends: [],
+  testPrepends: [],
+  testAppends: [],
   import(path, options={}) {
     const appendMetadata = options.prepend ? 'Prepends' : 'Appends';
-    const type = options.type === 'application' ? 'application' : 'vendor';
+    const type = options.type || 'application';
 
     this[`${type}${appendMetadata}`].push({ path: path, type: 'library', options: options });
   },
@@ -23,7 +25,7 @@ export default {
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : name;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
-    const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
+    const type = options.type || 'application';
 
     this[`${type}${appendMetadata}`].push({
       name: name, path: PATH, type: 'addon', options: OPTIONS
@@ -33,7 +35,7 @@ export default {
     const OPTIONS = typeof path === 'object' ? path : options;
     const PATH = typeof path === 'string' ? path : npmModuleName;
     const appendMetadata = OPTIONS.prepend ? 'Prepends' : 'Appends';
-    const type = OPTIONS.type === 'application' ? 'application' : 'vendor';
+    const type = options.type || 'application';
 
     this[`${type}${appendMetadata}`].push({
       name: npmModuleName, path: PATH, type: 'amdModule', options: OPTIONS
@@ -48,7 +50,8 @@ export default {
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
       const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
       const buildMeta = [
-        'vendorPrepends', 'vendorAppends', 'applicationPrepends', 'applicationAppends'
+        'vendorPrepends', 'vendorAppends', 'applicationPrepends', 'applicationAppends',
+        'testPrepends', 'testAppends'
       ].reduce((result, key) => {
         if (this[key].length > 0) {
           return Object.assign(result, {

@@ -279,7 +279,7 @@ module.exports = function(ENV) {
 
   if (environment === 'test') {
     app.importAsAMDModule('sinon', 'node_modules/sinon/pkg/sinon-no-sourcemaps.js', {
-      type: 'vendor', transpile: false
+      type: 'test', prepend: true, transpile: false
     });
   }
 
