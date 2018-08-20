@@ -46,7 +46,7 @@ test.serial('buildMemserver() works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.83 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.89 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -76,7 +76,7 @@ test.serial('buildMemserver(development) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.83 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.89 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -138,7 +138,7 @@ test.serial('buildMemserver(test) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.83 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.89 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -200,7 +200,7 @@ test.serial('buildMemserver(custom) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[295\.82 kB\] Environment: custom/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[295\.88 kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
 });
