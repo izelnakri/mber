@@ -1,3 +1,4 @@
+import eslint from 'eslint';
 import buildAssets from './lib/builders/build-assets';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';
@@ -75,7 +76,6 @@ export default {
           const targetPort = await resolvePortNumberFor('Web server', port);
           const targetSocketPort = socketPort ?
             (await resolvePortNumberFor('Websocket server', socketPort)) : null;
-
           const result = await buildAssets({
             applicationName: ENV.modulePrefix || 'frontend',
             ENV: ENV,
@@ -87,7 +87,8 @@ export default {
             buildCache: finishedBuild.reduce((result, code, index) => {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
-            indexHTMLInjections: this.indexHTMLInjections
+            indexHTMLInjections: this.indexHTMLInjections,
+            jsLinter: new eslint.CLIEngine(require(`${PROJECT_ROOT}/.eslintrc.js`)),
           });
 
           resolve(result);

@@ -2,7 +2,6 @@ import DS from 'ember-data';
 import { pluralize } from 'ember-inflector';
 // import { computed } from '@ember/object';
 import { dasherize } from '@ember/string';
-import { inject as service } from '@ember/service';
 import ENV from '../../../../config/environment';
 
 const { RESTAdapter, InvalidError, errorsHashToArray } = DS;

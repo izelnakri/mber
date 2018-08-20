@@ -1,2 +1,2 @@
-export default function(Models) {
+export default function(Models) { // eslint-disable-line
 }
