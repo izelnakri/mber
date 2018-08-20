@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "mber": "{{mberVersion}}",
+    "eslint": "^5.3.0",
     "eslint-plugin-ember": "^5.2.0"
   },
   "dependencies": {
