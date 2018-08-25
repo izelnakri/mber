@@ -3,15 +3,20 @@
 
 module.exports = function(environment) {
   let ENV = {
+    modulePrefix: '{{applicationName}}',
+    environment,
+    rootURL: '/',
+    locationType: 'auto',
+    documentation: {
+      path: '/somethingelse',
+      enabled: ['development', 'test', 'memserver', 'demo'].includes(environment),
+    },
     'ember-resolver': {
       features: {
         EMBER_RESOLVER_MODULE_UNIFICATION: true
       }
     },
-    modulePrefix: '{{applicationName}}',
-    environment,
-    rootURL: '/',
-    locationType: 'auto',
+    excludeEmberData: false,
     fastboot: {
       hostWhitelist: ['localhost:1234', 'localhost:3000', /^localhost:\d+$/]
     },

@@ -15,6 +15,10 @@ module.exports = function(ENV) {
     app.importAddon('ember-devtools', { type: 'vendor' });
   }
 
+  app.import('../lib/addons/mber-documentation/addon/index.js', {
+    type: 'vendor'
+  })
+
   if (ENV.googleAnalyticsId) {
     app.injectInlineContent('googleAnalytics', `
       <script>
