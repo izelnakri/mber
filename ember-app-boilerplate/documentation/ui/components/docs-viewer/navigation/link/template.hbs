@@ -1,0 +1,11 @@
+<li class="docs-viewer-navigation-link">
+  {{#if model}}
+    {{#link-to route model}}
+      {{label}}
+    {{/link-to}}
+  {{else}}
+    {{#link-to route}}
+      {{label}}
+    {{/link-to}}
+  {{/if}}
+</li>

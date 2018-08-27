@@ -9,10 +9,12 @@ const Router = EmberRouter.extend({
 
 Router.map(function() {
   this.route('index', { path: '/' });
-  this.route('not-found', { path: '/*path' });
+
   if (ENV.documentation && ENV.documentation.enabled) {
     DocumentationRouter.apply(this, [ENV]);
   }
+
+  this.route('not-found', { path: '/*path' });
 });
 
 export default Router;

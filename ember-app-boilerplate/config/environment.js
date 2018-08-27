@@ -8,7 +8,7 @@ module.exports = function(environment) {
     rootURL: '/',
     locationType: 'auto',
     documentation: {
-      path: '/somethingelse',
+      path: '/styleguide',
       enabled: ['development', 'test', 'memserver', 'demo'].includes(environment),
     },
     'ember-resolver': {

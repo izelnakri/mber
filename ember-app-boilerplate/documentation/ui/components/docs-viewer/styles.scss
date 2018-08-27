@@ -1,0 +1,96 @@
+.docs-viewer {
+  margin-top: 16px;
+  padding: 0 16px;
+  display: flex;
+
+  .docs-viewer-navigation {
+    max-height: 100vh;
+    overflow-y: scroll;
+    position: -webkit-sticky;
+    position: sticky;
+    width: 20%;
+    font-family: system-ui,BlinkMacSystemFont,-apple-system,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      .docs-viewer-navigation-title {
+        text-transform: uppercase;
+        font-size: 12px;
+        line-height: 19.5px;
+        letter-spacing: .05em;
+        color: #b8c2cc;
+        font-weight: 700;
+        margin-top: 25px;
+        margin-bottom: 5px;
+
+        &:first-of-type {
+          margin-top: 25px;
+        }
+      }
+
+      .docs-viewer-navigation-link {
+        padding: 7.5px 0;
+        font-size: 14px;
+
+        a {
+          color: #3d4852;
+          text-decoration: none;
+          display: block;
+
+          &.active {
+            font-weight: 700;
+          }
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
+  .docs-viewer-page {
+    width: 60%;
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: system-ui, system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      color: #3d4852;
+    }
+
+    h2 {
+      padding-top: 10px;
+    }
+
+    p, aside, li {
+      font-family: system-ui, system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+      color: rgb(34, 41, 47);
+      line-height: 26px;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      // TODO: edit these below
+      margin-bottom: 1.5rem;
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.25;
+      text-decoration: none;
+    }
+  }
+}
+
+
+// TODO: styling for <aside>
+
+
+
+
+// export default {
+//   mobile:  '(max-width: 767px)',
+//   tablet:  '(min-width: 768px) and (max-width: 991px)',
+//   desktop: '(min-width: 992px) and (max-width: 1200px)'
+// };

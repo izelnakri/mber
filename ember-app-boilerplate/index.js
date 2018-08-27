@@ -19,6 +19,19 @@ module.exports = function(ENV) {
     type: 'vendor'
   })
 
+  app.import('highlight.pack.js', {
+    type: 'vendor'
+  })
+  // app.import('node_modules/highlight.js/lib/languages/bash.js', {
+  //   type: 'vendor'
+  // })
+  // app.import('node_modules/highlight.js/lib/languages/json.js', {
+  //   type: 'vendor'
+  // })
+  // app.import('node_modules/highlight.js/lib/languages/scss.js', {
+  //   type: 'vendor'
+  // })
+  
   if (ENV.googleAnalyticsId) {
     app.injectInlineContent('googleAnalytics', `
       <script>

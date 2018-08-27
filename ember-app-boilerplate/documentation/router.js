@@ -3,6 +3,8 @@ export default function(ENV) {
     this.route('index', { path: '/' });
 
     this.route('introduction');
-    this.route('components');
+    this.route('components', function() {
+      this.route('demo');
+    });
   });
 }

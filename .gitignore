@@ -2,8 +2,8 @@ ember-app-boilerplate/tmp
 ember-app-boilerplate/dist
 node_modules
 dist/*
-example
-example/node_modules
+./example
+./example/node_modules
 ember-cli
 yarn-error.log
 .cache

@@ -1,0 +1,9 @@
+<!-- TODO: this turns the list items mobile/desktop -->
+<nav class="docs-viewer-navigation">
+  <ul>
+    {{yield (hash
+      title=(component 'docs-viewer/navigation/title')
+      link=(component 'docs-viewer/navigation/link')
+    )}}
+  </ul>
+</nav>

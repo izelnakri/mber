@@ -1,0 +1,26 @@
+.docs-snippet {
+  background: #f8fafc;
+  position: relative;
+
+  .docs-snippet-code-block {
+    margin-bottom: 15px;
+    font-size: 14px;
+
+    pre {
+      padding: 15px;
+    }
+  }
+
+  .docs-snippet-code-block-copy {
+    right: 0;
+    top: 0;
+    position: absolute;
+    padding: 12px;
+    font-size: 14px;
+    opacity: 0.5;
+    border-style: none;
+    background-color: none;
+    -webkit-appearance: button;
+    cursor: pointer;
+  }
+}

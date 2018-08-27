@@ -1,0 +1,9 @@
+<div class="docs-demo">
+
+  {{yield (hash
+    example=(component 'docs-demo/example')
+    snippet=(component 'docs-demo/snippet')
+  )}}
+
+  {{!-- NOTE: there should be activeSnippet prop on snippet --}}
+</div>

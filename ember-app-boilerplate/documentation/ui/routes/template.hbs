@@ -1,1 +1,26 @@
-{{outlet}}
+{{#docs-header logo="/images/ember-cli.svg" repository="https://github.com/izelnakri/mber" as |header|}}
+  {{#header.link "documentation.introduction"}}Documentation{{/header.link}}
+{{/docs-header}}
+
+{{#docs-viewer as |viewer|}}
+  {{#viewer.navigation as |nav|}}
+    {{nav.title "Introduction"}}
+    {{nav.link "What is Addon Docs?" "documentation.index"}}
+    {{nav.link 'Usage' "documentation.index"}}
+    {{nav.link 'Quickstart' "documentation.index"}}
+    {{nav.link 'Patterns' "documentation.index"}}
+    {{nav.link 'Deploying' "documentation.index"}}
+
+    {{nav.title 'Components'}}
+    {{nav.link 'Hero' "documentation.index"}}
+    {{nav.link 'Logo' "documentation.index"}}
+    {{nav.link 'Header' "documentation.index"}}
+    {{nav.link 'Snippet' "documentation.index"}}
+    {{nav.link 'Viewer' "documentation.index"}}
+    {{nav.link 'Demo' "documentation.components.demo"}}
+  {{/viewer.navigation}}
+
+  {{#viewer.page}}
+    {{outlet}}
+  {{/viewer.page}}
+{{/docs-viewer}}

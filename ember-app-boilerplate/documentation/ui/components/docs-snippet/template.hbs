@@ -1,0 +1,17 @@
+{{#if code}}
+  <div class="docs-snippet">
+    {{#if title}}
+
+    {{/if}}
+
+    <!-- TODO: uses ember-code-snippet for copyText and snippets!! -->
+    <!-- copy-button, code-snippet -->
+    <div class="docs-snippet-code-block">
+      {{#if showCopy}}
+        <button class="docs-snippet-code-block-copy">Copy</button>
+      {{/if}}
+
+      <pre><code>{{trimmedCode}}</code></pre>
+    </div>
+  </div>
+{{/if}}
