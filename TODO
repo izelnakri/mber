@@ -6,17 +6,15 @@ display the error html page for hbs errors, css errors: js syntax errors
 - add prember functionality
 
 styleguide TODO:
-- add clipboard.js
-- display autogenerate services, routes, components, models, helpers, utils(modules)
 - docs-snippet title
-- docs-demo (ADD INFO HERE, multiple snippets)
+- bottom left/right navigation
+- mobile left navigation
+- display autogenerate services, routes, components, models, helpers, utils(modules)
 - maybe docs-hero
-- edit on github link?
-- move to mber-addon
 - right side navigation!
 - make all h expect h1 tags linkable in docs-viewer-page
-- bottom left/right navigation
 - search
+- keyboard shortcuts
 
 
 might be missing babel deps:

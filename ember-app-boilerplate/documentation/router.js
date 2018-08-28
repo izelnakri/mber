@@ -4,6 +4,7 @@ export default function(ENV) {
 
     this.route('introduction');
     this.route('components', function() {
+      this.route('header');
       this.route('demo');
     });
   });

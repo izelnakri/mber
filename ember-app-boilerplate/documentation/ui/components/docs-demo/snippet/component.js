@@ -1,13 +1,20 @@
-// import { scheduleOnce } from '@ember/runloop';
 import Component from '@ember/component';
+import EmberObject from '@ember/object';
 
 export default Component.extend({
+  tagName: '',
   init() {
     this._super(...arguments);
-    //
-    // scheduleOnce('afterRender', () => {
-    //   this.get('did-init')(this.getProperties('name', 'label', 'language'))
-    // });
+
+    if (this.snippets) {
+      const code = this.code || '';
+
+      this.snippets.pushObject(EmberObject.create({
+        title: this.title || 'Example',
+        code: code,
+        trimmedCode: code.trim()
+      }));
+    }
   }
 }).reopenClass({
   positionalParams: ['name']

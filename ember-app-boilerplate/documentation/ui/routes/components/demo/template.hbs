@@ -40,44 +40,129 @@
     </div>
   {{/demo.example}}
 
-  {{demo.snippet label="template.hbs" code="
+  {{demo.snippet title="template.hbs" code='
+  <p>I am a <strong>handlebars</strong> template!</p>
+  <p>The value is: {{val}}</p>
+  <div>
+    {{input value=val class="border"}}
+  </div>
+  '}}
+{{/docs-demo}}
+
+<p>
+  Here's the code that rendered the above demo (you can copy-paste this block to get going in your own app):
+</p>
+
+{{docs-snippet code='
+  {{#docs-demo as |demo|}}
+    {{#demo.example}}
+      <p>I am a <strong>handlebars</strong> template!</p>
+      <p>The value is: {{val}}</p>
+      <div>
+        {{input value=val class="border"}}
+      </div>
+    {{/demo.example}}
+
+    {{demo.snippet title="template.hbs" code=\'
     <p>I am a <strong>handlebars</strong> template!</p>
     <p>The value is: {{val}}</p>
     <div>
-      {{input value=val class='border'}}
-    </div>"}}
+      {{input value=val class="border"}}
+    </div>
+    \'}}
+  {{/docs-demo}}'}}
+
+<p>
+  To explain,
+</p>
+
+<ul>
+  <li><code>{docs-demo}</code> is the wrapping component
+  </li>
+  <li>
+    The contextual component <code>{#demo.example}{/demo.example}</code> provides a wrapper to display your example. You'll pass a block to this component with the actual code you're demoing - for example, showing off how to use your button.
+  </li>
+  <li>
+    You also need to pass a <code>name=</code> to demo.example in order to identify your snippet.
+  </li>
+  <li>
+    Finally, the <code>{demo.snippet}</code> component lets you render different named snippets that you've identified via demo.example wrappers or other code comment blocks in your source.
+  </li>
+</ul>
+
+<h2>Multiple snippets</h2>
+
+<p>
+  You can render multiple snippets to support your example. This can be useful when part of your example relies on code defined elsewhere, for example in a controller or stylesheet.
+</p>
+
+<p>
+  Use a file extension to help docs-snippet identify and properly syntax highlight your snippet. Templates end in <code>.hbs</code>, JavaScript snippets end in <code>.js</code>, stylesheets in <code>.css</code> or <code>.scss</code>.
+</p>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+    {{docs-dummy-example}}
+  {{/demo.example}}
+
+  {{demo.snippet title="template.hbs" code='
+  <button onclick={{action "toggleIsShowing"}} class="docs-btn">
+    Press me!
+  </button>
+
+  <p class="mt-4">
+    {{#if isShowing}}
+      Yep
+    {{else}}
+      Nope
+    {{/if}}
+  </p>
+'}}
+  {{demo.snippet title="component.js" code="
+  import Component from '@ember/component';
+
+  export default Component.extend({
+    classNames: ['docs-dummy-example'],
+    actions: {
+      toggleIsShowing() {
+        this.toggleProperty('isShowing');
+      }
+    }
+  });
+  "}}
 {{/docs-demo}}
 
-{{!--}}
-{{docs/components/docs-demo/demo1}}
-
-Here's the code that rendered the above demo (you can copy-paste this block to get going in your own app):
-
-{{docs-snippet name='docs-demo-basic-src.hbs'}}
-{{--}}
-
-{{!--}}
-To explain,
-
-- `{{docs-demo}}` is the wrapping component
-- The contextual component `{{#demo.example}}{{/demo.example}}` provides a wrapper to display your example. You'll pass a block to this component with the actual code you're demoing - for example, showing off how to use your button.
-- You also need to pass a `name=` to demo.example in order to identify your snippet.
-- Finally, the `{{demo.snippet}}` component lets you render different named snippets that you've identified via demo.example wrappers or other code comment blocks in your source.
-
-## Multiple snippets
-
-You can render multiple snippets to support your example. This can be useful when part of your example relies on code defined elsewhere, for example in a controller or stylesheet.
-
-Use a file extension to help docs-snippet identify and properly syntax highlight your snippet. Templates end in `.hbs`, JavaScript snippets end in `.js`, stylesheets in `.css` or `.scss`.
-
-{{docs/components/docs-demo/demo2}}
-{{--}}
 <h2>Custom Snippet Handling</h2>
 
 <p>
-  If you wish to override the inferred label or syntax highlighting for a snippet, you can specify `label` and `language` properties.
+  If you wish to override the inferred label or syntax highlighting for a snippet, you can specify <code>label</code> and <code>language</code> properties.
 </p>
 
-{{!--}}
-{{docs/components/docs-demo/demo3}}
-{{--}}
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+  <pre>
+  # Markdown
+  - Has syntax highlighting, too
+  </pre>
+  {{/demo.example}}
+
+  {{demo.snippet title="Source" code='
+  {{#docs-demo as |demo|}}
+    {{#demo.example name="docs-demo-custom.md"}}
+      <pre>
+      # Markdown
+      - Has syntax highlighting, too
+      </pre>
+    {{/demo.example}}
+
+    {{demo.snippet title="Source"}}
+    {{demo.snippet title="My Custom Label"}}
+  {{/docs-demo}}
+  '}}
+  {{demo.snippet title="My Custom Label" code='
+  <pre>
+  # Markdown
+  - Has syntax highlighting, too
+  </pre>
+  '}}
+{{/docs-demo}}
