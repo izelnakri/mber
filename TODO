@@ -6,16 +6,11 @@ display the error html page for hbs errors, css errors: js syntax errors
 - add prember functionality
 
 styleguide TODO:
-- docs-snippet title
-- bottom left/right navigation
-- mobile left navigation
 - display autogenerate services, routes, components, models, helpers, utils(modules)
-- maybe docs-hero
 - right side navigation!
 - make all h expect h1 tags linkable in docs-viewer-page
 - search
 - keyboard shortcuts
-
 
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",

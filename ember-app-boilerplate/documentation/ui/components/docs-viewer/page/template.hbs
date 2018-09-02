@@ -1,24 +1,5 @@
 <div class="docs-viewer-page">
   {{yield}}
 
-  <p>
-    Current route is {{docsRoute.currentRoute.route}}
-  </p>
-  {{#if docsRoute.previousRoute}}
-    <div class='docs-text-sm docs-text-grey-dark'>
-      Previous
-    </div>
-    {{#link-to docsRoute.previousRoute.route}}
-      {{docsRoute.previousRoute.label}}
-    {{/link-to}}
-  {{/if}}
-
-  {{#if docsRoute.nextRoute}}
-    <div class='docs-text-sm docs-text-grey-dark'>
-      Next
-    </div>
-    {{#link-to docsRoute.nextRoute.route}}
-      {{docsRoute.nextRoute.label}}
-    {{/link-to}}
-  {{/if}}
+  {{docs-bottom-links}}
 </div>

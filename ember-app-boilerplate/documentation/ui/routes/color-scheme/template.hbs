@@ -1,0 +1,62 @@
+<h1>Color Scheme</h1>
+
+{{#docs-demo}}
+  {{docs-color title="primary" color="#007bff"}}
+  {{docs-color title="secondary" color="#6c757d"}}
+  {{docs-color title="success" color="#28a745"}}
+  {{docs-color title="info" color="#17a2b8"}}
+  {{docs-color title="warning" color="#ffc107"}}
+  {{docs-color title="danger" color="#dc3545"}}
+  {{docs-color title="light" color="#f8f9fa"}}
+{{/docs-demo}}
+
+<h2>Text colors</h2>
+
+{{#docs-demo as |demo|}}
+
+  {{#demo.example}}
+    <p>Normal text</p>
+    <p class="text-primary" style="color: #007bff">.text-primary</p>
+    <p class="text-secondary" style="color: #6c757d">.text-secondary</p>
+    <p class="text-success" style="color: #28a745">.text-success</p>
+    <p class="text-danger" style="color: #dc3545">.text-danger</p>
+    <p class="text-warning" style="color: #ffc107">.text-warning</p>
+    <p class="text-info" style="color: #17a2b8">.text-info</p>
+    <p class="text-muted" style="color: #f8f9fa">.text-muted</p>
+  {{/demo.example}}
+
+  {{demo.snippet title="Text colors" code='
+  <p>Normal text</p>
+  <p class="text-primary" style="color: #007bff">.text-primary</p>
+  <p class="text-secondary" style="color: #6c757d">.text-secondary</p>
+  <p class="text-success" style="color: #28a745">.text-success</p>
+  <p class="text-danger" style="color: #dc3545">.text-danger</p>
+  <p class="text-warning" style="color: #ffc107">.text-warning</p>
+  <p class="text-info" style="color: #17a2b8">.text-info</p>
+  <p class="text-muted" style="color: #f8f9fa">.text-muted</p>
+  '}}
+{{/docs-demo}}
+
+<h2>Background colors</h2>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+    <div class="bg-primary text-white" style="padding: 15px; background: #007bff;color: white">.bg-primary</div>
+    <div class="bg-secondary text-white" style="padding: 15px; background: #6c757d;color: white">.bg-secondary</div>
+    <div class="bg-success text-white" style="padding: 15px; background: #28a745;color: white">.bg-success</div>
+    <div class="bg-danger text-white" style="padding: 15px; background: #dc3545;color: white">.bg-danger</div>
+    <div class="bg-warning text-dark" style="padding: 15px; background: #ffc107;color: white">.bg-warning</div>
+    <div class="bg-info text-white" style="padding: 15px; background: #17a2b8;color: white">.bg-info</div>
+    <div class="bg-light text-dark" style="padding: 15px; background: #f8f9fa;color: #3d4852">.bg-light</div>
+  {{/demo.example}}
+
+  {{demo.snippet title="Background colors" code='
+  <div class="bg-primary text-white">.bg-primary</div>
+  <div class="bg-secondary text-white">.bg-secondary</div>
+  <div class="bg-success text-white">.bg-success</div>
+  <div class="bg-danger text-white">.bg-danger</div>
+  <div class="bg-warning text-dark">.bg-warning</div>
+  <div class="bg-info text-white">.bg-info</div>
+  <div class="bg-light text-dark">.bg-light</div>
+  '}}
+{{/docs-demo}}

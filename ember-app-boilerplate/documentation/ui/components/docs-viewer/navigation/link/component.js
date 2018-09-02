@@ -5,7 +5,7 @@ import EmberObject from '@ember/object';
 export default Component.extend({
   docsRoute: service(),
   tagName: '',
-  willInsertElement() {
+  didInsertElement() {
     this.docsRoute.routes.pushObject(EmberObject.create({
       label: this.label,
       route: this.route,

@@ -1,24 +1,48 @@
-import { computed } from '@ember/object';
+import $ from 'jquery';
+import { computed, observer } from '@ember/object';
 import { A } from '@ember/array';
 import Service, { inject as service } from '@ember/service';
 
 export default Service.extend({
   router: service(),
 
+  width: null,
+  height: null,
+  maxMobileWidthInPx: 992,
+  mobileToggle: false,
+
   init() {
     this._super(...arguments);
     this.set('routes', A());
+    this.updateDimensions();
+
+    $(window).on('resize', () => this.updateDimensions());
   },
-  currentRoute: computed('router.currentRouteName', 'routes', 'routes.@each', function() {
+  updateDimensions() {
+    this.set('width', $(window).width());
+    this.set('height', $(window).height());
+  },
+  willDestroy() {
+    $(window).off('resize');
+  },
+  actionsOnRouteChange: observer('currentRoute', function() {
+    document.querySelector('html').scrollTop = 0;
+    this.set('mobileToggle', false);
+  }),
+  isMobile: computed('width', function() {
+    return this.width <= this.maxMobileWidthInPx;
+  }),
+  currentRoute: computed('router.currentRouteName', 'routes.@each', function() {
     if (this.routes.length) {
       return this.routes.find((routeObject) => this.router.currentRouteName === routeObject.route);
     }
-    console.log(`DocsRoutes wasn't able to correctly detect the current route. The current url is`);
   }),
   currentRouteIndex: computed('currentRoute', 'routes.@each', function() {
-    const index = this.routes.findIndex((element) => element.route === this.currentRoute.route);
+    if (this.currentRoute) {
+      const index = this.routes.findIndex((element) => element.route === this.currentRoute.route);
 
-    return index >= 0 ? index : null;
+      return index >= 0 ? index : null;
+    }
   }),
   previousRoute: computed('currentRouteIndex', 'routes.@each', function() {
     if (this.currentRouteIndex > 0) {

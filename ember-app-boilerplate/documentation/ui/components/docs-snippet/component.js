@@ -3,7 +3,6 @@ import { computed } from '@ember/object';
 
 export default Component.extend({
   classNames: ['docs-snippet'],
-  language: 'js',
   showCopy: true,
   trimmedCode: computed('code', function() {
     if (this.code) {
@@ -12,7 +11,13 @@ export default Component.extend({
     }
   }),
   didInsertElement() {
-    window.hljs.highlightBlock(this.$('pre')[0]);
+    const element = this.$('pre')[0];
+
+    if (this.language) {
+      element.className += this.language;
+    }
+
+    window.hljs.highlightBlock(element);
   },
   actions: {
     copyToClipboard() {

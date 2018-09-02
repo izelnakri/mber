@@ -1,22 +1,19 @@
 {{#docs-header logo="/images/ember-cli.svg" repository="https://github.com/izelnakri/mber" as |header|}}
-  {{#header.link "documentation.introduction"}}Documentation{{/header.link}}
+  {{#header.link "documentation.index"}}Documentation{{/header.link}}
 {{/docs-header}}
 
 {{#docs-viewer as |viewer|}}
   {{#viewer.navigation as |nav|}}
-    {{nav.title "Introduction"}}
-    {{nav.link "What is this?" "documentation.index"}}
-    {{nav.link 'Quickstart' "documentation.index"}}
-    {{nav.link 'Patterns' "documentation.index"}}
-    {{nav.link 'Deploying' "documentation.index"}}
+    {{nav.title "Foundation"}}
+    {{nav.link "Introduction" "documentation.index"}}
+    {{nav.link "Color Scheme" "documentation.color-scheme"}}
+    {{nav.link "Buttons" "documentation.buttons"}}
 
-    {{nav.title 'Components'}}
-    {{nav.link 'Hero' "documentation.index"}}
-    {{nav.link 'Logo' "documentation.index"}}
-    {{nav.link 'Header' "documentation.components.header"}}
-    {{nav.link 'Snippet' "documentation.index"}}
-    {{nav.link 'Viewer' "documentation.index"}}
-    {{nav.link 'Demo' "documentation.components.demo"}}
+    {{nav.title "Components"}}
+    {{nav.link "Demo" "documentation.components.demo"}}
+    {{nav.link "Header" "documentation.components.header"}}
+    {{nav.link "Viewer" "documentation.components.viewer"}}
+    {{nav.link "Snippet" "documentation.components.snippet"}}
   {{/viewer.navigation}}
 
   {{#viewer.page}}
