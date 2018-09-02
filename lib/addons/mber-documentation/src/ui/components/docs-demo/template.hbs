@@ -11,8 +11,6 @@
     {{/each}}
   </div>
 
-  {{!-- NOTE: there should be activeSnippet prop on snippet --}}
-
   {{#each snippets as |snippet|}}
     {{#if (docs-eq snippet.code activeSnippet.code)}}
       <div class="docs-demo-active-snippet">{{docs-snippet code=activeSnippet.code}}</div>
