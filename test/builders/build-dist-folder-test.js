@@ -30,7 +30,7 @@ test.afterEach.always(async () => {
 });
 
 test.serial('buildDistFolder() works', async (t) => {
-  t.plan(39);
+  t.plan(43);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
@@ -51,10 +51,16 @@ test.serial('buildDistFolder() works', async (t) => {
   });
   const timePassed = timer.stop();
 
-  t.true(files.length === 6);
+  t.true(files.length === 8);
   t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
 
-  const fileNames = files.map((file) => file.fileName);
+  const fileNames = files.reduce((result, file) => {
+    if (!file.fileName.includes('documentation')) {
+      result.push(file.fileName);
+    }
+
+    return result;
+  }, []);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
   const fileContents = await Promise.all([
     fs.readFile(`${PROJECT_ROOT}/tmp/assets/application.css`),
@@ -65,7 +71,9 @@ test.serial('buildDistFolder() works', async (t) => {
     fs.readFile(`${PROJECT_ROOT}/tmp/assets/tests.js`)
   ]);
   const targetIndexHTMLAssets = fileNames
-    .filter((fileName) => !fileName.includes('tests') && !fileName.includes('test-support'));
+    .filter((fileName) => {
+      return !fileName.includes('tests') && !fileName.includes('test-support');
+    });
 
   await Promise.all(targetIndexHTMLAssets.map((fileName) => {
     const targetFileName = fileName.replace('./', '');
@@ -95,7 +103,7 @@ test.serial('buildDistFolder() works', async (t) => {
   const assetMap = JSON.parse(await fs.readFile(`${PROJECT_ROOT}/dist/assets/assetMap.json`));
 
   t.true(assetMap.prepend === '');
-  t.true(Object.keys(assetMap.assets).length === 7);
+  t.true(Object.keys(assetMap.assets).length === 9);
   t.true(assetMap.assets['assets/assetMap.json'] === 'assets/assetMap.json');
 
   const targetFileNames = fileNames.map((fileName) => fileName.replace('./dist/', ''));
@@ -110,7 +118,7 @@ test.serial('buildDistFolder() works', async (t) => {
 });
 
 test.serial('buildDistFolder() works for different applicationName and memserver mode', async (t) => {
-  t.plan(46);
+  t.plan(50);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const ENV = environmentFunc('memserver');
@@ -126,10 +134,16 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   });
   const timePassed = timer.stop();
 
-  t.true(files.length === 7);
+  t.true(files.length === 9);
   t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
 
-  const fileNames = files.map((file) => file.fileName);
+  const fileNames = files.reduce((result, file) => {
+    if (!file.fileName.includes('documentation')) {
+      result.push(file.fileName);
+    }
+
+    return result;
+  }, []);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
   const allFileContents = await Promise.all([
     fs.readFile(`${PROJECT_ROOT}/tmp/assets/application.css`),
@@ -171,7 +185,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   const assetMap = JSON.parse(await fs.readFile(`${PROJECT_ROOT}/dist/assets/assetMap.json`));
 
   t.true(assetMap.prepend === '');
-  t.true(Object.keys(assetMap.assets).length === 8);
+  t.true(Object.keys(assetMap.assets).length === 10);
   t.true(assetMap.assets['assets/assetMap.json'] === 'assets/assetMap.json');
 
   const targetFileNames = fileNames.map((fileName) => fileName.replace('./dist/', ''));
@@ -263,7 +277,7 @@ test.serial('buildDistFolder() works for production', async (t) => {
 });
 
 test.serial('buildDistFolder() works for different applicationName and memserver mode with fastboot: false', async (t) => {
-  t.plan(30);
+  t.plan(34);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
@@ -285,10 +299,16 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   });
   const timePassed = timer.stop();
 
-  t.true(files.length === 4);
+  t.true(files.length === 6);
   t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
 
-  const fileNames = files.map((file) => file.fileName);
+  const fileNames = files.reduce((result, file) => {
+    if (!file.fileName.includes('documentation')) {
+      result.push(file.fileName);
+    }
+
+    return result;
+  }, []);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
   const fileContents = await Promise.all([
     fs.readFile(`${PROJECT_ROOT}/tmp/assets/application.css`),
@@ -319,7 +339,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   const assetMap = JSON.parse(await fs.readFile(`${PROJECT_ROOT}/dist/assets/assetMap.json`));
 
   t.true(assetMap.prepend === '');
-  t.true(Object.keys(assetMap.assets).length === 5);
+  t.true(Object.keys(assetMap.assets).length === 7);
   t.true(assetMap.assets['assets/assetMap.json'] === 'assets/assetMap.json');
 
   const targetFileNames = fileNames.map((fileName) => fileName.replace('./dist/', ''));
