@@ -1,0 +1,13 @@
+{{#if code}}
+  {{#if title}}
+    <span>{{title}}</span>
+  {{/if}}
+
+  <div class="docs-snippet-code-block">
+    {{#if showCopy}}
+      <button class="docs-snippet-code-block-copy" {{action "copyToClipboard"}}>Copy</button>
+    {{/if}}
+
+    <pre>{{trimmedCode}}</pre>
+  </div>
+{{/if}}

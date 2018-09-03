@@ -11,5 +11,7 @@ module.exports = {
   plugins: [
     'ember'
   ],
-  rules: {}
+  rules: {
+    'no-console': 'off'
+  }
 };

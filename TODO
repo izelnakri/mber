@@ -3,7 +3,14 @@ configuration file: .mber
 styleguide solution
 display the error html page for hbs errors, css errors: js syntax errors
 - we need to inject fastboot still to vendor.js because of fastboot service injections
+- add prember functionality
 
+styleguide TODO:
+- display autogenerate services, routes, components, models, helpers, utils(modules)
+- right side navigation!
+- make all h expect h1 tags linkable in docs-viewer-page
+- search
+- keyboard shortcuts
 
 might be missing babel deps:
 "babel6-plugin-strip-class-callcheck": "^6.0.0",

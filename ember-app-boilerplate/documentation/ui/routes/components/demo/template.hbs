@@ -1,0 +1,167 @@
+<h1>Docs Demo</h1>
+
+<p>
+  This component provides you with a way to show example components and their code snippet.
+</p>
+
+<p>
+  If you write demos for most of your functionality here using this helper component, and then write integration tests against those demoed component functionalities, your integration tests will accomplish two things:
+</p>
+
+<ul>
+  <li>
+    They verify your components behavior
+  </li>
+  <li>
+    They ensure all of that behavior is working in your documentation site, and up-to-date with your frontend components actual APIs
+  </li>
+</ul>
+
+<p>
+  This saves you from ever having to remember that second step of "updating the docs" every time you change your components.
+</p>
+
+<h2>Basic usage</h2>
+
+<p>
+  Let's look at a basic example:
+</p>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+    <p>I am a <strong>handlebars</strong> template!</p>
+    <p>The value is: {{val}}</p>
+    <div>
+      {{input value=val class='border'}}
+    </div>
+  {{/demo.example}}
+
+  {{demo.snippet title="template.hbs" code='
+  <p>I am a <strong>handlebars</strong> template!</p>
+  <p>The value is: {{val}}</p>
+  <div>
+    {{input value=val class="border"}}
+  </div>
+  '}}
+{{/docs-demo}}
+
+<p>
+  Here's the code that rendered the above demo (you can copy-paste this block to get going in your own app):
+</p>
+
+{{docs-snippet code='
+  {{#docs-demo as |demo|}}
+    {{#demo.example}}
+      <p>I am a <strong>handlebars</strong> template!</p>
+      <p>The value is: {{val}}</p>
+      <div>
+        {{input value=val class="border"}}
+      </div>
+    {{/demo.example}}
+
+    {{demo.snippet title="template.hbs" code=\'
+    <p>I am a <strong>handlebars</strong> template!</p>
+    <p>The value is: {{val}}</p>
+    <div>
+      {{input value=val class="border"}}
+    </div>
+    \'}}
+  {{/docs-demo}}'}}
+
+<p>
+  To explain,
+</p>
+
+<ul>
+  <li><code>{docs-demo}</code> is the wrapping component
+  </li>
+  <li>
+    The contextual component <code>{#demo.example}{/demo.example}</code> provides a wrapper to display your example.
+    You'll pass a block to this component with the actual code you're demoing - for example, showing off how to use your button.
+  </li>
+  <li>
+    You also need to pass a <code>language=</code> to demo.snippet in order to identify your snippet.
+  </li>
+  <li>
+    Finally, the <code>{demo.snippet}</code> component lets you render different titled snippets that you've identified via demo.snippet code wrappers.
+  </li>
+</ul>
+
+<h2>Multiple snippets</h2>
+
+<p>
+  You can render multiple snippets to support your example.
+  This can be useful when part of your example relies on code defined elsewhere, for example in a component javascript or stylesheet.
+</p>
+
+<p>
+  Use a language attribute to help docs-snippet identify and properly syntax highlight your snippet.
+  HTMLBars language value is <code>hbs</code>, JavaScript is <code>js</code>, stylesheets is <code>scss</code>.
+</p>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+    {{docs-dummy-example}}
+  {{/demo.example}}
+
+  {{demo.snippet title="template.hbs" code='
+  <button onclick={{action "toggleIsShowing"}} class="docs-btn">
+    Press me!
+  </button>
+
+  <p class="mt-4">
+    {{#if isShowing}}
+      Yep
+    {{else}}
+      Nope
+    {{/if}}
+  </p>
+'}}
+  {{demo.snippet title="component.js" code="
+  import Component from '@ember/component';
+
+  export default Component.extend({
+    classNames: ['docs-dummy-example'],
+    actions: {
+      toggleIsShowing() {
+        this.toggleProperty('isShowing');
+      }
+    }
+  });
+  "}}
+{{/docs-demo}}
+
+<h2>Custom Snippet Handling</h2>
+
+<p>
+  If you wish to override the inferred title or syntax highlighting for a snippet, you can specify <code>title</code> and <code>language</code> properties.
+</p>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+  <pre>
+  # Markdown
+  - Has syntax highlighting, too
+  </pre>
+  {{/demo.example}}
+
+  {{demo.snippet title="Source" code='
+  {{#docs-demo as |demo|}}
+    {{#demo.example name="docs-demo-custom.md"}}
+      <pre>
+      # Markdown
+      - Has syntax highlighting, too
+      </pre>
+    {{/demo.example}}
+
+    {{demo.snippet title="Source"}}
+    {{demo.snippet title="My Custom Label"}}
+  {{/docs-demo}}
+  '}}
+  {{demo.snippet title="My Custom Label" language="md" code='
+  <pre>
+  # Markdown
+  - Has syntax highlighting, too
+  </pre>
+  '}}
+{{/docs-demo}}

@@ -1,0 +1,71 @@
+<h1>Buttons</h1>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+    <button type="button" class="btn btn-primary" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #007bff;border: none;">Primary</button>
+    <button type="button" class="btn btn-secondary" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #6c757d;border: none;">Secondary</button>
+    <button type="button" class="btn btn-success" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #28a745;border: none;">Success</button>
+    <button type="button" class="btn btn-danger" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #dc3545;border: none;">Danger</button>
+    <button type="button" class="btn btn-warning" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #212529;background-color: #ffc107;border: none;">Warning</button>
+    <button type="button" class="btn btn-info" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #17a2b8;border: none;">Info</button>
+    <button type="button" class="btn btn-light" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: black;background-color: #f8f9fa;border: none;">Light</button>
+    <button type="button" class="btn btn-dark" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #343a40;border: none;">Dark</button>
+    <button type="button" class="btn btn-link" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #007bff;background-color: transparent;border: none;text-decoration: underline">Link</button>
+  {{/demo.example}}
+
+  {{demo.snippet title="Button colors" code='
+  <button type="button" class="btn btn-primary">Primary</button>
+  <button type="button" class="btn btn-secondary">Secondary</button>
+  <button type="button" class="btn btn-success">Success</button>
+  <button type="button" class="btn btn-danger">Danger</button>
+  <button type="button" class="btn btn-warning">Warning</button>
+  <button type="button" class="btn btn-info">Info</button>
+  <button type="button" class="btn btn-light">Light</button>
+  <button type="button" class="btn btn-dark">Dark</button>
+  <button type="button" class="btn btn-link">Link</button>
+  '}}
+{{/docs-demo}}
+
+<h2>Outline Buttons</h2>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+    <button type="button" class="btn btn-outline-primary" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #007bff;background-color: transparent;background-image: none;border-color: #007bff;">Primary</button>
+    <button type="button" class="btn btn-outline-secondary" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #6c757d;background-color: transparent;background-image: none;border-color: #6c757d;">Secondary</button>
+    <button type="button" class="btn btn-outline-success" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #28a745;background-color: transparent;background-image: none;border-color: #28a745;">Success</button>
+    <button type="button" class="btn btn-outline-danger" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #dc3545;background-color: transparent;background-image: none;border-color: #dc3545;">Danger</button>
+    <button type="button" class="btn btn-outline-warning" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #ffc107;background-color: transparent;background-image: none;border-color: #ffc107;">Warning</button>
+    <button type="button" class="btn btn-outline-info" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #17a2b8;background-color: transparent;background-image: none;border-color: #17a2b8;">Info</button>
+    <button type="button" class="btn btn-outline-light" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #f8f9fa;background-color: transparent;background-image: none;border-color: #f8f9fa;">Light</button>
+    <button type="button" class="btn btn-outline-dark" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: 3px;color: #343a40;background-color: transparent;background-image: none;border-color: #343a40;">Dark</button>
+  {{/demo.example}}
+
+  {{demo.snippet title="Outline buttons" code='
+  <button type="button" class="btn btn-outline-primary">Primary</button>
+  <button type="button" class="btn btn-outline-secondary">Secondary</button>
+  <button type="button" class="btn btn-outline-success">Success</button>
+  <button type="button" class="btn btn-outline-danger">Danger</button>
+  <button type="button" class="btn btn-outline-warning">Warning</button>
+  <button type="button" class="btn btn-outline-info">Info</button>
+  <button type="button" class="btn btn-outline-light">Light</button>
+  <button type="button" class="btn btn-outline-dark">Dark</button>
+  '}}
+{{/docs-demo}}
+
+<h2>Button Sizes</h2>
+
+{{#docs-demo as |demo|}}
+  {{#demo.example}}
+  <button type="button" class="btn btn-primary btn-sm" style="padding: .25rem .5rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #007bff;border: none;">Small button</button>
+  <button type="button" class="btn btn-primary" style="padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #007bff;border: none;">Normal button</button>
+  <button type="button" class="btn btn-primary btn-lg" style="padding: .5rem 1rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #007bff;border: none;">Large button</button>
+  <button type="button" class="btn btn-primary btn-lg btn-block" style="margin: 10px 0;display: block; width: 100%;padding: .375rem .75rem;font-size: 1rem;line-height: 1.5;border-radius: .25rem;color: #fff;background-color: #007bff;border: none;">Block level button</button>
+  {{/demo.example}}
+
+  {{demo.snippet title="Button sizes" code='
+  <button type="button" class="btn btn-primary btn-sm">Small button</button>
+  <button type="button" class="btn btn-primary">Normal button</button>
+  <button type="button" class="btn btn-primary btn-lg">Large button</button>
+  <button type="button" class="btn btn-primary btn-lg btn-block">Block level button</button>
+  '}}
+{{/docs-demo}}

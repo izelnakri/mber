@@ -1,0 +1,54 @@
+<h1>Introduction</h1>
+
+<p>Welcome to the documentation part of this frontend application. These pages are built by <code>mber</code>. Here you can:</p>
+
+<ol>
+  <li>
+    Showcase your design elements and UI components, as a living styleguide.
+  </li>
+  <li>
+    Demo your UI components, show all different states, variations and view them on mobile and desktop devices.
+  </li>
+  <li>
+    Document complex UI components and create a general documentation for your frontend.
+  </li>
+</ol>
+
+<h2>Usage</h2>
+
+<p>
+  The app you're currently viewing is itself an example ember.js application that ships along with your frontend application.
+  You can find and edit all the code here under <code>/documentation</code> folder in your source code.
+  If you know how to build applications with <code>ember.js</code>, you already know how to edit this documentation.
+  Check the base <code>docs-*</code> components here for more detailed usage information.
+</p>
+
+<h2>Technical build details</h2>
+
+<p>
+  This documentation mini-application is built as a seperate <code>documentation.js</code> and <code>documentation.css</code> files.
+  Therefore, all the code here is completely seperated from your frontend application.
+  Documentation files are only included and fetched in your <code>${ENV.documentation.path}</code>, thus adding more content here does not increase your application build size.
+  You can enable or disable documentation for different environments via <code>ENV.documentation.enabled</code> in <code>config/environments.js</code>.
+  Your documentation gets built continously on <code>mber serve</code> command.
+</p>
+
+<h2>Deploying</h2>
+
+<p>
+  You can deploy this application to a CDN like <a href="https://surge.sh/">Surge.sh</a> or run it inside your frontend server.
+  Everytime you do <code>mber build</code> mber will build this application and its assets along with your frontend files, as long as documentation is enabled in your <code>/config/environment.js</code>.
+  If you want to deploy this documentation and share it with others you can do the following:
+</p>
+
+{{docs-snippet code='
+npm install -g surge
+mv dist/index.html dist/200.html
+surge dist your-link-name.surge.sh
+'}}
+
+<h2>Contributing to the project</h2>
+
+<p>
+  Visit <a href="https://github.com/izelnakri/mber">https://github.com/izelnakri/mber</a> to file an issue or submit a PR in case if you would like to contribute.
+</p>

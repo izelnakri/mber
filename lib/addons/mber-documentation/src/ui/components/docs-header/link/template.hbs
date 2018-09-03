@@ -1,0 +1,9 @@
+{{#if href}}
+  <a href={{href}} class="docs-header-link {{class}}">
+    {{yield}}
+  </a>
+{{else}}
+  {{#link-to route class=(concat "docs-header-link " class)}}
+    {{yield}}
+  {{/link-to}}
+{{/if}}

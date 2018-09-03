@@ -1,0 +1,28 @@
+.docs-bottom-links {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+
+  a {
+    text-decoration: none;
+    font-size: 14px !important;
+    color: #8795a1 !important;
+
+    h4 {
+      margin-top: 0px;
+      color: #3d4852;
+      border-bottom: solid 1px #b8c2cc;
+      font-size: 24px;
+      font-weight: 300;
+    }
+  }
+
+  .docs-bottom-links-right {
+    text-align: right;
+  }
+
+  &.docs-bottom-full-length a.docs-bottom-links-right {
+    position: absolute;
+    right: 0;
+  }
+}

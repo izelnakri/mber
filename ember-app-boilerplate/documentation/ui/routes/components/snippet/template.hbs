@@ -1,0 +1,38 @@
+<h1>Docs Snippet</h1>
+
+<p>Easily render a code snippet with syntax highlighting and a copy-to-clipboard button.</p>
+
+<h2>Handlebars</h2>
+
+<p>
+  To render a Handlebars snippet from one of your templates, wrap it in <code>{#docs-snippet language="hbs" code="${handlebarscode}"}</code>.
+</p>
+
+{{docs-snippet code='
+  <div id="foo">
+    {{#my-awesome-thing
+      some=true
+      options=false}}
+      <p>Something old, something new</p>
+    {{/my-awesome-thing}}
+  </div>
+'}}
+
+<p>
+  If you want the code to render and also show the snippet, check out the {{#link-to "documentation.components.demo"}}Docs Demo component{{/link-to}}
+  You can also render other language snippets like, like JavaScript and SCSS.
+</p>
+
+<h2>Customizing Snippets</h2>
+
+<p>
+  By default, snippets will render with a button allowing readers to copy the snippet's contents to their clipboard.
+  You can turn this off by passing showCopy=false to <code>{docs-snippet}</code> You can override the detected language for syntax highlighting in your snippet by specifying a language property.
+  Finally, you can use the title property to specify a header for your snippet:
+</p>
+
+{{docs-snippet title="src/ui/components/my-component/component.js" language="js" showCopy=false code="
+  import Component from '@ember/component';
+  export default Component.extend({
+  });
+"}}

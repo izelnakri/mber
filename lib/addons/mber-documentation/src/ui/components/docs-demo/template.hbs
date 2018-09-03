@@ -1,0 +1,20 @@
+{{yield (hash
+  example=(component 'docs-demo/example' demo=this)
+  snippet=(component 'docs-demo/snippet' snippets=snippets)
+)}}
+
+{{#if activeSnippet}}
+  <div class="docs-demo-snippet-titles">
+    {{#each snippets as |snippet|}}
+      <button {{action "changeSnippet" snippet}} class={{if (docs-eq snippet.code activeSnippet.code) "active"}}>{{snippet.title}}</button>
+    {{/each}}
+  </div>
+
+  {{#each snippets as |snippet|}}
+    {{#if (docs-eq snippet.code activeSnippet.code)}}
+      <div class="docs-demo-active-snippet">{{docs-snippet code=activeSnippet.code}}</div>
+    {{else}}
+      <div class="docs-demo-not-active-snippet">{{docs-snippet code=activeSnippet.code}}</div>
+    {{/if}}
+  {{/each}}
+{{/if}}

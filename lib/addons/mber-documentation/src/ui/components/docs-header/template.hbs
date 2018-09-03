@@ -1,0 +1,27 @@
+<header class="docs-header">
+  {{#docs-header/link 'documentation'}}
+    {{#if logo}}
+      <img src="{{logo}}" height="33" class="docs-header-logo" />
+    {{/if}}
+  {{/docs-header/link}}
+
+  <div class="docs-header-links-wrapper">
+    {{yield (hash
+      link=(component 'docs-header/link')
+    )}}
+
+    {{!-- TODO: add search box --}}
+
+    {{#if repository}}
+      {{#docs-header/link href="https://github.com/izelnakri/mber" class="docs-header-repository-link"}}
+        <img src="/images/github.svg" height="25" />
+      {{/docs-header/link}}
+    {{/if}}
+
+    {{!-- Something to take up space on mobile, so the scrolling nav isn't hugging the edge --}}
+  </div>
+
+  {{!-- TODO: if query search results display --}}
+
+  {{!-- NOTE: ommitted version selector on purpose --}}
+</header>

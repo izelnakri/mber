@@ -1,0 +1,160 @@
+.docs-viewer {
+  margin-top: 16px;
+  padding: 0 16px;
+  display: flex;
+
+  .docs-viewer-navigation {
+    max-height: 100vh;
+    overflow-y: scroll;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    width: 20%;
+    font-family: system-ui,BlinkMacSystemFont,-apple-system,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      .docs-viewer-navigation-title {
+        text-transform: uppercase;
+        color: #b8c2cc;
+        font-size: 12px;
+        line-height: 19.5px;
+        letter-spacing: .05em;
+        font-weight: 700;
+        margin-top: 25px;
+        margin-bottom: 5px;
+
+        &:first-of-type {
+          margin-top: 25px;
+        }
+      }
+
+      .docs-viewer-navigation-link {
+        padding: 7.5px 0;
+        font-size: 14px;
+
+        a {
+          color: #3d4852;
+          text-decoration: none;
+          display: block;
+
+          &.active {
+            font-weight: 700;
+          }
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
+    .docs-viewer-navigation-mobile-toggle {
+      padding: 15px;
+      border-bottom: solid 1px #dae1e7;
+      color: #3d4852;
+      box-shadow: 0 1px 1px 0 rgba(116, 129, 141, 0.1);
+      display: flex;
+
+      h6 {
+        font-size: 16px;
+        margin: 0;
+        line-height: 24px;
+      }
+
+      img {
+        margin-left: auto;
+      }
+    }
+  }
+}
+
+.docs-viewer-page {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: system-ui, system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    color: #3d4852;
+  }
+
+  h2 {
+    padding-top: 10px;
+  }
+
+  p, aside, li, a {
+    font-family: system-ui, system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    color: rgb(34, 41, 47);
+    line-height: 26px;
+  }
+
+  a {
+    font-size: 16px;
+  }
+
+  p {
+    margin-top: 0;
+  }
+
+  li {
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    margin-bottom: 1.5rem;
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    text-decoration: none;
+  }
+
+  code {
+    padding: 0 3px;
+    background: rgb(248, 250, 252);
+    border-radius: 2px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 992px) {
+  .docs-toggle-hide {
+    display: none;
+  }
+  .docs-viewer {
+    display: block;
+    margin: 0;
+    padding: 0;
+
+    .docs-viewer-navigation {
+      width: 100%;
+      position: static;
+
+      ul {
+        margin: 0;
+        padding: 0 15px 15px 15px;
+        border-bottom: solid 1px #dae1e7;
+        box-shadow: 0 1px 1px 0 rgba(116, 129, 141, 0.1);
+      }
+    }
+
+    .docs-viewer-page {
+      width: inherit;
+      padding: 0 15px;
+      margin-top: 15px;
+      position: static;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  .docs-viewer-page {
+    width: 80%;
+  }
+}
+
+@media (min-width: 1200px) {
+  .docs-viewer-page {
+    width: 60%;
+  }
+}
+
+// TODO: styling for <aside>
