@@ -5,24 +5,23 @@
   & > span {
     display: block;
     background: rgb(241, 245, 248);
-    font-family: system-ui, system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 22.75px;
     height: 22.75px;
     padding: 8px 15px;
+    font: 14px system-ui, system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-weight: 500;
+    line-height: 22.75px;
   }
 
   .docs-snippet-code-block {
+    position: relative;
     margin-bottom: 15px;
     font-size: 16px;
     line-height: 20px;
-    position: relative;
 
     & > pre {
       margin-top: 0;
     }
-    
+
     pre {
       padding: 15px;
       font-size: 16px;

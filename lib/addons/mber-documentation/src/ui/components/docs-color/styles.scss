@@ -5,13 +5,12 @@
   margin: 15px;
 
   span {
-    font-size: 15px;
-    color: #3d4852;
-    line-height: 150px;
-    text-align: center;
     display: inline-block;
+    color: #3d4852;
     width: 150px;
+    font: 15px Helvetica;
     font-weight: 600;
-    font-family: Helvetica;
+    text-align: center;
+    line-height: 150px;
   }
 }
