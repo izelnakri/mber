@@ -9,6 +9,7 @@ import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-am
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
 const compileScssAsync = promisify(sass.render);
+
 const CSS_FILENAME = 'test-support.css';
 const JS_FILENAME = 'test-support.js';
 

@@ -1,3 +1,4 @@
+// TODO: probably needs transpiling adjustments due to ember-data upgrade
 import fs from 'fs-extra';
 import chalk from 'chalk';
 import UglifyJS from 'uglify-es';
