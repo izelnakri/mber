@@ -1,7 +1,6 @@
-WARNING: New loader.js - check implications
+- make babel transforms async
 - maybe upgrade fastboot
-- add additional branch step for upgrading babel
-
+- OrderedSet mocking might cause issues
 
 - add unit tests for resolvePortNumberFor + add e2e test for mber s + mber t while port is in use(so it changes)
 configuration file: .mber
