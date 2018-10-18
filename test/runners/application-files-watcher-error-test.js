@@ -281,7 +281,7 @@ async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember application\.js build error:/g) === 1);
-  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ,/g) === 1); // NOTE: this doesnt tell which file!!
+  t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 1); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === await readApplicationJS());
 
@@ -290,7 +290,7 @@ async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 2);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
-  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ;/g) ===1);
+  t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ";"/g) === 1);
 
   t.true(firstContent === await readApplicationJS());
 
@@ -370,7 +370,7 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember memserver\.js build error:/g) === 1);
-  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ,/g) === 3); // NOTE: this doesnt tell which file!!
+  t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 3); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === await readMemServerJS());
 
@@ -380,7 +380,7 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember memserver\.js build error:/g) === 3);
-  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ;/g) === 3);
+  t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ";"/g) === 3);
 
   t.true(firstContent === await readMemServerJS());
 
@@ -416,7 +416,7 @@ async function testTestJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember tests\.js build error:/g) === 1);
-  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ;/g) === 5); // NOTE: this doesnt tell which file
+  t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ";"/g) === 5); // NOTE: this doesnt tell which file
 
   t.true(firstContent === await readTestsJS());
 
@@ -426,7 +426,7 @@ async function testTestJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember tests\.js build error:/g) === 3);
-  t.true(stdoutOccurenceCount(stdout, /{ SyntaxError: unknown: Unexpected token, expected ,/g) === 5); // NOTE: this doesnt tell which file!!
+  t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 5); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === await readTestsJS());
 
@@ -520,6 +520,7 @@ function assertThatSocketReceivesMessage(socket, t) {
 function getAddNotificationCount(stdout, path) {
   return stdout.filter((text) => text.includes(`ADDED: ${path}`)).length;
 }
+
 function getChangeNotificationCount(stdout, path) {
   return stdout.filter((text) => text.includes(`CHANGED: ${path}`)).length;
 }
