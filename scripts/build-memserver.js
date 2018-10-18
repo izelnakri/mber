@@ -15,7 +15,7 @@ async function build() {
   const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
 
   return Promise.all([
-    fs.readFile(`${MODULE_PATH}/whatwg-fetch/fetch.js`),
+    fs.readFile(`${MODULE_PATH}/whatwg-fetch/dist/fetch.umd.js`),
     transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),
     transpileNPMImport('memserver', `${MODULE_PATH}/memserver/lib/mem-server-cjs.js`)
   ]).then(async ([fetchReplacement, memServerModelModule, memServerModule]) => {
