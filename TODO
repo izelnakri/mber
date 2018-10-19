@@ -1,3 +1,5 @@
+- latest memserver uses babel-register!!
+
 - make babel transforms async
 - maybe upgrade fastboot
 - OrderedSet mocking might cause issues

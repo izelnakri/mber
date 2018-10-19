@@ -77,7 +77,7 @@ define("ember-cli-fastboot/locations/none", ["exports"], function (_exports) {
 
           if (isTransitioning) {
             var host = Ember.get(this, '_request.host');
-            var redirectURL = "//" + host + path;
+            var redirectURL = "//".concat(host).concat(path);
             response.statusCode = this.get('_redirectCode');
             response.headers.set('location', redirectURL);
           }
@@ -153,7 +153,7 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
         return shoeboxItem;
       }
 
-      var el = document.querySelector("#shoebox-" + key);
+      var el = document.querySelector("#shoebox-".concat(key));
 
       if (!el) {
         return;

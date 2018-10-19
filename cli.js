@@ -3,7 +3,7 @@ require = require('esm')(module);
 require('@babel/register')({
   presets: ['@babel/preset-env']
 });
-require('@babel/polyfill');
+require('@babel/polyfill/dist/polyfill.min.js');
 
 process.title = 'mber';
 global.mainContext = global; // NOTE: needed for ember-template-compiler

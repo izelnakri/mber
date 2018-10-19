@@ -4366,19 +4366,10 @@ function hasOwnProperty(obj, prop) {
   _exports.__esModule = true;
   _exports.default = _default;
 
-  function _default(statusCode, data, headers) {
-    if (statusCode === void 0) {
-      statusCode = 200;
-    }
-
-    if (data === void 0) {
-      data = {};
-    }
-
-    if (headers === void 0) {
-      headers = {};
-    }
-
+  function _default() {
+    var statusCode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 200;
+    var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
     return [statusCode, Object.assign({
       'Content-Type': 'application/json'
     }, headers), JSON.stringify(data)];
