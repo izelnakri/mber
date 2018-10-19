@@ -2524,14 +2524,14 @@ Ember.setupForTesting = testing.setupForTesting;
 })();
 
 /*!
- * QUnit 2.7.0
+ * QUnit 2.6.0
  * https://qunitjs.com/
  *
  * Copyright jQuery Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2018-10-10T15:43Z
+ * Date: 2018-03-27T02:18Z
  */
 (function (global$1) {
   'use strict';
@@ -2653,14 +2653,6 @@ Ember.setupForTesting = testing.setupForTesting;
   var now = Date.now || function () {
   	return new Date().getTime();
   };
-
-  var hasPerformanceApi = detectPerformanceApi();
-  var performance = hasPerformanceApi ? window.performance : undefined;
-  var performanceNow = hasPerformanceApi ? performance.now.bind(performance) : now;
-
-  function detectPerformanceApi() {
-  	return window && typeof window.performance !== "undefined" && typeof window.performance.mark === "function" && typeof window.performance.measure === "function";
-  }
 
   var defined = {
   	document: window && window.document !== undefined,
@@ -3483,263 +3475,6 @@ Ember.setupForTesting = testing.setupForTesting;
   	return dump;
   })();
 
-  var SuiteReport = function () {
-  	function SuiteReport(name, parentSuite) {
-  		classCallCheck(this, SuiteReport);
-
-  		this.name = name;
-  		this.fullName = parentSuite ? parentSuite.fullName.concat(name) : [];
-
-  		this.tests = [];
-  		this.childSuites = [];
-
-  		if (parentSuite) {
-  			parentSuite.pushChildSuite(this);
-  		}
-  	}
-
-  	createClass(SuiteReport, [{
-  		key: "start",
-  		value: function start(recordTime) {
-  			if (recordTime) {
-  				this._startTime = performanceNow();
-
-  				if (performance) {
-  					var suiteLevel = this.fullName.length;
-  					performance.mark("qunit_suite_" + suiteLevel + "_start");
-  				}
-  			}
-
-  			return {
-  				name: this.name,
-  				fullName: this.fullName.slice(),
-  				tests: this.tests.map(function (test) {
-  					return test.start();
-  				}),
-  				childSuites: this.childSuites.map(function (suite) {
-  					return suite.start();
-  				}),
-  				testCounts: {
-  					total: this.getTestCounts().total
-  				}
-  			};
-  		}
-  	}, {
-  		key: "end",
-  		value: function end(recordTime) {
-  			if (recordTime) {
-  				this._endTime = performanceNow();
-
-  				if (performance) {
-  					var suiteLevel = this.fullName.length;
-  					performance.mark("qunit_suite_" + suiteLevel + "_end");
-
-  					var suiteName = this.fullName.join(" – ");
-  					performance.measure(suiteLevel === 0 ? "QUnit Test Run" : "QUnit Test Suite: " + suiteName, "qunit_suite_" + suiteLevel + "_start", "qunit_suite_" + suiteLevel + "_end");
-  				}
-  			}
-
-  			return {
-  				name: this.name,
-  				fullName: this.fullName.slice(),
-  				tests: this.tests.map(function (test) {
-  					return test.end();
-  				}),
-  				childSuites: this.childSuites.map(function (suite) {
-  					return suite.end();
-  				}),
-  				testCounts: this.getTestCounts(),
-  				runtime: this.getRuntime(),
-  				status: this.getStatus()
-  			};
-  		}
-  	}, {
-  		key: "pushChildSuite",
-  		value: function pushChildSuite(suite) {
-  			this.childSuites.push(suite);
-  		}
-  	}, {
-  		key: "pushTest",
-  		value: function pushTest(test) {
-  			this.tests.push(test);
-  		}
-  	}, {
-  		key: "getRuntime",
-  		value: function getRuntime() {
-  			return this._endTime - this._startTime;
-  		}
-  	}, {
-  		key: "getTestCounts",
-  		value: function getTestCounts() {
-  			var counts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { passed: 0, failed: 0, skipped: 0, todo: 0, total: 0 };
-
-  			counts = this.tests.reduce(function (counts, test) {
-  				if (test.valid) {
-  					counts[test.getStatus()]++;
-  					counts.total++;
-  				}
-
-  				return counts;
-  			}, counts);
-
-  			return this.childSuites.reduce(function (counts, suite) {
-  				return suite.getTestCounts(counts);
-  			}, counts);
-  		}
-  	}, {
-  		key: "getStatus",
-  		value: function getStatus() {
-  			var _getTestCounts = this.getTestCounts(),
-  			    total = _getTestCounts.total,
-  			    failed = _getTestCounts.failed,
-  			    skipped = _getTestCounts.skipped,
-  			    todo = _getTestCounts.todo;
-
-  			if (failed) {
-  				return "failed";
-  			} else {
-  				if (skipped === total) {
-  					return "skipped";
-  				} else if (todo === total) {
-  					return "todo";
-  				} else {
-  					return "passed";
-  				}
-  			}
-  		}
-  	}]);
-  	return SuiteReport;
-  }();
-
-  var focused = false;
-
-  var moduleStack = [];
-
-  function createModule(name, testEnvironment, modifiers) {
-  	var parentModule = moduleStack.length ? moduleStack.slice(-1)[0] : null;
-  	var moduleName = parentModule !== null ? [parentModule.name, name].join(" > ") : name;
-  	var parentSuite = parentModule ? parentModule.suiteReport : globalSuite;
-
-  	var skip = parentModule !== null && parentModule.skip || modifiers.skip;
-  	var todo = parentModule !== null && parentModule.todo || modifiers.todo;
-
-  	var module = {
-  		name: moduleName,
-  		parentModule: parentModule,
-  		tests: [],
-  		moduleId: generateHash(moduleName),
-  		testsRun: 0,
-  		unskippedTestsRun: 0,
-  		childModules: [],
-  		suiteReport: new SuiteReport(name, parentSuite),
-
-  		// Pass along `skip` and `todo` properties from parent module, in case
-  		// there is one, to childs. And use own otherwise.
-  		// This property will be used to mark own tests and tests of child suites
-  		// as either `skipped` or `todo`.
-  		skip: skip,
-  		todo: skip ? false : todo
-  	};
-
-  	var env = {};
-  	if (parentModule) {
-  		parentModule.childModules.push(module);
-  		extend(env, parentModule.testEnvironment);
-  	}
-  	extend(env, testEnvironment);
-  	module.testEnvironment = env;
-
-  	config.modules.push(module);
-  	return module;
-  }
-
-  function processModule(name, options, executeNow) {
-  	var modifiers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-
-  	if (objectType(options) === "function") {
-  		executeNow = options;
-  		options = undefined;
-  	}
-
-  	var module = createModule(name, options, modifiers);
-
-  	// Move any hooks to a 'hooks' object
-  	var testEnvironment = module.testEnvironment;
-  	var hooks = module.hooks = {};
-
-  	setHookFromEnvironment(hooks, testEnvironment, "before");
-  	setHookFromEnvironment(hooks, testEnvironment, "beforeEach");
-  	setHookFromEnvironment(hooks, testEnvironment, "afterEach");
-  	setHookFromEnvironment(hooks, testEnvironment, "after");
-
-  	var moduleFns = {
-  		before: setHookFunction(module, "before"),
-  		beforeEach: setHookFunction(module, "beforeEach"),
-  		afterEach: setHookFunction(module, "afterEach"),
-  		after: setHookFunction(module, "after")
-  	};
-
-  	var currentModule = config.currentModule;
-  	if (objectType(executeNow) === "function") {
-  		moduleStack.push(module);
-  		config.currentModule = module;
-  		executeNow.call(module.testEnvironment, moduleFns);
-  		moduleStack.pop();
-  		module = module.parentModule || currentModule;
-  	}
-
-  	config.currentModule = module;
-
-  	function setHookFromEnvironment(hooks, environment, name) {
-  		var potentialHook = environment[name];
-  		hooks[name] = typeof potentialHook === "function" ? [potentialHook] : [];
-  		delete environment[name];
-  	}
-
-  	function setHookFunction(module, hookName) {
-  		return function setHook(callback) {
-  			module.hooks[hookName].push(callback);
-  		};
-  	}
-  }
-
-  function module$1(name, options, executeNow) {
-  	if (focused) {
-  		return;
-  	}
-
-  	processModule(name, options, executeNow);
-  }
-
-  module$1.only = function () {
-  	if (focused) {
-  		return;
-  	}
-
-  	config.modules.length = 0;
-  	config.queue.length = 0;
-
-  	module$1.apply(undefined, arguments);
-
-  	focused = true;
-  };
-
-  module$1.skip = function (name, options, executeNow) {
-  	if (focused) {
-  		return;
-  	}
-
-  	processModule(name, options, executeNow, { skip: true });
-  };
-
-  module$1.todo = function (name, options, executeNow) {
-  	if (focused) {
-  		return;
-  	}
-
-  	processModule(name, options, executeNow, { todo: true });
-  };
-
   var LISTENERS = Object.create(null);
   var SUPPORTED_EVENTS = ["runStart", "suiteStart", "testStart", "assertion", "testEnd", "suiteEnd", "runEnd"];
 
@@ -4090,10 +3825,7 @@ Ember.setupForTesting = testing.setupForTesting;
   		key: "start",
   		value: function start(recordTime) {
   			if (recordTime) {
-  				this._startTime = performanceNow();
-  				if (performance) {
-  					performance.mark("qunit_test_start");
-  				}
+  				this._startTime = Date.now();
   			}
 
   			return {
@@ -4106,13 +3838,7 @@ Ember.setupForTesting = testing.setupForTesting;
   		key: "end",
   		value: function end(recordTime) {
   			if (recordTime) {
-  				this._endTime = performanceNow();
-  				if (performance) {
-  					performance.mark("qunit_test_end");
-
-  					var testName = this.fullName.join(" – ");
-  					performance.measure("QUnit Test: " + testName, "qunit_test_start", "qunit_test_end");
-  				}
+  				this._endTime = Date.now();
   			}
 
   			return extend(this.start(), {
@@ -4408,10 +4134,6 @@ Ember.setupForTesting = testing.setupForTesting;
   	finish: function finish() {
   		config.current = this;
 
-  		// Release the test callback to ensure that anything referenced has been
-  		// released to be garbage collected.
-  		this.callback = undefined;
-
   		if (this.steps.length) {
   			var stepsList = this.steps.join(", ");
   			this.pushFailure("Expected assert.verifySteps() to be called before end of test " + ("after using assert.step(). Unverified steps: " + stepsList), this.stack);
@@ -4496,11 +4218,6 @@ Ember.setupForTesting = testing.setupForTesting;
   		config.current = undefined;
 
   		function logSuiteEnd(module) {
-
-  			// Reset `module.hooks` to ensure that anything referenced in these hooks
-  			// has been released to be garbage collected.
-  			module.hooks = {};
-
   			emit("suiteEnd", module.suiteReport.end(true));
   			runLoggingCallbacks("moduleDone", {
   				name: module.name,
@@ -5018,7 +4735,7 @@ Ember.setupForTesting = testing.setupForTesting;
   				result = false;
   			}
 
-  			this.pushResult({
+  			return this.pushResult({
   				result: result,
   				message: assertionMessage
   			});
@@ -5480,6 +5197,121 @@ Ember.setupForTesting = testing.setupForTesting;
   	}
   }
 
+  var SuiteReport = function () {
+  	function SuiteReport(name, parentSuite) {
+  		classCallCheck(this, SuiteReport);
+
+  		this.name = name;
+  		this.fullName = parentSuite ? parentSuite.fullName.concat(name) : [];
+
+  		this.tests = [];
+  		this.childSuites = [];
+
+  		if (parentSuite) {
+  			parentSuite.pushChildSuite(this);
+  		}
+  	}
+
+  	createClass(SuiteReport, [{
+  		key: "start",
+  		value: function start(recordTime) {
+  			if (recordTime) {
+  				this._startTime = Date.now();
+  			}
+
+  			return {
+  				name: this.name,
+  				fullName: this.fullName.slice(),
+  				tests: this.tests.map(function (test) {
+  					return test.start();
+  				}),
+  				childSuites: this.childSuites.map(function (suite) {
+  					return suite.start();
+  				}),
+  				testCounts: {
+  					total: this.getTestCounts().total
+  				}
+  			};
+  		}
+  	}, {
+  		key: "end",
+  		value: function end(recordTime) {
+  			if (recordTime) {
+  				this._endTime = Date.now();
+  			}
+
+  			return {
+  				name: this.name,
+  				fullName: this.fullName.slice(),
+  				tests: this.tests.map(function (test) {
+  					return test.end();
+  				}),
+  				childSuites: this.childSuites.map(function (suite) {
+  					return suite.end();
+  				}),
+  				testCounts: this.getTestCounts(),
+  				runtime: this.getRuntime(),
+  				status: this.getStatus()
+  			};
+  		}
+  	}, {
+  		key: "pushChildSuite",
+  		value: function pushChildSuite(suite) {
+  			this.childSuites.push(suite);
+  		}
+  	}, {
+  		key: "pushTest",
+  		value: function pushTest(test) {
+  			this.tests.push(test);
+  		}
+  	}, {
+  		key: "getRuntime",
+  		value: function getRuntime() {
+  			return this._endTime - this._startTime;
+  		}
+  	}, {
+  		key: "getTestCounts",
+  		value: function getTestCounts() {
+  			var counts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { passed: 0, failed: 0, skipped: 0, todo: 0, total: 0 };
+
+  			counts = this.tests.reduce(function (counts, test) {
+  				if (test.valid) {
+  					counts[test.getStatus()]++;
+  					counts.total++;
+  				}
+
+  				return counts;
+  			}, counts);
+
+  			return this.childSuites.reduce(function (counts, suite) {
+  				return suite.getTestCounts(counts);
+  			}, counts);
+  		}
+  	}, {
+  		key: "getStatus",
+  		value: function getStatus() {
+  			var _getTestCounts = this.getTestCounts(),
+  			    total = _getTestCounts.total,
+  			    failed = _getTestCounts.failed,
+  			    skipped = _getTestCounts.skipped,
+  			    todo = _getTestCounts.todo;
+
+  			if (failed) {
+  				return "failed";
+  			} else {
+  				if (skipped === total) {
+  					return "skipped";
+  				} else if (todo === total) {
+  					return "todo";
+  				} else {
+  					return "passed";
+  				}
+  			}
+  		}
+  	}]);
+  	return SuiteReport;
+  }();
+
   // Handle an unhandled exception. By convention, returns true if further
   // error handling should be suppressed and false otherwise.
   // In this case, we will only suppress further error handling if the
@@ -5522,6 +5354,7 @@ Ember.setupForTesting = testing.setupForTesting;
   	}
   }
 
+  var focused = false;
   var QUnit = {};
   var globalSuite = new SuiteReport();
 
@@ -5530,6 +5363,7 @@ Ember.setupForTesting = testing.setupForTesting;
   // it since each module has a suiteReport associated with it.
   config.currentModule.suiteReport = globalSuite;
 
+  var moduleStack = [];
   var globalStartCalled = false;
   var runStarted = false;
 
@@ -5537,7 +5371,143 @@ Ember.setupForTesting = testing.setupForTesting;
   QUnit.isLocal = !(defined.document && window.location.protocol !== "file:");
 
   // Expose the current QUnit version
-  QUnit.version = "2.7.0";
+  QUnit.version = "2.6.0";
+
+  function createModule(name, testEnvironment, modifiers) {
+  	var parentModule = moduleStack.length ? moduleStack.slice(-1)[0] : null;
+  	var moduleName = parentModule !== null ? [parentModule.name, name].join(" > ") : name;
+  	var parentSuite = parentModule ? parentModule.suiteReport : globalSuite;
+
+  	var skip$$1 = parentModule !== null && parentModule.skip || modifiers.skip;
+  	var todo$$1 = parentModule !== null && parentModule.todo || modifiers.todo;
+
+  	var module = {
+  		name: moduleName,
+  		parentModule: parentModule,
+  		tests: [],
+  		moduleId: generateHash(moduleName),
+  		testsRun: 0,
+  		unskippedTestsRun: 0,
+  		childModules: [],
+  		suiteReport: new SuiteReport(name, parentSuite),
+
+  		// Pass along `skip` and `todo` properties from parent module, in case
+  		// there is one, to childs. And use own otherwise.
+  		// This property will be used to mark own tests and tests of child suites
+  		// as either `skipped` or `todo`.
+  		skip: skip$$1,
+  		todo: skip$$1 ? false : todo$$1
+  	};
+
+  	var env = {};
+  	if (parentModule) {
+  		parentModule.childModules.push(module);
+  		extend(env, parentModule.testEnvironment);
+  	}
+  	extend(env, testEnvironment);
+  	module.testEnvironment = env;
+
+  	config.modules.push(module);
+  	return module;
+  }
+
+  function processModule(name, options, executeNow) {
+  	var modifiers = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+  	var module = createModule(name, options, modifiers);
+
+  	// Move any hooks to a 'hooks' object
+  	var testEnvironment = module.testEnvironment;
+  	var hooks = module.hooks = {};
+
+  	setHookFromEnvironment(hooks, testEnvironment, "before");
+  	setHookFromEnvironment(hooks, testEnvironment, "beforeEach");
+  	setHookFromEnvironment(hooks, testEnvironment, "afterEach");
+  	setHookFromEnvironment(hooks, testEnvironment, "after");
+
+  	function setHookFromEnvironment(hooks, environment, name) {
+  		var potentialHook = environment[name];
+  		hooks[name] = typeof potentialHook === "function" ? [potentialHook] : [];
+  		delete environment[name];
+  	}
+
+  	var moduleFns = {
+  		before: setHookFunction(module, "before"),
+  		beforeEach: setHookFunction(module, "beforeEach"),
+  		afterEach: setHookFunction(module, "afterEach"),
+  		after: setHookFunction(module, "after")
+  	};
+
+  	var currentModule = config.currentModule;
+  	if (objectType(executeNow) === "function") {
+  		moduleStack.push(module);
+  		config.currentModule = module;
+  		executeNow.call(module.testEnvironment, moduleFns);
+  		moduleStack.pop();
+  		module = module.parentModule || currentModule;
+  	}
+
+  	config.currentModule = module;
+  }
+
+  // TODO: extract this to a new file alongside its related functions
+  function module$1(name, options, executeNow) {
+  	if (focused) {
+  		return;
+  	}
+
+  	if (arguments.length === 2) {
+  		if (objectType(options) === "function") {
+  			executeNow = options;
+  			options = undefined;
+  		}
+  	}
+
+  	processModule(name, options, executeNow);
+  }
+
+  module$1.only = function () {
+  	if (focused) {
+  		return;
+  	}
+
+  	config.modules.length = 0;
+  	config.queue.length = 0;
+
+  	module$1.apply(undefined, arguments);
+
+  	focused = true;
+  };
+
+  module$1.skip = function (name, options, executeNow) {
+  	if (focused) {
+  		return;
+  	}
+
+  	if (arguments.length === 2) {
+  		if (objectType(options) === "function") {
+  			executeNow = options;
+  			options = undefined;
+  		}
+  	}
+
+  	processModule(name, options, executeNow, { skip: true });
+  };
+
+  module$1.todo = function (name, options, executeNow) {
+  	if (focused) {
+  		return;
+  	}
+
+  	if (arguments.length === 2) {
+  		if (objectType(options) === "function") {
+  			executeNow = options;
+  			options = undefined;
+  		}
+  	}
+
+  	processModule(name, options, executeNow, { todo: true });
+  };
 
   extend(QUnit, {
   	on: on,
@@ -5679,6 +5649,12 @@ Ember.setupForTesting = testing.setupForTesting;
 
   	config.blocking = false;
   	ProcessingQueue.advance();
+  }
+
+  function setHookFunction(module, hookName) {
+  	return function setHook(callback) {
+  		module.hooks[hookName].push(callback);
+  	};
   }
 
   exportQUnit(QUnit);
@@ -5865,7 +5841,6 @@ Ember.setupForTesting = testing.setupForTesting;
   	}
 
   	var config = QUnit.config,
-  	    hiddenTests = [],
   	    document$$1 = window.document,
   	    collapseNext = false,
   	    hasOwn = Object.prototype.hasOwnProperty,
@@ -6019,47 +5994,7 @@ Ember.setupForTesting = testing.setupForTesting;
   			config[field.name] = value || false;
   			tests = id("qunit-tests");
   			if (tests) {
-  				var length = tests.children.length;
-  				var children = tests.children;
-
-  				if (field.checked) {
-  					for (var i = 0; i < length; i++) {
-  						var test = children[i];
-
-  						if (test && test.className.indexOf("pass") > -1) {
-  							hiddenTests.push(test);
-  						}
-  					}
-
-  					var _iteratorNormalCompletion = true;
-  					var _didIteratorError = false;
-  					var _iteratorError = undefined;
-
-  					try {
-  						for (var _iterator = hiddenTests[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-  							var hiddenTest = _step.value;
-
-  							tests.removeChild(hiddenTest);
-  						}
-  					} catch (err) {
-  						_didIteratorError = true;
-  						_iteratorError = err;
-  					} finally {
-  						try {
-  							if (!_iteratorNormalCompletion && _iterator.return) {
-  								_iterator.return();
-  							}
-  						} finally {
-  							if (_didIteratorError) {
-  								throw _iteratorError;
-  							}
-  						}
-  					}
-  				} else {
-  					while ((test = hiddenTests.pop()) != null) {
-  						tests.appendChild(test);
-  					}
-  				}
+  				toggleClass(tests, "hidepass", value || false);
   			}
   			window.history.replaceState(null, "", updatedUrl);
   		} else {
@@ -6193,7 +6128,6 @@ Ember.setupForTesting = testing.setupForTesting;
   		    dirty = false;
 
   		moduleSearch.id = "qunit-modulefilter-search";
-  		moduleSearch.autocomplete = "off";
   		addEvent(moduleSearch, "input", searchInput);
   		addEvent(moduleSearch, "input", searchFocus);
   		addEvent(moduleSearch, "focus", searchFocus);
@@ -6204,7 +6138,7 @@ Ember.setupForTesting = testing.setupForTesting;
   		label.appendChild(moduleSearch);
 
   		actions.id = "qunit-modulefilter-actions";
-  		actions.innerHTML = "<button style='display:none'>Apply</button>" + "<button type='reset' style='display:none'>Reset</button>" + "<label class='clickable" + (config.moduleId.length ? "" : " checked") + "'><input type='checkbox'" + (config.moduleId.length ? "" : " checked='checked'") + " />All modules</label>";
+  		actions.innerHTML = "<button style='display:none'>Apply</button>" + "<button type='reset' style='display:none'>Reset</button>" + "<label class='clickable" + (config.moduleId.length ? "" : " checked") + "'><input type='checkbox'" + (config.moduleId.length ? "" : " checked='checked'") + ">All modules</label>";
   		allCheckbox = actions.lastChild.firstChild;
   		commit = actions.firstChild;
   		reset = commit.nextSibling;
@@ -6393,6 +6327,20 @@ Ember.setupForTesting = testing.setupForTesting;
   		appendToolbar();
   	}
 
+  	function appendTestsList(modules) {
+  		var i, l, x, z, test, moduleObj;
+
+  		for (i = 0, l = modules.length; i < l; i++) {
+  			moduleObj = modules[i];
+
+  			for (x = 0, z = moduleObj.tests.length; x < z; x++) {
+  				test = moduleObj.tests[x];
+
+  				appendTest(test.name, test.testId, moduleObj.name);
+  			}
+  		}
+  	}
+
   	function appendTest(name, testId, moduleName) {
   		var title,
   		    rerunTrigger,
@@ -6426,7 +6374,7 @@ Ember.setupForTesting = testing.setupForTesting;
 
   	// HTML Reporter initialization and load
   	QUnit.begin(function (details) {
-  		var i, moduleObj;
+  		var i, moduleObj, tests;
 
   		// Sort modules by name for the picker
   		for (i = 0; i < details.modules.length; i++) {
@@ -6441,6 +6389,11 @@ Ember.setupForTesting = testing.setupForTesting;
 
   		// Initialize QUnit elements
   		appendInterface();
+  		appendTestsList(details.modules);
+  		tests = id("qunit-tests");
+  		if (tests && config.hidepassed) {
+  			addClass(tests, "hidepass");
+  		}
   	});
 
   	QUnit.done(function (details) {
@@ -6509,9 +6462,16 @@ Ember.setupForTesting = testing.setupForTesting;
   	}
 
   	QUnit.testStart(function (details) {
-  		var running, bad;
+  		var running, testBlock, bad;
 
-  		appendTest(details.name, details.testId, details.module);
+  		testBlock = id("qunit-test-output-" + details.testId);
+  		if (testBlock) {
+  			testBlock.className = "running";
+  		} else {
+
+  			// Report later registered tests
+  			appendTest(details.name, details.testId, details.module);
+  		}
 
   		running = id("qunit-testresult-display");
   		if (running) {
@@ -6524,7 +6484,7 @@ Ember.setupForTesting = testing.setupForTesting;
   	function stripHtml(string) {
 
   		// Strip tags, html entity and whitespaces
-  		return string.replace(/<\/?[^>]+(>|$)/g, "").replace(/&quot;/g, "").replace(/\s+/g, "");
+  		return string.replace(/<\/?[^>]+(>|$)/g, "").replace(/\&quot;/g, "").replace(/\s+/g, "");
   	}
 
   	QUnit.log(function (details) {
@@ -6608,7 +6568,6 @@ Ember.setupForTesting = testing.setupForTesting;
   		    time,
   		    testItem,
   		    assertList,
-  		    status,
   		    good,
   		    bad,
   		    testCounts,
@@ -6621,14 +6580,6 @@ Ember.setupForTesting = testing.setupForTesting;
   		}
 
   		testItem = id("qunit-test-output-" + details.testId);
-
-  		if (details.failed > 0) {
-  			status = "failed";
-  		} else if (details.todo) {
-  			status = "todo";
-  		} else {
-  			status = details.skipped ? "skipped" : "passed";
-  		}
 
   		assertList = testItem.getElementsByTagName("ol")[0];
 
@@ -6710,14 +6661,6 @@ Ember.setupForTesting = testing.setupForTesting;
   				toggleClass(sourceName, "qunit-collapsed");
   			});
   			testItem.appendChild(sourceName);
-  		}
-
-  		if (config.hidepassed && status === "passed") {
-
-  			// use removeChild instead of remove because of support
-  			hiddenTests.push(testItem);
-
-  			tests.removeChild(testItem);
   		}
   	});
 

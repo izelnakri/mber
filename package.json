@@ -32,7 +32,7 @@
     "ember-data": "3.5.0",
     "ember-devtools": "^6.0.0",
     "ember-load-initializers": "^1.1.0",
-    "ember-qunit": "^3.5.0",
+    "ember-qunit": "^3.4.1",
     "ember-resolver": "^5.0.1",
     "ember-source": "3.5.0",
     "eslint": "^5.7.0",
@@ -41,7 +41,7 @@
     "loader.js": "^4.7.0",
     "mber-head": "^0.1.0",
     "morgan": "^1.9.1",
-    "qunit": "2.7.0",
+    "qunit": "2.6.0",
     "strip-ansi": "^5.0.0",
     "whatwg-fetch": "^3.0.0"
   },
@@ -81,11 +81,11 @@
     "mustache": "^3.0.0",
     "node-sass": "4.9.4",
     "ora": "^3.0.0",
-    "puppeteer": "^1.9.0",
+    "puppeteer": "^1.7.0",
     "say": "^0.15.0",
     "through2": "^2.0.3",
     "uglify-es": "^3.3.9",
-    "ws": "^6.1.0"
+    "ws": "^6.0.0"
   },
   "ava": {
     "require": [
