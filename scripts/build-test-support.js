@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import { promisify } from 'util';
-import chalk from 'chalk';
+import chalk from 'ansi-colors';
 import sass from 'node-sass';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';

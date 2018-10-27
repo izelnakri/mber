@@ -1,6 +1,6 @@
 // TODO: probably needs transpiling adjustments due to ember-data upgrade
 import fs from 'fs-extra';
-import chalk from 'chalk';
+import chalk from 'ansi-colors';
 import UglifyJS from 'uglify-es';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';

@@ -2524,14 +2524,14 @@ Ember.setupForTesting = testing.setupForTesting;
 })();
 
 /*!
- * QUnit 2.6.2
+ * QUnit 2.7.1
  * https://qunitjs.com/
  *
  * Copyright jQuery Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2018-08-19T19:37Z
+ * Date: 2018-10-17T16:54Z
  */
 (function (global$1) {
   'use strict';
@@ -2557,6 +2557,24 @@ Ember.setupForTesting = testing.setupForTesting;
   		return undefined;
   	}
   }();
+
+  /**
+   * Returns a function that proxies to the given method name on the globals
+   * console object. The proxy will also detect if the console doesn't exist and
+   * will appropriately no-op. This allows support for IE9, which doesn't have a
+   * console if the developer tools are not open.
+   */
+  function consoleProxy(method) {
+  	return function () {
+  		if (console) {
+  			console[method].apply(console, arguments);
+  		}
+  	};
+  }
+
+  var Logger = {
+  	warn: consoleProxy("warn")
+  };
 
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
     return typeof obj;
@@ -2653,6 +2671,25 @@ Ember.setupForTesting = testing.setupForTesting;
   var now = Date.now || function () {
   	return new Date().getTime();
   };
+
+  var hasPerformanceApi = detectPerformanceApi();
+  var performance = hasPerformanceApi ? window.performance : undefined;
+  var performanceNow = hasPerformanceApi ? performance.now.bind(performance) : now;
+
+  function detectPerformanceApi() {
+  	return window && typeof window.performance !== "undefined" && typeof window.performance.mark === "function" && typeof window.performance.measure === "function";
+  }
+
+  function measure(comment, startMark, endMark) {
+
+  	// `performance.measure` may fail if the mark could not be found.
+  	// reasons a specific mark could not be found include: outside code invoking `performance.clearMarks()`
+  	try {
+  		performance.measure(comment, startMark, endMark);
+  	} catch (ex) {
+  		Logger.warn("performance.measure could not be executed because of ", ex.message);
+  	}
+  }
 
   var defined = {
   	document: window && window.document !== undefined,
@@ -3494,7 +3531,12 @@ Ember.setupForTesting = testing.setupForTesting;
   		key: "start",
   		value: function start(recordTime) {
   			if (recordTime) {
-  				this._startTime = Date.now();
+  				this._startTime = performanceNow();
+
+  				if (performance) {
+  					var suiteLevel = this.fullName.length;
+  					performance.mark("qunit_suite_" + suiteLevel + "_start");
+  				}
   			}
 
   			return {
@@ -3515,7 +3557,16 @@ Ember.setupForTesting = testing.setupForTesting;
   		key: "end",
   		value: function end(recordTime) {
   			if (recordTime) {
-  				this._endTime = Date.now();
+  				this._endTime = performanceNow();
+
+  				if (performance) {
+  					var suiteLevel = this.fullName.length;
+  					performance.mark("qunit_suite_" + suiteLevel + "_end");
+
+  					var suiteName = this.fullName.join(" – ");
+
+  					measure(suiteLevel === 0 ? "QUnit Test Run" : "QUnit Test Suite: " + suiteName, "qunit_suite_" + suiteLevel + "_start", "qunit_suite_" + suiteLevel + "_end");
+  				}
   			}
 
   			return {
@@ -4069,7 +4120,10 @@ Ember.setupForTesting = testing.setupForTesting;
   		key: "start",
   		value: function start(recordTime) {
   			if (recordTime) {
-  				this._startTime = Date.now();
+  				this._startTime = performanceNow();
+  				if (performance) {
+  					performance.mark("qunit_test_start");
+  				}
   			}
 
   			return {
@@ -4082,7 +4136,14 @@ Ember.setupForTesting = testing.setupForTesting;
   		key: "end",
   		value: function end(recordTime) {
   			if (recordTime) {
-  				this._endTime = Date.now();
+  				this._endTime = performanceNow();
+  				if (performance) {
+  					performance.mark("qunit_test_end");
+
+  					var testName = this.fullName.join(" – ");
+
+  					measure("QUnit Test: " + testName, "qunit_test_start", "qunit_test_end");
+  				}
   			}
 
   			return extend(this.start(), {
@@ -4934,24 +4995,6 @@ Ember.setupForTesting = testing.setupForTesting;
   	}
   }
 
-  /**
-   * Returns a function that proxies to the given method name on the globals
-   * console object. The proxy will also detect if the console doesn't exist and
-   * will appropriately no-op. This allows support for IE9, which doesn't have a
-   * console if the developer tools are not open.
-   */
-  function consoleProxy(method) {
-  	return function () {
-  		if (console) {
-  			console[method].apply(console, arguments);
-  		}
-  	};
-  }
-
-  var Logger = {
-  	warn: consoleProxy("warn")
-  };
-
   var Assert = function () {
   	function Assert(testContext) {
   		classCallCheck(this, Assert);
@@ -5507,7 +5550,7 @@ Ember.setupForTesting = testing.setupForTesting;
   QUnit.isLocal = !(defined.document && window.location.protocol !== "file:");
 
   // Expose the current QUnit version
-  QUnit.version = "2.6.2";
+  QUnit.version = "2.7.1";
 
   extend(QUnit, {
   	on: on,
@@ -5835,6 +5878,7 @@ Ember.setupForTesting = testing.setupForTesting;
   	}
 
   	var config = QUnit.config,
+  	    hiddenTests = [],
   	    document$$1 = window.document,
   	    collapseNext = false,
   	    hasOwn = Object.prototype.hasOwnProperty,
@@ -5988,7 +6032,47 @@ Ember.setupForTesting = testing.setupForTesting;
   			config[field.name] = value || false;
   			tests = id("qunit-tests");
   			if (tests) {
-  				toggleClass(tests, "hidepass", value || false);
+  				var length = tests.children.length;
+  				var children = tests.children;
+
+  				if (field.checked) {
+  					for (var i = 0; i < length; i++) {
+  						var test = children[i];
+
+  						if (test && test.className.indexOf("pass") > -1) {
+  							hiddenTests.push(test);
+  						}
+  					}
+
+  					var _iteratorNormalCompletion = true;
+  					var _didIteratorError = false;
+  					var _iteratorError = undefined;
+
+  					try {
+  						for (var _iterator = hiddenTests[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+  							var hiddenTest = _step.value;
+
+  							tests.removeChild(hiddenTest);
+  						}
+  					} catch (err) {
+  						_didIteratorError = true;
+  						_iteratorError = err;
+  					} finally {
+  						try {
+  							if (!_iteratorNormalCompletion && _iterator.return) {
+  								_iterator.return();
+  							}
+  						} finally {
+  							if (_didIteratorError) {
+  								throw _iteratorError;
+  							}
+  						}
+  					}
+  				} else {
+  					while ((test = hiddenTests.pop()) != null) {
+  						tests.appendChild(test);
+  					}
+  				}
   			}
   			window.history.replaceState(null, "", updatedUrl);
   		} else {
@@ -6133,7 +6217,7 @@ Ember.setupForTesting = testing.setupForTesting;
   		label.appendChild(moduleSearch);
 
   		actions.id = "qunit-modulefilter-actions";
-  		actions.innerHTML = "<button style='display:none'>Apply</button>" + "<button type='reset' style='display:none'>Reset</button>" + "<label class='clickable" + (config.moduleId.length ? "" : " checked") + "'><input type='checkbox'" + (config.moduleId.length ? "" : " checked='checked'") + ">All modules</label>";
+  		actions.innerHTML = "<button style='display:none'>Apply</button>" + "<button type='reset' style='display:none'>Reset</button>" + "<label class='clickable" + (config.moduleId.length ? "" : " checked") + "'><input type='checkbox'" + (config.moduleId.length ? "" : " checked='checked'") + " />All modules</label>";
   		allCheckbox = actions.lastChild.firstChild;
   		commit = actions.firstChild;
   		reset = commit.nextSibling;
@@ -6322,20 +6406,6 @@ Ember.setupForTesting = testing.setupForTesting;
   		appendToolbar();
   	}
 
-  	function appendTestsList(modules) {
-  		var i, l, x, z, test, moduleObj;
-
-  		for (i = 0, l = modules.length; i < l; i++) {
-  			moduleObj = modules[i];
-
-  			for (x = 0, z = moduleObj.tests.length; x < z; x++) {
-  				test = moduleObj.tests[x];
-
-  				appendTest(test.name, test.testId, moduleObj.name);
-  			}
-  		}
-  	}
-
   	function appendTest(name, testId, moduleName) {
   		var title,
   		    rerunTrigger,
@@ -6369,7 +6439,7 @@ Ember.setupForTesting = testing.setupForTesting;
 
   	// HTML Reporter initialization and load
   	QUnit.begin(function (details) {
-  		var i, moduleObj, tests;
+  		var i, moduleObj;
 
   		// Sort modules by name for the picker
   		for (i = 0; i < details.modules.length; i++) {
@@ -6384,11 +6454,6 @@ Ember.setupForTesting = testing.setupForTesting;
 
   		// Initialize QUnit elements
   		appendInterface();
-  		appendTestsList(details.modules);
-  		tests = id("qunit-tests");
-  		if (tests && config.hidepassed) {
-  			addClass(tests, "hidepass");
-  		}
   	});
 
   	QUnit.done(function (details) {
@@ -6457,16 +6522,9 @@ Ember.setupForTesting = testing.setupForTesting;
   	}
 
   	QUnit.testStart(function (details) {
-  		var running, testBlock, bad;
+  		var running, bad;
 
-  		testBlock = id("qunit-test-output-" + details.testId);
-  		if (testBlock) {
-  			testBlock.className = "running";
-  		} else {
-
-  			// Report later registered tests
-  			appendTest(details.name, details.testId, details.module);
-  		}
+  		appendTest(details.name, details.testId, details.module);
 
   		running = id("qunit-testresult-display");
   		if (running) {
@@ -6563,6 +6621,7 @@ Ember.setupForTesting = testing.setupForTesting;
   		    time,
   		    testItem,
   		    assertList,
+  		    status,
   		    good,
   		    bad,
   		    testCounts,
@@ -6575,6 +6634,14 @@ Ember.setupForTesting = testing.setupForTesting;
   		}
 
   		testItem = id("qunit-test-output-" + details.testId);
+
+  		if (details.failed > 0) {
+  			status = "failed";
+  		} else if (details.todo) {
+  			status = "todo";
+  		} else {
+  			status = details.skipped ? "skipped" : "passed";
+  		}
 
   		assertList = testItem.getElementsByTagName("ol")[0];
 
@@ -6656,6 +6723,14 @@ Ember.setupForTesting = testing.setupForTesting;
   				toggleClass(sourceName, "qunit-collapsed");
   			});
   			testItem.appendChild(sourceName);
+  		}
+
+  		if (config.hidepassed && status === "passed") {
+
+  			// use removeChild instead of remove because of support
+  			hiddenTests.push(testItem);
+
+  			tests.removeChild(testItem);
   		}
   	});
 
@@ -9578,7 +9653,9 @@ define("@ember/test-helpers/dom/fire-event", ["exports"], function (_exports) {
   function buildMouseEvent(type) {
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     var event;
-    var eventOpts = Ember.assign({}, DEFAULT_EVENT_OPTIONS, options);
+    var eventOpts = Ember.assign({
+      view: window
+    }, DEFAULT_EVENT_OPTIONS, options);
 
     if (MOUSE_EVENT_CONSTRUCTOR) {
       event = new MouseEvent(type, eventOpts);

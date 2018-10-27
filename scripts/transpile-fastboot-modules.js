@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import chalk from 'chalk';
+import chalk from 'ansi-colors';
 import Console from '../lib/utils/console';
 import findProjectRoot from '../lib/utils/find-project-root';
 import countTime from '../lib/utils/count-time';
