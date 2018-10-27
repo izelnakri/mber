@@ -26,11 +26,12 @@
   },
   "dependencies": {
     "ember-cli-fastboot": "^1.1.4-beta.1",
-    "ember-data": "^3.3.0",
+    "ember-data": "^3.5.0",
     "ember-devtools": "^6.0.0",
+    "fastboot": "^1.2.0",
     "highlight.js": "^9.12.0",
     "jquery": "^3.3.1",
     "mber-head": "^0.1.0",
-    "memserver": "^1.1.7"
+    "memserver": "^1.2.1"
   }
 }

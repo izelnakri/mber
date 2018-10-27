@@ -1,5 +1,6 @@
+// TODO: probably needs transpiling adjustments due to ember-data upgrade
 import fs from 'fs-extra';
-import chalk from 'chalk';
+import chalk from 'ansi-colors';
 import UglifyJS from 'uglify-es';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
@@ -48,7 +49,7 @@ function readBuildFiles(projectPath, environment, options={ excludeEmberData: fa
 
   let baseBuilds = [
     fs.readFile(`${MODULE_PATH}/loader.js/dist/loader/loader.js`),
-    importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/commonjs/es2017'),
+    importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/modules/es2017'),
     fs.readFile(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     injectEmberJS(MODULE_PATH, environment),
     new Promise((resolve) => resolve(`
@@ -80,11 +81,14 @@ function injectEmberJS(modulePath, environment) {
 
 function buildEmberData(projectPath, environment) {
   const emberDataVersion = require(`${projectPath}/package.json`).devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
+  const options = environment === 'production' ? {
+    filter: (item) => !item.path.includes('/-debug')
+  } : {};
 
   process.env.EMBER_ENV = environment === 'production' ? 'production' : undefined; // NOTE: hack for hacky ember-data builds
 
   return [
-    importAddonFolderToAMD('ember-data', 'ember-data/addon'),
+    importAddonFolderToAMD('ember-data', 'ember-data/addon', null, options),
     new Promise((resolve) => resolve(`
       define('ember-data/version', ['exports'], function (exports) {
         exports.default = '${emberDataVersion}';

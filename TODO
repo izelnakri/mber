@@ -1,3 +1,6 @@
+- maybe upgrade fastboot
+- OrderedSet mocking might cause issues
+
 - add unit tests for resolvePortNumberFor + add e2e test for mber s + mber t while port is in use(so it changes)
 configuration file: .mber
 styleguide solution

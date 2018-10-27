@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import { promisify } from 'util';
-import chalk from 'chalk';
+import chalk from 'ansi-colors';
 import sass from 'node-sass';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
@@ -9,6 +9,7 @@ import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-am
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
 
 const compileScssAsync = promisify(sass.render);
+
 const CSS_FILENAME = 'test-support.css';
 const JS_FILENAME = 'test-support.js';
 

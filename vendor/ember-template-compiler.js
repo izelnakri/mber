@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.3.1
+ * @version   3.5.0
  */
 
 /*globals process */
@@ -162,10 +162,10 @@ enifed('@ember/canary-features/index', ['exports', '@ember/polyfills', 'ember-en
         EMBER_ROUTING_ROUTER_SERVICE: true,
         EMBER_ENGINES_MOUNT_PARAMS: true,
         EMBER_MODULE_UNIFICATION: false,
-        GLIMMER_CUSTOM_COMPONENT_MANAGER: false,
+        GLIMMER_CUSTOM_COMPONENT_MANAGER: true,
         EMBER_TEMPLATE_BLOCK_LET_HELPER: true,
         EMBER_METAL_TRACKED_PROPERTIES: false,
-        EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION: false
+        EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION: true
     };
     /**
       The hash of enabled Canary features. Add to this, any canary features
@@ -810,6 +810,7 @@ enifed('@ember/debug/lib/warn', ['exports', 'ember-environment', '@ember/debug/i
 enifed('@ember/deprecated-features/index', ['exports'], function (exports) {
   'use strict';
 
+  exports.SEND_ACTION = !!'3.4.0';
   exports.PROPERTY_BASED_DESCRIPTORS = !!'3.2.0';
   exports.EMBER_EXTEND_PROTOTYPES = !!'3.2.0-beta.5';
   exports.DEPRECATE_OPTIONS_MISSING = !!'2.1.0-beta.1';
@@ -828,6 +829,8 @@ enifed('@ember/deprecated-features/index', ['exports'], function (exports) {
   exports.TARGET_OBJECT = !!'2.18.0-beta.1';
   exports.RENDER_HELPER = !!'2.11.0-beta.1';
   exports.BINDING_SUPPORT = !!'2.7.0-beta.1';
+  exports.MAP = !!'3.3.0-beta.1';
+  exports.ORDERED_SET = !!'3.3.0-beta.1';
   //# sourceMappingURL=index.js.map
 });
 enifed("@ember/error/index", ["exports", "ember-babel"], function (exports, _emberBabel) {
@@ -3224,7 +3227,8 @@ enifed('@glimmer/syntax', ['exports', 'ember-babel', 'simple-html-tokenizer', '@
 
         HandlebarsNodeVisitors.prototype.PathExpression = function (path) {
             var original = path.original,
-                loc = path.loc;
+                loc = path.loc,
+                locationInfo;
 
             var parts = void 0;
             if (original.indexOf('/') !== -1) {
@@ -3238,6 +3242,10 @@ enifed('@glimmer/syntax', ['exports', 'ember-babel', 'simple-html-tokenizer', '@
                     throw new SyntaxError('Mixing \'.\' and \'/\' in paths is not supported in Glimmer; use only \'.\' to separate property paths: "' + path.original + '" on line ' + loc.start.line + '.', path.loc);
                 }
                 parts = [path.parts.join('/')];
+            } else if (original === '.') {
+                locationInfo = 'L' + loc.start.line + ':C' + loc.start.column;
+
+                throw new SyntaxError('\'.\' is not a supported path in Glimmer; check for a path with a trailing \'.\' at ' + locationInfo + '.', path.loc);
             } else {
                 parts = path.parts;
             }
@@ -3579,6 +3587,49 @@ enifed('@glimmer/syntax', ['exports', 'ember-babel', 'simple-html-tokenizer', '@
         return normalizedVisitor;
     }
 
+    var ATTR_VALUE_REGEX_TEST = /[\xA0"&]/;
+    var ATTR_VALUE_REGEX_REPLACE = new RegExp(ATTR_VALUE_REGEX_TEST.source, 'g');
+    var TEXT_REGEX_TEST = /[\xA0&<>]/;
+    var TEXT_REGEX_REPLACE = new RegExp(TEXT_REGEX_TEST.source, 'g');
+    function attrValueReplacer(char) {
+        switch (char.charCodeAt(0)) {
+            case 160 /* NBSP */:
+                return '&nbsp;';
+            case 34 /* QUOT */:
+                return '&quot;';
+            case 38 /* AMP */:
+                return '&amp;';
+            default:
+                return char;
+        }
+    }
+    function textReplacer(char) {
+        switch (char.charCodeAt(0)) {
+            case 160 /* NBSP */:
+                return '&nbsp;';
+            case 38 /* AMP */:
+                return '&amp;';
+            case 60 /* LT */:
+                return '&lt;';
+            case 62 /* GT */:
+                return '&gt;';
+            default:
+                return char;
+        }
+    }
+    function escapeAttrValue(attrValue) {
+        if (ATTR_VALUE_REGEX_TEST.test(attrValue)) {
+            return attrValue.replace(ATTR_VALUE_REGEX_REPLACE, attrValueReplacer);
+        }
+        return attrValue;
+    }
+    function escapeText(text) {
+        if (TEXT_REGEX_TEST.test(text)) {
+            return text.replace(TEXT_REGEX_REPLACE, textReplacer);
+        }
+        return text;
+    }
+
     function unreachable() {
         throw new Error('unreachable');
     }
@@ -3589,7 +3640,6 @@ enifed('@glimmer/syntax', ['exports', 'ember-babel', 'simple-html-tokenizer', '@
         var output = [],
             chainBlock,
             body,
-            value,
             lines;
         switch (ast.type) {
             case 'Program':
@@ -3630,25 +3680,24 @@ enifed('@glimmer/syntax', ['exports', 'ember-babel', 'simple-html-tokenizer', '@
                 }
                 break;
             case 'AttrNode':
-                value = build(ast.value);
-
                 if (ast.value.type === 'TextNode') {
                     if (ast.value.chars !== '') {
                         output.push(ast.name, '=');
-                        output.push('"', value, '"');
+                        output.push('"', escapeAttrValue(ast.value.chars), '"');
                     } else {
                         output.push(ast.name);
                     }
                 } else {
                     output.push(ast.name, '=');
-                    output.push(value);
+                    // ast.value is mustache or concat
+                    output.push(build(ast.value));
                 }
                 break;
             case 'ConcatStatement':
                 output.push('"');
                 ast.parts.forEach(function (node) {
-                    if (node.type === 'StringLiteral') {
-                        output.push(node.original);
+                    if (node.type === 'TextNode') {
+                        output.push(escapeAttrValue(node.chars));
                     } else {
                         output.push(build(node));
                     }
@@ -3656,7 +3705,7 @@ enifed('@glimmer/syntax', ['exports', 'ember-babel', 'simple-html-tokenizer', '@
                 output.push('"');
                 break;
             case 'TextNode':
-                output.push(ast.chars);
+                output.push(escapeText(ast.chars));
                 break;
             case 'MustacheStatement':
                 {
@@ -4956,10 +5005,6 @@ enifed('ember-template-compiler/lib/plugins/assert-splattribute-expression', ['e
                 AttrNode: function (_ref) {
                     var name = _ref.name,
                         loc = _ref.loc;
-
-                    if (!false && name === '...attributes') {
-                        true && !false && (0, _debug.assert)(errorMessage() + ' ' + (0, _calculateLocationDisplay.default)(moduleName, loc));
-                    }
                 },
                 PathExpression: function (_ref2) {
                     var original = _ref2.original,
@@ -4974,7 +5019,7 @@ enifed('ember-template-compiler/lib/plugins/assert-splattribute-expression', ['e
     };
 
     function errorMessage() {
-        return '...attributes is an invalid path';
+        return 'Using "...attributes" can only be used in the element position e.g. <div ...attributes />. It cannot be used as a path.';
     }
     //# sourceMappingURL=assert-splattribute-expression.js.map
 });
@@ -5067,7 +5112,46 @@ enifed('ember-template-compiler/lib/plugins/deprecate-render', ['exports', '@emb
         return undefined;
     };
 });
-enifed('ember-template-compiler/lib/plugins/index', ['exports', 'ember-template-compiler/lib/plugins/assert-if-helper-without-arguments', 'ember-template-compiler/lib/plugins/assert-input-helper-without-block', 'ember-template-compiler/lib/plugins/assert-reserved-named-arguments', 'ember-template-compiler/lib/plugins/assert-splattribute-expression', 'ember-template-compiler/lib/plugins/deprecate-render', 'ember-template-compiler/lib/plugins/deprecate-render-model', 'ember-template-compiler/lib/plugins/transform-action-syntax', 'ember-template-compiler/lib/plugins/transform-angle-bracket-components', 'ember-template-compiler/lib/plugins/transform-attrs-into-args', 'ember-template-compiler/lib/plugins/transform-dot-component-invocation', 'ember-template-compiler/lib/plugins/transform-each-in-into-each', 'ember-template-compiler/lib/plugins/transform-has-block-syntax', 'ember-template-compiler/lib/plugins/transform-in-element', 'ember-template-compiler/lib/plugins/transform-inline-link-to', 'ember-template-compiler/lib/plugins/transform-input-type-syntax', 'ember-template-compiler/lib/plugins/transform-old-binding-syntax', 'ember-template-compiler/lib/plugins/transform-old-class-binding-syntax', 'ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings', 'ember-template-compiler/lib/plugins/transform-top-level-components', '@ember/deprecated-features'], function (exports, _assertIfHelperWithoutArguments, _assertInputHelperWithoutBlock, _assertReservedNamedArguments, _assertSplattributeExpression, _deprecateRender, _deprecateRenderModel, _transformActionSyntax, _transformAngleBracketComponents, _transformAttrsIntoArgs, _transformDotComponentInvocation, _transformEachInIntoEach, _transformHasBlockSyntax, _transformInElement, _transformInlineLinkTo, _transformInputTypeSyntax, _transformOldBindingSyntax, _transformOldClassBindingSyntax, _transformQuotedBindingsIntoJustBindings, _transformTopLevelComponents, _deprecatedFeatures) {
+enifed('ember-template-compiler/lib/plugins/deprecate-send-action', ['exports', '@ember/debug', '@ember/deprecated-features', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _deprecatedFeatures, _calculateLocationDisplay) {
+    'use strict';
+
+    exports.default = function (env) {
+        var moduleName, deprecationMessage;
+
+        if (_deprecatedFeatures.SEND_ACTION) {
+            moduleName = env.meta.moduleName;
+            deprecationMessage = function (node, evName, action) {
+                var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
+                return 'Please refactor `{{input ' + evName + '="' + action + '"}}` to `{{input ' + evName + '=(action "' + action + '")}}. ' + sourceInformation;
+            };
+
+            return {
+                name: 'deprecate-send-action',
+                visitor: {
+                    MustacheStatement: function (node) {
+                        if (node.path.original !== 'input') {
+                            return;
+                        }
+                        node.hash.pairs.forEach(function (pair) {
+                            if (EVENTS.indexOf(pair.key) > -1 && pair.value.type === 'StringLiteral') {
+                                true && !false && (0, _debug.deprecate)(deprecationMessage(node, pair.key, pair.value.original), false, {
+                                    id: 'ember-component.send-action',
+                                    until: '4.0.0',
+                                    url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action'
+                                });
+                            }
+                        });
+                    }
+                }
+            };
+        }
+    }
+    //# sourceMappingURL=deprecate-send-action.js.map
+    ;
+
+    var EVENTS = ['insert-newline', 'enter', 'escape-press', 'focus-in', 'focus-out', 'key-press', 'key-up', 'key-down'];
+});
+enifed('ember-template-compiler/lib/plugins/index', ['exports', 'ember-template-compiler/lib/plugins/assert-if-helper-without-arguments', 'ember-template-compiler/lib/plugins/assert-input-helper-without-block', 'ember-template-compiler/lib/plugins/assert-reserved-named-arguments', 'ember-template-compiler/lib/plugins/assert-splattribute-expression', 'ember-template-compiler/lib/plugins/deprecate-render', 'ember-template-compiler/lib/plugins/deprecate-render-model', 'ember-template-compiler/lib/plugins/deprecate-send-action', 'ember-template-compiler/lib/plugins/transform-action-syntax', 'ember-template-compiler/lib/plugins/transform-angle-bracket-components', 'ember-template-compiler/lib/plugins/transform-attrs-into-args', 'ember-template-compiler/lib/plugins/transform-dot-component-invocation', 'ember-template-compiler/lib/plugins/transform-each-in-into-each', 'ember-template-compiler/lib/plugins/transform-has-block-syntax', 'ember-template-compiler/lib/plugins/transform-in-element', 'ember-template-compiler/lib/plugins/transform-inline-link-to', 'ember-template-compiler/lib/plugins/transform-input-type-syntax', 'ember-template-compiler/lib/plugins/transform-old-binding-syntax', 'ember-template-compiler/lib/plugins/transform-old-class-binding-syntax', 'ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings', 'ember-template-compiler/lib/plugins/transform-top-level-components', '@ember/deprecated-features'], function (exports, _assertIfHelperWithoutArguments, _assertInputHelperWithoutBlock, _assertReservedNamedArguments, _assertSplattributeExpression, _deprecateRender, _deprecateRenderModel, _deprecateSendAction, _transformActionSyntax, _transformAngleBracketComponents, _transformAttrsIntoArgs, _transformDotComponentInvocation, _transformEachInIntoEach, _transformHasBlockSyntax, _transformInElement, _transformInlineLinkTo, _transformInputTypeSyntax, _transformOldBindingSyntax, _transformOldClassBindingSyntax, _transformQuotedBindingsIntoJustBindings, _transformTopLevelComponents, _deprecatedFeatures) {
     'use strict';
 
     var transforms = [_transformDotComponentInvocation.default, _transformAngleBracketComponents.default, _transformTopLevelComponents.default, _transformInlineLinkTo.default, _transformOldClassBindingSyntax.default, _transformQuotedBindingsIntoJustBindings.default, _assertReservedNamedArguments.default, _transformActionSyntax.default, _transformInputTypeSyntax.default, _transformAttrsIntoArgs.default, _transformEachInIntoEach.default, _transformHasBlockSyntax.default, _assertInputHelperWithoutBlock.default, _transformInElement.default, _assertIfHelperWithoutArguments.default, _assertSplattributeExpression.default];
@@ -5077,6 +5161,9 @@ enifed('ember-template-compiler/lib/plugins/index', ['exports', 'ember-template-
     }
     if (_deprecatedFeatures.BINDING_SUPPORT) {
         transforms.push(_transformOldBindingSyntax.default);
+    }
+    if (_deprecatedFeatures.SEND_ACTION) {
+        transforms.push(_deprecateSendAction.default);
     }
     exports.default = Object.freeze(transforms);
 });
@@ -5981,7 +6068,7 @@ enifed('ember-template-compiler/lib/system/calculate-location-display', ['export
         return moduleInfo;
     };
 });
-enifed('ember-template-compiler/lib/system/compile-options', ['exports', '@ember/polyfills', 'ember-template-compiler/lib/plugins/index'], function (exports, _polyfills, _index) {
+enifed('ember-template-compiler/lib/system/compile-options', ['exports', '@ember/polyfills', 'ember-template-compiler/lib/plugins/index', 'ember-template-compiler/lib/system/dasherize-component-name'], function (exports, _polyfills, _index, _dasherizeComponentName) {
     'use strict';
 
     exports.default = compileOptions;
@@ -5990,7 +6077,11 @@ enifed('ember-template-compiler/lib/system/compile-options', ['exports', '@ember
 
     var USER_PLUGINS = [];
     function compileOptions(_options) {
-        var options = (0, _polyfills.assign)({ meta: {} }, _options),
+        var options = (0, _polyfills.assign)({ meta: {} }, _options, {
+            customizeComponentName: function (tagname) {
+                return _dasherizeComponentName.default.get(tagname);
+            }
+        }),
             meta,
             potententialPugins,
             providedPlugins,
@@ -6102,6 +6193,25 @@ enifed('ember-template-compiler/lib/system/compile', ['exports', 'require', 'emb
         return template(templateJS);
     }
     //# sourceMappingURL=compile.js.map
+});
+enifed('ember-template-compiler/lib/system/dasherize-component-name', ['exports', 'ember-utils'], function (exports, _emberUtils) {
+    'use strict';
+
+    /*
+      This diverges from `Ember.String.dasherize` so that`<XFoo />` can resolve to `x-foo`.
+      `Ember.String.dasherize` would resolve it to `xfoo`..
+    */
+
+    var SIMPLE_DASHERIZE_REGEXP = /[A-Z]/g;
+    var ALPHA = /[A-Za-z]/;
+    exports.default = new _emberUtils.Cache(1000, function (key) {
+        return key.replace(SIMPLE_DASHERIZE_REGEXP, function (char, index) {
+            if (index === 0 || !ALPHA.test(key[index - 1])) {
+                return char.toLowerCase();
+            }
+            return '-' + char.toLowerCase();
+        });
+    });
 });
 enifed('ember-template-compiler/lib/system/initializer', ['require', 'ember-template-compiler/lib/system/bootstrap'], function (_require2, _bootstrap) {
     'use strict';
@@ -6638,13 +6748,13 @@ enifed('ember-template-compiler/tests/plugins/assert-splattribute-expression-tes
     }
 
     _class.prototype.expectedMessage = function (locInfo) {
-      return '...attributes is an invalid path (' + locInfo + ') ';
+      return 'Using "...attributes" can only be used in the element position e.g. <div ...attributes />. It cannot be used as a path. (' + locInfo + ') ';
     };
 
-    _class.prototype['@test ...attributes is in element space'] = function () {
-      expectAssertion(function () {
-        (0, _index.compile)('<div ...attributes>Foo</div>');
-      }, this.expectedMessage('L1:C5'));
+    _class.prototype['@test ...attributes is in element space'] = function (assert) {
+      assert.expect(0);
+
+      (0, _index.compile)('<div ...attributes>Foo</div>');
     };
 
     _class.prototype['@test {{...attributes}} is not valid'] = function () {
@@ -6725,6 +6835,30 @@ enifed('ember-template-compiler/tests/plugins/deprecate-render-test', ['ember-ba
 
     return _class;
   }(_internalTestHelpers.AbstractTestCase));
+});
+enifed('ember-template-compiler/tests/plugins/deprecate-send-action-test', ['ember-babel', 'ember-template-compiler/index', 'internal-test-helpers'], function (_emberBabel, _index, _internalTestHelpers) {
+  'use strict';
+
+  var DeprecateSendActionTest = function (_AbstractTestCase) {
+    (0, _emberBabel.inherits)(DeprecateSendActionTest, _AbstractTestCase);
+
+    function DeprecateSendActionTest() {
+      return (0, _emberBabel.possibleConstructorReturn)(this, _AbstractTestCase.apply(this, arguments));
+    }
+
+    return DeprecateSendActionTest;
+  }(_internalTestHelpers.AbstractTestCase);
+
+  ['insert-newline', 'enter', 'escape-press', 'focus-in', 'focus-out', 'key-press', 'key-up', 'key-down'].forEach(function (e) {
+    DeprecateSendActionTest.prototype['@test Using `{{input ' + e + '="actionName"}}` provides a deprecation'] = function () {
+
+      expectDeprecation(function () {
+        (0, _index.compile)('{{input ' + e + '="foo-bar"}}', { moduleName: 'baz/foo-bar' });
+      }, 'Please refactor `{{input ' + e + '="foo-bar"}}` to `{{input ' + e + '=(action "foo-bar")}}. (\'baz/foo-bar\' @ L1:C0) ');
+    };
+  });
+
+  (0, _internalTestHelpers.moduleFor)('ember-template-compiler: deprecate-send-action', DeprecateSendActionTest);
 });
 enifed('ember-template-compiler/tests/plugins/transform-dot-component-invocation-test', ['ember-babel', 'ember-template-compiler/index', 'internal-test-helpers'], function (_emberBabel, _index, _internalTestHelpers) {
   'use strict';
@@ -7062,6 +7196,31 @@ enifed('ember-template-compiler/tests/system/compile_options_test', ['ember-babe
 
     return _class3;
   }(_internalTestHelpers.RenderingTestCase));
+});
+enifed('ember-template-compiler/tests/system/dasherize-component-name-test', ['ember-babel', 'ember-template-compiler/lib/system/dasherize-component-name', 'internal-test-helpers'], function (_emberBabel, _dasherizeComponentName, _internalTestHelpers) {
+  'use strict';
+
+  (0, _internalTestHelpers.moduleFor)('dasherize-component-name', function (_AbstractTestCase) {
+    (0, _emberBabel.inherits)(_class, _AbstractTestCase);
+
+    function _class() {
+      return (0, _emberBabel.possibleConstructorReturn)(this, _AbstractTestCase.apply(this, arguments));
+    }
+
+    _class.prototype['@test names are correctly dasherized'] = function (assert) {
+      assert.equal(_dasherizeComponentName.default.get('Foo'), 'foo');
+      assert.equal(_dasherizeComponentName.default.get('foo-bar'), 'foo-bar');
+      assert.equal(_dasherizeComponentName.default.get('FooBar'), 'foo-bar');
+      assert.equal(_dasherizeComponentName.default.get('XBlah'), 'x-blah');
+      assert.equal(_dasherizeComponentName.default.get('X-Blah'), 'x-blah');
+      assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz'), 'foo::bar-baz');
+      assert.equal(_dasherizeComponentName.default.get('Foo::Bar-Baz'), 'foo::bar-baz');
+      assert.equal(_dasherizeComponentName.default.get('Foo@BarBaz'), 'foo@bar-baz');
+      assert.equal(_dasherizeComponentName.default.get('Foo@Bar-Baz'), 'foo@bar-baz');
+    };
+
+    return _class;
+  }(_internalTestHelpers.AbstractTestCase));
 });
 enifed('ember-utils', ['exports'], function (exports) {
     'use strict';
@@ -7722,7 +7881,7 @@ enifed('ember-utils', ['exports'], function (exports) {
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.3.1";
+  exports.default = "3.5.0";
 });
 enifed("handlebars", ["exports"], function (exports) {
   "use strict";

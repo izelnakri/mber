@@ -1,9 +1,9 @@
 #! /usr/bin/env node
 require = require('esm')(module);
-require('babel-register')({
-  presets: ['env']
+require('@babel/register')({
+  presets: ['@babel/preset-env']
 });
-require('babel-polyfill');
+require('@babel/polyfill/dist/polyfill.min.js');
 
 process.title = 'mber';
 global.mainContext = global; // NOTE: needed for ember-template-compiler
@@ -37,8 +37,8 @@ CLI.command(['serve', 'server', 's'], () => require('./lib/commands/serve').defa
 CLI.command(['test', 't'], () => require('./lib/commands/test').default()); // TODO: add --proxy
 CLI.command(['build', 'b'], () => require('./lib/commands/build').default()); // TODO: add --proxy
 CLI.command(['console', 'c'], () => require('./lib/commands/console').default());
-CLI.command(['help', 'h'], () => printCommand());
-CLI.command(['print', 'p'], () => printCommand());
+CLI.command(['help', 'h'], printCommand);
+CLI.command(['print', 'p'], printCommand);
 CLI.command(['init', 'new'], () => require('./lib/commands/new').default());
 CLI.command(['generate', 'g', 'create'], () => {
   require('./lib/commands/generate').default(process.argv[3], process.argv[4]);
@@ -48,7 +48,7 @@ CLI.command(['delete', 'd', 'destroy', 'remove'], () => {
 });
 
 if (!shouldRunCommand) {
-  Console.log(require('chalk').red('unknown command. Available options are:'));
+  Console.log(require('ansi-colors').red('unknown command. Available options are:'));
   printCommand();
   process.exit(1);
 }

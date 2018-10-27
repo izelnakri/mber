@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import chalk from 'chalk';
+import chalk from 'ansi-colors';
 import Console from '../lib/utils/console';
 import findProjectRoot from '../lib/utils/find-project-root';
 import countTime from '../lib/utils/count-time';
@@ -25,7 +25,6 @@ function transpileFastbootModules() {
       importAddonFolderToAMD('ember-cli-fastboot', 'ember-cli-fastboot/addon'),
       fs.copyFile(`${MODULE_PATH}/fastboot/initializers/ajax.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/ajax.js`),
       fs.copyFile(`${PROJECT_PATH}/scripts/fastboot/initializers/error-handler.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/error-handler.js`),
-      fs.copyFile(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
       fs.copyFile(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
       fs.copyFile(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot/fastboot-app-module.js`)
     ]).then(([fastbootAddon]) => {

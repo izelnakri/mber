@@ -8,15 +8,6 @@ const removeFetch = `
     window.fetch = undefined;
   })();
 `;
-const memserverResponseModule = convertESModuletoAMD(`
-  export default function(statusCode=200, data={}, headers={}) {
-    return [
-      statusCode,
-      Object.assign({ 'Content-Type': 'application/json' }, headers),
-      JSON.stringify(data)
-    ];
-  }
-`, { moduleName: 'memserver/response' });
 
 async function build() {
   const PROJECT_PATH = await findProjectRoot();
@@ -24,10 +15,20 @@ async function build() {
   const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
 
   return Promise.all([
-    fs.readFile(`${MODULE_PATH}/whatwg-fetch/fetch.js`),
+    fs.readFile(`${MODULE_PATH}/whatwg-fetch/dist/fetch.umd.js`),
     transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),
     transpileNPMImport('memserver', `${MODULE_PATH}/memserver/lib/mem-server-cjs.js`)
-  ]).then(([fetchReplacement, memServerModelModule, memServerModule]) => {
+  ]).then(async ([fetchReplacement, memServerModelModule, memServerModule]) => {
+    const memserverResponseModule = await convertESModuletoAMD(`
+      export default function(statusCode=200, data={}, headers={}) {
+        return [
+          statusCode,
+          Object.assign({ 'Content-Type': 'application/json' }, headers),
+          JSON.stringify(data)
+        ];
+      }
+    `, { moduleName: 'memserver/response' });
+
     return Promise.all([
       fs.copy(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
       fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
