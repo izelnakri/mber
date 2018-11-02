@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "index.js",
   "engines": {
@@ -23,7 +23,7 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
-    "@ember/test-helpers": "0.7.27",
+    "@ember/test-helpers": "1.0.0",
     "@glimmer/resolver": "^0.4.3",
     "ava": "^1.0.0-rc.1",
     "cors": "^2.8.4",
@@ -31,11 +31,11 @@
     "ember-cli-test-loader": "^2.2.0",
     "ember-data": "3.5.0",
     "ember-devtools": "^6.0.0",
-    "ember-load-initializers": "^1.1.0",
-    "ember-qunit": "^3.5.3",
+    "ember-load-initializers": "^2.0.0",
+    "ember-qunit": "^4.0.0",
     "ember-resolver": "^5.0.1",
-    "ember-source": "3.5.0",
-    "eslint": "^5.7.0",
+    "ember-source": "3.5.1",
+    "eslint": "^5.8.0",
     "eslint-plugin-ember": "^5.2.0",
     "intercept-stdout": "^0.1.2",
     "loader.js": "^4.7.0",

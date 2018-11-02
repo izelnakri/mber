@@ -881,7 +881,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.5.0
+ * @version   3.5.1
  */
 
 /*globals process */
@@ -2454,7 +2454,6 @@ enifed('@ember/canary-features/index', ['exports', '@ember/polyfills', 'ember-en
     var GLIMMER_CUSTOM_COMPONENT_MANAGER = exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = featureValue(FEATURES.GLIMMER_CUSTOM_COMPONENT_MANAGER);
     var EMBER_TEMPLATE_BLOCK_LET_HELPER = exports.EMBER_TEMPLATE_BLOCK_LET_HELPER = featureValue(FEATURES.EMBER_TEMPLATE_BLOCK_LET_HELPER);
     var EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION);
-    //# sourceMappingURL=index.js.map
 });
 enifed('@ember/controller/index', ['exports', 'ember-runtime', '@ember/controller/lib/controller_mixin', 'ember-metal'], function (exports, _emberRuntime, _controller_mixin, _emberMetal) {
   'use strict';
@@ -3039,7 +3038,6 @@ enifed("@ember/debug/lib/testing", ["exports"], function (exports) {
     function setTesting(value) {
         testing = !!value;
     }
-    //# sourceMappingURL=testing.js.map
 });
 enifed('@ember/debug/lib/warn', ['exports', 'ember-environment', '@ember/debug/index', '@ember/debug/lib/deprecate', '@ember/debug/lib/handlers'], function (exports, _emberEnvironment, _index, _deprecate, _handlers) {
     'use strict';
@@ -3165,7 +3163,6 @@ enifed('@ember/deprecated-features/index', ['exports'], function (exports) {
   var BINDING_SUPPORT = exports.BINDING_SUPPORT = !!'2.7.0-beta.1';
   var MAP = exports.MAP = !!'3.3.0-beta.1';
   var ORDERED_SET = exports.ORDERED_SET = !!'3.3.0-beta.1';
-  //# sourceMappingURL=index.js.map
 });
 enifed('@ember/engine/index', ['exports', '@ember/engine/lib/engine-parent', 'ember-babel', 'ember-utils', '@ember/controller', 'ember-runtime', 'container', 'dag-map', '@ember/debug', 'ember-metal', '@ember/application/globals-resolver', '@ember/engine/instance', 'ember-routing', 'ember-extension-support', 'ember-views', 'ember-glimmer'], function (exports, _engineParent, _emberBabel, _emberUtils, _controller, _emberRuntime, _container, _dagMap, _debug, _emberMetal, _globalsResolver, _instance, _emberRouting, _emberExtensionSupport, _emberViews, _emberGlimmer) {
   'use strict';
@@ -4066,7 +4063,6 @@ enifed('@ember/instrumentation/index', ['exports', 'ember-environment'], functio
         subscribers.length = 0;
         cache = {};
     }
-    //# sourceMappingURL=index.js.map
 });
 enifed('@ember/map/index', ['exports', 'ember-babel', '@ember/debug', 'ember-utils', '@ember/map/lib/ordered-set', '@ember/map/lib/utils', '@ember/deprecated-features'], function (exports, _emberBabel, _debug, _emberUtils, _orderedSet, _utils, _deprecatedFeatures) {
   'use strict';
@@ -6518,7 +6514,6 @@ enifed('@ember/polyfills/lib/merge', ['exports'], function (exports) {
         }
         return original;
     }
-    //# sourceMappingURL=merge.js.map
 });
 enifed('@ember/runloop/index', ['exports', '@ember/debug', 'ember-error-handling', 'ember-metal', 'backburner', '@ember/deprecated-features'], function (exports, _debug, _emberErrorHandling, _emberMetal, _backburner, _deprecatedFeatures) {
   'use strict';
@@ -7754,7 +7749,6 @@ enifed('@ember/string/index', ['exports', '@ember/string/lib/string_registry', '
             }
         });
     }
-    //# sourceMappingURL=index.js.map
 });
 enifed("@ember/string/lib/string_registry", ["exports"], function (exports) {
     "use strict";
@@ -7775,7 +7769,6 @@ enifed("@ember/string/lib/string_registry", ["exports"], function (exports) {
     function getString(name) {
         return STRINGS[name];
     }
-    //# sourceMappingURL=string_registry.js.map
 });
 enifed('@glimmer/encoder', ['exports', 'ember-babel'], function (exports, _emberBabel) {
     'use strict';
@@ -17507,7 +17500,7 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
         }
         return {
             setTimeout: function (fn, ms) {
-                return SET_TIMEOUT(fn, ms);
+                return setTimeout(fn, ms);
             },
             clearTimeout: function (timerId) {
                 return clearTimeout(timerId);
@@ -17522,6 +17515,7 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
     }
 
     var NUMBER = /\d+/;
+    var TIMERS_OFFSET = 6;
     function isCoercableNumber(suspect) {
         var type = typeof suspect;
         return type === 'number' && suspect === suspect || type === 'string' && NUMBER.test(suspect);
@@ -17549,27 +17543,45 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
         }
         return index;
     }
+    function getQueueItems(items, queueItemLength) {
+        var queueItemPositionOffset = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+
+        var queueItems = [];
+        for (var i = 0; i < items.length; i += queueItemLength) {
+            var maybeError = items[i + 3 /* stack */ + queueItemPositionOffset];
+            var queueItem = {
+                target: items[i + 0 /* target */ + queueItemPositionOffset],
+                method: items[i + 1 /* method */ + queueItemPositionOffset],
+                args: items[i + 2 /* args */ + queueItemPositionOffset],
+                stack: maybeError !== undefined && 'stack' in maybeError ? maybeError.stack : ''
+            };
+            queueItems.push(queueItem);
+        }
+        return queueItems;
+    }
 
     function binarySearch(time, timers) {
         var start = 0;
-        var end = timers.length - 6;
+        var end = timers.length - TIMERS_OFFSET;
         var middle = void 0;
         var l = void 0;
         while (start < end) {
             // since timers is an array of pairs 'l' will always
             // be an integer
-            l = (end - start) / 6;
+            l = (end - start) / TIMERS_OFFSET;
             // compensate for the index in case even number
             // of pairs inside timers
-            middle = start + l - l % 6;
+            middle = start + l - l % TIMERS_OFFSET;
             if (time >= timers[middle]) {
-                start = middle + 6;
+                start = middle + TIMERS_OFFSET;
             } else {
                 end = middle;
             }
         }
-        return time >= timers[start] ? start + 6 : start;
+        return time >= timers[start] ? start + TIMERS_OFFSET : start;
     }
+
+    var QUEUE_ITEM_LENGTH = 4;
 
     var Queue = function () {
         function Queue(name) {
@@ -17588,7 +17600,7 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
 
         Queue.prototype.stackFor = function stackFor(index) {
             if (index < this._queue.length) {
-                var entry = this._queue[index * 3 + 4];
+                var entry = this._queue[index * 3 + QUEUE_ITEM_LENGTH];
                 if (entry) {
                     return entry.stack;
                 } else {
@@ -17619,8 +17631,8 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
             if (queueItems.length > 0) {
                 var onError = getOnError(this.globalOptions);
                 invoke = onError ? this.invokeWithOnError : this.invoke;
-                for (var i = this.index; i < queueItems.length; i += 4) {
-                    this.index += 4;
+                for (var i = this.index; i < queueItems.length; i += QUEUE_ITEM_LENGTH) {
+                    this.index += QUEUE_ITEM_LENGTH;
                     method = queueItems[i + 1];
                     // method could have been nullified / canceled during flush
                     if (method !== null) {
@@ -17675,7 +17687,7 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
             }
             var index = findItem(target, method, queue);
             if (index > -1) {
-                queue.splice(index, 4);
+                queue.splice(index, QUEUE_ITEM_LENGTH);
                 return true;
             }
             // if not found in current queue
@@ -17706,7 +17718,7 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
             }
             var index = localQueueMap.get(method);
             if (index === undefined) {
-                var queueIndex = this._queue.push(target, method, args, stack) - 4;
+                var queueIndex = this._queue.push(target, method, args, stack) - QUEUE_ITEM_LENGTH;
                 localQueueMap.set(method, queueIndex);
             } else {
                 var queue = this._queue;
@@ -17718,6 +17730,14 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
                 target: target,
                 method: method
             };
+        };
+
+        Queue.prototype._getDebugInfo = function _getDebugInfo(debugEnabled) {
+            if (debugEnabled) {
+                var debugInfo = getQueueItems(this._queue, QUEUE_ITEM_LENGTH);
+                return debugInfo;
+            }
+            return undefined;
         };
 
         Queue.prototype.invoke = function invoke(target, method, args /*, onError, errorRecordedForStack */) {
@@ -17757,16 +17777,16 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
                 return queues;
             }, this.queues);
         }
-        /*
-          @method schedule
-          @param {String} queueName
-          @param {Any} target
-          @param {Any} method
-          @param {Any} args
-          @param {Boolean} onceFlag
-          @param {Any} stack
-          @return queue
-        */
+        /**
+         * @method schedule
+         * @param {String} queueName
+         * @param {Any} target
+         * @param {Any} method
+         * @param {Any} args
+         * @param {Boolean} onceFlag
+         * @param {Any} stack
+         * @return queue
+         */
 
 
         DeferredActionQueues.prototype.schedule = function schedule(queueName, target, method, args, onceFlag, stack) {
@@ -17806,6 +17826,24 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
                         }
                 }
             }
+        };
+
+        DeferredActionQueues.prototype._getDebugInfo = function _getDebugInfo(debugEnabled) {
+            if (debugEnabled) {
+                var debugInfo = {};
+                var queue = void 0;
+                var queueName = void 0;
+                var numberOfQueues = this.queueNames.length;
+                var i = 0;
+                while (i < numberOfQueues) {
+                    queueName = this.queueNames[i];
+                    queue = this.queues[queueName];
+                    debugInfo[queueName] = queue._getDebugInfo(debugEnabled);
+                    i++;
+                }
+                return debugInfo;
+            }
+            return;
         };
 
         return DeferredActionQueues;
@@ -18212,6 +18250,21 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
             this._ensureInstance();
         };
 
+        Backburner.prototype.getDebugInfo = function getDebugInfo() {
+            var _this2 = this;
+
+            if (this.DEBUG) {
+                return {
+                    counters: this.counters,
+                    timers: getQueueItems(this._timers, TIMERS_OFFSET, 2),
+                    instanceStack: [this.currentInstance].concat(this.instanceStack).map(function (deferredActionQueue) {
+                        return deferredActionQueue && deferredActionQueue._getDebugInfo(_this2.DEBUG);
+                    })
+                };
+            }
+            return undefined;
+        };
+
         Backburner.prototype._end = function _end(fromAutorun) {
             var currentInstance = this.currentInstance;
             var nextInstance = null;
@@ -18291,18 +18344,16 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
                 // find position to insert
                 var i = binarySearch(executeAt, this._timers);
                 this._timers.splice(i, 0, executeAt, id, target, method, args, stack);
-                // we should be the new earliest timer if i == 0
-                if (i === 0) {
-                    this._reinstallTimerTimeout();
-                }
+                // always reinstall since it could be out of sync
+                this._reinstallTimerTimeout();
             }
             return id;
         };
 
         Backburner.prototype._cancelLaterTimer = function _cancelLaterTimer(timer) {
-            for (var i = 1; i < this._timers.length; i += 6) {
+            for (var i = 1; i < this._timers.length; i += TIMERS_OFFSET) {
                 if (this._timers[i] === timer) {
-                    this._timers.splice(i - 1, 6);
+                    this._timers.splice(i - 1, TIMERS_OFFSET);
                     if (i === 0) {
                         this._reinstallTimerTimeout();
                     }
@@ -18336,7 +18387,7 @@ enifed('backburner', ['exports', 'ember-babel'], function (exports, _emberBabel)
             var l = timers.length;
             var defaultQueue = this._defaultQueue;
             var n = this._platform.now();
-            for (; i < l; i += 6) {
+            for (; i < l; i += TIMERS_OFFSET) {
                 var executeAt = timers[i];
                 if (executeAt > n) {
                     break;
@@ -19932,7 +19983,6 @@ enifed("ember-error-handling/index", ["exports"], function (exports) {
     function setDispatchOverride(handler) {
         dispatchOverride = handler;
     }
-    //# sourceMappingURL=index.js.map
 });
 enifed('ember-extension-support/index', ['exports', 'ember-extension-support/lib/data_adapter', 'ember-extension-support/lib/container_debug_adapter'], function (exports, _data_adapter, _container_debug_adapter) {
   'use strict';
@@ -28909,7 +28959,6 @@ enifed('ember-meta/lib/meta', ['exports', 'ember-babel', '@ember/debug', '@ember
         }
         destination.push(target, method, source[index + 3]);
     }
-    //# sourceMappingURL=meta.js.map
 });
 enifed('ember-metal', ['exports', 'ember-babel', '@ember/polyfills', 'ember-utils', '@ember/debug', '@ember/deprecated-features', 'ember-environment', 'ember-meta', '@ember/runloop', '@glimmer/reference', '@ember/error', 'ember/version', 'ember-owner'], function (exports, _emberBabel, _polyfills, _emberUtils, _debug, _deprecatedFeatures, _emberEnvironment, _emberMeta, _runloop, _reference, _error, _version, _emberOwner) {
     'use strict';
@@ -29734,7 +29783,7 @@ enifed('ember-metal', ['exports', 'ember-babel', '@ember/polyfills', 'ember-util
       }));
       ```
     
-      @private
+      @public
       @method defineProperty
       @static
       @for @ember/object
@@ -33162,7 +33211,6 @@ enifed('ember-owner/index', ['exports', 'ember-utils'], function (exports, _embe
   function setOwner(object, owner) {
     object[OWNER] = owner;
   }
-  //# sourceMappingURL=index.js.map
 });
 enifed('ember-routing/index', ['exports', 'ember-routing/lib/location/api', 'ember-routing/lib/location/none_location', 'ember-routing/lib/location/hash_location', 'ember-routing/lib/location/history_location', 'ember-routing/lib/location/auto_location', 'ember-routing/lib/system/generate_controller', 'ember-routing/lib/system/controller_for', 'ember-routing/lib/system/dsl', 'ember-routing/lib/system/router', 'ember-routing/lib/system/route', 'ember-routing/lib/system/query_params', 'ember-routing/lib/services/routing', 'ember-routing/lib/services/router', 'ember-routing/lib/system/cache', 'ember-routing/lib/ext/controller'], function (exports, _api, _none_location, _hash_location, _history_location, _auto_location, _generate_controller, _controller_for, _dsl, _router, _route, _query_params, _routing, _router2, _cache) {
   'use strict';
@@ -44751,10 +44799,10 @@ enifed('ember-views/lib/mixins/text_support', ['exports', 'ember-metal', 'ember-
 
       view.triggerAction({
         action: actionName,
-        actionContext: [value]
+        actionContext: [value, event]
       });
     } else if (typeof actionName === 'function') {
-      actionName(value);
+      actionName(value, event);
     }
 
     if (actionName && !(0, _emberMetal.get)(view, 'bubbles')) {
@@ -46725,7 +46773,7 @@ enifed('ember/index', ['exports', 'require', 'ember-environment', 'node-module',
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.5.0";
+  exports.default = "3.5.1";
 });
 /*global enifed, module */
 enifed('node-module', ['exports'], function(_exports) {

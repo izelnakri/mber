@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.5.0
+ * @version   3.5.1
  */
 
 /*globals process */
@@ -616,7 +616,6 @@ enifed("@ember/debug/lib/testing", ["exports"], function (exports) {
     function setTesting(value) {
         testing = !!value;
     }
-    //# sourceMappingURL=testing.js.map
 });
 enifed('@ember/debug/lib/warn', ['exports', 'ember-environment', '@ember/debug/index', '@ember/debug/lib/deprecate', '@ember/debug/lib/handlers'], function (exports, _emberEnvironment, _index, _deprecate, _handlers) {
     'use strict';
@@ -7878,12 +7877,16 @@ define("@ember/test-helpers/-utils", ["exports"], function (_exports) {
   _exports.runDestroyablesFor = runDestroyablesFor;
   _exports.isNumeric = isNumeric;
   _exports.futureTick = _exports.nextTick = void 0;
-  var nextTick = setTimeout;
+
+  /* globals Promise */
+  var nextTick = typeof Promise === 'undefined' ? setTimeout : function (cb) {
+    return Promise.resolve().then(cb);
+  };
   _exports.nextTick = nextTick;
   var futureTick = setTimeout;
   /**
    @private
-   @returns {Promise<void>} promise which resolves on the next turn of the event loop
+   @returns {Promise<void>} Promise which can not be forced to be ran synchronously
   */
 
   _exports.futureTick = futureTick;
@@ -9726,8 +9729,19 @@ define("@ember/test-helpers/dom/fire-event", ["exports"], function (_exports) {
 
 
   function buildFileEvent(type, element) {
-    var files = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
     var event = buildBasicEvent(type);
+    var files;
+
+    if (Array.isArray(options)) {
+      Ember.deprecate('Passing the `options` param as an array to `triggerEvent` for file inputs is deprecated. Please pass an object with a key `files` containing the array instead.', false, {
+        id: 'ember-test-helpers.trigger-event.options-blob-array',
+        until: '2.0.0'
+      });
+      files = options;
+    } else {
+      files = options.files;
+    }
 
     if (files.length > 0) {
       Object.defineProperty(files, 'item', {
@@ -9935,8 +9949,9 @@ define("@ember/test-helpers/dom/trigger-event", ["exports", "@ember/test-helpers
    *
    * @example
    * <caption>Using triggerEvent to Upload a file
-   * When using triggerEvent to upload a file the `eventType` must be `change` and  you must pass an
-   * array of [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob) as `options`.</caption>
+   * When using triggerEvent to upload a file the `eventType` must be `change` and you must pass the
+   * `options` param as an object with a key `files` containing an array of
+   * [Blob](https://developer.mozilla.org/en-US/docs/Web/API/Blob).</caption>
    *
    * triggerEvent(
    *   'input.fileUpload',
@@ -10910,14 +10925,15 @@ define("ember-qunit/index", ["exports", "ember-qunit/legacy-2-x/module-for", "em
     }
   }
 });
-define("ember-qunit/test-isolation-validation", ["exports", "@ember/test-helpers"], function (_exports, _testHelpers) {
+define("ember-qunit/test-isolation-validation", ["exports", "@ember/test-helpers", "ember-qunit/-internal/test-debug-info", "ember-qunit/-internal/test-debug-info-summary", "ember-qunit/-internal/get-debug-info-available"], function (_exports, _testHelpers, _testDebugInfo, _testDebugInfoSummary, _getDebugInfoAvailable) {
   "use strict";
 
   _exports.__esModule = true;
   _exports.detectIfTestNotIsolated = detectIfTestNotIsolated;
   _exports.reportIfTestNotIsolated = reportIfTestNotIsolated;
-  _exports.getMessage = getMessage;
-  var TESTS_NOT_ISOLATED = [];
+  var _EmberRun = Ember.run,
+      backburner = _EmberRun.backburner;
+  var nonIsolatedTests;
   /**
    * Detects if a specific test isn't isolated. A test is considered
    * not isolated if it:
@@ -10936,9 +10952,18 @@ define("ember-qunit/test-isolation-validation", ["exports", "@ember/test-helpers
   function detectIfTestNotIsolated(_ref) {
     var module = _ref.module,
         name = _ref.name;
+    nonIsolatedTests = new _testDebugInfoSummary.default();
 
     if (!(0, _testHelpers.isSettled)()) {
-      TESTS_NOT_ISOLATED.push("".concat(module, ": ").concat(name));
+      var testDebugInfo;
+      var backburnerDebugInfo;
+
+      if ((0, _getDebugInfoAvailable.default)()) {
+        backburnerDebugInfo = backburner.getDebugInfo();
+      }
+
+      testDebugInfo = new _testDebugInfo.default(module, name, (0, _testHelpers.getSettledState)(), backburnerDebugInfo);
+      nonIsolatedTests.add(testDebugInfo);
       Ember.run.cancelTimers();
     }
   }
@@ -10952,15 +10977,10 @@ define("ember-qunit/test-isolation-validation", ["exports", "@ember/test-helpers
 
 
   function reportIfTestNotIsolated() {
-    if (TESTS_NOT_ISOLATED.length > 0) {
-      var leakyTests = TESTS_NOT_ISOLATED.slice();
-      TESTS_NOT_ISOLATED.length = 0;
-      throw new Error(getMessage(leakyTests.length, leakyTests.join('\n')));
+    if (nonIsolatedTests.hasDebugInfo) {
+      nonIsolatedTests.printToConsole();
+      throw new Error(nonIsolatedTests.formatForBrowser());
     }
-  }
-
-  function getMessage(testCount, testsToReport) {
-    return "TESTS ARE NOT ISOLATED\n    The following (".concat(testCount, ") tests have one or more of pending timers, pending AJAX requests, pending test waiters, or are still in a runloop: \n\n    ").concat(testsToReport, "\n  ");
   }
 });
 define("ember-qunit/test-loader", ["exports", "qunit", "ember-cli-test-loader/test-support/index"], function (_exports, _qunit, _index) {
@@ -11059,6 +11079,271 @@ define("ember-qunit/test-loader", ["exports", "qunit", "ember-cli-test-loader/te
   function loadTests() {
     new TestLoader().loadModules();
   }
+});
+define("ember-qunit/-internal/get-debug-info-available", ["exports"], function (_exports) {
+  "use strict";
+
+  _exports.__esModule = true;
+  _exports.default = getDebugInfoAvailable;
+
+  function getDebugInfoAvailable() {
+    return typeof Ember.run.backburner.getDebugInfo === 'function';
+  }
+});
+define("ember-qunit/-internal/test-debug-info-summary", ["exports"], function (_exports) {
+  "use strict";
+
+  _exports.__esModule = true;
+  _exports.getSummary = getSummary;
+  _exports.default = void 0;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+  var PENDING_REQUESTS = 'Pending AJAX requests';
+  var PENDING_TEST_WAITERS = 'Pending test waiters: YES';
+  var PENDING_TIMERS = 'Pending timers';
+  var PENDING_SCHEDULED_ITEMS = 'Pending scheduled items';
+  var ACTIVE_RUNLOOPS = 'Active runloops: YES';
+
+  function getSummary(testCounts, leakCounts, testNames) {
+    var leakInfo = leakCounts.length > 0 ? "We found the following information that may help you identify code that violated test isolation: \n\n  ".concat(leakCounts.join('\n'), "\n   \n") : '';
+    var summary = "TESTS ARE NOT ISOLATED\n\n The following ".concat(testCounts, " test(s) have one or more issues that are resulting in non-isolation (async execution is extending beyond the duration of the test):\n\n ").concat(testNames.join('\n'), "\n\n\n ").concat(leakInfo, "\n More information has been printed to the console. Please use that information to help in debugging.\n");
+    return summary;
+  }
+
+  var TestDebugInfoSummary =
+  /*#__PURE__*/
+  function () {
+    function TestDebugInfoSummary() {
+      _classCallCheck(this, TestDebugInfoSummary);
+
+      this._testDebugInfos = [];
+      this.fullTestNames = [];
+      this.hasPendingRequests = false;
+      this.hasPendingWaiters = false;
+      this.hasRunLoop = false;
+      this.hasPendingTimers = false;
+      this.hasPendingScheduledQueueItems = false;
+      this.totalPendingRequestCount = 0;
+      this.totalPendingTimersCount = 0;
+      this.totalPendingScheduledQueueItemCount = 0;
+    }
+
+    _createClass(TestDebugInfoSummary, [{
+      key: "add",
+      value: function add(testDebugInfo) {
+        var summary = testDebugInfo.summary;
+
+        this._testDebugInfos.push(testDebugInfo);
+
+        this.fullTestNames.push(summary.fullTestName);
+
+        if (summary.hasPendingRequests) {
+          this.hasPendingRequests = true;
+        }
+
+        if (summary.hasPendingWaiters) {
+          this.hasPendingWaiters = true;
+        }
+
+        if (summary.hasRunLoop) {
+          this.hasRunLoop = true;
+        }
+
+        if (summary.hasPendingTimers) {
+          this.hasPendingTimers = true;
+        }
+
+        if (summary.pendingScheduledQueueItemCount > 0) {
+          this.hasPendingScheduledQueueItems = true;
+        }
+
+        this.totalPendingRequestCount += summary.pendingRequestCount;
+        this.totalPendingTimersCount += summary.pendingTimersCount;
+        this.totalPendingScheduledQueueItemCount += summary.pendingScheduledQueueItemCount;
+      }
+    }, {
+      key: "printToConsole",
+      value: function printToConsole() {
+        var _this = this;
+
+        var _console = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : console;
+
+        _console.group('Tests not isolated');
+
+        this._testDebugInfos.forEach(function (testDebugInfo) {
+          var summary = testDebugInfo.summary;
+
+          _console.group(summary.fullTestName);
+
+          if (summary.hasPendingRequests) {
+            _console.log(_this.formatCount(PENDING_REQUESTS, summary.pendingRequestCount));
+          }
+
+          if (summary.hasPendingWaiters) {
+            _console.log(PENDING_TEST_WAITERS);
+          }
+
+          if (summary.hasPendingTimers) {
+            _console.group(_this.formatCount(PENDING_TIMERS, summary.pendingTimersCount));
+
+            summary.pendingTimersStackTraces.forEach(function (stackTrace) {
+              _console.log(stackTrace);
+            });
+
+            _console.groupEnd();
+          }
+
+          if (summary.hasPendingScheduledQueueItems) {
+            _console.group(_this.formatCount(PENDING_SCHEDULED_ITEMS, summary.pendingScheduledQueueItemCount));
+
+            summary.pendingScheduledQueueItemStackTraces.forEach(function (stackTrace) {
+              _console.log(stackTrace);
+            });
+
+            _console.groupEnd();
+          }
+
+          if (summary.hasRunLoop) {
+            _console.log(ACTIVE_RUNLOOPS);
+          }
+
+          _console.groupEnd();
+        });
+
+        _console.groupEnd();
+      }
+    }, {
+      key: "formatForBrowser",
+      value: function formatForBrowser() {
+        var leakCounts = [];
+
+        if (this.hasPendingRequests) {
+          leakCounts.push(this.formatCount(PENDING_REQUESTS, this.totalPendingRequestCount));
+        }
+
+        if (this.hasPendingWaiters) {
+          leakCounts.push(PENDING_TEST_WAITERS);
+        }
+
+        if (this.hasPendingTimers) {
+          leakCounts.push(this.formatCount(PENDING_TIMERS, this.totalPendingTimersCount));
+        }
+
+        if (this.hasPendingScheduledQueueItems) {
+          leakCounts.push(this.formatCount(PENDING_SCHEDULED_ITEMS, this.totalPendingScheduledQueueItemCount));
+        }
+
+        if (this.hasRunLoop) {
+          leakCounts.push(ACTIVE_RUNLOOPS);
+        }
+
+        return getSummary(this._testDebugInfos.length, leakCounts, this.fullTestNames);
+      }
+    }, {
+      key: "formatCount",
+      value: function formatCount(title, count) {
+        return "".concat(title, ": ").concat(count);
+      }
+    }, {
+      key: "hasDebugInfo",
+      get: function get() {
+        return this._testDebugInfos.length > 0;
+      }
+    }]);
+
+    return TestDebugInfoSummary;
+  }();
+
+  _exports.default = TestDebugInfoSummary;
+});
+define("ember-qunit/-internal/test-debug-info", ["exports"], function (_exports) {
+  "use strict";
+
+  _exports.__esModule = true;
+  _exports.default = void 0;
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+  /**
+   * Encapsulates debug information for an individual test. Aggregates information
+   * from:
+   * - the test info provided by qunit (module & name)
+   * - info provided by @ember/test-helper's getSettledState function
+   *    - hasPendingTimers
+   *    - hasRunLoop
+   *    - hasPendingWaiters
+   *    - hasPendingRequests
+   *    - pendingRequestCount
+   * - info provided by backburner's getDebugInfo method (timers, schedules, and stack trace info)
+   */
+  var TestDebugInfo =
+  /*#__PURE__*/
+  function () {
+    function TestDebugInfo(module, name, settledState, debugInfo) {
+      _classCallCheck(this, TestDebugInfo);
+
+      this.module = module;
+      this.name = name;
+      this.settledState = settledState;
+      this.debugInfo = debugInfo;
+    }
+
+    _createClass(TestDebugInfo, [{
+      key: "fullTestName",
+      get: function get() {
+        return "".concat(this.module, ": ").concat(this.name);
+      }
+    }, {
+      key: "summary",
+      get: function get() {
+        if (!this._summaryInfo) {
+          this._summaryInfo = Object.assign({
+            fullTestName: this.fullTestName
+          }, this.settledState);
+
+          if (this.debugInfo) {
+            this._summaryInfo.pendingTimersCount = this.debugInfo.timers.length;
+            this._summaryInfo.pendingTimersStackTraces = this.debugInfo.timers.map(function (timer) {
+              return timer.stack;
+            });
+            this._summaryInfo.pendingScheduledQueueItemCount = this.debugInfo.instanceStack.filter(function (q) {
+              return q;
+            }).reduce(function (total, item) {
+              Object.keys(item).forEach(function (queueName) {
+                total += item[queueName].length;
+              });
+              return total;
+            }, 0);
+            this._summaryInfo.pendingScheduledQueueItemStackTraces = this.debugInfo.instanceStack.filter(function (q) {
+              return q;
+            }).reduce(function (stacks, deferredActionQueues) {
+              Object.keys(deferredActionQueues).forEach(function (queue) {
+                deferredActionQueues[queue].forEach(function (queueItem) {
+                  return queueItem.stack && stacks.push(queueItem.stack);
+                });
+              });
+              return stacks;
+            }, []);
+          }
+        }
+
+        return this._summaryInfo;
+      }
+    }]);
+
+    return TestDebugInfo;
+  }();
+
+  _exports.default = TestDebugInfo;
 });
 define("ember-qunit/legacy-2-x/module-for-component", ["exports", "ember-qunit/legacy-2-x/qunit-module", "ember-test-helpers"], function (_exports, _qunitModule, _emberTestHelpers) {
   "use strict";

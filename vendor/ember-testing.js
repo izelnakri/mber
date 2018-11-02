@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.5.0
+ * @version   3.5.1
  */
 
 /*globals process */
@@ -616,7 +616,6 @@ enifed("@ember/debug/lib/testing", ["exports"], function (exports) {
     function setTesting(value) {
         testing = !!value;
     }
-    //# sourceMappingURL=testing.js.map
 });
 enifed('@ember/debug/lib/warn', ['exports', 'ember-environment', '@ember/debug/index', '@ember/debug/lib/deprecate', '@ember/debug/lib/handlers'], function (exports, _emberEnvironment, _index, _deprecate, _handlers) {
     'use strict';

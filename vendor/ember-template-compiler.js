@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.5.0
+ * @version   3.5.1
  */
 
 /*globals process */
@@ -197,7 +197,6 @@ enifed('@ember/canary-features/index', ['exports', '@ember/polyfills', 'ember-en
     exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = featureValue(FEATURES.GLIMMER_CUSTOM_COMPONENT_MANAGER);
     exports.EMBER_TEMPLATE_BLOCK_LET_HELPER = featureValue(FEATURES.EMBER_TEMPLATE_BLOCK_LET_HELPER);
     exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION);
-    //# sourceMappingURL=index.js.map
 });
 enifed('@ember/debug/index', ['exports', '@ember/debug/lib/warn', '@ember/debug/lib/deprecate', '@ember/debug/lib/testing', '@ember/error', 'ember-browser-environment'], function (exports, _warn2, _deprecate2, _testing, _error, _emberBrowserEnvironment) {
     'use strict';
@@ -699,9 +698,7 @@ enifed("@ember/debug/lib/testing", ["exports"], function (exports) {
     exports.isTesting = isTesting;
     exports.setTesting = function (value) {
         testing = !!value;
-    }
-    //# sourceMappingURL=testing.js.map
-    ;
+    };
     var testing = false;
     function isTesting() {
         return testing;
@@ -831,7 +828,6 @@ enifed('@ember/deprecated-features/index', ['exports'], function (exports) {
   exports.BINDING_SUPPORT = !!'2.7.0-beta.1';
   exports.MAP = !!'3.3.0-beta.1';
   exports.ORDERED_SET = !!'3.3.0-beta.1';
-  //# sourceMappingURL=index.js.map
 });
 enifed("@ember/error/index", ["exports", "ember-babel"], function (exports, _emberBabel) {
     "use strict";
@@ -963,7 +959,6 @@ enifed("@ember/polyfills/lib/assign", ["exports"], function (exports) {
 enifed('@ember/polyfills/lib/merge', ['exports'], function (exports) {
   'use strict';
 
-  //# sourceMappingURL=merge.js.map
   exports.default =
   /**
    @module @ember/polyfills
@@ -4868,7 +4863,6 @@ enifed('ember-template-compiler/index', ['exports', 'ember-template-compiler/lib
     }
     // used for adding Ember.Handlebars.compile for backwards compat
 
-    //# sourceMappingURL=index.js.map
     (0, _compat.default)(_Ember);
     // used to bootstrap templates
 
@@ -4878,7 +4872,6 @@ enifed('ember-template-compiler/index', ['exports', 'ember-template-compiler/lib
 enifed('ember-template-compiler/lib/compat', ['exports', 'ember-template-compiler/lib/system/compile', 'ember-template-compiler/lib/system/compile-options', 'ember-template-compiler/lib/system/precompile'], function (exports, _compile, _compileOptions, _precompile) {
     'use strict';
 
-    //# sourceMappingURL=compat.js.map
     exports.default = function (Ember) {
         var EmberHandlebars = Ember.Handlebars;
         if (!EmberHandlebars) {
@@ -4933,7 +4926,6 @@ enifed('ember-template-compiler/lib/plugins/assert-if-helper-without-arguments',
     function isInvalidBlockIf(node) {
         return node.path.original === 'if' && (!node.params || node.params.length !== 1);
     }
-    //# sourceMappingURL=assert-if-helper-without-arguments.js.map
 });
 enifed('ember-template-compiler/lib/plugins/assert-input-helper-without-block', ['exports', '@ember/debug', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _calculateLocationDisplay) {
     'use strict';
@@ -4958,7 +4950,6 @@ enifed('ember-template-compiler/lib/plugins/assert-input-helper-without-block', 
         var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
         return 'The {{input}} helper cannot be used in block form. ' + sourceInformation;
     }
-    //# sourceMappingURL=assert-input-helper-without-block.js.map
 });
 enifed('ember-template-compiler/lib/plugins/assert-reserved-named-arguments', ['exports', '@ember/debug', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _calculateLocationDisplay) {
     'use strict';
@@ -4991,7 +4982,6 @@ enifed('ember-template-compiler/lib/plugins/assert-reserved-named-arguments', ['
     assertMessage = function (name) {
         return '\'' + name + '\' is reserved.';
     };
-    //# sourceMappingURL=assert-reserved-named-arguments.js.map
 });
 enifed('ember-template-compiler/lib/plugins/assert-splattribute-expression', ['exports', '@ember/debug', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _calculateLocationDisplay) {
     'use strict';
@@ -5021,12 +5011,10 @@ enifed('ember-template-compiler/lib/plugins/assert-splattribute-expression', ['e
     function errorMessage() {
         return 'Using "...attributes" can only be used in the element position e.g. <div ...attributes />. It cannot be used as a path.';
     }
-    //# sourceMappingURL=assert-splattribute-expression.js.map
 });
 enifed('ember-template-compiler/lib/plugins/deprecate-render-model', ['exports', '@ember/debug', '@ember/deprecated-features', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _deprecatedFeatures, _calculateLocationDisplay) {
     'use strict';
 
-    //# sourceMappingURL=deprecate-render-model.js.map
     exports.default =
 
     // Remove after 3.4 once _ENABLE_RENDER_SUPPORT flag is no longer needed.
@@ -5069,7 +5057,6 @@ enifed('ember-template-compiler/lib/plugins/deprecate-render-model', ['exports',
 enifed('ember-template-compiler/lib/plugins/deprecate-render', ['exports', '@ember/debug', '@ember/deprecated-features', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _deprecatedFeatures, _calculateLocationDisplay) {
     'use strict';
 
-    //# sourceMappingURL=deprecate-render.js.map
     exports.default =
 
     // Remove after 3.4 once _ENABLE_RENDER_SUPPORT flag is no longer needed.
@@ -5145,9 +5132,7 @@ enifed('ember-template-compiler/lib/plugins/deprecate-send-action', ['exports', 
                 }
             };
         }
-    }
-    //# sourceMappingURL=deprecate-send-action.js.map
-    ;
+    };
 
     var EVENTS = ['insert-newline', 'enter', 'escape-press', 'focus-in', 'focus-out', 'key-press', 'key-up', 'key-down'];
 });
@@ -5225,12 +5210,10 @@ enifed('ember-template-compiler/lib/plugins/transform-action-syntax', ['exports'
     function insertThisAsFirstParam(node, builders) {
         node.params.unshift(builders.path('this'));
     }
-    //# sourceMappingURL=transform-action-syntax.js.map
 });
 enifed('ember-template-compiler/lib/plugins/transform-angle-bracket-components', ['exports'], function (exports) {
     'use strict';
 
-    //# sourceMappingURL=transform-angle-bracket-components.js.map
     exports.default = function () /* env */{
         return {
             name: 'transform-angle-bracket-components',
@@ -5312,7 +5295,6 @@ enifed('ember-template-compiler/lib/plugins/transform-attrs-into-args', ['export
         }
         return false;
     }
-    //# sourceMappingURL=transform-attrs-into-args.js.map
 });
 enifed('ember-template-compiler/lib/plugins/transform-dot-component-invocation', ['exports'], function (exports) {
   'use strict';
@@ -5407,12 +5389,10 @@ enifed('ember-template-compiler/lib/plugins/transform-dot-component-invocation',
     node.path = componentHelper;
     node.params.unshift(component);
   }
-  //# sourceMappingURL=transform-dot-component-invocation.js.map
 });
 enifed('ember-template-compiler/lib/plugins/transform-each-in-into-each', ['exports'], function (exports) {
     'use strict';
 
-    //# sourceMappingURL=transform-each-in-into-each.js.map
     exports.default =
     /**
      @module ember
@@ -5492,9 +5472,7 @@ enifed('ember-template-compiler/lib/plugins/transform-has-block-syntax', ['expor
                 }
             }
         };
-    }
-    //# sourceMappingURL=transform-has-block-syntax.js.map
-    ;
+    };
     /**
      @module ember
     */
@@ -5610,7 +5588,6 @@ enifed('ember-template-compiler/lib/plugins/transform-in-element', ['exports', '
     var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
     return 'The {{in-element}} helper cannot be used. ' + sourceInformation;
   }
-  //# sourceMappingURL=transform-in-element.js.map
 });
 enifed('ember-template-compiler/lib/plugins/transform-inline-link-to', ['exports'], function (exports) {
     'use strict';
@@ -5632,9 +5609,7 @@ enifed('ember-template-compiler/lib/plugins/transform-inline-link-to', ['exports
                 }
             }
         };
-    }
-    //# sourceMappingURL=transform-inline-link-to.js.map
-    ;
+    };
     function buildProgram(b, content, loc) {
         return b.program([buildStatement(b, content, loc)], undefined, loc);
     }
@@ -5710,12 +5685,10 @@ enifed('ember-template-compiler/lib/plugins/transform-input-type-syntax', ['expo
             node.params.unshift(builders.sexpr('-input-type', [pair.value], undefined, pair.loc));
         }
     }
-    //# sourceMappingURL=transform-input-type-syntax.js.map
 });
 enifed('ember-template-compiler/lib/plugins/transform-old-binding-syntax', ['exports', '@ember/debug', '@ember/deprecated-features', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _deprecatedFeatures, _calculateLocationDisplay) {
     'use strict';
 
-    //# sourceMappingURL=transform-old-binding-syntax.js.map
     exports.default = function (env) {
         var moduleName, b, exprToString, processHash;
 
@@ -5886,7 +5859,6 @@ enifed('ember-template-compiler/lib/plugins/transform-old-class-binding-syntax',
         }
         return ret;
     }
-    //# sourceMappingURL=transform-old-class-binding-syntax.js.map
 });
 enifed('ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings', ['exports'], function (exports) {
     'use strict';
@@ -5927,7 +5899,6 @@ enifed('ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-
         }
         return undefined;
     }
-    //# sourceMappingURL=transform-quoted-bindings-into-just-bindings.js.map
 });
 enifed('ember-template-compiler/lib/plugins/transform-top-level-components', ['exports'], function (exports) {
     'use strict';
@@ -5979,7 +5950,6 @@ enifed('ember-template-compiler/lib/plugins/transform-top-level-components', ['e
             componentCallback(lastComponentNode);
         }
     }
-    //# sourceMappingURL=transform-top-level-components.js.map
 });
 enifed('ember-template-compiler/lib/system/bootstrap', ['exports', 'ember-template-compiler/lib/system/compile'], function (exports, _compile) {
     'use strict';
@@ -6041,7 +6011,6 @@ enifed('ember-template-compiler/lib/system/bootstrap', ['exports', 'ember-templa
 enifed('ember-template-compiler/lib/system/calculate-location-display', ['exports'], function (exports) {
     'use strict';
 
-    //# sourceMappingURL=calculate-location-display.js.map
     exports.default = function (moduleName, loc) {
         var moduleInfo = '',
             _ref,
@@ -6160,7 +6129,6 @@ enifed('ember-template-compiler/lib/system/compile-options', ['exports', '@ember
             return plugin !== PluginClass && plugin.__raw !== PluginClass;
         });
     }
-    //# sourceMappingURL=compile-options.js.map
 });
 enifed('ember-template-compiler/lib/system/compile', ['exports', 'require', 'ember-template-compiler/lib/system/precompile'], function (exports, _require2, _precompile) {
     'use strict';
@@ -6192,7 +6160,6 @@ enifed('ember-template-compiler/lib/system/compile', ['exports', 'require', 'emb
         var templateJS = new Function('return ' + precompiledTemplateString)();
         return template(templateJS);
     }
-    //# sourceMappingURL=compile.js.map
 });
 enifed('ember-template-compiler/lib/system/dasherize-component-name', ['exports', 'ember-utils'], function (exports, _emberUtils) {
     'use strict';
@@ -6240,12 +6207,10 @@ enifed('ember-template-compiler/lib/system/initializer', ['require', 'ember-temp
             }
         });
     }
-    //# sourceMappingURL=initializer.js.map
 });
 enifed('ember-template-compiler/lib/system/precompile', ['exports', '@glimmer/compiler', 'ember-template-compiler/lib/system/compile-options'], function (exports, _compiler, _compileOptions) {
   'use strict';
 
-  //# sourceMappingURL=precompile.js.map
   exports.default =
 
   /**
@@ -7881,7 +7846,7 @@ enifed('ember-utils', ['exports'], function (exports) {
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.5.0";
+  exports.default = "3.5.1";
 });
 enifed("handlebars", ["exports"], function (exports) {
   "use strict";
