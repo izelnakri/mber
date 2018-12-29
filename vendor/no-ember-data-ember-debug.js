@@ -337,10 +337,21 @@ var loader, define, requireModule, require, requirejs;
 define("@glimmer/resolver/index", ["exports", "@glimmer/resolver/resolver", "@glimmer/resolver/module-registries/basic-registry"], function (_exports, _resolver, _basicRegistry) {
   "use strict";
 
-  _exports.__esModule = true;
-  _exports.BasicModuleRegistry = _exports.default = void 0;
-  _exports.default = _resolver.default;
-  _exports.BasicModuleRegistry = _basicRegistry.default;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "default", {
+    enumerable: true,
+    get: function () {
+      return _resolver.default;
+    }
+  });
+  Object.defineProperty(_exports, "BasicModuleRegistry", {
+    enumerable: true,
+    get: function () {
+      return _basicRegistry.default;
+    }
+  });
 });
 define("@glimmer/resolver/module-registry", [], function () {
   "use strict";
@@ -351,201 +362,172 @@ define("@glimmer/resolver/resolver-configuration", [], function () {
 define("@glimmer/resolver/resolver", ["exports", "@glimmer/di", "@glimmer/resolver/utils/debug", "@glimmer/resolver/utils/specifiers"], function (_exports, _di, _debug, _specifiers) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-  var Resolver =
-  /*#__PURE__*/
-  function () {
-    function Resolver(config, registry) {
-      _classCallCheck(this, Resolver);
-
+  class Resolver {
+    constructor(config, registry) {
       this.config = config;
       this.registry = registry;
     }
 
-    _createClass(Resolver, [{
-      key: "identify",
-      value: function identify(specifier, referrer) {
-        if ((0, _di.isSpecifierStringAbsolute)(specifier)) {
-          return specifier;
-        }
+    identify(specifier, referrer) {
+      if ((0, _di.isSpecifierStringAbsolute)(specifier)) {
+        return specifier;
+      }
 
-        var s = (0, _di.deserializeSpecifier)(specifier);
-        var result;
+      let s = (0, _di.deserializeSpecifier)(specifier);
+      let result;
 
-        if (referrer) {
-          var r = (0, _di.deserializeSpecifier)(referrer);
+      if (referrer) {
+        let r = (0, _di.deserializeSpecifier)(referrer);
 
-          if ((0, _di.isSpecifierObjectAbsolute)(r)) {
-            (0, _debug.assert)('Specifier must not include a rootName, collection, or namespace when combined with an absolute referrer', s.rootName === undefined && s.collection === undefined && s.namespace === undefined);
-            s.rootName = r.rootName;
-            s.collection = r.collection;
+        if ((0, _di.isSpecifierObjectAbsolute)(r)) {
+          (0, _debug.assert)('Specifier must not include a rootName, collection, or namespace when combined with an absolute referrer', s.rootName === undefined && s.collection === undefined && s.namespace === undefined);
+          s.rootName = r.rootName;
+          s.collection = r.collection;
 
-            var definitiveCollection = this._definitiveCollection(s.type);
+          let definitiveCollection = this._definitiveCollection(s.type);
 
-            if (!s.name) {
-              /*
-               * For specifiers without a name use the referrer's name and
-               * do not fallback to any other resolution rules.
-               */
-              s.namespace = r.namespace;
-              s.name = r.name;
-              return this._serializeAndVerify(s);
-            }
-
-            s.namespace = r.namespace ? r.namespace + '/' + r.name : r.name;
-
-            if ((0, _specifiers.detectLocalResolutionCollection)(s) === definitiveCollection) {
-              /*
-               * For specifiers with a name, try local resolution. Based on
-               * the referrer.
-               */
-              if (result = this._serializeAndVerify(s)) {
-                return result;
-              }
-            } // Look for a private collection in the referrer's namespace
-
-
-            if (definitiveCollection) {
-              s.namespace += '/-' + definitiveCollection;
-
-              if (result = this._serializeAndVerify(s)) {
-                return result;
-              }
-            } // Because local and private resolution has failed, clear all but `name` and `type`
-            // to proceed with top-level resolution
-
-
-            s.rootName = s.collection = s.namespace = undefined;
-          } else {
-            (0, _debug.assert)('Referrer must either be "absolute" or include a `type` to determine the associated type', r.type); // Look in the definitive collection for the associated type
-
-            s.collection = this._definitiveCollection(r.type);
-
-            if (!s.namespace) {
-              s.namespace = r.rootName;
-            }
-
-            (0, _debug.assert)("'".concat(r.type, "' does not have a definitive collection"), s.collection);
+          if (!s.name) {
+            /*
+             * For specifiers without a name use the referrer's name and
+             * do not fallback to any other resolution rules.
+             */
+            s.namespace = r.namespace;
+            s.name = r.name;
+            return this._serializeAndVerify(s);
           }
-        } // If the collection is unspecified, use the definitive collection for the `type`
+
+          s.namespace = r.namespace ? r.namespace + '/' + r.name : r.name;
+
+          if ((0, _specifiers.detectLocalResolutionCollection)(s) === definitiveCollection) {
+            /*
+             * For specifiers with a name, try local resolution. Based on
+             * the referrer.
+             */
+            if (result = this._serializeAndVerify(s)) {
+              return result;
+            }
+          } // Look for a private collection in the referrer's namespace
 
 
-        if (!s.collection) {
-          s.collection = this._definitiveCollection(s.type);
-          (0, _debug.assert)("'".concat(s.type, "' does not have a definitive collection"), s.collection);
-        }
+          if (definitiveCollection) {
+            s.namespace += '/-' + definitiveCollection;
 
-        if (!s.rootName) {
-          // If the root name is unspecified, try the app's `rootName` first
-          s.rootName = this.config.app.rootName || 'app';
-
-          if (result = this._serializeAndVerify(s)) {
-            return result;
-          } // Then look for an addon with a matching `rootName`
+            if (result = this._serializeAndVerify(s)) {
+              return result;
+            }
+          } // Because local and private resolution has failed, clear all but `name` and `type`
+          // to proceed with top-level resolution
 
 
-          if (s.namespace) {
-            s.rootName = s.namespace;
-            s.namespace = undefined;
-          } else {
-            s.rootName = s.name;
-            s.name = 'main';
+          s.rootName = s.collection = s.namespace = undefined;
+        } else {
+          (0, _debug.assert)('Referrer must either be "absolute" or include a `type` to determine the associated type', r.type); // Look in the definitive collection for the associated type
+
+          s.collection = this._definitiveCollection(r.type);
+
+          if (!s.namespace) {
+            s.namespace = r.rootName;
           }
+
+          (0, _debug.assert)(`'${r.type}' does not have a definitive collection`, s.collection);
         }
+      } // If the collection is unspecified, use the definitive collection for the `type`
+
+
+      if (!s.collection) {
+        s.collection = this._definitiveCollection(s.type);
+        (0, _debug.assert)(`'${s.type}' does not have a definitive collection`, s.collection);
+      }
+
+      if (!s.rootName) {
+        // If the root name is unspecified, try the app's `rootName` first
+        s.rootName = this.config.app.rootName || 'app';
 
         if (result = this._serializeAndVerify(s)) {
           return result;
+        } // Then look for an addon with a matching `rootName`
+
+
+        if (s.namespace) {
+          s.rootName = s.namespace;
+          s.namespace = undefined;
+        } else {
+          s.rootName = s.name;
+          s.name = 'main';
         }
       }
-    }, {
-      key: "retrieve",
-      value: function retrieve(specifier) {
-        return this.registry.get(specifier);
-      }
-    }, {
-      key: "resolve",
-      value: function resolve(specifier, referrer) {
-        var id = this.identify(specifier, referrer);
 
-        if (id) {
-          return this.retrieve(id);
-        }
+      if (result = this._serializeAndVerify(s)) {
+        return result;
       }
-    }, {
-      key: "_definitiveCollection",
-      value: function _definitiveCollection(type) {
-        var typeDef = this.config.types[type];
-        (0, _debug.assert)("'".concat(type, "' is not a recognized type"), typeDef);
-        return typeDef.definitiveCollection;
-      }
-    }, {
-      key: "_serializeAndVerify",
-      value: function _serializeAndVerify(specifier) {
-        var serialized = (0, _di.serializeSpecifier)(specifier);
+    }
 
-        if (this.registry.has(serialized)) {
-          return serialized;
-        }
-      }
-    }]);
+    retrieve(specifier) {
+      return this.registry.get(specifier);
+    }
 
-    return Resolver;
-  }();
+    resolve(specifier, referrer) {
+      let id = this.identify(specifier, referrer);
+
+      if (id) {
+        return this.retrieve(id);
+      }
+    }
+
+    _definitiveCollection(type) {
+      let typeDef = this.config.types[type];
+      (0, _debug.assert)(`'${type}' is not a recognized type`, typeDef);
+      return typeDef.definitiveCollection;
+    }
+
+    _serializeAndVerify(specifier) {
+      let serialized = (0, _di.serializeSpecifier)(specifier);
+
+      if (this.registry.has(serialized)) {
+        return serialized;
+      }
+    }
+
+  }
 
   _exports.default = Resolver;
 });
 define("@glimmer/resolver/module-registries/basic-registry", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-  var BasicRegistry =
-  /*#__PURE__*/
-  function () {
-    function BasicRegistry() {
-      var entries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-      _classCallCheck(this, BasicRegistry);
-
+  class BasicRegistry {
+    constructor(entries = {}) {
       this._entries = entries;
     }
 
-    _createClass(BasicRegistry, [{
-      key: "has",
-      value: function has(specifier) {
-        return specifier in this._entries;
-      }
-    }, {
-      key: "get",
-      value: function get(specifier) {
-        return this._entries[specifier];
-      }
-    }]);
+    has(specifier) {
+      return specifier in this._entries;
+    }
 
-    return BasicRegistry;
-  }();
+    get(specifier) {
+      return this._entries[specifier];
+    }
+
+  }
 
   _exports.default = BasicRegistry;
 });
 define("@glimmer/resolver/utils/debug", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.assert = assert;
 
   function assert(description, test) {
@@ -557,19 +539,23 @@ define("@glimmer/resolver/utils/debug", ["exports"], function (_exports) {
 define("@glimmer/resolver/utils/specifiers", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.detectLocalResolutionCollection = detectLocalResolutionCollection;
 
   function detectLocalResolutionCollection(specifier) {
-    var namespace = specifier.namespace,
-        collection = specifier.collection; // Look for the local-most private collection contained in the namespace
+    let {
+      namespace,
+      collection
+    } = specifier; // Look for the local-most private collection contained in the namespace
     // (which will appear closest to the end of the string)
 
-    var startPos = namespace.lastIndexOf('/-');
+    let startPos = namespace.lastIndexOf('/-');
 
     if (startPos > -1) {
       startPos += 2;
-      var endPos = namespace.indexOf('/', startPos);
+      let endPos = namespace.indexOf('/', startPos);
       collection = namespace.slice(startPos, endPos > -1 ? endPos : undefined);
     }
 
@@ -51439,38 +51425,58 @@ requireModule('ember')
 define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember-inflector/lib/ext/string"], function (_exports, _system, _string) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "defaultRules", {
+    enumerable: true,
+    get: function () {
+      return _system.defaultRules;
+    }
+  });
+  Object.defineProperty(_exports, "pluralize", {
+    enumerable: true,
+    get: function () {
+      return _system.pluralize;
+    }
+  });
+  Object.defineProperty(_exports, "singularize", {
+    enumerable: true,
+    get: function () {
+      return _system.singularize;
+    }
+  });
   _exports.default = void 0;
-  _exports.defaultRules = _system.defaultRules;
-  _exports.pluralize = _system.pluralize;
-  _exports.singularize = _system.singularize;
   _system.Inflector.defaultRules = _system.defaultRules;
   Object.defineProperty(Ember, 'Inflector', {
-    get: function get() {
-      Ember.deprecate("Ember.Inflector is deprecated. Please explicitly: import Inflector from 'ember-inflector';", false, {
+    get() {
+      Ember.deprecate(`Ember.Inflector is deprecated. Please explicitly: import Inflector from 'ember-inflector';`, false, {
         id: 'ember-inflector.globals',
         until: '3.0.0'
       });
       return _system.Inflector;
     }
+
   });
   Object.defineProperty(Ember.String, 'singularize', {
-    get: function get() {
-      Ember.deprecate("Ember.String.singularize() is deprecated. Please explicitly: import { singularize } from 'ember-inflector';", false, {
+    get() {
+      Ember.deprecate(`Ember.String.singularize() is deprecated. Please explicitly: import { singularize } from 'ember-inflector';`, false, {
         id: 'ember-inflector.globals',
         until: '3.0.0'
       });
       return _system.singularize;
     }
+
   });
   Object.defineProperty(Ember.String, 'pluralize', {
-    get: function get() {
-      Ember.deprecate("Ember.String.pluralize() is deprecated. Please explicitly: import { pluralize } from 'ember-inflector';", false, {
+    get() {
+      Ember.deprecate(`Ember.String.pluralize() is deprecated. Please explicitly: import { pluralize } from 'ember-inflector';`, false, {
         id: 'ember-inflector.globals',
         until: '3.0.0'
       });
       return _system.pluralize;
     }
+
   });
   var _default = _system.Inflector;
   _exports.default = _default;
@@ -51478,11 +51484,33 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember
 define("ember-inflector/lib/system", ["exports", "ember-inflector/lib/system/inflector", "ember-inflector/lib/system/string", "ember-inflector/lib/system/inflections"], function (_exports, _inflector, _string, _inflections) {
   "use strict";
 
-  _exports.__esModule = true;
-  _exports.Inflector = _inflector.default;
-  _exports.pluralize = _string.pluralize;
-  _exports.singularize = _string.singularize;
-  _exports.defaultRules = _inflections.default;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "Inflector", {
+    enumerable: true,
+    get: function () {
+      return _inflector.default;
+    }
+  });
+  Object.defineProperty(_exports, "pluralize", {
+    enumerable: true,
+    get: function () {
+      return _string.pluralize;
+    }
+  });
+  Object.defineProperty(_exports, "singularize", {
+    enumerable: true,
+    get: function () {
+      return _string.singularize;
+    }
+  });
+  Object.defineProperty(_exports, "defaultRules", {
+    enumerable: true,
+    get: function () {
+      return _inflections.default;
+    }
+  });
   _inflector.default.inflector = new _inflector.default(_inflections.default);
 });
 define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], function (_string) {
@@ -51495,8 +51523,8 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
       @for String
     */
     Object.defineProperty(String.prototype, 'pluralize', {
-      get: function get() {
-        Ember.deprecate("String.prototype.pluralize() is deprecated. Please explicitly: import { pluralize } from 'ember-inflector';", false, {
+      get() {
+        Ember.deprecate(`String.prototype.pluralize() is deprecated. Please explicitly: import { pluralize } from 'ember-inflector';`, false, {
           id: 'ember-inflector.globals',
           until: '3.0.0'
         });
@@ -51504,6 +51532,7 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
           return (0, _string.pluralize)(this);
         };
       }
+
     });
     /**
       See {{#crossLink "Ember.String/singularize"}}{{/crossLink}}
@@ -51512,8 +51541,8 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
     */
 
     Object.defineProperty(String.prototype, 'singularize', {
-      get: function get() {
-        Ember.deprecate("String.prototype.singularize() is deprecated. Please explicitly: import { singularize } from 'ember-inflector';", false, {
+      get() {
+        Ember.deprecate(`String.prototype.singularize() is deprecated. Please explicitly: import { singularize } from 'ember-inflector';`, false, {
           id: 'ember-inflector.globals',
           until: '3.0.0'
         });
@@ -51521,28 +51550,17 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
           return (0, _string.singularize)(this);
         };
       }
+
     });
   }
 });
 define("ember-inflector/lib/helpers/pluralize", ["exports", "ember-inflector", "ember-inflector/lib/utils/make-helper"], function (_exports, _emberInflector, _makeHelper) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
-
-  function isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-  function _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
-
-  function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-  function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-  function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-  function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-  function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
   /**
    *
@@ -51562,7 +51580,7 @@ define("ember-inflector/lib/helpers/pluralize", ["exports", "ember-inflector", "
    * @param {String|Property} word word to pluralize
    */
   var _default = (0, _makeHelper.default)(function (params, hash) {
-    var fullParams = _construct(Array, _toConsumableArray(params));
+    let fullParams = new Array(...params);
 
     if (fullParams.length === 2) {
       fullParams.push({
@@ -51570,7 +51588,7 @@ define("ember-inflector/lib/helpers/pluralize", ["exports", "ember-inflector", "
       });
     }
 
-    return _emberInflector.pluralize.apply(void 0, _toConsumableArray(fullParams));
+    return (0, _emberInflector.pluralize)(...fullParams);
   });
 
   _exports.default = _default;
@@ -51578,7 +51596,9 @@ define("ember-inflector/lib/helpers/pluralize", ["exports", "ember-inflector", "
 define("ember-inflector/lib/helpers/singularize", ["exports", "ember-inflector", "ember-inflector/lib/utils/make-helper"], function (_exports, _emberInflector, _makeHelper) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
 
   /**
@@ -51604,7 +51624,9 @@ define("ember-inflector/lib/helpers/singularize", ["exports", "ember-inflector",
 define("ember-inflector/lib/system/inflections", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
   var _default = {
     plurals: [[/$/, 's'], [/s$/i, 's'], [/^(ax|test)is$/i, '$1es'], [/(octop|vir)us$/i, '$1i'], [/(octop|vir)i$/i, '$1i'], [/(alias|status|bonus)$/i, '$1es'], [/(bu)s$/i, '$1ses'], [/(buffal|tomat)o$/i, '$1oes'], [/([ti])um$/i, '$1a'], [/([ti])a$/i, '$1a'], [/sis$/i, 'ses'], [/(?:([^f])fe|([lr])f)$/i, '$1$2ves'], [/(hive)$/i, '$1s'], [/([^aeiouy]|qu)y$/i, '$1ies'], [/(x|ch|ss|sh)$/i, '$1es'], [/(matr|vert|ind)(?:ix|ex)$/i, '$1ices'], [/^(m|l)ouse$/i, '$1ice'], [/^(m|l)ice$/i, '$1ice'], [/^(ox)$/i, '$1en'], [/^(oxen)$/i, '$1'], [/(quiz)$/i, '$1zes']],
@@ -51617,23 +51639,25 @@ define("ember-inflector/lib/system/inflections", ["exports"], function (_exports
 define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
-  var BLANK_REGEX = /^\s*$/;
-  var LAST_WORD_DASHED_REGEX = /([\w/-]+[_/\s-])([a-z\d]+$)/;
-  var LAST_WORD_CAMELIZED_REGEX = /([\w/\s-]+)([A-Z][a-z\d]*$)/;
-  var CAMELIZED_REGEX = /[A-Z][a-z\d]*$/;
+  const BLANK_REGEX = /^\s*$/;
+  const LAST_WORD_DASHED_REGEX = /([\w/-]+[_/\s-])([a-z\d]+$)/;
+  const LAST_WORD_CAMELIZED_REGEX = /([\w/\s-]+)([A-Z][a-z\d]*$)/;
+  const CAMELIZED_REGEX = /[A-Z][a-z\d]*$/;
 
   function loadUncountable(rules, uncountable) {
-    for (var i = 0, length = uncountable.length; i < length; i++) {
+    for (let i = 0, length = uncountable.length; i < length; i++) {
       rules.uncountable[uncountable[i].toLowerCase()] = true;
     }
   }
 
   function loadIrregular(rules, irregularPairs) {
-    var pair;
+    let pair;
 
-    for (var i = 0, length = irregularPairs.length; i < length; i++) {
+    for (let i = 0, length = irregularPairs.length; i < length; i++) {
       pair = irregularPairs[i]; //pluralizing
 
       rules.irregular[pair[0].toLowerCase()] = pair[1];
@@ -51711,7 +51735,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
     ruleSet = ruleSet || {};
     ruleSet.uncountable = ruleSet.uncountable || makeDictionary();
     ruleSet.irregularPairs = ruleSet.irregularPairs || makeDictionary();
-    var rules = this.rules = {
+    const rules = this.rules = {
       plurals: ruleSet.plurals || [],
       singular: ruleSet.singular || [],
       irregular: makeDictionary(),
@@ -51741,7 +51765,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       inflected an optional cache is provided.
        @method enableCache
     */
-    enableCache: function enableCache() {
+    enableCache() {
       this.purgeCache();
 
       this.singularize = function (word) {
@@ -51749,8 +51773,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
         return this._sCache[word] || (this._sCache[word] = this._singularize(word));
       };
 
-      this.pluralize = function (numberOrWord, word) {
-        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      this.pluralize = function (numberOrWord, word, options = {}) {
         this._cacheUsed = true;
         var cacheKey = [numberOrWord, word, options.withoutCount];
         return this._pCache[cacheKey] || (this._pCache[cacheKey] = this._pluralize(numberOrWord, word, options));
@@ -51761,7 +51784,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       @public
        @method purgedCache
     */
-    purgeCache: function purgeCache() {
+    purgeCache() {
       this._cacheUsed = false;
       this._sCache = makeDictionary();
       this._pCache = makeDictionary();
@@ -51772,7 +51795,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       disable caching
        @method disableCache;
     */
-    disableCache: function disableCache() {
+    disableCache() {
       this._sCache = null;
       this._pCache = null;
 
@@ -51781,7 +51804,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       };
 
       this.pluralize = function () {
-        return this._pluralize.apply(this, arguments);
+        return this._pluralize(...arguments);
       };
     },
 
@@ -51790,7 +51813,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       @param {RegExp} regex
       @param {String} string
     */
-    plural: function plural(regex, string) {
+    plural(regex, string) {
       if (this._cacheUsed) {
         this.purgeCache();
       }
@@ -51803,7 +51826,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       @param {RegExp} regex
       @param {String} string
     */
-    singular: function singular(regex, string) {
+    singular(regex, string) {
       if (this._cacheUsed) {
         this.purgeCache();
       }
@@ -51815,7 +51838,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       @method uncountable
       @param {String} regex
     */
-    uncountable: function uncountable(string) {
+    uncountable(string) {
       if (this._cacheUsed) {
         this.purgeCache();
       }
@@ -51828,7 +51851,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       @param {String} singular
       @param {String} plural
     */
-    irregular: function irregular(singular, plural) {
+    irregular(singular, plural) {
       if (this._cacheUsed) {
         this.purgeCache();
       }
@@ -51840,12 +51863,11 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       @method pluralize
       @param {String} word
     */
-    pluralize: function pluralize() {
-      return this._pluralize.apply(this, arguments);
+    pluralize() {
+      return this._pluralize(...arguments);
     },
-    _pluralize: function _pluralize(wordOrCount, word) {
-      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
+    _pluralize(wordOrCount, word, options = {}) {
       if (word === undefined) {
         return this.inflect(wordOrCount, this.rules.plurals, this.rules.irregular);
       }
@@ -51854,17 +51876,18 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
         word = this.inflect(word, this.rules.plurals, this.rules.irregular);
       }
 
-      return options.withoutCount ? word : "".concat(wordOrCount, " ").concat(word);
+      return options.withoutCount ? word : `${wordOrCount} ${word}`;
     },
 
     /**
       @method singularize
       @param {String} word
     */
-    singularize: function singularize(word) {
+    singularize(word) {
       return this._singularize(word);
     },
-    _singularize: function _singularize(word) {
+
+    _singularize(word) {
       return this.inflect(word, this.rules.singular, this.rules.irregularInverse);
     },
 
@@ -51875,8 +51898,8 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       @param {Object} typeRules
       @param {Object} irregular
     */
-    inflect: function inflect(word, typeRules, irregular) {
-      var inflection, substitution, result, lowercase, wordSplit, lastWord, isBlank, isCamelized, rule, isUncountable;
+    inflect(word, typeRules, irregular) {
+      let inflection, substitution, result, lowercase, wordSplit, lastWord, isBlank, isCamelized, rule, isUncountable;
       isBlank = !word || BLANK_REGEX.test(word);
       isCamelized = CAMELIZED_REGEX.test(word);
 
@@ -51925,6 +51948,7 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
       result = word.replace(rule, substitution);
       return result;
     }
+
   };
   var _default = Inflector;
   _exports.default = _default;
@@ -51932,14 +51956,14 @@ define("ember-inflector/lib/system/inflector", ["exports"], function (_exports) 
 define("ember-inflector/lib/system/string", ["exports", "ember-inflector/lib/system/inflector"], function (_exports, _inflector) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.pluralize = pluralize;
   _exports.singularize = singularize;
 
   function pluralize() {
-    var _Inflector$inflector;
-
-    return (_Inflector$inflector = _inflector.default.inflector).pluralize.apply(_Inflector$inflector, arguments);
+    return _inflector.default.inflector.pluralize(...arguments);
   }
 
   function singularize(word) {
@@ -51949,7 +51973,9 @@ define("ember-inflector/lib/system/string", ["exports", "ember-inflector/lib/sys
 define("ember-inflector/lib/utils/make-helper", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = makeHelper;
 
   function makeHelper(helperFunction) {
@@ -51967,7 +51993,9 @@ define("ember-inflector/lib/utils/make-helper", ["exports"], function (_exports)
 define("ember-load-initializers/index", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = _default;
 
   /* global requirejs:false, require:false */
@@ -52041,43 +52069,60 @@ define("ember-resolver/features", [], function () {
 define("ember-resolver/index", ["exports", "ember-resolver/resolvers/classic"], function (_exports, _classic) {
   "use strict";
 
-  _exports.__esModule = true;
-  _exports.default = void 0;
-  _exports.default = _classic.default;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "default", {
+    enumerable: true,
+    get: function () {
+      return _classic.default;
+    }
+  });
 });
 define("ember-resolver/resolver", ["exports", "ember-resolver/resolvers/classic"], function (_exports, _classic) {
   "use strict";
 
-  _exports.__esModule = true;
-  _exports.default = void 0;
-  _exports.default = _classic.default;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "default", {
+    enumerable: true,
+    get: function () {
+      return _classic.default;
+    }
+  });
 });
 define("ember-resolver/utils/class-factory", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = classFactory;
 
   function classFactory(klass) {
     return {
-      create: function create(injections) {
+      create(injections) {
         if (typeof klass.extend === 'function') {
           return klass.extend(injections);
         } else {
           return klass;
         }
       }
+
     };
   }
 });
 define("ember-resolver/utils/make-dictionary", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = makeDictionary;
 
   function makeDictionary() {
-    var cache = Object.create(null);
+    let cache = Object.create(null);
     cache['_dict'] = null;
     delete cache['_dict'];
     return cache;
@@ -52086,11 +52131,13 @@ define("ember-resolver/utils/make-dictionary", ["exports"], function (_exports) 
 define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "ember-resolver/resolvers/classic/index"], function (_exports, _index) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
 
   function getPod(type, key, prefix) {
-    var match = key.match(new RegExp('^/?' + prefix + '/(.+)/' + type + '$'));
+    let match = key.match(new RegExp('^/?' + prefix + '/(.+)/' + type + '$'));
 
     if (match !== null) {
       return match[1];
@@ -52105,8 +52152,9 @@ define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "
 
   var _default = Ember.ContainerDebugAdapter.extend({
     _moduleRegistry: null,
-    init: function init() {
-      this._super.apply(this, arguments);
+
+    init() {
+      this._super(...arguments);
 
       if (!this._moduleRegistry) {
         this._moduleRegistry = new _index.ModuleRegistry();
@@ -52136,12 +52184,12 @@ define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "
         @param {string} type The type. e.g. "model", "controller", "route"
         @return {boolean} whether a list is available for this type.
         */
-    canCatalogEntriesByType: function canCatalogEntriesByType(type) {
+    canCatalogEntriesByType(type) {
       if (type === 'model') {
         return true;
       }
 
-      return this._super.apply(this, arguments);
+      return this._super(...arguments);
     },
 
     /**
@@ -52150,18 +52198,18 @@ define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "
         @param {string} type The type. e.g. "model", "controller", "route"
         @return {Array} An array of classes.
         */
-    catalogEntriesByType: function catalogEntriesByType(type) {
-      var moduleNames = this._moduleRegistry.moduleNames();
+    catalogEntriesByType(type) {
+      let moduleNames = this._moduleRegistry.moduleNames();
 
-      var types = Ember.A();
-      var prefix = this.namespace.modulePrefix;
+      let types = Ember.A();
+      let prefix = this.namespace.modulePrefix;
 
-      for (var i = 0, l = moduleNames.length; i < l; i++) {
-        var key = moduleNames[i];
+      for (let i = 0, l = moduleNames.length; i < l; i++) {
+        let key = moduleNames[i];
 
         if (key.indexOf(type) !== -1) {
           // Check if it's a pod module
-          var name = getPod(type, key, this.namespace.podModulePrefix || prefix);
+          let name = getPod(type, key, this.namespace.podModulePrefix || prefix);
 
           if (!name) {
             // Not pod
@@ -52181,6 +52229,7 @@ define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "
 
       return types;
     }
+
   });
 
   _exports.default = _default;
@@ -52188,47 +52237,34 @@ define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "
 define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/utils/class-factory", "ember-resolver/utils/make-dictionary"], function (_exports, _classFactory, _makeDictionary) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = _exports.ModuleRegistry = void 0;
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
+  /* globals requirejs, require */
   if (typeof requirejs.entries === 'undefined') {
     requirejs.entries = requirejs._eak_seen;
   }
 
-  var ModuleRegistry =
-  /*#__PURE__*/
-  function () {
-    function ModuleRegistry(entries) {
-      _classCallCheck(this, ModuleRegistry);
-
+  class ModuleRegistry {
+    constructor(entries) {
       this._entries = entries || requirejs.entries;
     }
 
-    _createClass(ModuleRegistry, [{
-      key: "moduleNames",
-      value: function moduleNames() {
-        return Object.keys(this._entries);
-      }
-    }, {
-      key: "has",
-      value: function has(moduleName) {
-        return moduleName in this._entries;
-      }
-    }, {
-      key: "get",
-      value: function get(moduleName) {
-        return require(moduleName);
-      }
-    }]);
+    moduleNames() {
+      return Object.keys(this._entries);
+    }
 
-    return ModuleRegistry;
-  }();
+    has(moduleName) {
+      return moduleName in this._entries;
+    }
+
+    get(moduleName) {
+      return require(moduleName);
+    }
+
+  }
   /**
    * This module defines a subclass of Ember.DefaultResolver that adds two
    * important features:
@@ -52249,27 +52285,27 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       return fullName;
     }
 
-    var prefix, type, name;
-    var fullNameParts = fullName.split('@'); // HTMLBars uses helper:@content-helper which collides
+    let prefix, type, name;
+    let fullNameParts = fullName.split('@'); // HTMLBars uses helper:@content-helper which collides
     // with ember-cli namespace detection.
     // This will be removed in a future release of HTMLBars.
 
     if (fullName !== 'helper:@content-helper' && fullNameParts.length === 2) {
-      var prefixParts = fullNameParts[0].split(':');
+      let prefixParts = fullNameParts[0].split(':');
 
       if (prefixParts.length === 2) {
         prefix = prefixParts[1];
         type = prefixParts[0];
         name = fullNameParts[1];
       } else {
-        var nameParts = fullNameParts[1].split(':');
+        let nameParts = fullNameParts[1].split(':');
         prefix = fullNameParts[0];
         type = nameParts[0];
         name = nameParts[1];
       }
 
       if (type === 'template' && prefix.lastIndexOf('components/', 0) === 0) {
-        name = "components/".concat(name);
+        name = `components/${name}`;
         prefix = prefix.slice(11);
       }
     } else {
@@ -52278,9 +52314,9 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       name = fullNameParts[1];
     }
 
-    var fullNameWithoutType = name;
-    var namespace = Ember.get(this, 'namespace');
-    var root = namespace;
+    let fullNameWithoutType = name;
+    let namespace = Ember.get(this, 'namespace');
+    let root = namespace;
     return {
       parsedName: true,
       fullName: fullName,
@@ -52297,13 +52333,13 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
   function resolveOther(parsedName) {
     (true && Ember.assert('`modulePrefix` must be defined', this.namespace.modulePrefix));
-    var normalizedModuleName = this.findModuleName(parsedName);
+    let normalizedModuleName = this.findModuleName(parsedName);
 
     if (normalizedModuleName) {
-      var defaultExport = this._extractDefaultExport(normalizedModuleName, parsedName);
+      let defaultExport = this._extractDefaultExport(normalizedModuleName, parsedName);
 
       if (defaultExport === undefined) {
-        throw new Error(" Expected to find: '".concat(parsedName.fullName, "' within '").concat(normalizedModuleName, "' but got 'undefined'. Did you forget to 'export default' within '").concat(normalizedModuleName, "'?"));
+        throw new Error(` Expected to find: '${parsedName.fullName}' within '${normalizedModuleName}' but got 'undefined'. Did you forget to 'export default' within '${normalizedModuleName}'?`);
       }
 
       if (this.shouldWrapInClassFactory(defaultExport, parsedName)) {
@@ -52316,20 +52352,23 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
   //   https://github.com/emberjs/ember.js/blob/master/packages/ember-application/lib/system/resolver.js
 
 
-  var Resolver = Ember.Object.extend({
-    resolveOther: resolveOther,
-    parseName: parseName,
+  const Resolver = Ember.Object.extend({
+    resolveOther,
+    parseName,
     pluralizedTypes: null,
     moduleRegistry: null,
-    makeToString: function makeToString(factory, fullName) {
+
+    makeToString(factory, fullName) {
       return '' + this.namespace.modulePrefix + '@' + fullName + ':';
     },
-    shouldWrapInClassFactory: function shouldWrapInClassFactory()
+
+    shouldWrapInClassFactory()
     /* module, parsedName */
     {
       return false;
     },
-    init: function init() {
+
+    init() {
       this._super();
 
       this.moduleBasedResolver = true;
@@ -52347,13 +52386,15 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
       this._deprecatedPodModulePrefix = false;
     },
-    normalize: function normalize(fullName) {
+
+    normalize(fullName) {
       return this._normalizeCache[fullName] || (this._normalizeCache[fullName] = this._normalize(fullName));
     },
-    resolve: function resolve(fullName) {
-      var parsedName = this.parseName(fullName);
-      var resolveMethodName = parsedName.resolveMethodName;
-      var resolved;
+
+    resolve(fullName) {
+      let parsedName = this.parseName(fullName);
+      let resolveMethodName = parsedName.resolveMethodName;
+      let resolved;
 
       if (typeof this[resolveMethodName] === 'function') {
         resolved = this[resolveMethodName](parsedName);
@@ -52365,14 +52406,15 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
       return resolved;
     },
-    _normalize: function _normalize(fullName) {
+
+    _normalize(fullName) {
       // A) Convert underscores to dashes
       // B) Convert camelCase to dash-case, except for helpers where we want to avoid shadowing camelCase expressions
       // C) replace `.` with `/` in order to make nested controllers work in the following cases
       //      1. `needs: ['posts/post']`
       //      2. `{{render "posts/post"}}`
       //      3. `this.render('posts/post')` from Route
-      var split = fullName.split(':');
+      let split = fullName.split(':');
 
       if (split.length > 1) {
         if (split[0] === 'helper') {
@@ -52384,11 +52426,13 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
         return fullName;
       }
     },
-    pluralize: function pluralize(type) {
+
+    pluralize(type) {
       return this.pluralizedTypes[type] || (this.pluralizedTypes[type] = type + 's');
     },
-    podBasedLookupWithPrefix: function podBasedLookupWithPrefix(podPrefix, parsedName) {
-      var fullNameWithoutType = parsedName.fullNameWithoutType;
+
+    podBasedLookupWithPrefix(podPrefix, parsedName) {
+      let fullNameWithoutType = parsedName.fullNameWithoutType;
 
       if (parsedName.type === 'template') {
         fullNameWithoutType = fullNameWithoutType.replace(/^components\//, '');
@@ -52396,39 +52440,44 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
       return podPrefix + '/' + fullNameWithoutType + '/' + parsedName.type;
     },
-    podBasedModuleName: function podBasedModuleName(parsedName) {
-      var podPrefix = this.namespace.podModulePrefix || this.namespace.modulePrefix;
+
+    podBasedModuleName(parsedName) {
+      let podPrefix = this.namespace.podModulePrefix || this.namespace.modulePrefix;
       return this.podBasedLookupWithPrefix(podPrefix, parsedName);
     },
-    podBasedComponentsInSubdir: function podBasedComponentsInSubdir(parsedName) {
-      var podPrefix = this.namespace.podModulePrefix || this.namespace.modulePrefix;
+
+    podBasedComponentsInSubdir(parsedName) {
+      let podPrefix = this.namespace.podModulePrefix || this.namespace.modulePrefix;
       podPrefix = podPrefix + '/components';
 
       if (parsedName.type === 'component' || /^components/.test(parsedName.fullNameWithoutType)) {
         return this.podBasedLookupWithPrefix(podPrefix, parsedName);
       }
     },
-    resolveEngine: function resolveEngine(parsedName) {
-      var engineName = parsedName.fullNameWithoutType;
-      var engineModule = engineName + '/engine';
+
+    resolveEngine(parsedName) {
+      let engineName = parsedName.fullNameWithoutType;
+      let engineModule = engineName + '/engine';
 
       if (this._moduleRegistry.has(engineModule)) {
         return this._extractDefaultExport(engineModule);
       }
     },
-    resolveRouteMap: function resolveRouteMap(parsedName) {
-      var engineName = parsedName.fullNameWithoutType;
-      var engineRoutesModule = engineName + '/routes';
+
+    resolveRouteMap(parsedName) {
+      let engineName = parsedName.fullNameWithoutType;
+      let engineRoutesModule = engineName + '/routes';
 
       if (this._moduleRegistry.has(engineRoutesModule)) {
-        var routeMap = this._extractDefaultExport(engineRoutesModule);
+        let routeMap = this._extractDefaultExport(engineRoutesModule);
 
-        (true && Ember.assert("The route map for ".concat(engineName, " should be wrapped by 'buildRoutes' before exporting."), routeMap.isRouteMap));
+        (true && Ember.assert(`The route map for ${engineName} should be wrapped by 'buildRoutes' before exporting.`, routeMap.isRouteMap));
         return routeMap;
       }
     },
-    resolveTemplate: function resolveTemplate(parsedName) {
-      var resolved = this.resolveOther(parsedName);
+
+    resolveTemplate(parsedName) {
+      let resolved = this.resolveOther(parsedName);
 
       if (resolved == null) {
         resolved = Ember.TEMPLATES[parsedName.fullNameWithoutType];
@@ -52436,17 +52485,20 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
       return resolved;
     },
-    mainModuleName: function mainModuleName(parsedName) {
+
+    mainModuleName(parsedName) {
       if (parsedName.fullNameWithoutType === 'main') {
         // if router:main or adapter:main look for a module with just the type first
         return parsedName.prefix + '/' + parsedName.type;
       }
     },
-    defaultModuleName: function defaultModuleName(parsedName) {
+
+    defaultModuleName(parsedName) {
       return parsedName.prefix + '/' + this.pluralize(parsedName.type) + '/' + parsedName.fullNameWithoutType;
     },
-    prefix: function prefix(parsedName) {
-      var tmpPrefix = this.namespace.modulePrefix;
+
+    prefix(parsedName) {
+      let tmpPrefix = this.namespace.modulePrefix;
 
       if (this.namespace[parsedName.type + 'Prefix']) {
         tmpPrefix = this.namespace[parsedName.type + 'Prefix'];
@@ -52465,13 +52517,14 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
     moduleNameLookupPatterns: Ember.computed(function () {
       return [this.podBasedModuleName, this.podBasedComponentsInSubdir, this.mainModuleName, this.defaultModuleName];
     }).readOnly(),
-    findModuleName: function findModuleName(parsedName, loggingDisabled) {
-      var moduleNameLookupPatterns = this.get('moduleNameLookupPatterns');
-      var moduleName;
 
-      for (var index = 0, length = moduleNameLookupPatterns.length; index < length; index++) {
-        var item = moduleNameLookupPatterns[index];
-        var tmpModuleName = item.call(this, parsedName); // allow treat all dashed and all underscored as the same thing
+    findModuleName(parsedName, loggingDisabled) {
+      let moduleNameLookupPatterns = this.get('moduleNameLookupPatterns');
+      let moduleName;
+
+      for (let index = 0, length = moduleNameLookupPatterns.length; index < length; index++) {
+        let item = moduleNameLookupPatterns[index];
+        let tmpModuleName = item.call(this, parsedName); // allow treat all dashed and all underscored as the same thing
         // supports components with dashes and other stuff with underscores.
 
         if (tmpModuleName) {
@@ -52491,11 +52544,12 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
         }
       }
     },
-    chooseModuleName: function chooseModuleName(moduleName, parsedName) {
-      var underscoredModuleName = Ember.String.underscore(moduleName);
+
+    chooseModuleName(moduleName, parsedName) {
+      let underscoredModuleName = Ember.String.underscore(moduleName);
 
       if (moduleName !== underscoredModuleName && this._moduleRegistry.has(moduleName) && this._moduleRegistry.has(underscoredModuleName)) {
-        throw new TypeError("Ambiguous module names: '".concat(moduleName, "' and '").concat(underscoredModuleName, "'"));
+        throw new TypeError(`Ambiguous module names: '${moduleName}' and '${underscoredModuleName}'`);
       }
 
       if (this._moduleRegistry.has(moduleName)) {
@@ -52506,7 +52560,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       // something/something/-something => something/something/_something
 
 
-      var partializedModuleName = moduleName.replace(/\/-([^/]*)$/, '/_$1');
+      let partializedModuleName = moduleName.replace(/\/-([^/]*)$/, '/_$1');
 
       if (this._moduleRegistry.has(partializedModuleName)) {
         (true && !(false) && Ember.deprecate('Modules should not contain underscores. ' + 'Attempted to lookup "' + moduleName + '" which ' + 'was not found. Please rename "' + partializedModuleName + '" ' + 'to "' + moduleName + '" instead.', false, {
@@ -52519,11 +52573,11 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       if (true
       /* DEBUG */
       ) {
-        var isCamelCaseHelper = parsedName.type === 'helper' && /[a-z]+[A-Z]+/.test(moduleName);
+        let isCamelCaseHelper = parsedName.type === 'helper' && /[a-z]+[A-Z]+/.test(moduleName);
 
         if (isCamelCaseHelper) {
           this._camelCaseHelperWarnedNames = this._camelCaseHelperWarnedNames || [];
-          var alreadyWarned = this._camelCaseHelperWarnedNames.indexOf(parsedName.fullName) > -1;
+          let alreadyWarned = this._camelCaseHelperWarnedNames.indexOf(parsedName.fullName) > -1;
 
           if (!alreadyWarned && this._moduleRegistry.has(Ember.String.dasherize(moduleName))) {
             this._camelCaseHelperWarnedNames.push(parsedName.fullName);
@@ -52536,20 +52590,22 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
         }
       }
     },
+
     // used by Ember.DefaultResolver.prototype._logLookup
-    lookupDescription: function lookupDescription(fullName) {
-      var parsedName = this.parseName(fullName);
-      var moduleName = this.findModuleName(parsedName, true);
+    lookupDescription(fullName) {
+      let parsedName = this.parseName(fullName);
+      let moduleName = this.findModuleName(parsedName, true);
       return moduleName;
     },
+
     // only needed until 1.6.0-beta.2 can be required
-    _logLookup: function _logLookup(found, parsedName, description) {
+    _logLookup(found, parsedName, description) {
       if (!Ember.ENV.LOG_MODULE_RESOLVER && !parsedName.root.LOG_RESOLVER) {
         return;
       }
 
-      var padding;
-      var symbol = found ? '[✓]' : '[ ]';
+      let padding;
+      let symbol = found ? '[✓]' : '[ ]';
 
       if (parsedName.fullName.length > 60) {
         padding = '.';
@@ -52567,14 +52623,15 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
         console.info(symbol, parsedName.fullName, padding, description);
       }
     },
-    knownForType: function knownForType(type) {
-      var moduleKeys = this._moduleRegistry.moduleNames();
 
-      var items = (0, _makeDictionary.default)();
+    knownForType(type) {
+      let moduleKeys = this._moduleRegistry.moduleNames();
 
-      for (var index = 0, length = moduleKeys.length; index < length; index++) {
-        var moduleName = moduleKeys[index];
-        var fullname = this.translateToContainerFullname(type, moduleName);
+      let items = (0, _makeDictionary.default)();
+
+      for (let index = 0, length = moduleKeys.length; index < length; index++) {
+        let moduleName = moduleKeys[index];
+        let fullname = this.translateToContainerFullname(type, moduleName);
 
         if (fullname) {
           items[fullname] = true;
@@ -52583,17 +52640,18 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
       return items;
     },
-    translateToContainerFullname: function translateToContainerFullname(type, moduleName) {
-      var prefix = this.prefix({
-        type: type
+
+    translateToContainerFullname(type, moduleName) {
+      let prefix = this.prefix({
+        type
       }); // Note: using string manipulation here rather than regexes for better performance.
       // pod modules
       // '^' + prefix + '/(.+)/' + type + '$'
 
-      var podPrefix = prefix + '/';
-      var podSuffix = '/' + type;
-      var start = moduleName.indexOf(podPrefix);
-      var end = moduleName.indexOf(podSuffix);
+      let podPrefix = prefix + '/';
+      let podSuffix = '/' + type;
+      let start = moduleName.indexOf(podPrefix);
+      let end = moduleName.indexOf(podSuffix);
 
       if (start === 0 && end === moduleName.length - podSuffix.length && moduleName.length > podPrefix.length + podSuffix.length) {
         return type + ':' + moduleName.slice(start + podPrefix.length, end);
@@ -52601,15 +52659,16 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       // '^' + prefix + '/' + pluralizedType + '/(.+)$'
 
 
-      var pluralizedType = this.pluralize(type);
-      var nonPodPrefix = prefix + '/' + pluralizedType + '/';
+      let pluralizedType = this.pluralize(type);
+      let nonPodPrefix = prefix + '/' + pluralizedType + '/';
 
       if (moduleName.indexOf(nonPodPrefix) === 0 && moduleName.length > nonPodPrefix.length) {
         return type + ':' + moduleName.slice(nonPodPrefix.length);
       }
     },
-    _extractDefaultExport: function _extractDefaultExport(normalizedModuleName) {
-      var module = require(normalizedModuleName, null, null, true
+
+    _extractDefaultExport(normalizedModuleName) {
+      let module = require(normalizedModuleName, null, null, true
       /* force sync */
       );
 
@@ -52619,6 +52678,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
       return module;
     }
+
   });
   Resolver.reopenClass({
     moduleBasedResolver: true
@@ -52629,7 +52689,9 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 define("ember-resolver/ember-config", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = generateConfig;
 
   /*
@@ -52642,7 +52704,7 @@ define("ember-resolver/ember-config", ["exports"], function (_exports) {
   function generateConfig(name) {
     return {
       app: {
-        name: name,
+        name,
         rootName: name
       },
       types: {
@@ -52793,133 +52855,115 @@ define("ember-resolver/ember-config", ["exports"], function (_exports) {
 define("ember-resolver/module-registries/requirejs", ["exports", "@glimmer/di"], function (_exports, _di) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-  function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-  var RequireJSRegistry =
-  /*#__PURE__*/
-  function () {
-    function RequireJSRegistry(config, modulePrefix) {
-      var require = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : self.requirejs;
-
-      _classCallCheck(this, RequireJSRegistry);
-
+  class RequireJSRegistry {
+    constructor(config, modulePrefix, require = self.requirejs) {
       this._config = config;
       this._modulePrefix = modulePrefix;
       this._require = require;
     }
 
-    _createClass(RequireJSRegistry, [{
-      key: "_baseSegments",
-      value: function _baseSegments(s) {
-        var collectionDefinition = this._config.collections[s.collection];
-        var group = collectionDefinition && collectionDefinition.group;
-        var segments = [s.rootName, this._modulePrefix];
+    _baseSegments(s) {
+      let collectionDefinition = this._config.collections[s.collection];
+      let group = collectionDefinition && collectionDefinition.group;
+      let segments = [s.rootName, this._modulePrefix];
 
-        if (group) {
-          segments.push(group);
-        } // Special case to handle definitiveCollection for templates
-        // eventually want to find a better way to address.
-        // Dgeb wants to find a better way to handle these
-        // in config without needing definitiveCollection.
+      if (group) {
+        segments.push(group);
+      } // Special case to handle definitiveCollection for templates
+      // eventually want to find a better way to address.
+      // Dgeb wants to find a better way to handle these
+      // in config without needing definitiveCollection.
 
 
-        var ignoreCollection = s.type === 'template' && s.collection === 'routes' && s.namespace === 'components';
+      let ignoreCollection = s.type === 'template' && s.collection === 'routes' && s.namespace === 'components';
 
-        if (s.collection !== 'main' && !ignoreCollection) {
-          segments.push(s.collection);
+      if (s.collection !== 'main' && !ignoreCollection) {
+        segments.push(s.collection);
+      }
+
+      if (s.namespace) {
+        segments.push(s.namespace);
+      }
+
+      if (s.name !== 'main' || s.collection !== 'main') {
+        segments.push(s.name);
+      }
+
+      return segments;
+    }
+
+    _detectModule(specifier, lookupDefault, lookupNamed) {
+      let segments = this._baseSegments(specifier);
+
+      let basePath = `${segments.join('/')}`;
+      let typedPath = `${basePath}/${specifier.type}`;
+      let lookupResult = lookupDefault(typedPath);
+
+      if (!lookupResult) {
+        if (this._checkDefaultType(specifier)) {
+          lookupResult = lookupDefault(basePath);
+        } else {
+          lookupResult = lookupNamed(basePath);
         }
+      }
 
-        if (s.namespace) {
-          segments.push(s.namespace);
+      return lookupResult;
+    }
+
+    _checkDefaultType(specifier) {
+      let {
+        defaultType
+      } = this._config.collections[specifier.collection];
+      return defaultType && defaultType === specifier.type;
+    }
+
+    has(specifierString) {
+      let specifier = (0, _di.deserializeSpecifier)(specifierString);
+      /* return a boolean */
+
+      return this._detectModule(specifier, path => {
+        return path in this._require.entries;
+      }, path => {
+        if (path in this._require.entries) {
+          let result = this._require(path);
+
+          return specifier.type in result;
         }
+      });
+    }
 
-        if (s.name !== 'main' || s.collection !== 'main') {
-          segments.push(s.name);
-        }
+    get(specifierString) {
+      let specifier = (0, _di.deserializeSpecifier)(specifierString);
+      /* return an export */
 
-        return segments;
-      }
-    }, {
-      key: "_detectModule",
-      value: function _detectModule(specifier, lookupDefault, lookupNamed) {
-        var segments = this._baseSegments(specifier);
+      let moduleExport = this._detectModule(specifier, path => {
+        return path in this._require.entries && this._require(path).default;
+      }, path => {
+        return path in this._require.entries && this._require(path)[specifier.type];
+      });
 
-        var basePath = "".concat(segments.join('/'));
-        var typedPath = "".concat(basePath, "/").concat(specifier.type);
-        var lookupResult = lookupDefault(typedPath);
+      return moduleExport;
+    }
 
-        if (!lookupResult) {
-          if (this._checkDefaultType(specifier)) {
-            lookupResult = lookupDefault(basePath);
-          } else {
-            lookupResult = lookupNamed(basePath);
-          }
-        }
-
-        return lookupResult;
-      }
-    }, {
-      key: "_checkDefaultType",
-      value: function _checkDefaultType(specifier) {
-        var defaultType = this._config.collections[specifier.collection].defaultType;
-        return defaultType && defaultType === specifier.type;
-      }
-    }, {
-      key: "has",
-      value: function has(specifierString) {
-        var _this = this;
-
-        var specifier = (0, _di.deserializeSpecifier)(specifierString);
-        /* return a boolean */
-
-        return this._detectModule(specifier, function (path) {
-          return path in _this._require.entries;
-        }, function (path) {
-          if (path in _this._require.entries) {
-            var result = _this._require(path);
-
-            return specifier.type in result;
-          }
-        });
-      }
-    }, {
-      key: "get",
-      value: function get(specifierString) {
-        var _this2 = this;
-
-        var specifier = (0, _di.deserializeSpecifier)(specifierString);
-        /* return an export */
-
-        var moduleExport = this._detectModule(specifier, function (path) {
-          return path in _this2._require.entries && _this2._require(path).default;
-        }, function (path) {
-          return path in _this2._require.entries && _this2._require(path)[specifier.type];
-        });
-
-        return moduleExport;
-      }
-    }]);
-
-    return RequireJSRegistry;
-  }();
+  }
 
   _exports.default = RequireJSRegistry;
 });
 define("ember-resolver/resolvers/fallback/index", ["exports", "ember-resolver", "ember-resolver/resolvers/glimmer-wrapper"], function (_exports, _emberResolver, _glimmerWrapper) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
 
   var _default = _glimmerWrapper.default.extend({
-    init: function init(options) {
+    init(options) {
       this._super(options);
 
       this._fallback = _emberResolver.default.create(Ember.assign({
@@ -52928,11 +52972,13 @@ define("ember-resolver/resolvers/fallback/index", ["exports", "ember-resolver", 
         }
       }, options));
     },
-    resolve: function resolve(name) {
-      var result = this._super(name);
+
+    resolve(name) {
+      let result = this._super(name);
 
       return result || this._fallback.resolve(this._fallback.normalize(name));
     }
+
   });
 
   _exports.default = _default;
@@ -52940,67 +52986,58 @@ define("ember-resolver/resolvers/fallback/index", ["exports", "ember-resolver", 
 define("ember-resolver/resolvers/glimmer-wrapper/index", ["exports", "@glimmer/resolver/resolver", "ember-resolver/module-registries/requirejs"], function (_exports, _resolver, _requirejs) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
-
-  function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
-
-  function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
-
-  function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-  function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
   function slasherize(dotted) {
     return dotted.replace(/\./g, '/');
   }
 
-  var TEMPLATE_TO_PARTIAL = /^template:(.*\/)?_([\w-]+)/;
+  const TEMPLATE_TO_PARTIAL = /^template:(.*\/)?_([\w-]+)/;
 
   function isAbsoluteSpecifier(specifier) {
     return specifier.indexOf(':/') !== -1;
   }
 
   function cleanupEmberSpecifier(specifier, source, _namespace) {
-    var _specifier$split = specifier.split(':'),
-        _specifier$split2 = _slicedToArray(_specifier$split, 2),
-        type = _specifier$split2[0],
-        name = _specifier$split2[1];
+    let [type, name] = specifier.split(':');
 
     if (!name) {
       return [specifier, null];
     }
 
     if (type === 'component' && name) {
-      specifier = "".concat(type, ":").concat(name);
+      specifier = `${type}:${name}`;
     } else if (type === 'service') {
       /* Services may be camelCased */
-      specifier = "service:".concat(Ember.String.dasherize(name));
+      specifier = `service:${Ember.String.dasherize(name)}`;
     } else if (type === 'route') {
       /* Routes may have.dot.paths */
-      specifier = "route:".concat(slasherize(name));
+      specifier = `route:${slasherize(name)}`;
     } else if (type === 'controller') {
       /* Controllers may have.dot.paths */
-      specifier = "controller:".concat(slasherize(name));
+      specifier = `controller:${slasherize(name)}`;
     } else if (type === 'template') {
       if (name && name.indexOf('components/') === 0) {
-        var sliced = name.slice(11);
-        specifier = "template:".concat(sliced);
+        let sliced = name.slice(11);
+        specifier = `template:${sliced}`;
       } else {
         /*
          * Ember partials are looked up as templates. Here we replace the template
          * resolution with a partial resolute when appropriate. Try to keep this
          * code as "pay-go" as possible.
          */
-        var match = TEMPLATE_TO_PARTIAL.exec(specifier);
+        let match = TEMPLATE_TO_PARTIAL.exec(specifier);
 
         if (match) {
-          var namespace = match[1] || '';
-          var _name = match[2];
-          specifier = "partial:".concat(namespace).concat(_name);
+          let namespace = match[1] || '';
+          let name = match[2];
+          specifier = `partial:${namespace}${name}`;
         } else {
           if (source) {
-            throw new Error("Cannot look up a route template ".concat(specifier, " with a source"));
+            throw new Error(`Cannot look up a route template ${specifier} with a source`);
           }
           /*
            * Templates for routes must be looked up with a source. They may
@@ -53008,8 +53045,8 @@ define("ember-resolver/resolvers/glimmer-wrapper/index", ["exports", "@glimmer/r
            */
 
 
-          specifier = "template";
-          source = "route:/".concat(_namespace, "/routes/").concat(slasherize(name));
+          specifier = `template`;
+          source = `route:/${_namespace}/routes/${slasherize(name)}`;
         }
       }
     }
@@ -53023,9 +53060,9 @@ define("ember-resolver/resolvers/glimmer-wrapper/index", ["exports", "@glimmer/r
    */
 
 
-  var Resolver = Ember.DefaultResolver.extend({
-    init: function init() {
-      this._super.apply(this, arguments);
+  const Resolver = Ember.DefaultResolver.extend({
+    init() {
+      this._super(...arguments);
 
       this._configRootName = this.config.app.rootName || 'app';
 
@@ -53035,41 +53072,36 @@ define("ember-resolver/resolvers/glimmer-wrapper/index", ["exports", "@glimmer/r
 
       this._glimmerResolver = new _resolver.default(this.config, this.glimmerModuleRegistry);
     },
+
     normalize: null,
-    expandLocalLookup: function expandLocalLookup(specifier, source, namespace) {
+
+    expandLocalLookup(specifier, source, namespace) {
       if (isAbsoluteSpecifier(specifier)) {
         return specifier; // specifier is absolute
       }
 
       if (source || namespace) {
-        var rootName = namespace || this._configRootName;
-
-        var _specifier$split3 = specifier.split(':'),
-            _specifier$split4 = _slicedToArray(_specifier$split3, 1),
-            type = _specifier$split4[0];
+        let rootName = namespace || this._configRootName;
+        let [type] = specifier.split(':');
         /*
          * Ember components require their lookupString to be massaged. Make this
          * as "pay-go" as possible.
          */
 
-
         if (namespace) {
           // This is only required because:
           // https://github.com/glimmerjs/glimmer-di/issues/45
-          source = "".concat(type, ":/").concat(rootName, "/");
+          source = `${type}:/${rootName}/`;
         } else if (source) {
           // make absolute
-          var parts = source.split(':src/ui/');
-          source = "".concat(parts[0], ":/").concat(rootName, "/").concat(parts[1]);
+          let parts = source.split(':src/ui/');
+          source = `${parts[0]}:/${rootName}/${parts[1]}`;
           source = source.split('/template.hbs')[0];
         }
 
-        var _cleanupEmberSpecifie = cleanupEmberSpecifier(specifier, source, rootName),
-            _cleanupEmberSpecifie2 = _slicedToArray(_cleanupEmberSpecifie, 2),
-            _specifier = _cleanupEmberSpecifie2[0],
-            _source = _cleanupEmberSpecifie2[1];
+        let [_specifier, _source] = cleanupEmberSpecifier(specifier, source, rootName);
 
-        var absoluteSpecifier = this._glimmerResolver.identify(_specifier, _source);
+        let absoluteSpecifier = this._glimmerResolver.identify(_specifier, _source);
 
         if (absoluteSpecifier) {
           return absoluteSpecifier;
@@ -53084,21 +53116,19 @@ define("ember-resolver/resolvers/glimmer-wrapper/index", ["exports", "@glimmer/r
 
       return specifier;
     },
-    resolve: function resolve(specifier) {
-      var source = null;
+
+    resolve(specifier) {
+      let source = null;
 
       if (!isAbsoluteSpecifier(specifier)) {
-        var _cleanupEmberSpecifie3 = cleanupEmberSpecifier(specifier, source, this._configRootName),
-            _cleanupEmberSpecifie4 = _slicedToArray(_cleanupEmberSpecifie3, 2),
-            _specifier = _cleanupEmberSpecifie4[0],
-            _source = _cleanupEmberSpecifie4[1];
-
+        let [_specifier, _source] = cleanupEmberSpecifier(specifier, source, this._configRootName);
         specifier = _specifier;
         source = _source;
       }
 
       return this._glimmerResolver.resolve(specifier, source);
     }
+
   });
   var _default = Resolver;
   _exports.default = _default;

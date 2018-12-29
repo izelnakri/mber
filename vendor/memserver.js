@@ -544,6 +544,194 @@
           'use strict';
 
           (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g._memserver__model = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var colors = {
+  enabled: true,
+  visible: true,
+  styles: {},
+  keys: {}
+};
+
+if ('FORCE_COLOR' in process.env) {
+  colors.enabled = process.env.FORCE_COLOR !== '0';
+}
+
+var ansi = function ansi(style) {
+  style.open = "\x1B[".concat(style.codes[0], "m");
+  style.close = "\x1B[".concat(style.codes[1], "m");
+  style.regex = new RegExp("\\u001b\\[".concat(style.codes[1], "m"), 'g');
+  return style;
+};
+
+var wrap = function wrap(style, str, nl) {
+  var open = style.open,
+      close = style.close,
+      regex = style.regex;
+  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
+  // chalk contributors for this fix. However, we've confirmed that
+  // this issue is also present in Windows terminals
+
+  return nl ? str.replace(/\r?\n/g, "".concat(close, "$&").concat(open)) : str;
+};
+
+var style = function style(input, stack) {
+  if (input === '' || input == null) return '';
+  if (colors.enabled === false) return input;
+  if (colors.visible === false) return '';
+  var str = '' + input;
+  var nl = str.includes('\n');
+  var n = stack.length;
+
+  while (n-- > 0) {
+    str = wrap(colors.styles[stack[n]], str, nl);
+  }
+
+  return str;
+};
+
+var define = function define(name, codes, type) {
+  colors.styles[name] = ansi({
+    name: name,
+    codes: codes
+  });
+  var t = colors.keys[type] || (colors.keys[type] = []);
+  t.push(name);
+  Reflect.defineProperty(colors, name, {
+    get: function get() {
+      var color = function color(input) {
+        return style(input, color.stack);
+      };
+
+      Reflect.setPrototypeOf(color, colors);
+      color.stack = this.stack ? this.stack.concat(name) : [name];
+      return color;
+    }
+  });
+};
+
+define('reset', [0, 0], 'modifier');
+define('bold', [1, 22], 'modifier');
+define('dim', [2, 22], 'modifier');
+define('italic', [3, 23], 'modifier');
+define('underline', [4, 24], 'modifier');
+define('inverse', [7, 27], 'modifier');
+define('hidden', [8, 28], 'modifier');
+define('strikethrough', [9, 29], 'modifier');
+define('black', [30, 39], 'color');
+define('red', [31, 39], 'color');
+define('green', [32, 39], 'color');
+define('yellow', [33, 39], 'color');
+define('blue', [34, 39], 'color');
+define('magenta', [35, 39], 'color');
+define('cyan', [36, 39], 'color');
+define('white', [37, 39], 'color');
+define('gray', [90, 39], 'color');
+define('grey', [90, 39], 'color');
+define('bgBlack', [40, 49], 'bg');
+define('bgRed', [41, 49], 'bg');
+define('bgGreen', [42, 49], 'bg');
+define('bgYellow', [43, 49], 'bg');
+define('bgBlue', [44, 49], 'bg');
+define('bgMagenta', [45, 49], 'bg');
+define('bgCyan', [46, 49], 'bg');
+define('bgWhite', [47, 49], 'bg');
+define('blackBright', [90, 39], 'bright');
+define('redBright', [91, 39], 'bright');
+define('greenBright', [92, 39], 'bright');
+define('yellowBright', [93, 39], 'bright');
+define('blueBright', [94, 39], 'bright');
+define('magentaBright', [95, 39], 'bright');
+define('cyanBright', [96, 39], 'bright');
+define('whiteBright', [97, 39], 'bright');
+define('bgBlackBright', [100, 49], 'bgBright');
+define('bgRedBright', [101, 49], 'bgBright');
+define('bgGreenBright', [102, 49], 'bgBright');
+define('bgYellowBright', [103, 49], 'bgBright');
+define('bgBlueBright', [104, 49], 'bgBright');
+define('bgMagentaBright', [105, 49], 'bgBright');
+define('bgCyanBright', [106, 49], 'bgBright');
+define('bgWhiteBright', [107, 49], 'bgBright');
+/* eslint-disable no-control-regex */
+
+var re = colors.ansiRegex = /\u001b\[\d+m/gm;
+
+colors.hasColor = colors.hasAnsi = function (str) {
+  re.lastIndex = 0;
+  return !!str && typeof str === 'string' && re.test(str);
+};
+
+colors.unstyle = function (str) {
+  re.lastIndex = 0;
+  return typeof str === 'string' ? str.replace(re, '') : str;
+};
+
+colors.none = colors.clear = colors.noop = function (str) {
+  return str;
+}; // no-op, for programmatic usage
+
+
+colors.stripColor = colors.unstyle;
+colors.symbols = require('./symbols');
+colors.define = define;
+module.exports = colors;
+
+}).call(this,require('_process'))
+},{"./symbols":2,"_process":12}],2:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var isWindows = process.platform === 'win32';
+var isLinux = process.platform === 'linux';
+var windows = {
+  bullet: '•',
+  check: '√',
+  cross: '×',
+  ellipsis: '...',
+  heart: '❤',
+  info: 'i',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionSmall: '﹖',
+  pointer: '>',
+  pointerSmall: '»',
+  warning: '‼'
+};
+var other = {
+  ballotCross: '✘',
+  bullet: '•',
+  check: '✔',
+  cross: '✖',
+  ellipsis: '…',
+  heart: '❤',
+  info: 'ℹ',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionFull: '？',
+  questionSmall: '﹖',
+  pointer: isLinux ? '▸' : '❯',
+  pointerSmall: isLinux ? '‣' : '›',
+  warning: '⚠'
+};
+module.exports = isWindows ? windows : other;
+Reflect.defineProperty(module.exports, 'windows', {
+  enumerable: false,
+  value: windows
+});
+Reflect.defineProperty(module.exports, 'other', {
+  enumerable: false,
+  value: other
+});
+
+}).call(this,require('_process'))
+},{"_process":12}],3:[function(require,module,exports){
 'use strict';
 
 var STRING_DASHERIZE_REGEXP = /[ _]/g;
@@ -700,7 +888,7 @@ module.exports = {
   capitalize: capitalize
 };
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 // Default inflections
@@ -768,7 +956,7 @@ module.exports = function (inflect) {
   inflect.uncountable(['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'sushi']);
 };
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 // Requiring modules
@@ -782,7 +970,7 @@ module.exports = function (attach) {
   return methods;
 };
 
-},{"./methods":5,"./native":6}],4:[function(require,module,exports){
+},{"./methods":7,"./native":8}],6:[function(require,module,exports){
 "use strict";
 
 // A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
@@ -915,7 +1103,7 @@ Inflections.prototype.default = function () {
 
 module.exports = new Inflections();
 
-},{"./defaults":2,"./util":7}],5:[function(require,module,exports){
+},{"./defaults":4,"./util":9}],7:[function(require,module,exports){
 "use strict";
 
 // The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -1161,7 +1349,7 @@ inflect.classify = function (table_name) {
   return inflect.camelize(inflect.singularize(util.string.gsub(table_name, /.*\./, '')));
 };
 
-},{"./inflections":4,"./util":7}],6:[function(require,module,exports){
+},{"./inflections":6,"./util":9}],8:[function(require,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -1183,7 +1371,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 // Some utility functions in js
@@ -1331,7 +1519,7 @@ var u = module.exports = {
   }
 };
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 if (typeof Object.create === 'function') {
@@ -1360,7 +1548,7 @@ if (typeof Object.create === 'function') {
   };
 }
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -1372,9 +1560,9 @@ function _interopDefault(ex) {
   return ex && _typeof(ex) === 'object' && 'default' in ex ? ex['default'] : ex;
 }
 
-var chalk = _interopDefault(require('ansi-colors'));
-
 var util = _interopDefault(require('util'));
+
+var chalk = _interopDefault(require('ansi-colors'));
 
 var Inflector = _interopDefault(require('i'));
 
@@ -1637,7 +1825,7 @@ function model(options) {
 function incrementId(Model) {
   var ids = targetNamespace.MemServer.DB[Model.modelName];
 
-  if (ids.length === 0) {
+  if (!ids || ids.length === 0) {
     return 1;
   }
 
@@ -1668,167 +1856,7 @@ function comparison(model, options, keys) {
 module.exports = model;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"ansi-colors":10,"ember-cli-string-utils":1,"i":3,"util":14}],10:[function(require,module,exports){
-(function (process){
-'use strict';
-
-const colors = { enabled: true, visible: true, styles: {}, keys: {} };
-
-if ('FORCE_COLOR' in process.env) {
-  colors.enabled = process.env.FORCE_COLOR !== '0';
-}
-
-const ansi = style => {
-  style.open = `\u001b[${style.codes[0]}m`;
-  style.close = `\u001b[${style.codes[1]}m`;
-  style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
-  return style;
-};
-
-const wrap = (style, str, nl) => {
-  let { open, close, regex } = style;
-  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close;
-  // see https://github.com/chalk/chalk/pull/92, thanks to the
-  // chalk contributors for this fix. However, we've confirmed that
-  // this issue is also present in Windows terminals
-  return nl ? str.replace(/\r?\n/g, `${close}$&${open}`) : str;
-};
-
-const style = (input, stack) => {
-  if (input === '' || input == null) return '';
-  if (colors.enabled === false) return input;
-  if (colors.visible === false) return '';
-  let str = '' + input;
-  let nl = str.includes('\n');
-  let n = stack.length;
-  while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
-  return str;
-};
-
-const define = (name, codes, type) => {
-  colors.styles[name] = ansi({ name, codes });
-  let t = colors.keys[type] || (colors.keys[type] = []);
-  t.push(name);
-
-  Reflect.defineProperty(colors, name, {
-    get() {
-      let color = input => style(input, color.stack);
-      Reflect.setPrototypeOf(color, colors);
-      color.stack = this.stack ? this.stack.concat(name) : [name];
-      return color;
-    }
-  });
-};
-
-define('reset', [0, 0], 'modifier');
-define('bold', [1, 22], 'modifier');
-define('dim', [2, 22], 'modifier');
-define('italic', [3, 23], 'modifier');
-define('underline', [4, 24], 'modifier');
-define('inverse', [7, 27], 'modifier');
-define('hidden', [8, 28], 'modifier');
-define('strikethrough', [9, 29], 'modifier');
-
-define('black', [30, 39], 'color');
-define('red', [31, 39], 'color');
-define('green', [32, 39], 'color');
-define('yellow', [33, 39], 'color');
-define('blue', [34, 39], 'color');
-define('magenta', [35, 39], 'color');
-define('cyan', [36, 39], 'color');
-define('white', [37, 39], 'color');
-define('gray', [90, 39], 'color');
-define('grey', [90, 39], 'color');
-
-define('bgBlack', [40, 49], 'bg');
-define('bgRed', [41, 49], 'bg');
-define('bgGreen', [42, 49], 'bg');
-define('bgYellow', [43, 49], 'bg');
-define('bgBlue', [44, 49], 'bg');
-define('bgMagenta', [45, 49], 'bg');
-define('bgCyan', [46, 49], 'bg');
-define('bgWhite', [47, 49], 'bg');
-
-define('blackBright', [90, 39], 'bright');
-define('redBright', [91, 39], 'bright');
-define('greenBright', [92, 39], 'bright');
-define('yellowBright', [93, 39], 'bright');
-define('blueBright', [94, 39], 'bright');
-define('magentaBright', [95, 39], 'bright');
-define('cyanBright', [96, 39], 'bright');
-define('whiteBright', [97, 39], 'bright');
-
-define('bgBlackBright', [100, 49], 'bgBright');
-define('bgRedBright', [101, 49], 'bgBright');
-define('bgGreenBright', [102, 49], 'bgBright');
-define('bgYellowBright', [103, 49], 'bgBright');
-define('bgBlueBright', [104, 49], 'bgBright');
-define('bgMagentaBright', [105, 49], 'bgBright');
-define('bgCyanBright', [106, 49], 'bgBright');
-define('bgWhiteBright', [107, 49], 'bgBright');
-
-/* eslint-disable no-control-regex */
-const re = colors.ansiRegex = /\u001b\[\d+m/gm;
-colors.hasColor = colors.hasAnsi = str => !!str && typeof str === 'string' && re.test(str);
-colors.unstyle = str => typeof str === 'string' ? str.replace(re, '') : str;
-colors.none = colors.clear = colors.noop = str => str; // no-op, for programmatic usage
-colors.stripColor = colors.unstyle;
-colors.symbols = require('./symbols');
-colors.define = define;
-module.exports = colors;
-
-}).call(this,require('_process'))
-},{"./symbols":11,"_process":12}],11:[function(require,module,exports){
-(function (process){
-'use strict';
-
-const isWindows = process.platform === 'win32';
-const isLinux = process.platform === 'linux';
-
-const windows = {
-  bullet: '•',
-  check: '√',
-  cross: '×',
-  ellipsis: '...',
-  heart: '❤',
-  info: 'i',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionSmall: '﹖',
-  pointer: '>',
-  pointerSmall: '»',
-  warning: '‼'
-};
-
-const other = {
-  ballotCross: '✘',
-  bullet: '•',
-  check: '✔',
-  cross: '✖',
-  ellipsis: '…',
-  heart: '❤',
-  info: 'ℹ',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionFull: '？',
-  questionSmall: '﹖',
-  pointer: isLinux ? '▸' : '❯',
-  pointerSmall: isLinux ? '‣' : '›',
-  warning: '⚠'
-};
-
-module.exports = isWindows ? windows : other;
-Reflect.defineProperty(module.exports, 'windows', { enumerable: false, value: windows });
-Reflect.defineProperty(module.exports, 'other', { enumerable: false, value: other });
-
-}).call(this,require('_process'))
-},{"_process":12}],12:[function(require,module,exports){
+},{"ansi-colors":1,"ember-cli-string-utils":3,"i":5,"util":14}],12:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2613,7 +2641,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":13,"_process":12,"inherits":8}]},{},[9])(9)
+},{"./support/isBuffer":13,"_process":12,"inherits":10}]},{},[11])(11)
 });
 
 
@@ -2629,13 +2657,12 @@ function hasOwnProperty(obj, prop) {
         define("memserver/response", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = _default;
 
-  function _default() {
-    var statusCode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 200;
-    var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  function _default(statusCode = 200, data = {}, headers = {}) {
     return [statusCode, Object.assign({
       'Content-Type': 'application/json'
     }, headers), JSON.stringify(data)];
@@ -3199,6 +3226,194 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 });
 
 },{}],2:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var colors = {
+  enabled: true,
+  visible: true,
+  styles: {},
+  keys: {}
+};
+
+if ('FORCE_COLOR' in process.env) {
+  colors.enabled = process.env.FORCE_COLOR !== '0';
+}
+
+var ansi = function ansi(style) {
+  style.open = "\x1B[".concat(style.codes[0], "m");
+  style.close = "\x1B[".concat(style.codes[1], "m");
+  style.regex = new RegExp("\\u001b\\[".concat(style.codes[1], "m"), 'g');
+  return style;
+};
+
+var wrap = function wrap(style, str, nl) {
+  var open = style.open,
+      close = style.close,
+      regex = style.regex;
+  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
+  // chalk contributors for this fix. However, we've confirmed that
+  // this issue is also present in Windows terminals
+
+  return nl ? str.replace(/\r?\n/g, "".concat(close, "$&").concat(open)) : str;
+};
+
+var style = function style(input, stack) {
+  if (input === '' || input == null) return '';
+  if (colors.enabled === false) return input;
+  if (colors.visible === false) return '';
+  var str = '' + input;
+  var nl = str.includes('\n');
+  var n = stack.length;
+
+  while (n-- > 0) {
+    str = wrap(colors.styles[stack[n]], str, nl);
+  }
+
+  return str;
+};
+
+var define = function define(name, codes, type) {
+  colors.styles[name] = ansi({
+    name: name,
+    codes: codes
+  });
+  var t = colors.keys[type] || (colors.keys[type] = []);
+  t.push(name);
+  Reflect.defineProperty(colors, name, {
+    get: function get() {
+      var color = function color(input) {
+        return style(input, color.stack);
+      };
+
+      Reflect.setPrototypeOf(color, colors);
+      color.stack = this.stack ? this.stack.concat(name) : [name];
+      return color;
+    }
+  });
+};
+
+define('reset', [0, 0], 'modifier');
+define('bold', [1, 22], 'modifier');
+define('dim', [2, 22], 'modifier');
+define('italic', [3, 23], 'modifier');
+define('underline', [4, 24], 'modifier');
+define('inverse', [7, 27], 'modifier');
+define('hidden', [8, 28], 'modifier');
+define('strikethrough', [9, 29], 'modifier');
+define('black', [30, 39], 'color');
+define('red', [31, 39], 'color');
+define('green', [32, 39], 'color');
+define('yellow', [33, 39], 'color');
+define('blue', [34, 39], 'color');
+define('magenta', [35, 39], 'color');
+define('cyan', [36, 39], 'color');
+define('white', [37, 39], 'color');
+define('gray', [90, 39], 'color');
+define('grey', [90, 39], 'color');
+define('bgBlack', [40, 49], 'bg');
+define('bgRed', [41, 49], 'bg');
+define('bgGreen', [42, 49], 'bg');
+define('bgYellow', [43, 49], 'bg');
+define('bgBlue', [44, 49], 'bg');
+define('bgMagenta', [45, 49], 'bg');
+define('bgCyan', [46, 49], 'bg');
+define('bgWhite', [47, 49], 'bg');
+define('blackBright', [90, 39], 'bright');
+define('redBright', [91, 39], 'bright');
+define('greenBright', [92, 39], 'bright');
+define('yellowBright', [93, 39], 'bright');
+define('blueBright', [94, 39], 'bright');
+define('magentaBright', [95, 39], 'bright');
+define('cyanBright', [96, 39], 'bright');
+define('whiteBright', [97, 39], 'bright');
+define('bgBlackBright', [100, 49], 'bgBright');
+define('bgRedBright', [101, 49], 'bgBright');
+define('bgGreenBright', [102, 49], 'bgBright');
+define('bgYellowBright', [103, 49], 'bgBright');
+define('bgBlueBright', [104, 49], 'bgBright');
+define('bgMagentaBright', [105, 49], 'bgBright');
+define('bgCyanBright', [106, 49], 'bgBright');
+define('bgWhiteBright', [107, 49], 'bgBright');
+/* eslint-disable no-control-regex */
+
+var re = colors.ansiRegex = /\u001b\[\d+m/gm;
+
+colors.hasColor = colors.hasAnsi = function (str) {
+  re.lastIndex = 0;
+  return !!str && typeof str === 'string' && re.test(str);
+};
+
+colors.unstyle = function (str) {
+  re.lastIndex = 0;
+  return typeof str === 'string' ? str.replace(re, '') : str;
+};
+
+colors.none = colors.clear = colors.noop = function (str) {
+  return str;
+}; // no-op, for programmatic usage
+
+
+colors.stripColor = colors.unstyle;
+colors.symbols = require('./symbols');
+colors.define = define;
+module.exports = colors;
+
+}).call(this,require('_process'))
+},{"./symbols":3,"_process":19}],3:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var isWindows = process.platform === 'win32';
+var isLinux = process.platform === 'linux';
+var windows = {
+  bullet: '•',
+  check: '√',
+  cross: '×',
+  ellipsis: '...',
+  heart: '❤',
+  info: 'i',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionSmall: '﹖',
+  pointer: '>',
+  pointerSmall: '»',
+  warning: '‼'
+};
+var other = {
+  ballotCross: '✘',
+  bullet: '•',
+  check: '✔',
+  cross: '✖',
+  ellipsis: '…',
+  heart: '❤',
+  info: 'ℹ',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionFull: '？',
+  questionSmall: '﹖',
+  pointer: isLinux ? '▸' : '❯',
+  pointerSmall: isLinux ? '‣' : '›',
+  warning: '⚠'
+};
+module.exports = isWindows ? windows : other;
+Reflect.defineProperty(module.exports, 'windows', {
+  enumerable: false,
+  value: windows
+});
+Reflect.defineProperty(module.exports, 'other', {
+  enumerable: false,
+  value: other
+});
+
+}).call(this,require('_process'))
+},{"_process":19}],4:[function(require,module,exports){
 'use strict';
 
 var STRING_DASHERIZE_REGEXP = /[ _]/g;
@@ -3355,7 +3570,7 @@ module.exports = {
   capitalize: capitalize
 };
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -3872,7 +4087,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
   return fake_xml_http_request;
 });
 
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 // Default inflections
@@ -3940,7 +4155,7 @@ module.exports = function (inflect) {
   inflect.uncountable(['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'sushi']);
 };
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 // Requiring modules
@@ -3954,7 +4169,7 @@ module.exports = function (attach) {
   return methods;
 };
 
-},{"./methods":7,"./native":8}],6:[function(require,module,exports){
+},{"./methods":9,"./native":10}],8:[function(require,module,exports){
 "use strict";
 
 // A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
@@ -4087,7 +4302,7 @@ Inflections.prototype.default = function () {
 
 module.exports = new Inflections();
 
-},{"./defaults":4,"./util":9}],7:[function(require,module,exports){
+},{"./defaults":6,"./util":11}],9:[function(require,module,exports){
 "use strict";
 
 // The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -4333,7 +4548,7 @@ inflect.classify = function (table_name) {
   return inflect.camelize(inflect.singularize(util.string.gsub(table_name, /.*\./, '')));
 };
 
-},{"./inflections":6,"./util":9}],8:[function(require,module,exports){
+},{"./inflections":8,"./util":11}],10:[function(require,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -4355,7 +4570,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 // Some utility functions in js
@@ -4503,7 +4718,7 @@ var u = module.exports = {
   }
 };
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -4525,17 +4740,17 @@ function _interopDefault(ex) {
 
 var chalk = _interopDefault(require('ansi-colors'));
 
-var qs = _interopDefault(require('qs'));
-
-var Inflector = _interopDefault(require('i'));
-
-var stringUtils = _interopDefault(require('ember-cli-string-utils'));
-
 var FakeXMLHttpRequest = _interopDefault(require('fake-xml-http-request'));
 
 var RouteRecognizer = _interopDefault(require('route-recognizer'));
 
 require('pretender');
+
+var qs = _interopDefault(require('qs'));
+
+var Inflector = _interopDefault(require('i'));
+
+var stringUtils = _interopDefault(require('ember-cli-string-utils'));
 
 function primaryKeyTypeSafetyCheck(targetPrimaryKeyType, primaryKey, modelName) {
   var primaryKeyType = _typeof(primaryKey);
@@ -4923,167 +5138,742 @@ function getModelPrimaryKey(model, existingPrimaryKeyType, modelName) {
 module.exports = memServer;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"ansi-colors":11,"ember-cli-string-utils":2,"fake-xml-http-request":3,"i":5,"pretender":13,"qs":16,"route-recognizer":20}],11:[function(require,module,exports){
-(function (process){
+},{"ansi-colors":2,"ember-cli-string-utils":4,"fake-xml-http-request":5,"i":7,"pretender":18,"qs":14,"route-recognizer":20}],13:[function(require,module,exports){
 'use strict';
 
-const colors = { enabled: true, visible: true, styles: {}, keys: {} };
+var replace = String.prototype.replace;
+var percentTwenties = /%20/g;
 
-if ('FORCE_COLOR' in process.env) {
-  colors.enabled = process.env.FORCE_COLOR !== '0';
-}
-
-const ansi = style => {
-  style.open = `\u001b[${style.codes[0]}m`;
-  style.close = `\u001b[${style.codes[1]}m`;
-  style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
-  return style;
+module.exports = {
+    'default': 'RFC3986',
+    formatters: {
+        RFC1738: function (value) {
+            return replace.call(value, percentTwenties, '+');
+        },
+        RFC3986: function (value) {
+            return value;
+        }
+    },
+    RFC1738: 'RFC1738',
+    RFC3986: 'RFC3986'
 };
 
-const wrap = (style, str, nl) => {
-  let { open, close, regex } = style;
-  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close;
-  // see https://github.com/chalk/chalk/pull/92, thanks to the
-  // chalk contributors for this fix. However, we've confirmed that
-  // this issue is also present in Windows terminals
-  return nl ? str.replace(/\r?\n/g, `${close}$&${open}`) : str;
+},{}],14:[function(require,module,exports){
+'use strict';
+
+var stringify = require('./stringify');
+var parse = require('./parse');
+var formats = require('./formats');
+
+module.exports = {
+    formats: formats,
+    parse: parse,
+    stringify: stringify
 };
 
-const style = (input, stack) => {
-  if (input === '' || input == null) return '';
-  if (colors.enabled === false) return input;
-  if (colors.visible === false) return '';
-  let str = '' + input;
-  let nl = str.includes('\n');
-  let n = stack.length;
-  while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
-  return str;
+},{"./formats":13,"./parse":15,"./stringify":16}],15:[function(require,module,exports){
+'use strict';
+
+var utils = require('./utils');
+
+var has = Object.prototype.hasOwnProperty;
+
+var defaults = {
+    allowDots: false,
+    allowPrototypes: false,
+    arrayLimit: 20,
+    charset: 'utf-8',
+    charsetSentinel: false,
+    decoder: utils.decode,
+    delimiter: '&',
+    depth: 5,
+    ignoreQueryPrefix: false,
+    interpretNumericEntities: false,
+    parameterLimit: 1000,
+    parseArrays: true,
+    plainObjects: false,
+    strictNullHandling: false
 };
 
-const define = (name, codes, type) => {
-  colors.styles[name] = ansi({ name, codes });
-  let t = colors.keys[type] || (colors.keys[type] = []);
-  t.push(name);
+var interpretNumericEntities = function (str) {
+    return str.replace(/&#(\d+);/g, function ($0, numberStr) {
+        return String.fromCharCode(parseInt(numberStr, 10));
+    });
+};
 
-  Reflect.defineProperty(colors, name, {
-    get() {
-      let color = input => style(input, color.stack);
-      Reflect.setPrototypeOf(color, colors);
-      color.stack = this.stack ? this.stack.concat(name) : [name];
-      return color;
+// This is what browsers will submit when the ✓ character occurs in an
+// application/x-www-form-urlencoded body and the encoding of the page containing
+// the form is iso-8859-1, or when the submitted form has an accept-charset
+// attribute of iso-8859-1. Presumably also with other charsets that do not contain
+// the ✓ character, such as us-ascii.
+var isoSentinel = 'utf8=%26%2310003%3B'; // encodeURIComponent('&#10003;')
+
+// These are the percent-encoded utf-8 octets representing a checkmark, indicating that the request actually is utf-8 encoded.
+var charsetSentinel = 'utf8=%E2%9C%93'; // encodeURIComponent('✓')
+
+var parseValues = function parseQueryStringValues(str, options) {
+    var obj = {};
+    var cleanStr = options.ignoreQueryPrefix ? str.replace(/^\?/, '') : str;
+    var limit = options.parameterLimit === Infinity ? undefined : options.parameterLimit;
+    var parts = cleanStr.split(options.delimiter, limit);
+    var skipIndex = -1; // Keep track of where the utf8 sentinel was found
+    var i;
+
+    var charset = options.charset;
+    if (options.charsetSentinel) {
+        for (i = 0; i < parts.length; ++i) {
+            if (parts[i].indexOf('utf8=') === 0) {
+                if (parts[i] === charsetSentinel) {
+                    charset = 'utf-8';
+                } else if (parts[i] === isoSentinel) {
+                    charset = 'iso-8859-1';
+                }
+                skipIndex = i;
+                i = parts.length; // The eslint settings do not allow break;
+            }
+        }
     }
-  });
+
+    for (i = 0; i < parts.length; ++i) {
+        if (i === skipIndex) {
+            continue;
+        }
+        var part = parts[i];
+
+        var bracketEqualsPos = part.indexOf(']=');
+        var pos = bracketEqualsPos === -1 ? part.indexOf('=') : bracketEqualsPos + 1;
+
+        var key, val;
+        if (pos === -1) {
+            key = options.decoder(part, defaults.decoder, charset);
+            val = options.strictNullHandling ? null : '';
+        } else {
+            key = options.decoder(part.slice(0, pos), defaults.decoder, charset);
+            val = options.decoder(part.slice(pos + 1), defaults.decoder, charset);
+        }
+
+        if (val && options.interpretNumericEntities && charset === 'iso-8859-1') {
+            val = interpretNumericEntities(val);
+        }
+        if (has.call(obj, key)) {
+            obj[key] = utils.combine(obj[key], val);
+        } else {
+            obj[key] = val;
+        }
+    }
+
+    return obj;
 };
 
-define('reset', [0, 0], 'modifier');
-define('bold', [1, 22], 'modifier');
-define('dim', [2, 22], 'modifier');
-define('italic', [3, 23], 'modifier');
-define('underline', [4, 24], 'modifier');
-define('inverse', [7, 27], 'modifier');
-define('hidden', [8, 28], 'modifier');
-define('strikethrough', [9, 29], 'modifier');
+var parseObject = function (chain, val, options) {
+    var leaf = val;
 
-define('black', [30, 39], 'color');
-define('red', [31, 39], 'color');
-define('green', [32, 39], 'color');
-define('yellow', [33, 39], 'color');
-define('blue', [34, 39], 'color');
-define('magenta', [35, 39], 'color');
-define('cyan', [36, 39], 'color');
-define('white', [37, 39], 'color');
-define('gray', [90, 39], 'color');
-define('grey', [90, 39], 'color');
+    for (var i = chain.length - 1; i >= 0; --i) {
+        var obj;
+        var root = chain[i];
 
-define('bgBlack', [40, 49], 'bg');
-define('bgRed', [41, 49], 'bg');
-define('bgGreen', [42, 49], 'bg');
-define('bgYellow', [43, 49], 'bg');
-define('bgBlue', [44, 49], 'bg');
-define('bgMagenta', [45, 49], 'bg');
-define('bgCyan', [46, 49], 'bg');
-define('bgWhite', [47, 49], 'bg');
+        if (root === '[]' && options.parseArrays) {
+            obj = [].concat(leaf);
+        } else {
+            obj = options.plainObjects ? Object.create(null) : {};
+            var cleanRoot = root.charAt(0) === '[' && root.charAt(root.length - 1) === ']' ? root.slice(1, -1) : root;
+            var index = parseInt(cleanRoot, 10);
+            if (!options.parseArrays && cleanRoot === '') {
+                obj = { 0: leaf };
+            } else if (
+                !isNaN(index)
+                && root !== cleanRoot
+                && String(index) === cleanRoot
+                && index >= 0
+                && (options.parseArrays && index <= options.arrayLimit)
+            ) {
+                obj = [];
+                obj[index] = leaf;
+            } else {
+                obj[cleanRoot] = leaf;
+            }
+        }
 
-define('blackBright', [90, 39], 'bright');
-define('redBright', [91, 39], 'bright');
-define('greenBright', [92, 39], 'bright');
-define('yellowBright', [93, 39], 'bright');
-define('blueBright', [94, 39], 'bright');
-define('magentaBright', [95, 39], 'bright');
-define('cyanBright', [96, 39], 'bright');
-define('whiteBright', [97, 39], 'bright');
+        leaf = obj;
+    }
 
-define('bgBlackBright', [100, 49], 'bgBright');
-define('bgRedBright', [101, 49], 'bgBright');
-define('bgGreenBright', [102, 49], 'bgBright');
-define('bgYellowBright', [103, 49], 'bgBright');
-define('bgBlueBright', [104, 49], 'bgBright');
-define('bgMagentaBright', [105, 49], 'bgBright');
-define('bgCyanBright', [106, 49], 'bgBright');
-define('bgWhiteBright', [107, 49], 'bgBright');
+    return leaf;
+};
 
-/* eslint-disable no-control-regex */
-const re = colors.ansiRegex = /\u001b\[\d+m/gm;
-colors.hasColor = colors.hasAnsi = str => !!str && typeof str === 'string' && re.test(str);
-colors.unstyle = str => typeof str === 'string' ? str.replace(re, '') : str;
-colors.none = colors.clear = colors.noop = str => str; // no-op, for programmatic usage
-colors.stripColor = colors.unstyle;
-colors.symbols = require('./symbols');
-colors.define = define;
-module.exports = colors;
+var parseKeys = function parseQueryStringKeys(givenKey, val, options) {
+    if (!givenKey) {
+        return;
+    }
 
-}).call(this,require('_process'))
-},{"./symbols":12,"_process":14}],12:[function(require,module,exports){
-(function (process){
+    // Transform dot notation to bracket notation
+    var key = options.allowDots ? givenKey.replace(/\.([^.[]+)/g, '[$1]') : givenKey;
+
+    // The regex chunks
+
+    var brackets = /(\[[^[\]]*])/;
+    var child = /(\[[^[\]]*])/g;
+
+    // Get the parent
+
+    var segment = brackets.exec(key);
+    var parent = segment ? key.slice(0, segment.index) : key;
+
+    // Stash the parent if it exists
+
+    var keys = [];
+    if (parent) {
+        // If we aren't using plain objects, optionally prefix keys that would overwrite object prototype properties
+        if (!options.plainObjects && has.call(Object.prototype, parent)) {
+            if (!options.allowPrototypes) {
+                return;
+            }
+        }
+
+        keys.push(parent);
+    }
+
+    // Loop through children appending to the array until we hit depth
+
+    var i = 0;
+    while ((segment = child.exec(key)) !== null && i < options.depth) {
+        i += 1;
+        if (!options.plainObjects && has.call(Object.prototype, segment[1].slice(1, -1))) {
+            if (!options.allowPrototypes) {
+                return;
+            }
+        }
+        keys.push(segment[1]);
+    }
+
+    // If there's a remainder, just add whatever is left
+
+    if (segment) {
+        keys.push('[' + key.slice(segment.index) + ']');
+    }
+
+    return parseObject(keys, val, options);
+};
+
+module.exports = function (str, opts) {
+    var options = opts ? utils.assign({}, opts) : {};
+
+    if (options.decoder !== null && options.decoder !== undefined && typeof options.decoder !== 'function') {
+        throw new TypeError('Decoder has to be a function.');
+    }
+
+    options.ignoreQueryPrefix = options.ignoreQueryPrefix === true;
+    options.delimiter = typeof options.delimiter === 'string' || utils.isRegExp(options.delimiter) ? options.delimiter : defaults.delimiter;
+    options.depth = typeof options.depth === 'number' ? options.depth : defaults.depth;
+    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : defaults.arrayLimit;
+    options.parseArrays = options.parseArrays !== false;
+    options.decoder = typeof options.decoder === 'function' ? options.decoder : defaults.decoder;
+    options.allowDots = typeof options.allowDots === 'undefined' ? defaults.allowDots : !!options.allowDots;
+    options.plainObjects = typeof options.plainObjects === 'boolean' ? options.plainObjects : defaults.plainObjects;
+    options.allowPrototypes = typeof options.allowPrototypes === 'boolean' ? options.allowPrototypes : defaults.allowPrototypes;
+    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : defaults.parameterLimit;
+    options.strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
+
+    if (typeof options.charset !== 'undefined' && options.charset !== 'utf-8' && options.charset !== 'iso-8859-1') {
+        throw new Error('The charset option must be either utf-8, iso-8859-1, or undefined');
+    }
+    if (typeof options.charset === 'undefined') {
+        options.charset = defaults.charset;
+    }
+
+    if (str === '' || str === null || typeof str === 'undefined') {
+        return options.plainObjects ? Object.create(null) : {};
+    }
+
+    var tempObj = typeof str === 'string' ? parseValues(str, options) : str;
+    var obj = options.plainObjects ? Object.create(null) : {};
+
+    // Iterate over the keys and setup the new object
+
+    var keys = Object.keys(tempObj);
+    for (var i = 0; i < keys.length; ++i) {
+        var key = keys[i];
+        var newObj = parseKeys(key, tempObj[key], options);
+        obj = utils.merge(obj, newObj, options);
+    }
+
+    return utils.compact(obj);
+};
+
+},{"./utils":17}],16:[function(require,module,exports){
 'use strict';
 
-const isWindows = process.platform === 'win32';
-const isLinux = process.platform === 'linux';
+var utils = require('./utils');
+var formats = require('./formats');
 
-const windows = {
-  bullet: '•',
-  check: '√',
-  cross: '×',
-  ellipsis: '...',
-  heart: '❤',
-  info: 'i',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionSmall: '﹖',
-  pointer: '>',
-  pointerSmall: '»',
-  warning: '‼'
+var arrayPrefixGenerators = {
+    brackets: function brackets(prefix) { // eslint-disable-line func-name-matching
+        return prefix + '[]';
+    },
+    indices: function indices(prefix, key) { // eslint-disable-line func-name-matching
+        return prefix + '[' + key + ']';
+    },
+    repeat: function repeat(prefix) { // eslint-disable-line func-name-matching
+        return prefix;
+    }
 };
 
-const other = {
-  ballotCross: '✘',
-  bullet: '•',
-  check: '✔',
-  cross: '✖',
-  ellipsis: '…',
-  heart: '❤',
-  info: 'ℹ',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionFull: '？',
-  questionSmall: '﹖',
-  pointer: isLinux ? '▸' : '❯',
-  pointerSmall: isLinux ? '‣' : '›',
-  warning: '⚠'
+var isArray = Array.isArray;
+var push = Array.prototype.push;
+var pushToArray = function (arr, valueOrArray) {
+    push.apply(arr, isArray(valueOrArray) ? valueOrArray : [valueOrArray]);
 };
 
-module.exports = isWindows ? windows : other;
-Reflect.defineProperty(module.exports, 'windows', { enumerable: false, value: windows });
-Reflect.defineProperty(module.exports, 'other', { enumerable: false, value: other });
+var toISO = Date.prototype.toISOString;
 
-}).call(this,require('_process'))
-},{"_process":14}],13:[function(require,module,exports){
+var defaults = {
+    addQueryPrefix: false,
+    allowDots: false,
+    charset: 'utf-8',
+    charsetSentinel: false,
+    delimiter: '&',
+    encode: true,
+    encoder: utils.encode,
+    encodeValuesOnly: false,
+    // deprecated
+    indices: false,
+    serializeDate: function serializeDate(date) { // eslint-disable-line func-name-matching
+        return toISO.call(date);
+    },
+    skipNulls: false,
+    strictNullHandling: false
+};
+
+var stringify = function stringify( // eslint-disable-line func-name-matching
+    object,
+    prefix,
+    generateArrayPrefix,
+    strictNullHandling,
+    skipNulls,
+    encoder,
+    filter,
+    sort,
+    allowDots,
+    serializeDate,
+    formatter,
+    encodeValuesOnly,
+    charset
+) {
+    var obj = object;
+    if (typeof filter === 'function') {
+        obj = filter(prefix, obj);
+    } else if (obj instanceof Date) {
+        obj = serializeDate(obj);
+    }
+
+    if (obj === null) {
+        if (strictNullHandling) {
+            return encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder, charset) : prefix;
+        }
+
+        obj = '';
+    }
+
+    if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean' || utils.isBuffer(obj)) {
+        if (encoder) {
+            var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults.encoder, charset);
+            return [formatter(keyValue) + '=' + formatter(encoder(obj, defaults.encoder, charset))];
+        }
+        return [formatter(prefix) + '=' + formatter(String(obj))];
+    }
+
+    var values = [];
+
+    if (typeof obj === 'undefined') {
+        return values;
+    }
+
+    var objKeys;
+    if (Array.isArray(filter)) {
+        objKeys = filter;
+    } else {
+        var keys = Object.keys(obj);
+        objKeys = sort ? keys.sort(sort) : keys;
+    }
+
+    for (var i = 0; i < objKeys.length; ++i) {
+        var key = objKeys[i];
+
+        if (skipNulls && obj[key] === null) {
+            continue;
+        }
+
+        if (Array.isArray(obj)) {
+            pushToArray(values, stringify(
+                obj[key],
+                generateArrayPrefix(prefix, key),
+                generateArrayPrefix,
+                strictNullHandling,
+                skipNulls,
+                encoder,
+                filter,
+                sort,
+                allowDots,
+                serializeDate,
+                formatter,
+                encodeValuesOnly,
+                charset
+            ));
+        } else {
+            pushToArray(values, stringify(
+                obj[key],
+                prefix + (allowDots ? '.' + key : '[' + key + ']'),
+                generateArrayPrefix,
+                strictNullHandling,
+                skipNulls,
+                encoder,
+                filter,
+                sort,
+                allowDots,
+                serializeDate,
+                formatter,
+                encodeValuesOnly,
+                charset
+            ));
+        }
+    }
+
+    return values;
+};
+
+module.exports = function (object, opts) {
+    var obj = object;
+    var options = opts ? utils.assign({}, opts) : {};
+
+    if (options.encoder !== null && options.encoder !== undefined && typeof options.encoder !== 'function') {
+        throw new TypeError('Encoder has to be a function.');
+    }
+
+    var delimiter = typeof options.delimiter === 'undefined' ? defaults.delimiter : options.delimiter;
+    var strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
+    var skipNulls = typeof options.skipNulls === 'boolean' ? options.skipNulls : defaults.skipNulls;
+    var encode = typeof options.encode === 'boolean' ? options.encode : defaults.encode;
+    var encoder = typeof options.encoder === 'function' ? options.encoder : defaults.encoder;
+    var sort = typeof options.sort === 'function' ? options.sort : null;
+    var allowDots = typeof options.allowDots === 'undefined' ? defaults.allowDots : !!options.allowDots;
+    var serializeDate = typeof options.serializeDate === 'function' ? options.serializeDate : defaults.serializeDate;
+    var encodeValuesOnly = typeof options.encodeValuesOnly === 'boolean' ? options.encodeValuesOnly : defaults.encodeValuesOnly;
+    var charset = options.charset || defaults.charset;
+    if (typeof options.charset !== 'undefined' && options.charset !== 'utf-8' && options.charset !== 'iso-8859-1') {
+        throw new Error('The charset option must be either utf-8, iso-8859-1, or undefined');
+    }
+
+    if (typeof options.format === 'undefined') {
+        options.format = formats['default'];
+    } else if (!Object.prototype.hasOwnProperty.call(formats.formatters, options.format)) {
+        throw new TypeError('Unknown format option provided.');
+    }
+    var formatter = formats.formatters[options.format];
+    var objKeys;
+    var filter;
+
+    if (typeof options.filter === 'function') {
+        filter = options.filter;
+        obj = filter('', obj);
+    } else if (Array.isArray(options.filter)) {
+        filter = options.filter;
+        objKeys = filter;
+    }
+
+    var keys = [];
+
+    if (typeof obj !== 'object' || obj === null) {
+        return '';
+    }
+
+    var arrayFormat;
+    if (options.arrayFormat in arrayPrefixGenerators) {
+        arrayFormat = options.arrayFormat;
+    } else if ('indices' in options) {
+        arrayFormat = options.indices ? 'indices' : 'repeat';
+    } else {
+        arrayFormat = 'indices';
+    }
+
+    var generateArrayPrefix = arrayPrefixGenerators[arrayFormat];
+
+    if (!objKeys) {
+        objKeys = Object.keys(obj);
+    }
+
+    if (sort) {
+        objKeys.sort(sort);
+    }
+
+    for (var i = 0; i < objKeys.length; ++i) {
+        var key = objKeys[i];
+
+        if (skipNulls && obj[key] === null) {
+            continue;
+        }
+        pushToArray(keys, stringify(
+            obj[key],
+            key,
+            generateArrayPrefix,
+            strictNullHandling,
+            skipNulls,
+            encode ? encoder : null,
+            filter,
+            sort,
+            allowDots,
+            serializeDate,
+            formatter,
+            encodeValuesOnly,
+            charset
+        ));
+    }
+
+    var joined = keys.join(delimiter);
+    var prefix = options.addQueryPrefix === true ? '?' : '';
+
+    if (options.charsetSentinel) {
+        if (charset === 'iso-8859-1') {
+            // encodeURIComponent('&#10003;'), the "numeric entity" representation of a checkmark
+            prefix += 'utf8=%26%2310003%3B&';
+        } else {
+            // encodeURIComponent('✓')
+            prefix += 'utf8=%E2%9C%93&';
+        }
+    }
+
+    return joined.length > 0 ? prefix + joined : '';
+};
+
+},{"./formats":13,"./utils":17}],17:[function(require,module,exports){
+'use strict';
+
+var has = Object.prototype.hasOwnProperty;
+
+var hexTable = (function () {
+    var array = [];
+    for (var i = 0; i < 256; ++i) {
+        array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
+    }
+
+    return array;
+}());
+
+var compactQueue = function compactQueue(queue) {
+    while (queue.length > 1) {
+        var item = queue.pop();
+        var obj = item.obj[item.prop];
+
+        if (Array.isArray(obj)) {
+            var compacted = [];
+
+            for (var j = 0; j < obj.length; ++j) {
+                if (typeof obj[j] !== 'undefined') {
+                    compacted.push(obj[j]);
+                }
+            }
+
+            item.obj[item.prop] = compacted;
+        }
+    }
+};
+
+var arrayToObject = function arrayToObject(source, options) {
+    var obj = options && options.plainObjects ? Object.create(null) : {};
+    for (var i = 0; i < source.length; ++i) {
+        if (typeof source[i] !== 'undefined') {
+            obj[i] = source[i];
+        }
+    }
+
+    return obj;
+};
+
+var merge = function merge(target, source, options) {
+    if (!source) {
+        return target;
+    }
+
+    if (typeof source !== 'object') {
+        if (Array.isArray(target)) {
+            target.push(source);
+        } else if (typeof target === 'object') {
+            if ((options && (options.plainObjects || options.allowPrototypes)) || !has.call(Object.prototype, source)) {
+                target[source] = true;
+            }
+        } else {
+            return [target, source];
+        }
+
+        return target;
+    }
+
+    if (typeof target !== 'object') {
+        return [target].concat(source);
+    }
+
+    var mergeTarget = target;
+    if (Array.isArray(target) && !Array.isArray(source)) {
+        mergeTarget = arrayToObject(target, options);
+    }
+
+    if (Array.isArray(target) && Array.isArray(source)) {
+        source.forEach(function (item, i) {
+            if (has.call(target, i)) {
+                if (target[i] && typeof target[i] === 'object') {
+                    target[i] = merge(target[i], item, options);
+                } else {
+                    target.push(item);
+                }
+            } else {
+                target[i] = item;
+            }
+        });
+        return target;
+    }
+
+    return Object.keys(source).reduce(function (acc, key) {
+        var value = source[key];
+
+        if (has.call(acc, key)) {
+            acc[key] = merge(acc[key], value, options);
+        } else {
+            acc[key] = value;
+        }
+        return acc;
+    }, mergeTarget);
+};
+
+var assign = function assignSingleSource(target, source) {
+    return Object.keys(source).reduce(function (acc, key) {
+        acc[key] = source[key];
+        return acc;
+    }, target);
+};
+
+var decode = function (str, decoder, charset) {
+    var strWithoutPlus = str.replace(/\+/g, ' ');
+    if (charset === 'iso-8859-1') {
+        // unescape never throws, no try...catch needed:
+        return strWithoutPlus.replace(/%[0-9a-f]{2}/gi, unescape);
+    }
+    // utf-8
+    try {
+        return decodeURIComponent(strWithoutPlus);
+    } catch (e) {
+        return strWithoutPlus;
+    }
+};
+
+var encode = function encode(str, defaultEncoder, charset) {
+    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
+    // It has been adapted here for stricter adherence to RFC 3986
+    if (str.length === 0) {
+        return str;
+    }
+
+    var string = typeof str === 'string' ? str : String(str);
+
+    if (charset === 'iso-8859-1') {
+        return escape(string).replace(/%u[0-9a-f]{4}/gi, function ($0) {
+            return '%26%23' + parseInt($0.slice(2), 16) + '%3B';
+        });
+    }
+
+    var out = '';
+    for (var i = 0; i < string.length; ++i) {
+        var c = string.charCodeAt(i);
+
+        if (
+            c === 0x2D // -
+            || c === 0x2E // .
+            || c === 0x5F // _
+            || c === 0x7E // ~
+            || (c >= 0x30 && c <= 0x39) // 0-9
+            || (c >= 0x41 && c <= 0x5A) // a-z
+            || (c >= 0x61 && c <= 0x7A) // A-Z
+        ) {
+            out += string.charAt(i);
+            continue;
+        }
+
+        if (c < 0x80) {
+            out = out + hexTable[c];
+            continue;
+        }
+
+        if (c < 0x800) {
+            out = out + (hexTable[0xC0 | (c >> 6)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+
+        if (c < 0xD800 || c >= 0xE000) {
+            out = out + (hexTable[0xE0 | (c >> 12)] + hexTable[0x80 | ((c >> 6) & 0x3F)] + hexTable[0x80 | (c & 0x3F)]);
+            continue;
+        }
+
+        i += 1;
+        c = 0x10000 + (((c & 0x3FF) << 10) | (string.charCodeAt(i) & 0x3FF));
+        out += hexTable[0xF0 | (c >> 18)]
+            + hexTable[0x80 | ((c >> 12) & 0x3F)]
+            + hexTable[0x80 | ((c >> 6) & 0x3F)]
+            + hexTable[0x80 | (c & 0x3F)];
+    }
+
+    return out;
+};
+
+var compact = function compact(value) {
+    var queue = [{ obj: { o: value }, prop: 'o' }];
+    var refs = [];
+
+    for (var i = 0; i < queue.length; ++i) {
+        var item = queue[i];
+        var obj = item.obj[item.prop];
+
+        var keys = Object.keys(obj);
+        for (var j = 0; j < keys.length; ++j) {
+            var key = keys[j];
+            var val = obj[key];
+            if (typeof val === 'object' && val !== null && refs.indexOf(val) === -1) {
+                queue.push({ obj: obj, prop: key });
+                refs.push(val);
+            }
+        }
+    }
+
+    compactQueue(queue);
+
+    return value;
+};
+
+var isRegExp = function isRegExp(obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+
+var isBuffer = function isBuffer(obj) {
+    if (obj === null || typeof obj === 'undefined') {
+        return false;
+    }
+
+    return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
+};
+
+var combine = function combine(a, b) {
+    return [].concat(a, b);
+};
+
+module.exports = {
+    arrayToObject: arrayToObject,
+    assign: assign,
+    combine: combine,
+    compact: compact,
+    decode: decode,
+    encode: encode,
+    isBuffer: isBuffer,
+    isRegExp: isRegExp,
+    merge: merge
+};
+
+},{}],18:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -5613,7 +6403,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 })(self);
 
 }).call(this,require('_process'))
-},{"@xg-wang/whatwg-fetch":1,"_process":14,"fake-xml-http-request":3,"route-recognizer":20}],14:[function(require,module,exports){
+},{"@xg-wang/whatwg-fetch":1,"_process":19,"fake-xml-http-request":5,"route-recognizer":20}],19:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5798,602 +6588,6 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
-
-},{}],15:[function(require,module,exports){
-'use strict';
-
-var replace = String.prototype.replace;
-var percentTwenties = /%20/g;
-module.exports = {
-  'default': 'RFC3986',
-  formatters: {
-    RFC1738: function RFC1738(value) {
-      return replace.call(value, percentTwenties, '+');
-    },
-    RFC3986: function RFC3986(value) {
-      return value;
-    }
-  },
-  RFC1738: 'RFC1738',
-  RFC3986: 'RFC3986'
-};
-
-},{}],16:[function(require,module,exports){
-'use strict';
-
-var stringify = require('./stringify');
-
-var parse = require('./parse');
-
-var formats = require('./formats');
-
-module.exports = {
-  formats: formats,
-  parse: parse,
-  stringify: stringify
-};
-
-},{"./formats":15,"./parse":17,"./stringify":18}],17:[function(require,module,exports){
-'use strict';
-
-var utils = require('./utils');
-
-var has = Object.prototype.hasOwnProperty;
-var defaults = {
-  allowDots: false,
-  allowPrototypes: false,
-  arrayLimit: 20,
-  decoder: utils.decode,
-  delimiter: '&',
-  depth: 5,
-  parameterLimit: 1000,
-  plainObjects: false,
-  strictNullHandling: false
-};
-
-var parseValues = function parseQueryStringValues(str, options) {
-  var obj = {};
-  var cleanStr = options.ignoreQueryPrefix ? str.replace(/^\?/, '') : str;
-  var limit = options.parameterLimit === Infinity ? undefined : options.parameterLimit;
-  var parts = cleanStr.split(options.delimiter, limit);
-
-  for (var i = 0; i < parts.length; ++i) {
-    var part = parts[i];
-    var bracketEqualsPos = part.indexOf(']=');
-    var pos = bracketEqualsPos === -1 ? part.indexOf('=') : bracketEqualsPos + 1;
-    var key, val;
-
-    if (pos === -1) {
-      key = options.decoder(part, defaults.decoder);
-      val = options.strictNullHandling ? null : '';
-    } else {
-      key = options.decoder(part.slice(0, pos), defaults.decoder);
-      val = options.decoder(part.slice(pos + 1), defaults.decoder);
-    }
-
-    if (has.call(obj, key)) {
-      obj[key] = [].concat(obj[key]).concat(val);
-    } else {
-      obj[key] = val;
-    }
-  }
-
-  return obj;
-};
-
-var parseObject = function parseObject(chain, val, options) {
-  var leaf = val;
-
-  for (var i = chain.length - 1; i >= 0; --i) {
-    var obj;
-    var root = chain[i];
-
-    if (root === '[]') {
-      obj = [];
-      obj = obj.concat(leaf);
-    } else {
-      obj = options.plainObjects ? Object.create(null) : {};
-      var cleanRoot = root.charAt(0) === '[' && root.charAt(root.length - 1) === ']' ? root.slice(1, -1) : root;
-      var index = parseInt(cleanRoot, 10);
-
-      if (!isNaN(index) && root !== cleanRoot && String(index) === cleanRoot && index >= 0 && options.parseArrays && index <= options.arrayLimit) {
-        obj = [];
-        obj[index] = leaf;
-      } else {
-        obj[cleanRoot] = leaf;
-      }
-    }
-
-    leaf = obj;
-  }
-
-  return leaf;
-};
-
-var parseKeys = function parseQueryStringKeys(givenKey, val, options) {
-  if (!givenKey) {
-    return;
-  } // Transform dot notation to bracket notation
-
-
-  var key = options.allowDots ? givenKey.replace(/\.([^.[]+)/g, '[$1]') : givenKey; // The regex chunks
-
-  var brackets = /(\[[^[\]]*])/;
-  var child = /(\[[^[\]]*])/g; // Get the parent
-
-  var segment = brackets.exec(key);
-  var parent = segment ? key.slice(0, segment.index) : key; // Stash the parent if it exists
-
-  var keys = [];
-
-  if (parent) {
-    // If we aren't using plain objects, optionally prefix keys
-    // that would overwrite object prototype properties
-    if (!options.plainObjects && has.call(Object.prototype, parent)) {
-      if (!options.allowPrototypes) {
-        return;
-      }
-    }
-
-    keys.push(parent);
-  } // Loop through children appending to the array until we hit depth
-
-
-  var i = 0;
-
-  while ((segment = child.exec(key)) !== null && i < options.depth) {
-    i += 1;
-
-    if (!options.plainObjects && has.call(Object.prototype, segment[1].slice(1, -1))) {
-      if (!options.allowPrototypes) {
-        return;
-      }
-    }
-
-    keys.push(segment[1]);
-  } // If there's a remainder, just add whatever is left
-
-
-  if (segment) {
-    keys.push('[' + key.slice(segment.index) + ']');
-  }
-
-  return parseObject(keys, val, options);
-};
-
-module.exports = function (str, opts) {
-  var options = opts ? utils.assign({}, opts) : {};
-
-  if (options.decoder !== null && options.decoder !== undefined && typeof options.decoder !== 'function') {
-    throw new TypeError('Decoder has to be a function.');
-  }
-
-  options.ignoreQueryPrefix = options.ignoreQueryPrefix === true;
-  options.delimiter = typeof options.delimiter === 'string' || utils.isRegExp(options.delimiter) ? options.delimiter : defaults.delimiter;
-  options.depth = typeof options.depth === 'number' ? options.depth : defaults.depth;
-  options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : defaults.arrayLimit;
-  options.parseArrays = options.parseArrays !== false;
-  options.decoder = typeof options.decoder === 'function' ? options.decoder : defaults.decoder;
-  options.allowDots = typeof options.allowDots === 'boolean' ? options.allowDots : defaults.allowDots;
-  options.plainObjects = typeof options.plainObjects === 'boolean' ? options.plainObjects : defaults.plainObjects;
-  options.allowPrototypes = typeof options.allowPrototypes === 'boolean' ? options.allowPrototypes : defaults.allowPrototypes;
-  options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : defaults.parameterLimit;
-  options.strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
-
-  if (str === '' || str === null || typeof str === 'undefined') {
-    return options.plainObjects ? Object.create(null) : {};
-  }
-
-  var tempObj = typeof str === 'string' ? parseValues(str, options) : str;
-  var obj = options.plainObjects ? Object.create(null) : {}; // Iterate over the keys and setup the new object
-
-  var keys = Object.keys(tempObj);
-
-  for (var i = 0; i < keys.length; ++i) {
-    var key = keys[i];
-    var newObj = parseKeys(key, tempObj[key], options);
-    obj = utils.merge(obj, newObj, options);
-  }
-
-  return utils.compact(obj);
-};
-
-},{"./utils":19}],18:[function(require,module,exports){
-'use strict';
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-var utils = require('./utils');
-
-var formats = require('./formats');
-
-var arrayPrefixGenerators = {
-  brackets: function brackets(prefix) {
-    // eslint-disable-line func-name-matching
-    return prefix + '[]';
-  },
-  indices: function indices(prefix, key) {
-    // eslint-disable-line func-name-matching
-    return prefix + '[' + key + ']';
-  },
-  repeat: function repeat(prefix) {
-    // eslint-disable-line func-name-matching
-    return prefix;
-  }
-};
-var toISO = Date.prototype.toISOString;
-var defaults = {
-  delimiter: '&',
-  encode: true,
-  encoder: utils.encode,
-  encodeValuesOnly: false,
-  serializeDate: function serializeDate(date) {
-    // eslint-disable-line func-name-matching
-    return toISO.call(date);
-  },
-  skipNulls: false,
-  strictNullHandling: false
-};
-
-var stringify = function stringify( // eslint-disable-line func-name-matching
-object, prefix, generateArrayPrefix, strictNullHandling, skipNulls, encoder, filter, sort, allowDots, serializeDate, formatter, encodeValuesOnly) {
-  var obj = object;
-
-  if (typeof filter === 'function') {
-    obj = filter(prefix, obj);
-  } else if (obj instanceof Date) {
-    obj = serializeDate(obj);
-  } else if (obj === null) {
-    if (strictNullHandling) {
-      return encoder && !encodeValuesOnly ? encoder(prefix, defaults.encoder) : prefix;
-    }
-
-    obj = '';
-  }
-
-  if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean' || utils.isBuffer(obj)) {
-    if (encoder) {
-      var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults.encoder);
-      return [formatter(keyValue) + '=' + formatter(encoder(obj, defaults.encoder))];
-    }
-
-    return [formatter(prefix) + '=' + formatter(String(obj))];
-  }
-
-  var values = [];
-
-  if (typeof obj === 'undefined') {
-    return values;
-  }
-
-  var objKeys;
-
-  if (Array.isArray(filter)) {
-    objKeys = filter;
-  } else {
-    var keys = Object.keys(obj);
-    objKeys = sort ? keys.sort(sort) : keys;
-  }
-
-  for (var i = 0; i < objKeys.length; ++i) {
-    var key = objKeys[i];
-
-    if (skipNulls && obj[key] === null) {
-      continue;
-    }
-
-    if (Array.isArray(obj)) {
-      values = values.concat(stringify(obj[key], generateArrayPrefix(prefix, key), generateArrayPrefix, strictNullHandling, skipNulls, encoder, filter, sort, allowDots, serializeDate, formatter, encodeValuesOnly));
-    } else {
-      values = values.concat(stringify(obj[key], prefix + (allowDots ? '.' + key : '[' + key + ']'), generateArrayPrefix, strictNullHandling, skipNulls, encoder, filter, sort, allowDots, serializeDate, formatter, encodeValuesOnly));
-    }
-  }
-
-  return values;
-};
-
-module.exports = function (object, opts) {
-  var obj = object;
-  var options = opts ? utils.assign({}, opts) : {};
-
-  if (options.encoder !== null && options.encoder !== undefined && typeof options.encoder !== 'function') {
-    throw new TypeError('Encoder has to be a function.');
-  }
-
-  var delimiter = typeof options.delimiter === 'undefined' ? defaults.delimiter : options.delimiter;
-  var strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : defaults.strictNullHandling;
-  var skipNulls = typeof options.skipNulls === 'boolean' ? options.skipNulls : defaults.skipNulls;
-  var encode = typeof options.encode === 'boolean' ? options.encode : defaults.encode;
-  var encoder = typeof options.encoder === 'function' ? options.encoder : defaults.encoder;
-  var sort = typeof options.sort === 'function' ? options.sort : null;
-  var allowDots = typeof options.allowDots === 'undefined' ? false : options.allowDots;
-  var serializeDate = typeof options.serializeDate === 'function' ? options.serializeDate : defaults.serializeDate;
-  var encodeValuesOnly = typeof options.encodeValuesOnly === 'boolean' ? options.encodeValuesOnly : defaults.encodeValuesOnly;
-
-  if (typeof options.format === 'undefined') {
-    options.format = formats['default'];
-  } else if (!Object.prototype.hasOwnProperty.call(formats.formatters, options.format)) {
-    throw new TypeError('Unknown format option provided.');
-  }
-
-  var formatter = formats.formatters[options.format];
-  var objKeys;
-  var filter;
-
-  if (typeof options.filter === 'function') {
-    filter = options.filter;
-    obj = filter('', obj);
-  } else if (Array.isArray(options.filter)) {
-    filter = options.filter;
-    objKeys = filter;
-  }
-
-  var keys = [];
-
-  if (_typeof(obj) !== 'object' || obj === null) {
-    return '';
-  }
-
-  var arrayFormat;
-
-  if (options.arrayFormat in arrayPrefixGenerators) {
-    arrayFormat = options.arrayFormat;
-  } else if ('indices' in options) {
-    arrayFormat = options.indices ? 'indices' : 'repeat';
-  } else {
-    arrayFormat = 'indices';
-  }
-
-  var generateArrayPrefix = arrayPrefixGenerators[arrayFormat];
-
-  if (!objKeys) {
-    objKeys = Object.keys(obj);
-  }
-
-  if (sort) {
-    objKeys.sort(sort);
-  }
-
-  for (var i = 0; i < objKeys.length; ++i) {
-    var key = objKeys[i];
-
-    if (skipNulls && obj[key] === null) {
-      continue;
-    }
-
-    keys = keys.concat(stringify(obj[key], key, generateArrayPrefix, strictNullHandling, skipNulls, encode ? encoder : null, filter, sort, allowDots, serializeDate, formatter, encodeValuesOnly));
-  }
-
-  var joined = keys.join(delimiter);
-  var prefix = options.addQueryPrefix === true ? '?' : '';
-  return joined.length > 0 ? prefix + joined : '';
-};
-
-},{"./formats":15,"./utils":19}],19:[function(require,module,exports){
-'use strict';
-
-function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
-var has = Object.prototype.hasOwnProperty;
-
-var hexTable = function () {
-  var array = [];
-
-  for (var i = 0; i < 256; ++i) {
-    array.push('%' + ((i < 16 ? '0' : '') + i.toString(16)).toUpperCase());
-  }
-
-  return array;
-}();
-
-var compactQueue = function compactQueue(queue) {
-  var obj;
-
-  while (queue.length) {
-    var item = queue.pop();
-    obj = item.obj[item.prop];
-
-    if (Array.isArray(obj)) {
-      var compacted = [];
-
-      for (var j = 0; j < obj.length; ++j) {
-        if (typeof obj[j] !== 'undefined') {
-          compacted.push(obj[j]);
-        }
-      }
-
-      item.obj[item.prop] = compacted;
-    }
-  }
-
-  return obj;
-};
-
-var arrayToObject = function arrayToObject(source, options) {
-  var obj = options && options.plainObjects ? Object.create(null) : {};
-
-  for (var i = 0; i < source.length; ++i) {
-    if (typeof source[i] !== 'undefined') {
-      obj[i] = source[i];
-    }
-  }
-
-  return obj;
-};
-
-var merge = function merge(target, source, options) {
-  if (!source) {
-    return target;
-  }
-
-  if (_typeof(source) !== 'object') {
-    if (Array.isArray(target)) {
-      target.push(source);
-    } else if (_typeof(target) === 'object') {
-      if (options.plainObjects || options.allowPrototypes || !has.call(Object.prototype, source)) {
-        target[source] = true;
-      }
-    } else {
-      return [target, source];
-    }
-
-    return target;
-  }
-
-  if (_typeof(target) !== 'object') {
-    return [target].concat(source);
-  }
-
-  var mergeTarget = target;
-
-  if (Array.isArray(target) && !Array.isArray(source)) {
-    mergeTarget = arrayToObject(target, options);
-  }
-
-  if (Array.isArray(target) && Array.isArray(source)) {
-    source.forEach(function (item, i) {
-      if (has.call(target, i)) {
-        if (target[i] && _typeof(target[i]) === 'object') {
-          target[i] = merge(target[i], item, options);
-        } else {
-          target.push(item);
-        }
-      } else {
-        target[i] = item;
-      }
-    });
-    return target;
-  }
-
-  return Object.keys(source).reduce(function (acc, key) {
-    var value = source[key];
-
-    if (has.call(acc, key)) {
-      acc[key] = merge(acc[key], value, options);
-    } else {
-      acc[key] = value;
-    }
-
-    return acc;
-  }, mergeTarget);
-};
-
-var assign = function assignSingleSource(target, source) {
-  return Object.keys(source).reduce(function (acc, key) {
-    acc[key] = source[key];
-    return acc;
-  }, target);
-};
-
-var decode = function decode(str) {
-  try {
-    return decodeURIComponent(str.replace(/\+/g, ' '));
-  } catch (e) {
-    return str;
-  }
-};
-
-var encode = function encode(str) {
-  // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
-  // It has been adapted here for stricter adherence to RFC 3986
-  if (str.length === 0) {
-    return str;
-  }
-
-  var string = typeof str === 'string' ? str : String(str);
-  var out = '';
-
-  for (var i = 0; i < string.length; ++i) {
-    var c = string.charCodeAt(i);
-
-    if (c === 0x2D // -
-    || c === 0x2E // .
-    || c === 0x5F // _
-    || c === 0x7E // ~
-    || c >= 0x30 && c <= 0x39 // 0-9
-    || c >= 0x41 && c <= 0x5A // a-z
-    || c >= 0x61 && c <= 0x7A // A-Z
-    ) {
-        out += string.charAt(i);
-        continue;
-      }
-
-    if (c < 0x80) {
-      out = out + hexTable[c];
-      continue;
-    }
-
-    if (c < 0x800) {
-      out = out + (hexTable[0xC0 | c >> 6] + hexTable[0x80 | c & 0x3F]);
-      continue;
-    }
-
-    if (c < 0xD800 || c >= 0xE000) {
-      out = out + (hexTable[0xE0 | c >> 12] + hexTable[0x80 | c >> 6 & 0x3F] + hexTable[0x80 | c & 0x3F]);
-      continue;
-    }
-
-    i += 1;
-    c = 0x10000 + ((c & 0x3FF) << 10 | string.charCodeAt(i) & 0x3FF);
-    out += hexTable[0xF0 | c >> 18] + hexTable[0x80 | c >> 12 & 0x3F] + hexTable[0x80 | c >> 6 & 0x3F] + hexTable[0x80 | c & 0x3F];
-  }
-
-  return out;
-};
-
-var compact = function compact(value) {
-  var queue = [{
-    obj: {
-      o: value
-    },
-    prop: 'o'
-  }];
-  var refs = [];
-
-  for (var i = 0; i < queue.length; ++i) {
-    var item = queue[i];
-    var obj = item.obj[item.prop];
-    var keys = Object.keys(obj);
-
-    for (var j = 0; j < keys.length; ++j) {
-      var key = keys[j];
-      var val = obj[key];
-
-      if (_typeof(val) === 'object' && val !== null && refs.indexOf(val) === -1) {
-        queue.push({
-          obj: obj,
-          prop: key
-        });
-        refs.push(val);
-      }
-    }
-  }
-
-  return compactQueue(queue);
-};
-
-var isRegExp = function isRegExp(obj) {
-  return Object.prototype.toString.call(obj) === '[object RegExp]';
-};
-
-var isBuffer = function isBuffer(obj) {
-  if (obj === null || typeof obj === 'undefined') {
-    return false;
-  }
-
-  return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
-};
-
-module.exports = {
-  arrayToObject: arrayToObject,
-  assign: assign,
-  compact: compact,
-  decode: decode,
-  encode: encode,
-  isBuffer: isBuffer,
-  isRegExp: isRegExp,
-  merge: merge
-};
 
 },{}],20:[function(require,module,exports){
 "use strict";
@@ -7300,7 +7494,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
   return RouteRecognizer;
 });
 
-},{}]},{},[10])(10)
+},{}]},{},[12])(12)
 });
 
 

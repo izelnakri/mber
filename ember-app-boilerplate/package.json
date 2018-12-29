@@ -21,17 +21,17 @@
   },
   "devDependencies": {
     "mber": "{{mberVersion}}",
-    "eslint": "^5.3.0",
-    "eslint-plugin-ember": "^5.2.0"
+    "eslint": "^5.11.1",
+    "eslint-plugin-ember": "^6.1.0"
   },
   "dependencies": {
     "ember-cli-fastboot": "^1.1.4-beta.1",
-    "ember-data": "^3.5.0",
+    "ember-data": "^3.6.0",
     "ember-devtools": "^6.0.0",
     "fastboot": "^1.2.0",
     "highlight.js": "^9.12.0",
     "jquery": "^3.3.1",
     "mber-head": "^0.1.0",
-    "memserver": "^1.2.1"
+    "memserver": "^1.2.3"
   }
 }
