@@ -544,192 +544,6 @@
           'use strict';
 
           (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g._memserver__model = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-(function (process){
-'use strict';
-
-var colors = {
-  enabled: true,
-  visible: true,
-  styles: {},
-  keys: {}
-};
-
-if ('FORCE_COLOR' in process.env) {
-  colors.enabled = process.env.FORCE_COLOR !== '0';
-}
-
-var ansi = function ansi(style) {
-  style.open = "\x1B[".concat(style.codes[0], "m");
-  style.close = "\x1B[".concat(style.codes[1], "m");
-  style.regex = new RegExp("\\u001b\\[".concat(style.codes[1], "m"), 'g');
-  return style;
-};
-
-var wrap = function wrap(style, str, nl) {
-  var open = style.open,
-      close = style.close,
-      regex = style.regex;
-  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
-  // chalk contributors for this fix. However, we've confirmed that
-  // this issue is also present in Windows terminals
-
-  return nl ? str.replace(/\r?\n/g, "".concat(close, "$&").concat(open)) : str;
-};
-
-var style = function style(input, stack) {
-  if (input === '' || input == null) return '';
-  if (colors.enabled === false) return input;
-  if (colors.visible === false) return '';
-  var str = '' + input;
-  var nl = str.includes('\n');
-  var n = stack.length;
-
-  while (n-- > 0) {
-    str = wrap(colors.styles[stack[n]], str, nl);
-  }
-
-  return str;
-};
-
-var define = function define(name, codes, type) {
-  colors.styles[name] = ansi({
-    name: name,
-    codes: codes
-  });
-  var t = colors.keys[type] || (colors.keys[type] = []);
-  t.push(name);
-  Reflect.defineProperty(colors, name, {
-    get: function get() {
-      var color = function color(input) {
-        return style(input, color.stack);
-      };
-
-      Reflect.setPrototypeOf(color, colors);
-      color.stack = this.stack ? this.stack.concat(name) : [name];
-      return color;
-    }
-  });
-};
-
-define('reset', [0, 0], 'modifier');
-define('bold', [1, 22], 'modifier');
-define('dim', [2, 22], 'modifier');
-define('italic', [3, 23], 'modifier');
-define('underline', [4, 24], 'modifier');
-define('inverse', [7, 27], 'modifier');
-define('hidden', [8, 28], 'modifier');
-define('strikethrough', [9, 29], 'modifier');
-define('black', [30, 39], 'color');
-define('red', [31, 39], 'color');
-define('green', [32, 39], 'color');
-define('yellow', [33, 39], 'color');
-define('blue', [34, 39], 'color');
-define('magenta', [35, 39], 'color');
-define('cyan', [36, 39], 'color');
-define('white', [37, 39], 'color');
-define('gray', [90, 39], 'color');
-define('grey', [90, 39], 'color');
-define('bgBlack', [40, 49], 'bg');
-define('bgRed', [41, 49], 'bg');
-define('bgGreen', [42, 49], 'bg');
-define('bgYellow', [43, 49], 'bg');
-define('bgBlue', [44, 49], 'bg');
-define('bgMagenta', [45, 49], 'bg');
-define('bgCyan', [46, 49], 'bg');
-define('bgWhite', [47, 49], 'bg');
-define('blackBright', [90, 39], 'bright');
-define('redBright', [91, 39], 'bright');
-define('greenBright', [92, 39], 'bright');
-define('yellowBright', [93, 39], 'bright');
-define('blueBright', [94, 39], 'bright');
-define('magentaBright', [95, 39], 'bright');
-define('cyanBright', [96, 39], 'bright');
-define('whiteBright', [97, 39], 'bright');
-define('bgBlackBright', [100, 49], 'bgBright');
-define('bgRedBright', [101, 49], 'bgBright');
-define('bgGreenBright', [102, 49], 'bgBright');
-define('bgYellowBright', [103, 49], 'bgBright');
-define('bgBlueBright', [104, 49], 'bgBright');
-define('bgMagentaBright', [105, 49], 'bgBright');
-define('bgCyanBright', [106, 49], 'bgBright');
-define('bgWhiteBright', [107, 49], 'bgBright');
-/* eslint-disable no-control-regex */
-
-var re = colors.ansiRegex = /\u001b\[\d+m/gm;
-
-colors.hasColor = colors.hasAnsi = function (str) {
-  return !!str && typeof str === 'string' && re.test(str);
-};
-
-colors.unstyle = function (str) {
-  return typeof str === 'string' ? str.replace(re, '') : str;
-};
-
-colors.none = colors.clear = colors.noop = function (str) {
-  return str;
-}; // no-op, for programmatic usage
-
-
-colors.stripColor = colors.unstyle;
-colors.symbols = require('./symbols');
-colors.define = define;
-module.exports = colors;
-
-}).call(this,require('_process'))
-},{"./symbols":2,"_process":12}],2:[function(require,module,exports){
-(function (process){
-'use strict';
-
-var isWindows = process.platform === 'win32';
-var isLinux = process.platform === 'linux';
-var windows = {
-  bullet: '•',
-  check: '√',
-  cross: '×',
-  ellipsis: '...',
-  heart: '❤',
-  info: 'i',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionSmall: '﹖',
-  pointer: '>',
-  pointerSmall: '»',
-  warning: '‼'
-};
-var other = {
-  ballotCross: '✘',
-  bullet: '•',
-  check: '✔',
-  cross: '✖',
-  ellipsis: '…',
-  heart: '❤',
-  info: 'ℹ',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionFull: '？',
-  questionSmall: '﹖',
-  pointer: isLinux ? '▸' : '❯',
-  pointerSmall: isLinux ? '‣' : '›',
-  warning: '⚠'
-};
-module.exports = isWindows ? windows : other;
-Reflect.defineProperty(module.exports, 'windows', {
-  enumerable: false,
-  value: windows
-});
-Reflect.defineProperty(module.exports, 'other', {
-  enumerable: false,
-  value: other
-});
-
-}).call(this,require('_process'))
-},{"_process":12}],3:[function(require,module,exports){
 'use strict';
 
 var STRING_DASHERIZE_REGEXP = /[ _]/g;
@@ -886,7 +700,7 @@ module.exports = {
   capitalize: capitalize
 };
 
-},{}],4:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 "use strict";
 
 // Default inflections
@@ -954,7 +768,7 @@ module.exports = function (inflect) {
   inflect.uncountable(['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'sushi']);
 };
 
-},{}],5:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 "use strict";
 
 // Requiring modules
@@ -968,7 +782,7 @@ module.exports = function (attach) {
   return methods;
 };
 
-},{"./methods":7,"./native":8}],6:[function(require,module,exports){
+},{"./methods":5,"./native":6}],4:[function(require,module,exports){
 "use strict";
 
 // A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
@@ -1101,7 +915,7 @@ Inflections.prototype.default = function () {
 
 module.exports = new Inflections();
 
-},{"./defaults":4,"./util":9}],7:[function(require,module,exports){
+},{"./defaults":2,"./util":7}],5:[function(require,module,exports){
 "use strict";
 
 // The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -1347,7 +1161,7 @@ inflect.classify = function (table_name) {
   return inflect.camelize(inflect.singularize(util.string.gsub(table_name, /.*\./, '')));
 };
 
-},{"./inflections":6,"./util":9}],8:[function(require,module,exports){
+},{"./inflections":4,"./util":7}],6:[function(require,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -1369,7 +1183,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],9:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 // Some utility functions in js
@@ -1517,7 +1331,7 @@ var u = module.exports = {
   }
 };
 
-},{}],10:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 if (typeof Object.create === 'function') {
@@ -1546,7 +1360,7 @@ if (typeof Object.create === 'function') {
   };
 }
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -1854,7 +1668,167 @@ function comparison(model, options, keys) {
 module.exports = model;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"ansi-colors":1,"ember-cli-string-utils":3,"i":5,"util":14}],12:[function(require,module,exports){
+},{"ansi-colors":10,"ember-cli-string-utils":1,"i":3,"util":14}],10:[function(require,module,exports){
+(function (process){
+'use strict';
+
+const colors = { enabled: true, visible: true, styles: {}, keys: {} };
+
+if ('FORCE_COLOR' in process.env) {
+  colors.enabled = process.env.FORCE_COLOR !== '0';
+}
+
+const ansi = style => {
+  style.open = `\u001b[${style.codes[0]}m`;
+  style.close = `\u001b[${style.codes[1]}m`;
+  style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
+  return style;
+};
+
+const wrap = (style, str, nl) => {
+  let { open, close, regex } = style;
+  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close;
+  // see https://github.com/chalk/chalk/pull/92, thanks to the
+  // chalk contributors for this fix. However, we've confirmed that
+  // this issue is also present in Windows terminals
+  return nl ? str.replace(/\r?\n/g, `${close}$&${open}`) : str;
+};
+
+const style = (input, stack) => {
+  if (input === '' || input == null) return '';
+  if (colors.enabled === false) return input;
+  if (colors.visible === false) return '';
+  let str = '' + input;
+  let nl = str.includes('\n');
+  let n = stack.length;
+  while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
+  return str;
+};
+
+const define = (name, codes, type) => {
+  colors.styles[name] = ansi({ name, codes });
+  let t = colors.keys[type] || (colors.keys[type] = []);
+  t.push(name);
+
+  Reflect.defineProperty(colors, name, {
+    get() {
+      let color = input => style(input, color.stack);
+      Reflect.setPrototypeOf(color, colors);
+      color.stack = this.stack ? this.stack.concat(name) : [name];
+      return color;
+    }
+  });
+};
+
+define('reset', [0, 0], 'modifier');
+define('bold', [1, 22], 'modifier');
+define('dim', [2, 22], 'modifier');
+define('italic', [3, 23], 'modifier');
+define('underline', [4, 24], 'modifier');
+define('inverse', [7, 27], 'modifier');
+define('hidden', [8, 28], 'modifier');
+define('strikethrough', [9, 29], 'modifier');
+
+define('black', [30, 39], 'color');
+define('red', [31, 39], 'color');
+define('green', [32, 39], 'color');
+define('yellow', [33, 39], 'color');
+define('blue', [34, 39], 'color');
+define('magenta', [35, 39], 'color');
+define('cyan', [36, 39], 'color');
+define('white', [37, 39], 'color');
+define('gray', [90, 39], 'color');
+define('grey', [90, 39], 'color');
+
+define('bgBlack', [40, 49], 'bg');
+define('bgRed', [41, 49], 'bg');
+define('bgGreen', [42, 49], 'bg');
+define('bgYellow', [43, 49], 'bg');
+define('bgBlue', [44, 49], 'bg');
+define('bgMagenta', [45, 49], 'bg');
+define('bgCyan', [46, 49], 'bg');
+define('bgWhite', [47, 49], 'bg');
+
+define('blackBright', [90, 39], 'bright');
+define('redBright', [91, 39], 'bright');
+define('greenBright', [92, 39], 'bright');
+define('yellowBright', [93, 39], 'bright');
+define('blueBright', [94, 39], 'bright');
+define('magentaBright', [95, 39], 'bright');
+define('cyanBright', [96, 39], 'bright');
+define('whiteBright', [97, 39], 'bright');
+
+define('bgBlackBright', [100, 49], 'bgBright');
+define('bgRedBright', [101, 49], 'bgBright');
+define('bgGreenBright', [102, 49], 'bgBright');
+define('bgYellowBright', [103, 49], 'bgBright');
+define('bgBlueBright', [104, 49], 'bgBright');
+define('bgMagentaBright', [105, 49], 'bgBright');
+define('bgCyanBright', [106, 49], 'bgBright');
+define('bgWhiteBright', [107, 49], 'bgBright');
+
+/* eslint-disable no-control-regex */
+const re = colors.ansiRegex = /\u001b\[\d+m/gm;
+colors.hasColor = colors.hasAnsi = str => !!str && typeof str === 'string' && re.test(str);
+colors.unstyle = str => typeof str === 'string' ? str.replace(re, '') : str;
+colors.none = colors.clear = colors.noop = str => str; // no-op, for programmatic usage
+colors.stripColor = colors.unstyle;
+colors.symbols = require('./symbols');
+colors.define = define;
+module.exports = colors;
+
+}).call(this,require('_process'))
+},{"./symbols":11,"_process":12}],11:[function(require,module,exports){
+(function (process){
+'use strict';
+
+const isWindows = process.platform === 'win32';
+const isLinux = process.platform === 'linux';
+
+const windows = {
+  bullet: '•',
+  check: '√',
+  cross: '×',
+  ellipsis: '...',
+  heart: '❤',
+  info: 'i',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionSmall: '﹖',
+  pointer: '>',
+  pointerSmall: '»',
+  warning: '‼'
+};
+
+const other = {
+  ballotCross: '✘',
+  bullet: '•',
+  check: '✔',
+  cross: '✖',
+  ellipsis: '…',
+  heart: '❤',
+  info: 'ℹ',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionFull: '？',
+  questionSmall: '﹖',
+  pointer: isLinux ? '▸' : '❯',
+  pointerSmall: isLinux ? '‣' : '›',
+  warning: '⚠'
+};
+
+module.exports = isWindows ? windows : other;
+Reflect.defineProperty(module.exports, 'windows', { enumerable: false, value: windows });
+Reflect.defineProperty(module.exports, 'other', { enumerable: false, value: other });
+
+}).call(this,require('_process'))
+},{"_process":12}],12:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2639,7 +2613,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":13,"_process":12,"inherits":10}]},{},[11])(11)
+},{"./support/isBuffer":13,"_process":12,"inherits":8}]},{},[9])(9)
 });
 
 
@@ -3225,192 +3199,6 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 });
 
 },{}],2:[function(require,module,exports){
-(function (process){
-'use strict';
-
-var colors = {
-  enabled: true,
-  visible: true,
-  styles: {},
-  keys: {}
-};
-
-if ('FORCE_COLOR' in process.env) {
-  colors.enabled = process.env.FORCE_COLOR !== '0';
-}
-
-var ansi = function ansi(style) {
-  style.open = "\x1B[".concat(style.codes[0], "m");
-  style.close = "\x1B[".concat(style.codes[1], "m");
-  style.regex = new RegExp("\\u001b\\[".concat(style.codes[1], "m"), 'g');
-  return style;
-};
-
-var wrap = function wrap(style, str, nl) {
-  var open = style.open,
-      close = style.close,
-      regex = style.regex;
-  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
-  // chalk contributors for this fix. However, we've confirmed that
-  // this issue is also present in Windows terminals
-
-  return nl ? str.replace(/\r?\n/g, "".concat(close, "$&").concat(open)) : str;
-};
-
-var style = function style(input, stack) {
-  if (input === '' || input == null) return '';
-  if (colors.enabled === false) return input;
-  if (colors.visible === false) return '';
-  var str = '' + input;
-  var nl = str.includes('\n');
-  var n = stack.length;
-
-  while (n-- > 0) {
-    str = wrap(colors.styles[stack[n]], str, nl);
-  }
-
-  return str;
-};
-
-var define = function define(name, codes, type) {
-  colors.styles[name] = ansi({
-    name: name,
-    codes: codes
-  });
-  var t = colors.keys[type] || (colors.keys[type] = []);
-  t.push(name);
-  Reflect.defineProperty(colors, name, {
-    get: function get() {
-      var color = function color(input) {
-        return style(input, color.stack);
-      };
-
-      Reflect.setPrototypeOf(color, colors);
-      color.stack = this.stack ? this.stack.concat(name) : [name];
-      return color;
-    }
-  });
-};
-
-define('reset', [0, 0], 'modifier');
-define('bold', [1, 22], 'modifier');
-define('dim', [2, 22], 'modifier');
-define('italic', [3, 23], 'modifier');
-define('underline', [4, 24], 'modifier');
-define('inverse', [7, 27], 'modifier');
-define('hidden', [8, 28], 'modifier');
-define('strikethrough', [9, 29], 'modifier');
-define('black', [30, 39], 'color');
-define('red', [31, 39], 'color');
-define('green', [32, 39], 'color');
-define('yellow', [33, 39], 'color');
-define('blue', [34, 39], 'color');
-define('magenta', [35, 39], 'color');
-define('cyan', [36, 39], 'color');
-define('white', [37, 39], 'color');
-define('gray', [90, 39], 'color');
-define('grey', [90, 39], 'color');
-define('bgBlack', [40, 49], 'bg');
-define('bgRed', [41, 49], 'bg');
-define('bgGreen', [42, 49], 'bg');
-define('bgYellow', [43, 49], 'bg');
-define('bgBlue', [44, 49], 'bg');
-define('bgMagenta', [45, 49], 'bg');
-define('bgCyan', [46, 49], 'bg');
-define('bgWhite', [47, 49], 'bg');
-define('blackBright', [90, 39], 'bright');
-define('redBright', [91, 39], 'bright');
-define('greenBright', [92, 39], 'bright');
-define('yellowBright', [93, 39], 'bright');
-define('blueBright', [94, 39], 'bright');
-define('magentaBright', [95, 39], 'bright');
-define('cyanBright', [96, 39], 'bright');
-define('whiteBright', [97, 39], 'bright');
-define('bgBlackBright', [100, 49], 'bgBright');
-define('bgRedBright', [101, 49], 'bgBright');
-define('bgGreenBright', [102, 49], 'bgBright');
-define('bgYellowBright', [103, 49], 'bgBright');
-define('bgBlueBright', [104, 49], 'bgBright');
-define('bgMagentaBright', [105, 49], 'bgBright');
-define('bgCyanBright', [106, 49], 'bgBright');
-define('bgWhiteBright', [107, 49], 'bgBright');
-/* eslint-disable no-control-regex */
-
-var re = colors.ansiRegex = /\u001b\[\d+m/gm;
-
-colors.hasColor = colors.hasAnsi = function (str) {
-  return !!str && typeof str === 'string' && re.test(str);
-};
-
-colors.unstyle = function (str) {
-  return typeof str === 'string' ? str.replace(re, '') : str;
-};
-
-colors.none = colors.clear = colors.noop = function (str) {
-  return str;
-}; // no-op, for programmatic usage
-
-
-colors.stripColor = colors.unstyle;
-colors.symbols = require('./symbols');
-colors.define = define;
-module.exports = colors;
-
-}).call(this,require('_process'))
-},{"./symbols":3,"_process":14}],3:[function(require,module,exports){
-(function (process){
-'use strict';
-
-var isWindows = process.platform === 'win32';
-var isLinux = process.platform === 'linux';
-var windows = {
-  bullet: '•',
-  check: '√',
-  cross: '×',
-  ellipsis: '...',
-  heart: '❤',
-  info: 'i',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionSmall: '﹖',
-  pointer: '>',
-  pointerSmall: '»',
-  warning: '‼'
-};
-var other = {
-  ballotCross: '✘',
-  bullet: '•',
-  check: '✔',
-  cross: '✖',
-  ellipsis: '…',
-  heart: '❤',
-  info: 'ℹ',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionFull: '？',
-  questionSmall: '﹖',
-  pointer: isLinux ? '▸' : '❯',
-  pointerSmall: isLinux ? '‣' : '›',
-  warning: '⚠'
-};
-module.exports = isWindows ? windows : other;
-Reflect.defineProperty(module.exports, 'windows', {
-  enumerable: false,
-  value: windows
-});
-Reflect.defineProperty(module.exports, 'other', {
-  enumerable: false,
-  value: other
-});
-
-}).call(this,require('_process'))
-},{"_process":14}],4:[function(require,module,exports){
 'use strict';
 
 var STRING_DASHERIZE_REGEXP = /[ _]/g;
@@ -3567,7 +3355,7 @@ module.exports = {
   capitalize: capitalize
 };
 
-},{}],5:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -4084,7 +3872,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
   return fake_xml_http_request;
 });
 
-},{}],6:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 // Default inflections
@@ -4152,7 +3940,7 @@ module.exports = function (inflect) {
   inflect.uncountable(['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'sushi']);
 };
 
-},{}],7:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 // Requiring modules
@@ -4166,7 +3954,7 @@ module.exports = function (attach) {
   return methods;
 };
 
-},{"./methods":9,"./native":10}],8:[function(require,module,exports){
+},{"./methods":7,"./native":8}],6:[function(require,module,exports){
 "use strict";
 
 // A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
@@ -4299,7 +4087,7 @@ Inflections.prototype.default = function () {
 
 module.exports = new Inflections();
 
-},{"./defaults":6,"./util":11}],9:[function(require,module,exports){
+},{"./defaults":4,"./util":9}],7:[function(require,module,exports){
 "use strict";
 
 // The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -4545,7 +4333,7 @@ inflect.classify = function (table_name) {
   return inflect.camelize(inflect.singularize(util.string.gsub(table_name, /.*\./, '')));
 };
 
-},{"./inflections":8,"./util":11}],10:[function(require,module,exports){
+},{"./inflections":6,"./util":9}],8:[function(require,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -4567,7 +4355,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],11:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 // Some utility functions in js
@@ -4715,7 +4503,7 @@ var u = module.exports = {
   }
 };
 
-},{}],12:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -5135,7 +4923,167 @@ function getModelPrimaryKey(model, existingPrimaryKeyType, modelName) {
 module.exports = memServer;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"ansi-colors":2,"ember-cli-string-utils":4,"fake-xml-http-request":5,"i":7,"pretender":13,"qs":16,"route-recognizer":20}],13:[function(require,module,exports){
+},{"ansi-colors":11,"ember-cli-string-utils":2,"fake-xml-http-request":3,"i":5,"pretender":13,"qs":16,"route-recognizer":20}],11:[function(require,module,exports){
+(function (process){
+'use strict';
+
+const colors = { enabled: true, visible: true, styles: {}, keys: {} };
+
+if ('FORCE_COLOR' in process.env) {
+  colors.enabled = process.env.FORCE_COLOR !== '0';
+}
+
+const ansi = style => {
+  style.open = `\u001b[${style.codes[0]}m`;
+  style.close = `\u001b[${style.codes[1]}m`;
+  style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
+  return style;
+};
+
+const wrap = (style, str, nl) => {
+  let { open, close, regex } = style;
+  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close;
+  // see https://github.com/chalk/chalk/pull/92, thanks to the
+  // chalk contributors for this fix. However, we've confirmed that
+  // this issue is also present in Windows terminals
+  return nl ? str.replace(/\r?\n/g, `${close}$&${open}`) : str;
+};
+
+const style = (input, stack) => {
+  if (input === '' || input == null) return '';
+  if (colors.enabled === false) return input;
+  if (colors.visible === false) return '';
+  let str = '' + input;
+  let nl = str.includes('\n');
+  let n = stack.length;
+  while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
+  return str;
+};
+
+const define = (name, codes, type) => {
+  colors.styles[name] = ansi({ name, codes });
+  let t = colors.keys[type] || (colors.keys[type] = []);
+  t.push(name);
+
+  Reflect.defineProperty(colors, name, {
+    get() {
+      let color = input => style(input, color.stack);
+      Reflect.setPrototypeOf(color, colors);
+      color.stack = this.stack ? this.stack.concat(name) : [name];
+      return color;
+    }
+  });
+};
+
+define('reset', [0, 0], 'modifier');
+define('bold', [1, 22], 'modifier');
+define('dim', [2, 22], 'modifier');
+define('italic', [3, 23], 'modifier');
+define('underline', [4, 24], 'modifier');
+define('inverse', [7, 27], 'modifier');
+define('hidden', [8, 28], 'modifier');
+define('strikethrough', [9, 29], 'modifier');
+
+define('black', [30, 39], 'color');
+define('red', [31, 39], 'color');
+define('green', [32, 39], 'color');
+define('yellow', [33, 39], 'color');
+define('blue', [34, 39], 'color');
+define('magenta', [35, 39], 'color');
+define('cyan', [36, 39], 'color');
+define('white', [37, 39], 'color');
+define('gray', [90, 39], 'color');
+define('grey', [90, 39], 'color');
+
+define('bgBlack', [40, 49], 'bg');
+define('bgRed', [41, 49], 'bg');
+define('bgGreen', [42, 49], 'bg');
+define('bgYellow', [43, 49], 'bg');
+define('bgBlue', [44, 49], 'bg');
+define('bgMagenta', [45, 49], 'bg');
+define('bgCyan', [46, 49], 'bg');
+define('bgWhite', [47, 49], 'bg');
+
+define('blackBright', [90, 39], 'bright');
+define('redBright', [91, 39], 'bright');
+define('greenBright', [92, 39], 'bright');
+define('yellowBright', [93, 39], 'bright');
+define('blueBright', [94, 39], 'bright');
+define('magentaBright', [95, 39], 'bright');
+define('cyanBright', [96, 39], 'bright');
+define('whiteBright', [97, 39], 'bright');
+
+define('bgBlackBright', [100, 49], 'bgBright');
+define('bgRedBright', [101, 49], 'bgBright');
+define('bgGreenBright', [102, 49], 'bgBright');
+define('bgYellowBright', [103, 49], 'bgBright');
+define('bgBlueBright', [104, 49], 'bgBright');
+define('bgMagentaBright', [105, 49], 'bgBright');
+define('bgCyanBright', [106, 49], 'bgBright');
+define('bgWhiteBright', [107, 49], 'bgBright');
+
+/* eslint-disable no-control-regex */
+const re = colors.ansiRegex = /\u001b\[\d+m/gm;
+colors.hasColor = colors.hasAnsi = str => !!str && typeof str === 'string' && re.test(str);
+colors.unstyle = str => typeof str === 'string' ? str.replace(re, '') : str;
+colors.none = colors.clear = colors.noop = str => str; // no-op, for programmatic usage
+colors.stripColor = colors.unstyle;
+colors.symbols = require('./symbols');
+colors.define = define;
+module.exports = colors;
+
+}).call(this,require('_process'))
+},{"./symbols":12,"_process":14}],12:[function(require,module,exports){
+(function (process){
+'use strict';
+
+const isWindows = process.platform === 'win32';
+const isLinux = process.platform === 'linux';
+
+const windows = {
+  bullet: '•',
+  check: '√',
+  cross: '×',
+  ellipsis: '...',
+  heart: '❤',
+  info: 'i',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionSmall: '﹖',
+  pointer: '>',
+  pointerSmall: '»',
+  warning: '‼'
+};
+
+const other = {
+  ballotCross: '✘',
+  bullet: '•',
+  check: '✔',
+  cross: '✖',
+  ellipsis: '…',
+  heart: '❤',
+  info: 'ℹ',
+  line: '─',
+  middot: '·',
+  minus: '－',
+  plus: '＋',
+  question: '?',
+  questionFull: '？',
+  questionSmall: '﹖',
+  pointer: isLinux ? '▸' : '❯',
+  pointerSmall: isLinux ? '‣' : '›',
+  warning: '⚠'
+};
+
+module.exports = isWindows ? windows : other;
+Reflect.defineProperty(module.exports, 'windows', { enumerable: false, value: windows });
+Reflect.defineProperty(module.exports, 'other', { enumerable: false, value: other });
+
+}).call(this,require('_process'))
+},{"_process":14}],13:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -5665,7 +5613,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 })(self);
 
 }).call(this,require('_process'))
-},{"@xg-wang/whatwg-fetch":1,"_process":14,"fake-xml-http-request":5,"route-recognizer":20}],14:[function(require,module,exports){
+},{"@xg-wang/whatwg-fetch":1,"_process":14,"fake-xml-http-request":3,"route-recognizer":20}],14:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -7352,7 +7300,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
   return RouteRecognizer;
 });
 
-},{}]},{},[12])(12)
+},{}]},{},[10])(10)
 });
 
 
