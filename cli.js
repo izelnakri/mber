@@ -37,8 +37,7 @@ CLI.command(['serve', 'server', 's'], () => require('./lib/commands/serve').defa
 CLI.command(['test', 't'], () => require('./lib/commands/test').default()); // TODO: add --proxy
 CLI.command(['build', 'b'], () => require('./lib/commands/build').default()); // TODO: add --proxy
 CLI.command(['console', 'c'], () => require('./lib/commands/console').default());
-CLI.command(['help', 'h'], printCommand);
-CLI.command(['print', 'p'], printCommand);
+CLI.command(['help', 'h', 'print', 'p'], printCommand);
 CLI.command(['init', 'new'], () => require('./lib/commands/new').default());
 CLI.command(['generate', 'g', 'create'], () => {
   require('./lib/commands/generate').default(process.argv[3], process.argv[4]);
