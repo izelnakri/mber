@@ -66,7 +66,6 @@ test.serial('buildApplication() works', async (t) => {
         }`));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
-  console.log(applicationJSBuffer.toString());
   t.true(applicationJSBuffer.length === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(stats.size === APPLICATION_JS_TARGET_BYTE_SIZE);
   t.true(/BUILT: application\.js in \d+ms \[11.93 kB\] Environment: development/g.test(message));
