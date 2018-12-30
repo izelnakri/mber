@@ -1,3 +1,8 @@
+- upgrade fastboot
+- research further with ember-packages repo
+
+- add code coverage
+- add directory and npm install check
 - maybe upgrade fastboot
 - OrderedSet mocking might cause issues
 

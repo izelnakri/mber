@@ -1,7 +1,9 @@
 define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.clearHtml = clearHtml;
   _exports.default = void 0;
 
@@ -14,12 +16,12 @@ define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"]
   // This removes any pre-rendered ember-view elements, so that the booting
   // application will replace the pre-rendered output
   function clearHtml() {
-    var current = document.getElementById('fastboot-body-start');
+    let current = document.getElementById('fastboot-body-start');
 
     if (current) {
-      var endMarker = document.getElementById('fastboot-body-end');
-      var parent = current.parentElement;
-      var nextNode;
+      let endMarker = document.getElementById('fastboot-body-end');
+      let parent = current.parentElement;
+      let nextNode;
 
       do {
         nextNode = current.nextSibling;
@@ -33,7 +35,8 @@ define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"]
 
   var _default = {
     name: "clear-double-boot",
-    initialize: function initialize(instance) {
+
+    initialize(instance) {
       if (typeof FastBoot === 'undefined') {
         var originalDidCreateRootView = instance.didCreateRootView;
 
@@ -43,15 +46,18 @@ define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"]
         };
       }
     }
+
   };
   _exports.default = _default;
 });
 define("ember-cli-fastboot/locations/none", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
-  var TEMPORARY_REDIRECT_CODE = 307;
+  const TEMPORARY_REDIRECT_CODE = 307;
 
   var _default = Ember.NoneLocation.extend({
     implementation: 'fastboot',
@@ -65,19 +71,20 @@ define("ember-cli-fastboot/locations/none", ["exports"], function (_exports) {
     }),
     _response: Ember.computed.readOnly('fastboot.response'),
     _request: Ember.computed.readOnly('fastboot.request'),
-    setURL: function setURL(path) {
+
+    setURL(path) {
       if (Ember.get(this, 'fastboot.isFastBoot')) {
-        var response = Ember.get(this, '_response');
-        var currentPath = Ember.get(this, 'path');
-        var isInitialPath = !currentPath || currentPath.length === 0;
+        let response = Ember.get(this, '_response');
+        let currentPath = Ember.get(this, 'path');
+        let isInitialPath = !currentPath || currentPath.length === 0;
 
         if (!isInitialPath) {
           path = this.formatURL(path);
-          var isTransitioning = currentPath !== path;
+          let isTransitioning = currentPath !== path;
 
           if (isTransitioning) {
-            var host = Ember.get(this, '_request.host');
-            var redirectURL = "//".concat(host).concat(path);
+            let host = Ember.get(this, '_request.host');
+            let redirectURL = `//${host}${path}`;
             response.statusCode = this.get('_redirectCode');
             response.headers.set('location', redirectURL);
           }
@@ -89,8 +96,9 @@ define("ember-cli-fastboot/locations/none", ["exports"], function (_exports) {
         }
       }
 
-      this._super.apply(this, arguments);
+      this._super(...arguments);
     }
+
   });
 
   _exports.default = _default;
@@ -98,15 +106,17 @@ define("ember-cli-fastboot/locations/none", ["exports"], function (_exports) {
 define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.__esModule = true;
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
   _exports.default = void 0;
 
   /* global FastBoot */
-  var RequestObject = Ember.Object.extend({
-    init: function init() {
-      this._super.apply(this, arguments);
+  const RequestObject = Ember.Object.extend({
+    init() {
+      this._super(...arguments);
 
-      var request = this.request;
+      let request = this.request;
       delete this.request;
       this.method = request.method;
       this.body = request.body;
@@ -120,15 +130,16 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
         return request.host();
       };
     },
+
     host: Ember.computed(function () {
       return this._host();
     })
   });
-  var Shoebox = Ember.Object.extend({
-    put: function put(key, value) {
+  const Shoebox = Ember.Object.extend({
+    put(key, value) {
       (true && Ember.assert('shoebox.put is only invoked from the FastBoot rendered application', this.get('fastboot.isFastBoot')));
       (true && Ember.assert('the provided key is a string', typeof key === 'string'));
-      var fastbootInfo = this.get('fastboot._fastbootInfo');
+      let fastbootInfo = this.get('fastboot._fastbootInfo');
 
       if (!fastbootInfo.shoebox) {
         fastbootInfo.shoebox = {};
@@ -136,9 +147,10 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
 
       fastbootInfo.shoebox[key] = value;
     },
-    retrieve: function retrieve(key) {
+
+    retrieve(key) {
       if (this.get('fastboot.isFastBoot')) {
-        var shoebox = this.get('fastboot._fastbootInfo.shoebox');
+        let shoebox = this.get('fastboot._fastbootInfo.shoebox');
 
         if (!shoebox) {
           return;
@@ -147,19 +159,19 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
         return shoebox[key];
       }
 
-      var shoeboxItem = this.get(key);
+      let shoeboxItem = this.get(key);
 
       if (shoeboxItem) {
         return shoeboxItem;
       }
 
-      var el = document.querySelector("#shoebox-".concat(key));
+      let el = document.querySelector(`#shoebox-${key}`);
 
       if (!el) {
         return;
       }
 
-      var valueString = el.textContent;
+      let valueString = el.textContent;
 
       if (!valueString) {
         return;
@@ -169,8 +181,9 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
       this.set(key, shoeboxItem);
       return shoeboxItem;
     }
+
   });
-  var FastBootService = Ember.Service.extend({
+  const FastBootService = Ember.Service.extend({
     cookies: Ember.computed.deprecatingAlias('request.cookies', {
       id: 'fastboot.cookies-to-request',
       until: '0.9.9'
@@ -180,14 +193,16 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
       until: '0.9.9'
     }),
     isFastBoot: typeof FastBoot !== 'undefined',
-    init: function init() {
-      this._super.apply(this, arguments);
 
-      var shoebox = Shoebox.create({
+    init() {
+      this._super(...arguments);
+
+      let shoebox = Shoebox.create({
         fastboot: this
       });
       this.set('shoebox', shoebox);
     },
+
     host: Ember.computed(function () {
       Ember.deprecate('Usage of fastboot service\'s `host` property is deprecated.  Please use `request.host` instead.', false, {
         id: 'fastboot.host-to-request',
@@ -203,11 +218,13 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
         request: Ember.get(this, '_fastbootInfo.request')
       });
     }),
-    deferRendering: function deferRendering(promise) {
+
+    deferRendering(promise) {
       (true && Ember.assert('deferRendering requires a promise or thennable object', typeof promise.then === 'function'));
 
       this._fastbootInfo.deferRendering(promise);
     }
+
   });
   var _default = FastBootService;
   _exports.default = _default;

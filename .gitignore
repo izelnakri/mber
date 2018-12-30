@@ -7,3 +7,6 @@ dist/*
 ember-cli
 yarn-error.log
 .cache
+tags
+tags.lock
+tags.temp

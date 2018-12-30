@@ -6,13 +6,13 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.5.1
+ * @version   3.6.1
  */
 
 /*globals process */
 var enifed, requireModule, Ember;
 
-// Used in ember-environment/lib/global.js
+// Used in @ember/-internals/environment/lib/global.js
 mainContext = this; // eslint-disable-line no-undef
 
 (function() {
@@ -78,8 +78,8 @@ mainContext = this; // eslint-disable-line no-undef
   }
 
   if (typeof Ember.__loader === 'undefined') {
-    var registry = {};
-    var seen = {};
+    var registry = Object.create(null);
+    var seen = Object.create(null);
 
     enifed = function(name, deps, callback) {
       var value = {};
@@ -119,7 +119,7 @@ mainContext = this; // eslint-disable-line no-undef
   }
 })();
 
-enifed('@ember/debug/index', ['exports', '@ember/debug/lib/warn', '@ember/debug/lib/deprecate', '@ember/debug/lib/testing', '@ember/error', 'ember-browser-environment'], function (exports, _warn2, _deprecate2, _testing, _error, _emberBrowserEnvironment) {
+enifed('@ember/debug/index', ['exports', '@ember/debug/lib/warn', '@ember/debug/lib/deprecate', '@ember/debug/lib/testing', '@ember/-internals/browser-environment', '@ember/error'], function (exports, _warn2, _deprecate2, _testing, _browserEnvironment, _error) {
     'use strict';
 
     exports._warnIfUsingStrippedFeatureFlags = exports.getDebugFunction = exports.setDebugFunction = exports.deprecateFunc = exports.runInDebug = exports.debugFreeze = exports.debugSeal = exports.deprecate = exports.debug = exports.warn = exports.info = exports.assert = exports.setTesting = exports.isTesting = exports.registerDeprecationHandler = exports.registerWarnHandler = undefined;
@@ -149,239 +149,228 @@ enifed('@ember/debug/index', ['exports', '@ember/debug/lib/warn', '@ember/debug/
     });
 
     // These are the default production build versions:
-    var noop = function () {};
-    var assert = noop;
-    var info = noop;
-    var warn = noop;
-    var debug = noop;
-    var deprecate = noop;
-    var debugSeal = noop;
-    var debugFreeze = noop;
-    var runInDebug = noop;
-    var setDebugFunction = noop;
-    var getDebugFunction = noop;
-    var deprecateFunc = function () {
+    const noop = () => {};
+    let assert = noop;
+    let info = noop;
+    let warn = noop;
+    let debug = noop;
+    let deprecate = noop;
+    let debugSeal = noop;
+    let debugFreeze = noop;
+    let runInDebug = noop;
+    let setDebugFunction = noop;
+    let getDebugFunction = noop;
+    let deprecateFunc = function () {
         return arguments[arguments.length - 1];
     };
-    if (true) {
-        exports.setDebugFunction = setDebugFunction = function (type, callback) {
-            switch (type) {
-                case 'assert':
-                    return exports.assert = assert = callback;
-                case 'info':
-                    return exports.info = info = callback;
-                case 'warn':
-                    return exports.warn = warn = callback;
-                case 'debug':
-                    return exports.debug = debug = callback;
-                case 'deprecate':
-                    return exports.deprecate = deprecate = callback;
-                case 'debugSeal':
-                    return exports.debugSeal = debugSeal = callback;
-                case 'debugFreeze':
-                    return exports.debugFreeze = debugFreeze = callback;
-                case 'runInDebug':
-                    return exports.runInDebug = runInDebug = callback;
-                case 'deprecateFunc':
-                    return exports.deprecateFunc = deprecateFunc = callback;
-            }
-        };
-        exports.getDebugFunction = getDebugFunction = function (type) {
-            switch (type) {
-                case 'assert':
-                    return assert;
-                case 'info':
-                    return info;
-                case 'warn':
-                    return warn;
-                case 'debug':
-                    return debug;
-                case 'deprecate':
-                    return deprecate;
-                case 'debugSeal':
-                    return debugSeal;
-                case 'debugFreeze':
-                    return debugFreeze;
-                case 'runInDebug':
-                    return runInDebug;
-                case 'deprecateFunc':
-                    return deprecateFunc;
-            }
-        };
-    }
+    if (true /* DEBUG */) {
+            exports.setDebugFunction = setDebugFunction = function (type, callback) {
+                switch (type) {
+                    case 'assert':
+                        return exports.assert = assert = callback;
+                    case 'info':
+                        return exports.info = info = callback;
+                    case 'warn':
+                        return exports.warn = warn = callback;
+                    case 'debug':
+                        return exports.debug = debug = callback;
+                    case 'deprecate':
+                        return exports.deprecate = deprecate = callback;
+                    case 'debugSeal':
+                        return exports.debugSeal = debugSeal = callback;
+                    case 'debugFreeze':
+                        return exports.debugFreeze = debugFreeze = callback;
+                    case 'runInDebug':
+                        return exports.runInDebug = runInDebug = callback;
+                    case 'deprecateFunc':
+                        return exports.deprecateFunc = deprecateFunc = callback;
+                }
+            };
+            exports.getDebugFunction = getDebugFunction = function (type) {
+                switch (type) {
+                    case 'assert':
+                        return assert;
+                    case 'info':
+                        return info;
+                    case 'warn':
+                        return warn;
+                    case 'debug':
+                        return debug;
+                    case 'deprecate':
+                        return deprecate;
+                    case 'debugSeal':
+                        return debugSeal;
+                    case 'debugFreeze':
+                        return debugFreeze;
+                    case 'runInDebug':
+                        return runInDebug;
+                    case 'deprecateFunc':
+                        return deprecateFunc;
+                }
+            };
+        }
     /**
     @module @ember/debug
     */
-    if (true) {
-        /**
-          Verify that a certain expectation is met, or throw a exception otherwise.
-             This is useful for communicating assumptions in the code to other human
-          readers as well as catching bugs that accidentally violates these
-          expectations.
-             Assertions are removed from production builds, so they can be freely added
-          for documentation and debugging purposes without worries of incuring any
-          performance penalty. However, because of that, they should not be used for
-          checks that could reasonably fail during normal usage. Furthermore, care
-          should be taken to avoid accidentally relying on side-effects produced from
-          evaluating the condition itself, since the code will not run in production.
-             ```javascript
-          import { assert } from '@ember/debug';
-             // Test for truthiness
-          assert('Must pass a string', typeof str === 'string');
-             // Fail unconditionally
-          assert('This code path should never be run');
-          ```
-             @method assert
-          @static
-          @for @ember/debug
-          @param {String} description Describes the expectation. This will become the
-            text of the Error thrown if the assertion fails.
-          @param {Boolean} condition Must be truthy for the assertion to pass. If
-            falsy, an exception will be thrown.
-          @public
-          @since 1.0.0
-        */
-        setDebugFunction('assert', function assert(desc, test) {
-            if (!test) {
-                throw new _error.default('Assertion Failed: ' + desc);
-            }
-        });
-        /**
-          Display a debug notice.
-             Calls to this function are removed from production builds, so they can be
-          freely added for documentation and debugging purposes without worries of
-          incuring any performance penalty.
-             ```javascript
-          import { debug } from '@ember/debug';
-             debug('I\'m a debug notice!');
-          ```
-             @method debug
-          @for @ember/debug
-          @static
-          @param {String} message A debug message to display.
-          @public
-        */
-        setDebugFunction('debug', function debug(message) {
-            /* eslint-disable no-console */
-            if (console.debug) {
-                console.debug('DEBUG: ' + message);
-            } else {
-                console.log('DEBUG: ' + message);
-            }
-            /* eslint-ensable no-console */
-        });
-        /**
-          Display an info notice.
-             Calls to this function are removed from production builds, so they can be
-          freely added for documentation and debugging purposes without worries of
-          incuring any performance penalty.
-             @method info
-          @private
-        */
-        setDebugFunction('info', function info() {
-            var _console;
-
-            (_console = console).info.apply(_console, arguments); /* eslint-disable-line no-console */
-        });
-        /**
-         @module @ember/application
-         @public
-        */
-        /**
-          Alias an old, deprecated method with its new counterpart.
-             Display a deprecation warning with the provided message and a stack trace
-          (Chrome and Firefox only) when the assigned method is called.
-             Calls to this function are removed from production builds, so they can be
-          freely added for documentation and debugging purposes without worries of
-          incuring any performance penalty.
-             ```javascript
-          import { deprecateFunc } from '@ember/application/deprecations';
-             Ember.oldMethod = deprecateFunc('Please use the new, updated method', options, Ember.newMethod);
-          ```
-             @method deprecateFunc
-          @static
-          @for @ember/application/deprecations
-          @param {String} message A description of the deprecation.
-          @param {Object} [options] The options object for `deprecate`.
-          @param {Function} func The new function called to replace its deprecated counterpart.
-          @return {Function} A new function that wraps the original function with a deprecation warning
-          @private
-        */
-        setDebugFunction('deprecateFunc', function deprecateFunc() {
-            for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-                args[_key] = arguments[_key];
-            }
-
-            if (args.length === 3) {
-                var message = args[0],
-                    options = args[1],
-                    func = args[2];
-
-                return function () {
-                    deprecate(message, false, options);
-                    return func.apply(this, arguments);
-                };
-            } else {
-                var _message = args[0],
-                    _func = args[1];
-
-                return function () {
-                    deprecate(_message);
-                    return _func.apply(this, arguments);
-                };
-            }
-        });
-        /**
-         @module @ember/debug
-         @public
-        */
-        /**
-          Run a function meant for debugging.
-             Calls to this function are removed from production builds, so they can be
-          freely added for documentation and debugging purposes without worries of
-          incuring any performance penalty.
-             ```javascript
-          import Component from '@ember/component';
-          import { runInDebug } from '@ember/debug';
-             runInDebug(() => {
-            Component.reopen({
-              didInsertElement() {
-                console.log("I'm happy");
-              }
+    if (true /* DEBUG */) {
+            /**
+              Verify that a certain expectation is met, or throw a exception otherwise.
+                 This is useful for communicating assumptions in the code to other human
+              readers as well as catching bugs that accidentally violates these
+              expectations.
+                 Assertions are removed from production builds, so they can be freely added
+              for documentation and debugging purposes without worries of incuring any
+              performance penalty. However, because of that, they should not be used for
+              checks that could reasonably fail during normal usage. Furthermore, care
+              should be taken to avoid accidentally relying on side-effects produced from
+              evaluating the condition itself, since the code will not run in production.
+                 ```javascript
+              import { assert } from '@ember/debug';
+                 // Test for truthiness
+              assert('Must pass a string', typeof str === 'string');
+                 // Fail unconditionally
+              assert('This code path should never be run');
+              ```
+                 @method assert
+              @static
+              @for @ember/debug
+              @param {String} description Describes the expectation. This will become the
+                text of the Error thrown if the assertion fails.
+              @param {Boolean} condition Must be truthy for the assertion to pass. If
+                falsy, an exception will be thrown.
+              @public
+              @since 1.0.0
+            */
+            setDebugFunction('assert', function assert(desc, test) {
+                if (!test) {
+                    throw new _error.default(`Assertion Failed: ${desc}`);
+                }
             });
-          });
-          ```
-             @method runInDebug
-          @for @ember/debug
-          @static
-          @param {Function} func The function to be executed.
-          @since 1.5.0
-          @public
-        */
-        setDebugFunction('runInDebug', function runInDebug(func) {
-            func();
-        });
-        setDebugFunction('debugSeal', function debugSeal(obj) {
-            Object.seal(obj);
-        });
-        setDebugFunction('debugFreeze', function debugFreeze(obj) {
-            Object.freeze(obj);
-        });
-        setDebugFunction('deprecate', _deprecate2.default);
-        setDebugFunction('warn', _warn2.default);
-    }
-    var _warnIfUsingStrippedFeatureFlags = void 0;
-    if (true && !(0, _testing.isTesting)()) {
-        if (typeof window !== 'undefined' && (_emberBrowserEnvironment.isFirefox || _emberBrowserEnvironment.isChrome) && window.addEventListener) {
-            window.addEventListener('load', function () {
+            /**
+              Display a debug notice.
+                 Calls to this function are removed from production builds, so they can be
+              freely added for documentation and debugging purposes without worries of
+              incuring any performance penalty.
+                 ```javascript
+              import { debug } from '@ember/debug';
+                 debug('I\'m a debug notice!');
+              ```
+                 @method debug
+              @for @ember/debug
+              @static
+              @param {String} message A debug message to display.
+              @public
+            */
+            setDebugFunction('debug', function debug(message) {
+                /* eslint-disable no-console */
+                if (console.debug) {
+                    console.debug(`DEBUG: ${message}`);
+                } else {
+                    console.log(`DEBUG: ${message}`);
+                }
+                /* eslint-ensable no-console */
+            });
+            /**
+              Display an info notice.
+                 Calls to this function are removed from production builds, so they can be
+              freely added for documentation and debugging purposes without worries of
+              incuring any performance penalty.
+                 @method info
+              @private
+            */
+            setDebugFunction('info', function info() {
+                console.info(...arguments); /* eslint-disable-line no-console */
+            });
+            /**
+             @module @ember/application
+             @public
+            */
+            /**
+              Alias an old, deprecated method with its new counterpart.
+                 Display a deprecation warning with the provided message and a stack trace
+              (Chrome and Firefox only) when the assigned method is called.
+                 Calls to this function are removed from production builds, so they can be
+              freely added for documentation and debugging purposes without worries of
+              incuring any performance penalty.
+                 ```javascript
+              import { deprecateFunc } from '@ember/application/deprecations';
+                 Ember.oldMethod = deprecateFunc('Please use the new, updated method', options, Ember.newMethod);
+              ```
+                 @method deprecateFunc
+              @static
+              @for @ember/application/deprecations
+              @param {String} message A description of the deprecation.
+              @param {Object} [options] The options object for `deprecate`.
+              @param {Function} func The new function called to replace its deprecated counterpart.
+              @return {Function} A new function that wraps the original function with a deprecation warning
+              @private
+            */
+            setDebugFunction('deprecateFunc', function deprecateFunc(...args) {
+                if (args.length === 3) {
+                    let [message, options, func] = args;
+                    return function () {
+                        deprecate(message, false, options);
+                        return func.apply(this, arguments);
+                    };
+                } else {
+                    let [message, func] = args;
+                    return function () {
+                        deprecate(message);
+                        return func.apply(this, arguments);
+                    };
+                }
+            });
+            /**
+             @module @ember/debug
+             @public
+            */
+            /**
+              Run a function meant for debugging.
+                 Calls to this function are removed from production builds, so they can be
+              freely added for documentation and debugging purposes without worries of
+              incuring any performance penalty.
+                 ```javascript
+              import Component from '@ember/component';
+              import { runInDebug } from '@ember/debug';
+                 runInDebug(() => {
+                Component.reopen({
+                  didInsertElement() {
+                    console.log("I'm happy");
+                  }
+                });
+              });
+              ```
+                 @method runInDebug
+              @for @ember/debug
+              @static
+              @param {Function} func The function to be executed.
+              @since 1.5.0
+              @public
+            */
+            setDebugFunction('runInDebug', function runInDebug(func) {
+                func();
+            });
+            setDebugFunction('debugSeal', function debugSeal(obj) {
+                Object.seal(obj);
+            });
+            setDebugFunction('debugFreeze', function debugFreeze(obj) {
+                Object.freeze(obj);
+            });
+            setDebugFunction('deprecate', _deprecate2.default);
+            setDebugFunction('warn', _warn2.default);
+        }
+    let _warnIfUsingStrippedFeatureFlags;
+    if (true /* DEBUG */ && !(0, _testing.isTesting)()) {
+        if (typeof window !== 'undefined' && (_browserEnvironment.isFirefox || _browserEnvironment.isChrome) && window.addEventListener) {
+            window.addEventListener('load', () => {
                 if (document.documentElement && document.documentElement.dataset && !document.documentElement.dataset.emberExtension) {
-                    var downloadURL = void 0;
-                    if (_emberBrowserEnvironment.isChrome) {
+                    let downloadURL;
+                    if (_browserEnvironment.isChrome) {
                         downloadURL = 'https://chrome.google.com/webstore/detail/ember-inspector/bmdblncegkenkacieihfhpjfppoconhi';
-                    } else if (_emberBrowserEnvironment.isFirefox) {
+                    } else if (_browserEnvironment.isFirefox) {
                         downloadURL = 'https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/';
                     }
-                    debug('For more advanced debugging, install the Ember Inspector from ' + downloadURL);
+                    debug(`For more advanced debugging, install the Ember Inspector from ${downloadURL}`);
                 }
             }, false);
         }
@@ -399,7 +388,7 @@ enifed('@ember/debug/index', ['exports', '@ember/debug/lib/warn', '@ember/debug/
     exports.getDebugFunction = getDebugFunction;
     exports._warnIfUsingStrippedFeatureFlags = _warnIfUsingStrippedFeatureFlags;
 });
-enifed('@ember/debug/lib/deprecate', ['exports', '@ember/deprecated-features', 'ember-environment', '@ember/debug/index', '@ember/debug/lib/handlers'], function (exports, _deprecatedFeatures, _emberEnvironment, _index, _handlers) {
+enifed('@ember/debug/lib/deprecate', ['exports', '@ember/-internals/environment', '@ember/debug/index', '@ember/debug/lib/handlers'], function (exports, _environment, _index, _handlers) {
     'use strict';
 
     exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = undefined;
@@ -446,161 +435,136 @@ enifed('@ember/debug/lib/deprecate', ['exports', '@ember/deprecated-features', '
       @param handler {Function} A function to handle deprecation calls.
       @since 2.1.0
     */
-    var registerHandler = function () {};
-    var missingOptionsDeprecation = void 0;
-    var missingOptionsIdDeprecation = void 0;
-    var missingOptionsUntilDeprecation = void 0;
-    var deprecate = function () {};
-    if (true) {
-        exports.registerHandler = registerHandler = function registerHandler(handler) {
-            (0, _handlers.registerHandler)('deprecate', handler);
-        };
-        var formatMessage = function formatMessage(_message, options) {
-            var message = _message;
-            if (options && options.id) {
-                message = message + (' [deprecation id: ' + options.id + ']');
-            }
-            if (options && options.url) {
-                message += ' See ' + options.url + ' for more details.';
-            }
-            return message;
-        };
-        registerHandler(function logDeprecationToConsole(message, options) {
-            var updatedMessage = formatMessage(message, options);
-            console.warn('DEPRECATION: ' + updatedMessage); // eslint-disable-line no-console
-        });
-        var captureErrorForStack = void 0;
-        if (new Error().stack) {
-            captureErrorForStack = function () {
-                return new Error();
+    let registerHandler = () => {};
+    let missingOptionsDeprecation;
+    let missingOptionsIdDeprecation;
+    let missingOptionsUntilDeprecation;
+    let deprecate = () => {};
+    if (true /* DEBUG */) {
+            exports.registerHandler = registerHandler = function registerHandler(handler) {
+                (0, _handlers.registerHandler)('deprecate', handler);
             };
-        } else {
-            captureErrorForStack = function () {
-                try {
-                    __fail__.fail();
-                } catch (e) {
-                    return e;
+            let formatMessage = function formatMessage(_message, options) {
+                let message = _message;
+                if (options && options.id) {
+                    message = message + ` [deprecation id: ${options.id}]`;
                 }
+                if (options && options.url) {
+                    message += ` See ${options.url} for more details.`;
+                }
+                return message;
             };
-        }
-        registerHandler(function logDeprecationStackTrace(message, options, next) {
-            if (_emberEnvironment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
-                var stackStr = '';
-                var error = captureErrorForStack();
-                var stack = void 0;
-                if (error.stack) {
-                    if (error['arguments']) {
-                        // Chrome
-                        stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^\(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^\)]+)\)/gm, '{anonymous}($1)').split('\n');
-                        stack.shift();
-                    } else {
-                        // Firefox
-                        stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+            registerHandler(function logDeprecationToConsole(message, options) {
+                let updatedMessage = formatMessage(message, options);
+                console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+            });
+            let captureErrorForStack;
+            if (new Error().stack) {
+                captureErrorForStack = () => new Error();
+            } else {
+                captureErrorForStack = () => {
+                    try {
+                        __fail__.fail();
+                    } catch (e) {
+                        return e;
                     }
-                    stackStr = '\n    ' + stack.slice(2).join('\n    ');
+                };
+            }
+            registerHandler(function logDeprecationStackTrace(message, options, next) {
+                if (_environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+                    let stackStr = '';
+                    let error = captureErrorForStack();
+                    let stack;
+                    if (error.stack) {
+                        if (error['arguments']) {
+                            // Chrome
+                            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^\(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^\)]+)\)/gm, '{anonymous}($1)').split('\n');
+                            stack.shift();
+                        } else {
+                            // Firefox
+                            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+                        }
+                        stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+                    }
+                    let updatedMessage = formatMessage(message, options);
+                    console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+                } else {
+                    next(message, options);
                 }
-                var updatedMessage = formatMessage(message, options);
-                console.warn('DEPRECATION: ' + updatedMessage + stackStr); // eslint-disable-line no-console
-            } else {
-                next(message, options);
-            }
-        });
-        registerHandler(function raiseOnDeprecation(message, options, next) {
-            if (_emberEnvironment.ENV.RAISE_ON_DEPRECATION) {
-                var updatedMessage = formatMessage(message);
-                throw new Error(updatedMessage);
-            } else {
-                next(message, options);
-            }
-        });
-        exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
-        exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
-        exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
-        /**
-         @module @ember/application
-         @public
-         */
-        /**
-          Display a deprecation warning with the provided message and a stack trace
-          (Chrome and Firefox only).
-             * In a production build, this method is defined as an empty function (NOP).
-          Uses of this method in Ember itself are stripped from the ember.prod.js build.
-             @method deprecate
-          @for @ember/application/deprecations
-          @param {String} message A description of the deprecation.
-          @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
-          @param {Object} options
-          @param {String} options.id A unique id for this deprecation. The id can be
-            used by Ember debugging tools to change the behavior (raise, log or silence)
-            for that specific deprecation. The id should be namespaced by dots, e.g.
-            "view.helper.select".
-          @param {string} options.until The version of Ember when this deprecation
-            warning will be removed.
-          @param {String} [options.url] An optional url to the transition guide on the
-            emberjs.com website.
-          @static
-          @public
-          @since 1.0.0
-        */
-        deprecate = function deprecate(message, test, options) {
-            if (_emberEnvironment.ENV._ENABLE_DEPRECATION_OPTIONS_SUPPORT !== true) {
+            });
+            registerHandler(function raiseOnDeprecation(message, options, next) {
+                if (_environment.ENV.RAISE_ON_DEPRECATION) {
+                    let updatedMessage = formatMessage(message);
+                    throw new Error(updatedMessage);
+                } else {
+                    next(message, options);
+                }
+            });
+            exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+            exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+            exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+            /**
+             @module @ember/application
+             @public
+             */
+            /**
+              Display a deprecation warning with the provided message and a stack trace
+              (Chrome and Firefox only).
+                 * In a production build, this method is defined as an empty function (NOP).
+              Uses of this method in Ember itself are stripped from the ember.prod.js build.
+                 @method deprecate
+              @for @ember/application/deprecations
+              @param {String} message A description of the deprecation.
+              @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+              @param {Object} options
+              @param {String} options.id A unique id for this deprecation. The id can be
+                used by Ember debugging tools to change the behavior (raise, log or silence)
+                for that specific deprecation. The id should be namespaced by dots, e.g.
+                "view.helper.select".
+              @param {string} options.until The version of Ember when this deprecation
+                warning will be removed.
+              @param {String} [options.url] An optional url to the transition guide on the
+                emberjs.com website.
+              @static
+              @public
+              @since 1.0.0
+            */
+            deprecate = function deprecate(message, test, options) {
                 (0, _index.assert)(missingOptionsDeprecation, !!(options && (options.id || options.until)));
                 (0, _index.assert)(missingOptionsIdDeprecation, !!options.id);
                 (0, _index.assert)(missingOptionsUntilDeprecation, !!options.until);
-            }
-            if (_deprecatedFeatures.DEPRECATE_OPTIONS_MISSING && (!options || !options.id && !options.until) && _emberEnvironment.ENV._ENABLE_DEPRECATION_OPTIONS_SUPPORT === true) {
-                deprecate(missingOptionsDeprecation, false, {
-                    id: 'ember-debug.deprecate-options-missing',
-                    until: '3.0.0',
-                    url: 'https://emberjs.com/deprecations/v2.x/#toc_ember-debug-function-options'
-                });
-            }
-            if (_deprecatedFeatures.DEPRECATE_ID_MISSING && options && !options.id && _emberEnvironment.ENV._ENABLE_DEPRECATION_OPTIONS_SUPPORT === true) {
-                deprecate(missingOptionsIdDeprecation, false, {
-                    id: 'ember-debug.deprecate-id-missing',
-                    until: '3.0.0',
-                    url: 'https://emberjs.com/deprecations/v2.x/#toc_ember-debug-function-options'
-                });
-            }
-            if (_deprecatedFeatures.DEPRECATE_UNTIL_MISSING && options && !options.until && _emberEnvironment.ENV._ENABLE_DEPRECATION_OPTIONS_SUPPORT === true) {
-                deprecate(missingOptionsUntilDeprecation, !!(options && options.until), {
-                    id: 'ember-debug.deprecate-until-missing',
-                    until: '3.0.0',
-                    url: 'https://emberjs.com/deprecations/v2.x/#toc_ember-debug-function-options'
-                });
-            }
-            (0, _handlers.invoke)('deprecate', message, test, options);
-        };
-    }
+                (0, _handlers.invoke)('deprecate', message, test, options);
+            };
+        }
     exports.default = deprecate;
     exports.registerHandler = registerHandler;
     exports.missingOptionsDeprecation = missingOptionsDeprecation;
     exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
     exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
 });
-enifed('@ember/debug/lib/handlers', ['exports'], function (exports) {
-    'use strict';
+enifed("@ember/debug/lib/handlers", ["exports"], function (exports) {
+    "use strict";
 
-    var HANDLERS = exports.HANDLERS = {};
-    var registerHandler = function () {};
-    var invoke = function () {};
-    if (true) {
-        exports.registerHandler = registerHandler = function registerHandler(type, callback) {
-            var nextHandler = HANDLERS[type] || function () {};
-            HANDLERS[type] = function (message, options) {
-                callback(message, options, nextHandler);
+    let HANDLERS = exports.HANDLERS = {};
+    let registerHandler = () => {};
+    let invoke = () => {};
+    if (true /* DEBUG */) {
+            exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+                let nextHandler = HANDLERS[type] || (() => {});
+                HANDLERS[type] = (message, options) => {
+                    callback(message, options, nextHandler);
+                };
             };
-        };
-        exports.invoke = invoke = function invoke(type, message, test, options) {
-            if (test) {
-                return;
-            }
-            var handlerForType = HANDLERS[type];
-            if (handlerForType) {
-                handlerForType(message, options);
-            }
-        };
-    }
+            exports.invoke = invoke = function invoke(type, message, test, options) {
+                if (test) {
+                    return;
+                }
+                let handlerForType = HANDLERS[type];
+                if (handlerForType) {
+                    handlerForType(message, options);
+                }
+            };
+        }
     exports.registerHandler = registerHandler;
     exports.invoke = invoke;
 });
@@ -609,7 +573,7 @@ enifed("@ember/debug/lib/testing", ["exports"], function (exports) {
 
     exports.isTesting = isTesting;
     exports.setTesting = setTesting;
-    var testing = false;
+    let testing = false;
     function isTesting() {
         return testing;
     }
@@ -617,165 +581,97 @@ enifed("@ember/debug/lib/testing", ["exports"], function (exports) {
         testing = !!value;
     }
 });
-enifed('@ember/debug/lib/warn', ['exports', 'ember-environment', '@ember/debug/index', '@ember/debug/lib/deprecate', '@ember/debug/lib/handlers'], function (exports, _emberEnvironment, _index, _deprecate, _handlers) {
-    'use strict';
-
-    exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = undefined;
-
-    var registerHandler = function () {};
-    var warn = function () {};
-    var missingOptionsDeprecation = void 0;
-    var missingOptionsIdDeprecation = void 0;
-    /**
-    @module @ember/debug
-    */
-    if (true) {
-        /**
-          Allows for runtime registration of handler functions that override the default warning behavior.
-          Warnings are invoked by calls made to [@ember/debug/warn](https://emberjs.com/api/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
-          The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
-          default warning behavior.
-             ```javascript
-          import { registerWarnHandler } from '@ember/debug';
-             // next is not called, so no warnings get the default behavior
-          registerWarnHandler(() => {});
-          ```
-             The handler function takes the following arguments:
-             <ul>
-            <li> <code>message</code> - The message received from the warn call. </li>
-            <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
-              <ul>
-                <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
-              </ul>
-            <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-          </ul>
-             @public
-          @static
-          @method registerWarnHandler
-          @for @ember/debug
-          @param handler {Function} A function to handle warnings.
-          @since 2.1.0
-        */
-        exports.registerHandler = registerHandler = function registerHandler(handler) {
-            (0, _handlers.registerHandler)('warn', handler);
-        };
-        registerHandler(function logWarning(message) {
-            /* eslint-disable no-console */
-            console.warn('WARNING: ' + message);
-            if (console.trace) {
-                console.trace();
-            }
-            /* eslint-enable no-console */
-        });
-        exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
-        exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
-        /**
-          Display a warning with the provided message.
-             * In a production build, this method is defined as an empty function (NOP).
-          Uses of this method in Ember itself are stripped from the ember.prod.js build.
-             @method warn
-          @for @ember/debug
-          @static
-          @param {String} message A warning to display.
-          @param {Boolean} test An optional boolean. If falsy, the warning
-            will be displayed.
-          @param {Object} options An object that can be used to pass a unique
-            `id` for this warning.  The `id` can be used by Ember debugging tools
-            to change the behavior (raise, log, or silence) for that specific warning.
-            The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
-          @public
-          @since 1.0.0
-        */
-        warn = function warn(message, test, options) {
-            if (arguments.length === 2 && typeof test === 'object') {
-                options = test;
-                test = false;
-            }
-            if (_emberEnvironment.ENV._ENABLE_WARN_OPTIONS_SUPPORT !== true) {
-                (0, _index.assert)(missingOptionsDeprecation, !!options);
-                (0, _index.assert)(missingOptionsIdDeprecation, !!(options && options.id));
-            }
-            if (!options && _emberEnvironment.ENV._ENABLE_WARN_OPTIONS_SUPPORT === true) {
-                (0, _deprecate.default)(missingOptionsDeprecation, false, {
-                    id: 'ember-debug.warn-options-missing',
-                    until: '3.0.0',
-                    url: 'https://emberjs.com/deprecations/v2.x/#toc_ember-debug-function-options'
-                });
-            }
-            if (options && !options.id && _emberEnvironment.ENV._ENABLE_WARN_OPTIONS_SUPPORT === true) {
-                (0, _deprecate.default)(missingOptionsIdDeprecation, false, {
-                    id: 'ember-debug.warn-id-missing',
-                    until: '3.0.0',
-                    url: 'https://emberjs.com/deprecations/v2.x/#toc_ember-debug-function-options'
-                });
-            }
-            (0, _handlers.invoke)('warn', message, test, options);
-        };
-    }
-    exports.default = warn;
-    exports.registerHandler = registerHandler;
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-    exports.missingOptionsDeprecation = missingOptionsDeprecation;
-});
-enifed('ember-babel', ['exports'], function (exports) {
+enifed('@ember/debug/lib/warn', ['exports', '@ember/debug/index', '@ember/debug/lib/handlers'], function (exports, _index, _handlers) {
   'use strict';
 
-  exports.classCallCheck = classCallCheck;
-  exports.inherits = inherits;
-  exports.taggedTemplateLiteralLoose = taggedTemplateLiteralLoose;
-  exports.createClass = createClass;
-  var create = Object.create;
-  var setPrototypeOf = Object.setPrototypeOf;
-  var defineProperty = Object.defineProperty;
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = undefined;
 
-  function classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError('Cannot call a class as a function');
+  let registerHandler = () => {};
+  let warn = () => {};
+  let missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+  if (true /* DEBUG */) {
+      /**
+        Allows for runtime registration of handler functions that override the default warning behavior.
+        Warnings are invoked by calls made to [@ember/debug/warn](https://emberjs.com/api/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+        The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+        default warning behavior.
+           ```javascript
+        import { registerWarnHandler } from '@ember/debug';
+           // next is not called, so no warnings get the default behavior
+        registerWarnHandler(() => {});
+        ```
+           The handler function takes the following arguments:
+           <ul>
+          <li> <code>message</code> - The message received from the warn call. </li>
+          <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+            <ul>
+              <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+            </ul>
+          <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+        </ul>
+           @public
+        @static
+        @method registerWarnHandler
+        @for @ember/debug
+        @param handler {Function} A function to handle warnings.
+        @since 2.1.0
+      */
+      exports.registerHandler = registerHandler = function registerHandler(handler) {
+        (0, _handlers.registerHandler)('warn', handler);
+      };
+      registerHandler(function logWarning(message) {
+        /* eslint-disable no-console */
+        console.warn(`WARNING: ${message}`);
+        if (console.trace) {
+          console.trace();
+        }
+        /* eslint-enable no-console */
+      });
+      exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+      exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+      /**
+        Display a warning with the provided message.
+           * In a production build, this method is defined as an empty function (NOP).
+        Uses of this method in Ember itself are stripped from the ember.prod.js build.
+           ```javascript
+        import { warn } from '@ember/debug';
+        import tomsterCount from './tomster-counter'; // a module in my project
+           // Log a warning if we have more than 3 tomsters
+        warn('Too many tomsters!', tomsterCount <= 3, {
+          id: 'ember-debug.too-many-tomsters'
+        });
+        ```
+           @method warn
+        @for @ember/debug
+        @static
+        @param {String} message A warning to display.
+        @param {Boolean} test An optional boolean. If falsy, the warning
+          will be displayed.
+        @param {Object} options An object that can be used to pass a unique
+          `id` for this warning.  The `id` can be used by Ember debugging tools
+          to change the behavior (raise, log, or silence) for that specific warning.
+          The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+        @public
+        @since 1.0.0
+      */
+      warn = function warn(message, test, options) {
+        if (arguments.length === 2 && typeof test === 'object') {
+          options = test;
+          test = false;
+        }
+        (0, _index.assert)(missingOptionsDeprecation, !!options);
+        (0, _index.assert)(missingOptionsIdDeprecation, !!(options && options.id));
+        (0, _handlers.invoke)('warn', message, test, options);
+      };
     }
-  }
-
-  function inherits(subClass, superClass) {
-    if (typeof superClass !== 'function' && superClass !== null) {
-      throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-    }
-    subClass.prototype = create(superClass === null ? null : superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass !== null) setPrototypeOf(subClass, superClass);
-  }
-
-  function taggedTemplateLiteralLoose(strings, raw) {
-    strings.raw = raw;
-    return strings;
-  }
-
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ('value' in descriptor) descriptor.writable = true;
-      defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  function createClass(Constructor, protoProps, staticProps) {
-    if (protoProps !== undefined) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps !== undefined) defineProperties(Constructor, staticProps);
-    return Constructor;
-  }
-
-  var possibleConstructorReturn = exports.possibleConstructorReturn = function (self, call) {
-    if (!self) {
-      throw new ReferenceError('this hasn\'t been initialized - super() hasn\'t been called');
-    }
-    return call !== null && typeof call === 'object' || typeof call === 'function' ? call : self;
-  };
+  exports.default = warn;
+  exports.registerHandler = registerHandler;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
 });
 enifed('ember-testing/index', ['exports', 'ember-testing/lib/test', 'ember-testing/lib/adapters/adapter', 'ember-testing/lib/setup_for_testing', 'ember-testing/lib/adapters/qunit', 'ember-testing/lib/support', 'ember-testing/lib/ext/application', 'ember-testing/lib/ext/rsvp', 'ember-testing/lib/helpers', 'ember-testing/lib/initializers'], function (exports, _test, _adapter, _setup_for_testing, _qunit) {
   'use strict';
@@ -806,7 +702,7 @@ enifed('ember-testing/index', ['exports', 'ember-testing/lib/test', 'ember-testi
     }
   });
 });
-enifed('ember-testing/lib/adapters/adapter', ['exports', 'ember-runtime'], function (exports, _emberRuntime) {
+enifed('ember-testing/lib/adapters/adapter', ['exports', '@ember/-internals/runtime'], function (exports, _runtime) {
   'use strict';
 
   function K() {
@@ -824,7 +720,7 @@ enifed('ember-testing/lib/adapters/adapter', ['exports', 'ember-runtime'], funct
     @class TestAdapter
     @public
   */
-  exports.default = _emberRuntime.Object.extend({
+  exports.default = _runtime.Object.extend({
     /**
       This callback will be called whenever an async operation is about to start.
        Override this to call your framework's methods that handle async
@@ -855,19 +751,20 @@ enifed('ember-testing/lib/adapters/adapter', ['exports', 'ember-runtime'], funct
       @method exception
       @param {String} error The exception to be raised.
     */
-    exception: function (error) {
+    exception(error) {
       throw error;
     }
   });
 });
-enifed('ember-testing/lib/adapters/qunit', ['exports', 'ember-utils', 'ember-testing/lib/adapters/adapter'], function (exports, _emberUtils, _adapter) {
+enifed('ember-testing/lib/adapters/qunit', ['exports', '@ember/-internals/utils', 'ember-testing/lib/adapters/adapter'], function (exports, _utils, _adapter) {
   'use strict';
 
   exports.default = _adapter.default.extend({
-    init: function () {
+    init() {
       this.doneCallbacks = [];
     },
-    asyncStart: function () {
+
+    asyncStart() {
       if (typeof QUnit.stop === 'function') {
         // very old QUnit version
         QUnit.stop();
@@ -875,22 +772,22 @@ enifed('ember-testing/lib/adapters/qunit', ['exports', 'ember-utils', 'ember-tes
         this.doneCallbacks.push(QUnit.config.current ? QUnit.config.current.assert.async() : null);
       }
     },
-    asyncEnd: function () {
+    asyncEnd() {
       // checking for QUnit.stop here (even though we _need_ QUnit.start) because
       // QUnit.start() still exists in QUnit 2.x (it just throws an error when calling
       // inside a test context)
       if (typeof QUnit.stop === 'function') {
         QUnit.start();
       } else {
-        var done = this.doneCallbacks.pop();
+        let done = this.doneCallbacks.pop();
         // This can be null if asyncStart() was called outside of a test
         if (done) {
           done();
         }
       }
     },
-    exception: function (error) {
-      QUnit.config.current.assert.ok(false, (0, _emberUtils.inspect)(error));
+    exception(error) {
+      QUnit.config.current.assert.ok(false, (0, _utils.inspect)(error));
     }
   });
 });
@@ -901,19 +798,19 @@ enifed('ember-testing/lib/events', ['exports', '@ember/runloop', '@ember/polyfil
   exports.fireEvent = fireEvent;
 
 
-  var DEFAULT_EVENT_OPTIONS = { canBubble: true, cancelable: true };
-  var KEYBOARD_EVENT_TYPES = ['keydown', 'keypress', 'keyup'];
-  var MOUSE_EVENT_TYPES = ['click', 'mousedown', 'mouseup', 'dblclick', 'mouseenter', 'mouseleave', 'mousemove', 'mouseout', 'mouseover'];
+  const DEFAULT_EVENT_OPTIONS = { canBubble: true, cancelable: true };
+  const KEYBOARD_EVENT_TYPES = ['keydown', 'keypress', 'keyup'];
+  const MOUSE_EVENT_TYPES = ['click', 'mousedown', 'mouseup', 'dblclick', 'mouseenter', 'mouseleave', 'mousemove', 'mouseout', 'mouseover'];
 
   function focus(el) {
     if (!el) {
       return;
     }
     if (el.isContentEditable || (0, _isFormControl.default)(el)) {
-      var type = el.getAttribute('type');
+      let type = el.getAttribute('type');
       if (type !== 'checkbox' && type !== 'radio' && type !== 'hidden') {
         (0, _runloop.run)(null, function () {
-          var browserIsNotFocused = document.hasFocus && !document.hasFocus();
+          let browserIsNotFocused = document.hasFocus && !document.hasFocus();
 
           // makes `document.activeElement` be `element`. If the browser is focused, it also fires a focus event
           el.focus();
@@ -934,20 +831,18 @@ enifed('ember-testing/lib/events', ['exports', '@ember/runloop', '@ember/polyfil
     }
   }
 
-  function fireEvent(element, type) {
-    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
+  function fireEvent(element, type, options = {}) {
     if (!element) {
       return;
     }
-    var event = void 0;
+    let event;
     if (KEYBOARD_EVENT_TYPES.indexOf(type) > -1) {
       event = buildKeyboardEvent(type, options);
     } else if (MOUSE_EVENT_TYPES.indexOf(type) > -1) {
-      var rect = element.getBoundingClientRect();
-      var x = rect.left + 1;
-      var y = rect.top + 1;
-      var simulatedCoordinates = {
+      let rect = element.getBoundingClientRect();
+      let x = rect.left + 1;
+      let y = rect.top + 1;
+      let simulatedCoordinates = {
         screenX: x + 5,
         screenY: y + 95,
         clientX: x,
@@ -960,14 +855,12 @@ enifed('ember-testing/lib/events', ['exports', '@ember/runloop', '@ember/polyfil
     element.dispatchEvent(event);
   }
 
-  function buildBasicEvent(type) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    var event = document.createEvent('Events');
+  function buildBasicEvent(type, options = {}) {
+    let event = document.createEvent('Events');
 
     // Event.bubbles is read only
-    var bubbles = options.bubbles !== undefined ? options.bubbles : true;
-    var cancelable = options.cancelable !== undefined ? options.cancelable : true;
+    let bubbles = options.bubbles !== undefined ? options.bubbles : true;
+    let cancelable = options.cancelable !== undefined ? options.cancelable : true;
 
     delete options.bubbles;
     delete options.cancelable;
@@ -977,13 +870,11 @@ enifed('ember-testing/lib/events', ['exports', '@ember/runloop', '@ember/polyfil
     return event;
   }
 
-  function buildMouseEvent(type) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    var event = void 0;
+  function buildMouseEvent(type, options = {}) {
+    let event;
     try {
       event = document.createEvent('MouseEvents');
-      var eventOpts = (0, _polyfills.assign)({}, DEFAULT_EVENT_OPTIONS, options);
+      let eventOpts = (0, _polyfills.assign)({}, DEFAULT_EVENT_OPTIONS, options);
       event.initMouseEvent(type, eventOpts.canBubble, eventOpts.cancelable, window, eventOpts.detail, eventOpts.screenX, eventOpts.screenY, eventOpts.clientX, eventOpts.clientY, eventOpts.ctrlKey, eventOpts.altKey, eventOpts.shiftKey, eventOpts.metaKey, eventOpts.button, eventOpts.relatedTarget);
     } catch (e) {
       event = buildBasicEvent(type, options);
@@ -991,13 +882,11 @@ enifed('ember-testing/lib/events', ['exports', '@ember/runloop', '@ember/polyfil
     return event;
   }
 
-  function buildKeyboardEvent(type) {
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-    var event = void 0;
+  function buildKeyboardEvent(type, options = {}) {
+    let event;
     try {
       event = document.createEvent('KeyEvents');
-      var eventOpts = (0, _polyfills.assign)({}, DEFAULT_EVENT_OPTIONS, options);
+      let eventOpts = (0, _polyfills.assign)({}, DEFAULT_EVENT_OPTIONS, options);
       event.initKeyEvent(type, eventOpts.canBubble, eventOpts.cancelable, window, eventOpts.ctrlKey, eventOpts.altKey, eventOpts.shiftKey, eventOpts.metaKey, eventOpts.keyCode, eventOpts.charCode);
     } catch (e) {
       event = buildBasicEvent(type, options);
@@ -1046,7 +935,21 @@ enifed('ember-testing/lib/ext/application', ['@ember/application', 'ember-testin
     */
     testing: false,
 
-    setupForTesting: function () {
+    /**
+      This hook defers the readiness of the application, so that you can start
+      the app when your tests are ready to run. It also sets the router's
+      location to 'none', so that the window's location will not be modified
+      (preventing both accidental leaking of state between tests and interference
+      with your testing framework). `setupForTesting` should only be called after
+      setting a custom `router` class (for example `App.Router = Router.extend(`).
+       Example:
+       ```
+      App.setupForTesting();
+      ```
+       @method setupForTesting
+      @public
+    */
+    setupForTesting() {
       (0, _setup_for_testing.default)();
 
       this.testing = true;
@@ -1055,7 +958,6 @@ enifed('ember-testing/lib/ext/application', ['@ember/application', 'ember-testin
         location: 'none'
       });
     },
-
 
     /**
       This will be used as the container to inject the test helpers into. By
@@ -1068,7 +970,22 @@ enifed('ember-testing/lib/ext/application', ['@ember/application', 'ember-testin
     */
     helperContainer: null,
 
-    injectTestHelpers: function (helperContainer) {
+    /**
+      This injects the test helpers into the `helperContainer` object. If an object is provided
+      it will be used as the helperContainer. If `helperContainer` is not set it will default
+      to `window`. If a function of the same name has already been defined it will be cached
+      (so that it can be reset if the helper is removed with `unregisterHelper` or
+      `removeTestHelpers`).
+       Any callbacks registered with `onInjectHelpers` will be called once the
+      helpers have been injected.
+       Example:
+      ```
+      App.injectTestHelpers();
+      ```
+       @method injectTestHelpers
+      @public
+    */
+    injectTestHelpers(helperContainer) {
       if (helperContainer) {
         this.helperContainer = helperContainer;
       } else {
@@ -1076,14 +993,14 @@ enifed('ember-testing/lib/ext/application', ['@ember/application', 'ember-testin
       }
 
       this.reopen({
-        willDestroy: function () {
-          this._super.apply(this, arguments);
+        willDestroy() {
+          this._super(...arguments);
           this.removeTestHelpers();
         }
       });
 
       this.testHelpers = {};
-      for (var name in _helpers.helpers) {
+      for (let name in _helpers.helpers) {
         this.originalMethods[name] = this.helperContainer[name];
         this.testHelpers[name] = this.helperContainer[name] = helper(this, name);
         protoWrap(_promise.default.prototype, name, helper(this, name), _helpers.helpers[name].meta.wait);
@@ -1091,12 +1008,23 @@ enifed('ember-testing/lib/ext/application', ['@ember/application', 'ember-testin
 
       (0, _on_inject_helpers.invokeInjectHelpersCallbacks)(this);
     },
-    removeTestHelpers: function () {
+
+    /**
+      This removes all helpers that have been registered, and resets and functions
+      that were overridden by the helpers.
+       Example:
+       ```javascript
+      App.removeTestHelpers();
+      ```
+       @public
+      @method removeTestHelpers
+    */
+    removeTestHelpers() {
       if (!this.helperContainer) {
         return;
       }
 
-      for (var name in _helpers.helpers) {
+      for (let name in _helpers.helpers) {
         this.helperContainer[name] = this.originalMethods[name];
         delete _promise.default.prototype[name];
         delete this.testHelpers[name];
@@ -1109,11 +1037,7 @@ enifed('ember-testing/lib/ext/application', ['@ember/application', 'ember-testin
   // But still here for backwards compatibility
   // of helper chaining
   function protoWrap(proto, name, callback, isAsync) {
-    proto[name] = function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
+    proto[name] = function (...args) {
       if (isAsync) {
         return callback.apply(this, args);
       } else {
@@ -1125,57 +1049,41 @@ enifed('ember-testing/lib/ext/application', ['@ember/application', 'ember-testin
   }
 
   function helper(app, name) {
-    var fn = _helpers.helpers[name].method;
-    var meta = _helpers.helpers[name].meta;
+    let fn = _helpers.helpers[name].method;
+    let meta = _helpers.helpers[name].meta;
     if (!meta.wait) {
-      return function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          args[_key2] = arguments[_key2];
-        }
-
-        return fn.apply(app, [app].concat(args));
-      };
+      return (...args) => fn.apply(app, [app, ...args]);
     }
 
-    return function () {
-      for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args[_key3] = arguments[_key3];
-      }
-
-      var lastPromise = (0, _run.default)(function () {
-        return (0, _promise.resolve)((0, _promise.getLastPromise)());
-      });
+    return (...args) => {
+      let lastPromise = (0, _run.default)(() => (0, _promise.resolve)((0, _promise.getLastPromise)()));
 
       // wait for last helper's promise to resolve and then
       // execute. To be safe, we need to tell the adapter we're going
       // asynchronous here, because fn may not be invoked before we
       // return.
       (0, _adapter.asyncStart)();
-      return lastPromise.then(function () {
-        return fn.apply(app, [app].concat(args));
-      }).finally(_adapter.asyncEnd);
+      return lastPromise.then(() => fn.apply(app, [app, ...args])).finally(_adapter.asyncEnd);
     };
   }
 });
-enifed('ember-testing/lib/ext/rsvp', ['exports', 'ember-runtime', '@ember/runloop', '@ember/debug', 'ember-testing/lib/test/adapter'], function (exports, _emberRuntime, _runloop, _debug, _adapter) {
+enifed('ember-testing/lib/ext/rsvp', ['exports', '@ember/-internals/runtime', '@ember/runloop', '@ember/debug', 'ember-testing/lib/test/adapter'], function (exports, _runtime, _runloop, _debug, _adapter) {
   'use strict';
 
-  _emberRuntime.RSVP.configure('async', function (callback, promise) {
+  _runtime.RSVP.configure('async', function (callback, promise) {
     // if schedule will cause autorun, we need to inform adapter
     if ((0, _debug.isTesting)() && !_runloop.backburner.currentInstance) {
       (0, _adapter.asyncStart)();
-      _runloop.backburner.schedule('actions', function () {
+      _runloop.backburner.schedule('actions', () => {
         (0, _adapter.asyncEnd)();
         callback(promise);
       });
     } else {
-      _runloop.backburner.schedule('actions', function () {
-        return callback(promise);
-      });
+      _runloop.backburner.schedule('actions', () => callback(promise));
     }
   });
 
-  exports.default = _emberRuntime.RSVP;
+  exports.default = _runtime.RSVP;
 });
 enifed('ember-testing/lib/helpers', ['ember-testing/lib/test/helpers', 'ember-testing/lib/helpers/and_then', 'ember-testing/lib/helpers/click', 'ember-testing/lib/helpers/current_path', 'ember-testing/lib/helpers/current_route_name', 'ember-testing/lib/helpers/current_url', 'ember-testing/lib/helpers/fill_in', 'ember-testing/lib/helpers/find', 'ember-testing/lib/helpers/find_with_assert', 'ember-testing/lib/helpers/key_event', 'ember-testing/lib/helpers/pause_test', 'ember-testing/lib/helpers/trigger_event', 'ember-testing/lib/helpers/visit', 'ember-testing/lib/helpers/wait'], function (_helpers, _and_then, _click, _current_path, _current_route_name, _current_url, _fill_in, _find, _find_with_assert, _key_event, _pause_test, _trigger_event, _visit, _wait) {
   'use strict';
@@ -1200,7 +1108,7 @@ enifed('ember-testing/lib/helpers/-is-form-control', ['exports'], function (expo
   'use strict';
 
   exports.default = isFormControl;
-  var FORM_CONTROL_TAGS = ['INPUT', 'BUTTON', 'SELECT', 'TEXTAREA'];
+  const FORM_CONTROL_TAGS = ['INPUT', 'BUTTON', 'SELECT', 'TEXTAREA'];
 
   /**
     @private
@@ -1208,9 +1116,7 @@ enifed('ember-testing/lib/helpers/-is-form-control', ['exports'], function (expo
     @returns {boolean} `true` when the element is a form control, `false` otherwise
   */
   function isFormControl(element) {
-    var tagName = element.tagName,
-        type = element.type;
-
+    let { tagName, type } = element;
 
     if (type === 'hidden') {
       return false;
@@ -1252,8 +1158,8 @@ enifed('ember-testing/lib/helpers/click', ['exports', 'ember-testing/lib/events'
     @public
   */
   function click(app, selector, context) {
-    var $el = app.testHelpers.findWithAssert(selector, context);
-    var el = $el[0];
+    let $el = app.testHelpers.findWithAssert(selector, context);
+    let el = $el[0];
 
     (0, _events.fireEvent)(el, 'mousedown');
 
@@ -1267,7 +1173,7 @@ enifed('ember-testing/lib/helpers/click', ['exports', 'ember-testing/lib/events'
     @module ember
     */
 });
-enifed('ember-testing/lib/helpers/current_path', ['exports', 'ember-metal'], function (exports, _emberMetal) {
+enifed('ember-testing/lib/helpers/current_path', ['exports', '@ember/-internals/metal'], function (exports, _metal) {
   'use strict';
 
   exports.default = currentPath;
@@ -1292,13 +1198,13 @@ enifed('ember-testing/lib/helpers/current_path', ['exports', 'ember-metal'], fun
   @public
   */
   function currentPath(app) {
-    var routingService = app.__container__.lookup('service:-routing');
-    return (0, _emberMetal.get)(routingService, 'currentPath');
+    let routingService = app.__container__.lookup('service:-routing');
+    return (0, _metal.get)(routingService, 'currentPath');
   } /**
     @module ember
     */
 });
-enifed('ember-testing/lib/helpers/current_route_name', ['exports', 'ember-metal'], function (exports, _emberMetal) {
+enifed('ember-testing/lib/helpers/current_route_name', ['exports', '@ember/-internals/metal'], function (exports, _metal) {
   'use strict';
 
   exports.default = currentRouteName;
@@ -1321,13 +1227,13 @@ enifed('ember-testing/lib/helpers/current_route_name', ['exports', 'ember-metal'
   @public
   */
   function currentRouteName(app) {
-    var routingService = app.__container__.lookup('service:-routing');
-    return (0, _emberMetal.get)(routingService, 'currentRouteName');
+    let routingService = app.__container__.lookup('service:-routing');
+    return (0, _metal.get)(routingService, 'currentRouteName');
   } /**
     @module ember
     */
 });
-enifed('ember-testing/lib/helpers/current_url', ['exports', 'ember-metal'], function (exports, _emberMetal) {
+enifed('ember-testing/lib/helpers/current_url', ['exports', '@ember/-internals/metal'], function (exports, _metal) {
   'use strict';
 
   exports.default = currentURL;
@@ -1352,8 +1258,8 @@ enifed('ember-testing/lib/helpers/current_url', ['exports', 'ember-metal'], func
   @public
   */
   function currentURL(app) {
-    var router = app.__container__.lookup('router:main');
-    return (0, _emberMetal.get)(router, 'location').getURL();
+    let router = app.__container__.lookup('router:main');
+    return (0, _metal.get)(router, 'location').getURL();
   } /**
     @module ember
     */
@@ -1386,9 +1292,7 @@ enifed('ember-testing/lib/helpers/fill_in', ['exports', 'ember-testing/lib/event
   @module ember
   */
   function fillIn(app, selector, contextOrText, text) {
-    var $el = void 0,
-        el = void 0,
-        context = void 0;
+    let $el, el, context;
     if (text === undefined) {
       text = contextOrText;
     } else {
@@ -1410,7 +1314,7 @@ enifed('ember-testing/lib/helpers/fill_in', ['exports', 'ember-testing/lib/event
     return app.testHelpers.wait();
   }
 });
-enifed('ember-testing/lib/helpers/find', ['exports', 'ember-metal', '@ember/debug', 'ember-views'], function (exports, _emberMetal, _debug, _emberViews) {
+enifed('ember-testing/lib/helpers/find', ['exports', '@ember/-internals/metal', '@ember/debug', '@ember/-internals/views'], function (exports, _metal, _debug, _views) {
   'use strict';
 
   exports.default = find;
@@ -1440,11 +1344,11 @@ enifed('ember-testing/lib/helpers/find', ['exports', 'ember-metal', '@ember/debu
     @public
   */
   function find(app, selector, context) {
-    if (_emberViews.jQueryDisabled) {
-      (true && !(false) && (0, _debug.assert)('If jQuery is disabled, please import and use helpers from @ember/test-helpers [https://github.com/emberjs/ember-test-helpers]. Note: `find` is not an available helper.'));
+    if (_views.jQueryDisabled) {
+      true && !false && (0, _debug.assert)('If jQuery is disabled, please import and use helpers from @ember/test-helpers [https://github.com/emberjs/ember-test-helpers]. Note: `find` is not an available helper.');
     }
-    var $el = void 0;
-    context = context || (0, _emberMetal.get)(app, 'rootElement');
+    let $el;
+    context = context || (0, _metal.get)(app, 'rootElement');
     $el = app.$(selector, context);
     return $el;
   } /**
@@ -1483,7 +1387,7 @@ enifed('ember-testing/lib/helpers/find_with_assert', ['exports'], function (expo
     @public
   */
   function findWithAssert(app, selector, context) {
-    var $el = app.testHelpers.find(selector, context);
+    let $el = app.testHelpers.find(selector, context);
     if ($el.length === 0) {
       throw new Error('Element ' + selector + ' not found.');
     }
@@ -1514,8 +1418,7 @@ enifed("ember-testing/lib/helpers/key_event", ["exports"], function (exports) {
     @public
   */
   function keyEvent(app, selector, contextOrType, typeOrKeyCode, keyCode) {
-    var context = void 0,
-        type = void 0;
+    let context, type;
 
     if (keyCode === undefined) {
       context = null;
@@ -1527,12 +1430,12 @@ enifed("ember-testing/lib/helpers/key_event", ["exports"], function (exports) {
     }
 
     return app.testHelpers.triggerEvent(selector, context, type, {
-      keyCode: keyCode,
+      keyCode,
       which: keyCode
     });
   }
 });
-enifed('ember-testing/lib/helpers/pause_test', ['exports', 'ember-runtime', '@ember/debug'], function (exports, _emberRuntime, _debug) {
+enifed('ember-testing/lib/helpers/pause_test', ['exports', '@ember/-internals/runtime', '@ember/debug'], function (exports, _runtime, _debug) {
   'use strict';
 
   exports.resumeTest = resumeTest;
@@ -1540,7 +1443,7 @@ enifed('ember-testing/lib/helpers/pause_test', ['exports', 'ember-runtime', '@em
   /**
   @module ember
   */
-  var resume = void 0;
+  let resume;
 
   /**
    Resumes a test paused by `pauseTest`.
@@ -1550,7 +1453,7 @@ enifed('ember-testing/lib/helpers/pause_test', ['exports', 'ember-runtime', '@em
    @public
   */
   function resumeTest() {
-    (true && !(resume) && (0, _debug.assert)('Testing has not been paused. There is nothing to resume.', resume));
+    true && !resume && (0, _debug.assert)('Testing has not been paused. There is nothing to resume.', resume);
 
     resume();
     resume = undefined;
@@ -1596,7 +1499,7 @@ enifed('ember-testing/lib/helpers/pause_test', ['exports', 'ember-runtime', '@em
   function pauseTest() {
     (0, _debug.info)('Testing paused. Use `resumeTest()` to continue.');
 
-    return new _emberRuntime.RSVP.Promise(function (resolve) {
+    return new _runtime.RSVP.Promise(resolve => {
       resume = resolve;
     }, 'TestAdapter paused promise');
   }
@@ -1627,10 +1530,8 @@ enifed('ember-testing/lib/helpers/trigger_event', ['exports', 'ember-testing/lib
    @public
   */
   function triggerEvent(app, selector, contextOrType, typeOrOptions, possibleOptions) {
-    var arity = arguments.length;
-    var context = void 0,
-        type = void 0,
-        options = void 0;
+    let arity = arguments.length;
+    let context, type, options;
 
     if (arity === 3) {
       // context and options are optional, so this is
@@ -1659,8 +1560,8 @@ enifed('ember-testing/lib/helpers/trigger_event', ['exports', 'ember-testing/lib
       options = possibleOptions;
     }
 
-    var $el = app.testHelpers.findWithAssert(selector, context);
-    var el = $el[0];
+    let $el = app.testHelpers.findWithAssert(selector, context);
+    let el = $el[0];
 
     (0, _events.fireEvent)(el, type, options);
 
@@ -1694,10 +1595,10 @@ enifed('ember-testing/lib/helpers/visit', ['exports', '@ember/runloop'], functio
     @public
   */
   function visit(app, url) {
-    var router = app.__container__.lookup('router:main');
-    var shouldHandleURL = false;
+    let router = app.__container__.lookup('router:main');
+    let shouldHandleURL = false;
 
-    app.boot().then(function () {
+    app.boot().then(() => {
       router.location.setURL(url);
 
       if (shouldHandleURL) {
@@ -1706,9 +1607,9 @@ enifed('ember-testing/lib/helpers/visit', ['exports', '@ember/runloop'], functio
     });
 
     if (app._readinessDeferrals > 0) {
-      router['initialURL'] = url;
+      router.initialURL = url;
       (0, _runloop.run)(app, 'advanceReadiness');
-      delete router['initialURL'];
+      delete router.initialURL;
     } else {
       shouldHandleURL = true;
     }
@@ -1716,7 +1617,7 @@ enifed('ember-testing/lib/helpers/visit', ['exports', '@ember/runloop'], functio
     return app.testHelpers.wait();
   }
 });
-enifed('ember-testing/lib/helpers/wait', ['exports', 'ember-testing/lib/test/waiters', 'ember-runtime', '@ember/runloop', 'ember-testing/lib/test/pending_requests'], function (exports, _waiters, _emberRuntime, _runloop, _pending_requests) {
+enifed('ember-testing/lib/helpers/wait', ['exports', 'ember-testing/lib/test/waiters', '@ember/-internals/runtime', '@ember/runloop', 'ember-testing/lib/test/pending_requests'], function (exports, _waiters, _runtime, _runloop, _pending_requests) {
   'use strict';
 
   exports.default = wait;
@@ -1756,13 +1657,13 @@ enifed('ember-testing/lib/helpers/wait', ['exports', 'ember-testing/lib/test/wai
   @module ember
   */
   function wait(app, value) {
-    return new _emberRuntime.RSVP.Promise(function (resolve) {
-      var router = app.__container__.lookup('router:main');
+    return new _runtime.RSVP.Promise(function (resolve) {
+      let router = app.__container__.lookup('router:main');
 
       // Every 10ms, poll for the async thing to have finished
-      var watcher = setInterval(function () {
+      let watcher = setInterval(() => {
         // 1. If the router is loading, keep polling
-        var routerIsLoading = router._routerMicrolib && !!router._routerMicrolib.activeTransition;
+        let routerIsLoading = router._routerMicrolib && !!router._routerMicrolib.activeTransition;
         if (routerIsLoading) {
           return;
         }
@@ -1793,14 +1694,14 @@ enifed('ember-testing/lib/helpers/wait', ['exports', 'ember-testing/lib/test/wai
 enifed('ember-testing/lib/initializers', ['@ember/application'], function (_application) {
   'use strict';
 
-  var name = 'deferReadiness in `testing` mode';
+  let name = 'deferReadiness in `testing` mode';
 
   (0, _application.onLoad)('Ember.Application', function (Application) {
     if (!Application.initializers[name]) {
       Application.initializer({
         name: name,
 
-        initialize: function (application) {
+        initialize(application) {
           if (application.testing) {
             application.deferReadiness();
           }
@@ -1809,7 +1710,7 @@ enifed('ember-testing/lib/initializers', ['@ember/application'], function (_appl
     }
   });
 });
-enifed('ember-testing/lib/setup_for_testing', ['exports', '@ember/debug', 'ember-views', 'ember-testing/lib/test/adapter', 'ember-testing/lib/test/pending_requests', 'ember-testing/lib/adapters/adapter', 'ember-testing/lib/adapters/qunit'], function (exports, _debug, _emberViews, _adapter, _pending_requests, _adapter2, _qunit) {
+enifed('ember-testing/lib/setup_for_testing', ['exports', '@ember/debug', '@ember/-internals/views', 'ember-testing/lib/test/adapter', 'ember-testing/lib/test/pending_requests', 'ember-testing/lib/adapters/adapter', 'ember-testing/lib/adapters/qunit'], function (exports, _debug, _views, _adapter, _pending_requests, _adapter2, _qunit) {
   'use strict';
 
   exports.default = setupForTesting;
@@ -1832,31 +1733,31 @@ enifed('ember-testing/lib/setup_for_testing', ['exports', '@ember/debug', 'ember
   function setupForTesting() {
     (0, _debug.setTesting)(true);
 
-    var adapter = (0, _adapter.getAdapter)();
+    let adapter = (0, _adapter.getAdapter)();
     // if adapter is not manually set default to QUnit
     if (!adapter) {
-      (0, _adapter.setAdapter)(typeof self.QUnit === 'undefined' ? new _adapter2.default() : new _qunit.default());
+      (0, _adapter.setAdapter)(typeof self.QUnit === 'undefined' ? _adapter2.default.create() : _qunit.default.create());
     }
 
-    if (!_emberViews.jQueryDisabled) {
-      (0, _emberViews.jQuery)(document).off('ajaxSend', _pending_requests.incrementPendingRequests);
-      (0, _emberViews.jQuery)(document).off('ajaxComplete', _pending_requests.decrementPendingRequests);
+    if (!_views.jQueryDisabled) {
+      (0, _views.jQuery)(document).off('ajaxSend', _pending_requests.incrementPendingRequests);
+      (0, _views.jQuery)(document).off('ajaxComplete', _pending_requests.decrementPendingRequests);
 
       (0, _pending_requests.clearPendingRequests)();
 
-      (0, _emberViews.jQuery)(document).on('ajaxSend', _pending_requests.incrementPendingRequests);
-      (0, _emberViews.jQuery)(document).on('ajaxComplete', _pending_requests.decrementPendingRequests);
+      (0, _views.jQuery)(document).on('ajaxSend', _pending_requests.incrementPendingRequests);
+      (0, _views.jQuery)(document).on('ajaxComplete', _pending_requests.decrementPendingRequests);
     }
   }
 });
-enifed('ember-testing/lib/support', ['@ember/debug', 'ember-views', 'ember-browser-environment'], function (_debug, _emberViews, _emberBrowserEnvironment) {
+enifed('ember-testing/lib/support', ['@ember/debug', '@ember/-internals/views', '@ember/-internals/browser-environment'], function (_debug, _views, _browserEnvironment) {
   'use strict';
 
   /**
     @module ember
   */
 
-  var $ = _emberViews.jQuery;
+  const $ = _views.jQuery;
 
   /**
     This method creates a checkbox and triggers the click event to fire the
@@ -1867,11 +1768,11 @@ enifed('ember-testing/lib/support', ['@ember/debug', 'ember-views', 'ember-brows
     @method testCheckboxClick
   */
   function testCheckboxClick(handler) {
-    var input = document.createElement('input');
+    let input = document.createElement('input');
     $(input).attr('type', 'checkbox').css({ position: 'absolute', left: '-1000px', top: '-1000px' }).appendTo('body').on('click', handler).trigger('click').remove();
   }
 
-  if (_emberBrowserEnvironment.hasDOM && !_emberViews.jQueryDisabled) {
+  if (_browserEnvironment.hasDOM && !_views.jQueryDisabled) {
     $(function () {
       /*
         Determine whether a checkbox checked using jQuery's "click" method will have
@@ -1883,7 +1784,8 @@ enifed('ember-testing/lib/support', ['@ember/debug', 'ember-views', 'ember-brows
       testCheckboxClick(function () {
         if (!this.checked && !$.event.special.click) {
           $.event.special.click = {
-            trigger: function () {
+            // For checkbox, fire native event so checked state will be right
+            trigger() {
               if (this.nodeName === 'INPUT' && this.type === 'checkbox' && this.click) {
                 this.click();
                 return false;
@@ -1895,9 +1797,9 @@ enifed('ember-testing/lib/support', ['@ember/debug', 'ember-views', 'ember-brows
 
       // Try again to verify that the patch took effect or blow up.
       testCheckboxClick(function () {
-        (true && (0, _debug.warn)("clicked checkboxes should be checked! the jQuery patch didn't work", this.checked, {
+        true && (0, _debug.warn)("clicked checkboxes should be checked! the jQuery patch didn't work", this.checked, {
           id: 'ember-testing.test-checkbox-click'
-        }));
+        });
       });
     });
   }
@@ -1917,7 +1819,7 @@ enifed('ember-testing/lib/test', ['exports', 'ember-testing/lib/test/helpers', '
     @namespace Ember
     @public
   */
-  var Test = {
+  const Test = {
     /**
       Hash containing all known test helpers.
        @property _helpers
@@ -1968,7 +1870,7 @@ enifed('ember-testing/lib/test', ['exports', 'ember-testing/lib/test/helpers', '
 
   exports.default = Test;
 });
-enifed('ember-testing/lib/test/adapter', ['exports', 'ember-error-handling'], function (exports, _emberErrorHandling) {
+enifed('ember-testing/lib/test/adapter', ['exports', '@ember/-internals/error-handling'], function (exports, _errorHandling) {
   'use strict';
 
   exports.getAdapter = getAdapter;
@@ -1977,7 +1879,7 @@ enifed('ember-testing/lib/test/adapter', ['exports', 'ember-error-handling'], fu
   exports.asyncEnd = asyncEnd;
 
 
-  var adapter = void 0;
+  let adapter;
   function getAdapter() {
     return adapter;
   }
@@ -1985,9 +1887,9 @@ enifed('ember-testing/lib/test/adapter', ['exports', 'ember-error-handling'], fu
   function setAdapter(value) {
     adapter = value;
     if (value && typeof value.exception === 'function') {
-      (0, _emberErrorHandling.setDispatchOverride)(adapterDispatch);
+      (0, _errorHandling.setDispatchOverride)(adapterDispatch);
     } else {
-      (0, _emberErrorHandling.setDispatchOverride)(null);
+      (0, _errorHandling.setDispatchOverride)(null);
     }
   }
 
@@ -2016,7 +1918,7 @@ enifed('ember-testing/lib/test/helpers', ['exports', 'ember-testing/lib/test/pro
   exports.registerHelper = registerHelper;
   exports.registerAsyncHelper = registerAsyncHelper;
   exports.unregisterHelper = unregisterHelper;
-  var helpers = exports.helpers = {};
+  const helpers = exports.helpers = {};
   /**
    @module @ember/test
   */
@@ -2145,7 +2047,7 @@ enifed("ember-testing/lib/test/on_inject_helpers", ["exports"], function (export
 
   exports.onInjectHelpers = onInjectHelpers;
   exports.invokeInjectHelpersCallbacks = invokeInjectHelpersCallbacks;
-  var callbacks = exports.callbacks = [];
+  const callbacks = exports.callbacks = [];
 
   /**
     Used to register callbacks to be fired whenever `App.injectTestHelpers`
@@ -2179,7 +2081,7 @@ enifed("ember-testing/lib/test/on_inject_helpers", ["exports"], function (export
   }
 
   function invokeInjectHelpersCallbacks(app) {
-    for (var i = 0; i < callbacks.length; i++) {
+    for (let i = 0; i < callbacks.length; i++) {
       callbacks[i](app);
     }
   }
@@ -2191,7 +2093,7 @@ enifed("ember-testing/lib/test/pending_requests", ["exports"], function (exports
   exports.clearPendingRequests = clearPendingRequests;
   exports.incrementPendingRequests = incrementPendingRequests;
   exports.decrementPendingRequests = decrementPendingRequests;
-  var requests = [];
+  let requests = [];
 
   function pendingRequests() {
     return requests.length;
@@ -2207,7 +2109,7 @@ enifed("ember-testing/lib/test/pending_requests", ["exports"], function (exports
 
   function decrementPendingRequests(_, xhr) {
     setTimeout(function () {
-      for (var i = 0; i < requests.length; i++) {
+      for (let i = 0; i < requests.length; i++) {
         if (xhr === requests[i]) {
           requests.splice(i, 1);
           break;
@@ -2216,7 +2118,7 @@ enifed("ember-testing/lib/test/pending_requests", ["exports"], function (exports
     }, 0);
   }
 });
-enifed('ember-testing/lib/test/promise', ['exports', 'ember-babel', 'ember-runtime', 'ember-testing/lib/test/run'], function (exports, _emberBabel, _emberRuntime, _run) {
+enifed('ember-testing/lib/test/promise', ['exports', '@ember/-internals/runtime', 'ember-testing/lib/test/run'], function (exports, _runtime, _run) {
   'use strict';
 
   exports.promise = promise;
@@ -2224,40 +2126,21 @@ enifed('ember-testing/lib/test/promise', ['exports', 'ember-babel', 'ember-runti
   exports.getLastPromise = getLastPromise;
 
 
-  var lastPromise = void 0;
+  let lastPromise;
 
-  var TestPromise = function (_RSVP$Promise) {
-    (0, _emberBabel.inherits)(TestPromise, _RSVP$Promise);
-
-    function TestPromise() {
-      (0, _emberBabel.classCallCheck)(this, TestPromise);
-
-      var _this = (0, _emberBabel.possibleConstructorReturn)(this, _RSVP$Promise.apply(this, arguments));
-
-      lastPromise = _this;
-      return _this;
+  class TestPromise extends _runtime.RSVP.Promise {
+    constructor() {
+      super(...arguments);
+      lastPromise = this;
     }
 
-    TestPromise.prototype.then = function then(_onFulfillment) {
-      var _RSVP$Promise$prototy;
-
-      var onFulfillment = typeof _onFulfillment === 'function' ? function (result) {
-        return isolate(_onFulfillment, result);
-      } : undefined;
-
-      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
-      }
-
-      return (_RSVP$Promise$prototy = _RSVP$Promise.prototype.then).call.apply(_RSVP$Promise$prototy, [this, onFulfillment].concat(args));
-    };
-
-    return TestPromise;
-  }(_emberRuntime.RSVP.Promise);
+    then(_onFulfillment, ...args) {
+      let onFulfillment = typeof _onFulfillment === 'function' ? result => isolate(_onFulfillment, result) : undefined;
+      return super.then(onFulfillment, ...args);
+    }
+  }
 
   exports.default = TestPromise;
-
-
   /**
     This returns a thenable tailored for testing.  It catches failed
     `onSuccess` callbacks and invokes the `Ember.Test.adapter.exception`
@@ -2272,7 +2155,7 @@ enifed('ember-testing/lib/test/promise', ['exports', 'ember-babel', 'ember-runti
     @param {String} label An optional string for identifying the promise.
   */
   function promise(resolver, label) {
-    var fullLabel = 'Ember.Test.promise: ' + (label || '<Unknown Promise>');
+    let fullLabel = `Ember.Test.promise: ${label || '<Unknown Promise>'}`;
     return new TestPromise(resolver, fullLabel);
   }
 
@@ -2305,9 +2188,9 @@ enifed('ember-testing/lib/test/promise', ['exports', 'ember-babel', 'ember-runti
     // Reset lastPromise for nested helpers
     lastPromise = null;
 
-    var value = onFulfillment(result);
+    let value = onFulfillment(result);
 
-    var promise = lastPromise;
+    let promise = lastPromise;
     lastPromise = null;
 
     // If the method returned a promise
@@ -2316,11 +2199,7 @@ enifed('ember-testing/lib/test/promise', ['exports', 'ember-babel', 'ember-runti
     if (value && value instanceof TestPromise || !promise) {
       return value;
     } else {
-      return (0, _run.default)(function () {
-        return resolve(promise).then(function () {
-          return value;
-        });
-      });
+      return (0, _run.default)(() => resolve(promise).then(() => value));
     }
   }
 });
@@ -2345,8 +2224,8 @@ enifed("ember-testing/lib/test/waiters", ["exports"], function (exports) {
   /**
    @module @ember/test
   */
-  var contexts = [];
-  var callbacks = [];
+  const contexts = [];
+  const callbacks = [];
 
   /**
      This allows ember-testing to play nicely with other asynchronous
@@ -2416,7 +2295,7 @@ enifed("ember-testing/lib/test/waiters", ["exports"], function (exports) {
       callback = context;
       context = null;
     }
-    var i = indexOf(context, callback);
+    let i = indexOf(context, callback);
     if (i === -1) {
       return;
     }
@@ -2441,9 +2320,9 @@ enifed("ember-testing/lib/test/waiters", ["exports"], function (exports) {
     if (!callbacks.length) {
       return false;
     }
-    for (var i = 0; i < callbacks.length; i++) {
-      var context = contexts[i];
-      var callback = callbacks[i];
+    for (let i = 0; i < callbacks.length; i++) {
+      let context = contexts[i];
+      let callback = callbacks[i];
       if (!callback.call(context)) {
         return true;
       }
@@ -2452,7 +2331,7 @@ enifed("ember-testing/lib/test/waiters", ["exports"], function (exports) {
   }
 
   function indexOf(context, callback) {
-    for (var i = 0; i < callbacks.length; i++) {
+    for (let i = 0; i < callbacks.length; i++) {
       if (callbacks[i] === callback && contexts[i] === context) {
         return i;
       }
@@ -2479,5 +2358,6 @@ Ember.Test = testing.Test;
 Ember.Test.Adapter = testing.Adapter;
 Ember.Test.QUnitAdapter = testing.QUnitAdapter;
 Ember.setupForTesting = testing.setupForTesting;
+
 }());
 //# sourceMappingURL=ember-testing.map
