@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.6.1
+ * @version   3.7.0
  */
 
 /*globals process */
@@ -941,7 +941,7 @@ enifed('@ember/-internals/utils', ['exports', '@ember/polyfills'], function (exp
 enifed('@ember/canary-features/index', ['exports', '@ember/-internals/environment', '@ember/polyfills'], function (exports, _environment, _polyfills) {
     'use strict';
 
-    exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = exports.EMBER_TEMPLATE_BLOCK_LET_HELPER = exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = exports.EMBER_METAL_TRACKED_PROPERTIES = exports.EMBER_MODULE_UNIFICATION = exports.EMBER_ENGINES_MOUNT_PARAMS = exports.EMBER_ROUTING_ROUTER_SERVICE = exports.EMBER_GLIMMER_NAMED_ARGUMENTS = exports.EMBER_IMPROVED_INSTRUMENTATION = exports.EMBER_LIBRARIES_ISREGISTERED = exports.FEATURES = exports.DEFAULT_FEATURES = undefined;
+    exports.GLIMMER_MODIFIER_MANAGER = exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = exports.EMBER_METAL_TRACKED_PROPERTIES = exports.EMBER_MODULE_UNIFICATION = exports.EMBER_ENGINES_MOUNT_PARAMS = exports.EMBER_ROUTING_ROUTER_SERVICE = exports.EMBER_GLIMMER_NAMED_ARGUMENTS = exports.EMBER_IMPROVED_INSTRUMENTATION = exports.EMBER_LIBRARIES_ISREGISTERED = exports.FEATURES = exports.DEFAULT_FEATURES = undefined;
     exports.isEnabled = isEnabled;
 
     /**
@@ -962,7 +962,7 @@ enifed('@ember/canary-features/index', ['exports', '@ember/-internals/environmen
         EMBER_ENGINES_MOUNT_PARAMS: true,
         EMBER_MODULE_UNIFICATION: false,
         GLIMMER_CUSTOM_COMPONENT_MANAGER: true,
-        EMBER_TEMPLATE_BLOCK_LET_HELPER: true,
+        GLIMMER_MODIFIER_MANAGER: false,
         EMBER_METAL_TRACKED_PROPERTIES: false,
         EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION: true
     };
@@ -1015,8 +1015,8 @@ enifed('@ember/canary-features/index', ['exports', '@ember/-internals/environmen
     const EMBER_MODULE_UNIFICATION = exports.EMBER_MODULE_UNIFICATION = featureValue(FEATURES.EMBER_MODULE_UNIFICATION);
     const EMBER_METAL_TRACKED_PROPERTIES = exports.EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
     const GLIMMER_CUSTOM_COMPONENT_MANAGER = exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = featureValue(FEATURES.GLIMMER_CUSTOM_COMPONENT_MANAGER);
-    const EMBER_TEMPLATE_BLOCK_LET_HELPER = exports.EMBER_TEMPLATE_BLOCK_LET_HELPER = featureValue(FEATURES.EMBER_TEMPLATE_BLOCK_LET_HELPER);
     const EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION);
+    const GLIMMER_MODIFIER_MANAGER = exports.GLIMMER_MODIFIER_MANAGER = featureValue(FEATURES.GLIMMER_MODIFIER_MANAGER);
 });
 enifed('@ember/debug/index', ['exports', '@ember/debug/lib/warn', '@ember/debug/lib/deprecate', '@ember/debug/lib/testing', '@ember/-internals/browser-environment', '@ember/error'], function (exports, _warn2, _deprecate2, _testing, _browserEnvironment, _error) {
     'use strict';
@@ -1525,9 +1525,6 @@ enifed('@ember/debug/lib/warn', ['exports', '@ember/debug/index', '@ember/debug/
       registerHandler(function logWarning(message) {
         /* eslint-disable no-console */
         console.warn(`WARNING: ${message}`);
-        if (console.trace) {
-          console.trace();
-        }
         /* eslint-enable no-console */
       });
       exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -1580,9 +1577,6 @@ enifed('@ember/deprecated-features/index', ['exports'], function (exports) {
   const RUN_SYNC = exports.RUN_SYNC = !!'3.0.0-beta.4';
   const LOGGER = exports.LOGGER = !!'3.2.0-beta.1';
   const POSITIONAL_PARAM_CONFLICT = exports.POSITIONAL_PARAM_CONFLICT = !!'3.1.0-beta.1';
-  const PROPERTY_WILL_CHANGE = exports.PROPERTY_WILL_CHANGE = !!'3.1.0-beta.1';
-  const PROPERTY_DID_CHANGE = exports.PROPERTY_DID_CHANGE = !!'3.1.0-beta.1';
-  const ROUTER_ROUTER = exports.ROUTER_ROUTER = !!'3.2.0-beta.1';
   const ARRAY_AT_EACH = exports.ARRAY_AT_EACH = !!'3.1.0-beta.1';
   const TARGET_OBJECT = exports.TARGET_OBJECT = !!'2.18.0-beta.1';
   const MAP = exports.MAP = !!'3.3.0-beta.1';
@@ -4703,6 +4697,74 @@ enifed("@glimmer/wire-format", ["exports"], function (exports) {
     exports.isMaybeLocal = isMaybeLocal;
     exports.Ops = Opcodes;
 });
+enifed('ember-babel', ['exports'], function (exports) {
+  'use strict';
+
+  exports.classCallCheck = classCallCheck;
+  exports.inherits = inherits;
+  exports.taggedTemplateLiteralLoose = taggedTemplateLiteralLoose;
+  exports.createClass = createClass;
+
+
+  const create = Object.create;
+  const setPrototypeOf = Object.setPrototypeOf;
+  const defineProperty = Object.defineProperty;
+
+  function classCallCheck(instance, Constructor) {
+    if (true /* DEBUG */) {
+        if (!(instance instanceof Constructor)) {
+          throw new TypeError('Cannot call a class as a function');
+        }
+      }
+  }
+
+  function inherits(subClass, superClass) {
+    if (true /* DEBUG */) {
+        if (typeof superClass !== 'function' && superClass !== null) {
+          throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
+        }
+      }
+    subClass.prototype = create(superClass === null ? null : superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass !== null) setPrototypeOf(subClass, superClass);
+  }
+
+  function taggedTemplateLiteralLoose(strings, raw) {
+    strings.raw = raw;
+    return strings;
+  }
+
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ('value' in descriptor) descriptor.writable = true;
+      defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  function createClass(Constructor, protoProps, staticProps) {
+    if (protoProps !== undefined) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps !== undefined) defineProperties(Constructor, staticProps);
+    return Constructor;
+  }
+
+  const possibleConstructorReturn = exports.possibleConstructorReturn = function (self, call) {
+    if (true /* DEBUG */) {
+        if (!self) {
+          throw new ReferenceError(`this hasn't been initialized - super() hasn't been called`);
+        }
+      }
+    return call !== null && typeof call === 'object' || typeof call === 'function' ? call : self;
+  };
+});
 enifed('ember-template-compiler/index', ['exports', 'ember-template-compiler/lib/system/precompile', 'ember-template-compiler/lib/system/compile', 'ember-template-compiler/lib/system/compile-options', 'ember-template-compiler/lib/plugins/index', '@ember/-internals/environment', '@ember/canary-features', 'ember/version', 'ember-template-compiler/lib/compat', 'ember-template-compiler/lib/system/bootstrap', 'ember-template-compiler/lib/system/initializer'], function (exports, _precompile, _compile, _compileOptions, _index, _environment, _canaryFeatures, _version, _compat) {
     'use strict';
 
@@ -4853,15 +4915,7 @@ enifed('ember-template-compiler/lib/plugins/assert-local-variable-shadowing-help
         return {
             name: 'assert-local-variable-shadowing-helper-invocation',
             visitor: {
-                BlockStatement: {
-                    enter(node) {
-                        locals.push(node.program.blockParams);
-                    },
-                    exit() {
-                        locals.pop();
-                    }
-                },
-                ElementNode: {
+                Program: {
                     enter(node) {
                         locals.push(node.blockParams);
                     },
@@ -4869,31 +4923,52 @@ enifed('ember-template-compiler/lib/plugins/assert-local-variable-shadowing-help
                         locals.pop();
                     }
                 },
+                ElementNode: {
+                    keys: {
+                        children: {
+                            enter(node) {
+                                locals.push(node.blockParams);
+                            },
+                            exit() {
+                                locals.pop();
+                            }
+                        }
+                    }
+                },
+                MustacheStatement(node) {
+                    if (isPath(node.path) && hasArguments(node)) {
+                        let name = node.path.parts[0];
+                        let type = 'helper';
+                        true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(`${messageFor(name, type)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals));
+                    }
+                },
                 SubExpression(node) {
-                    true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(`${messageFor(node)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals));
+                    let name = node.path.parts[0];
+                    let type = 'helper';
+                    true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(`${messageFor(name, type)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals));
                 },
                 ElementModifierStatement(node) {
-                    // The ElementNode get visited first, but modifiers are more of a sibling
-                    // than a child in the lexical scope (we aren't evaluated in its "block")
-                    // so any locals introduced by the last element doesn't count
-                    true && !!isLocalVariable(node.path, locals.slice(0, -1)) && (0, _debug.assert)(`${messageFor(node)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals.slice(0, -1)));
+                    let name = node.path.parts[0];
+                    let type = 'modifier';
+                    true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(`${messageFor(name, type)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals));
                 }
             }
         };
     }
     function isLocalVariable(node, locals) {
-        return !node.this && hasLocalVariable(node.parts[0], locals);
+        return !node.this && node.parts.length === 1 && hasLocalVariable(node.parts[0], locals);
     }
     function hasLocalVariable(name, locals) {
         return locals.some(names => names.indexOf(name) !== -1);
     }
-    function messageFor(node) {
-        let type = isSubExpression(node) ? 'helper' : 'modifier';
-        let name = node.path.parts[0];
+    function messageFor(name, type) {
         return `Cannot invoke the \`${name}\` ${type} because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict.`;
     }
-    function isSubExpression(node) {
-        return node.type === 'SubExpression';
+    function isPath(node) {
+        return node.type === 'PathExpression';
+    }
+    function hasArguments(node) {
+        return node.params.length > 0 || node.hash.pairs.length > 0;
     }
 });
 enifed('ember-template-compiler/lib/plugins/assert-reserved-named-arguments', ['exports', '@ember/debug', 'ember-template-compiler/lib/system/calculate-location-display'], function (exports, _debug, _calculateLocationDisplay) {
@@ -5264,10 +5339,11 @@ enifed('ember-template-compiler/lib/plugins/transform-component-invocation', ['e
         let { moduleName } = env.meta;
         let { builders: b } = env.syntax;
         let locals = [];
+        let isAttrs = false;
         return {
             name: 'transform-component-invocation',
             visitor: {
-                ElementNode: {
+                Program: {
                     enter(node) {
                         locals.push(node.blockParams);
                     },
@@ -5275,20 +5351,33 @@ enifed('ember-template-compiler/lib/plugins/transform-component-invocation', ['e
                         locals.pop();
                     }
                 },
-                BlockStatement: {
-                    enter(node) {
-                        // check this before we push the new locals
-                        if (isBlockInvocation(node, locals)) {
-                            wrapInComponent(moduleName, node, b);
+                ElementNode: {
+                    keys: {
+                        attributes: {
+                            enter() {
+                                isAttrs = true;
+                            },
+                            exit() {
+                                isAttrs = false;
+                            }
+                        },
+                        children: {
+                            enter(node) {
+                                locals.push(node.blockParams);
+                            },
+                            exit() {
+                                locals.pop();
+                            }
                         }
-                        locals.push(node.program.blockParams);
-                    },
-                    exit() {
-                        locals.pop();
+                    }
+                },
+                BlockStatement(node) {
+                    if (isBlockInvocation(node, locals)) {
+                        wrapInComponent(moduleName, node, b);
                     }
                 },
                 MustacheStatement(node) {
-                    if (isInlineInvocation(node, locals)) {
+                    if (!isAttrs && isInlineInvocation(node, locals)) {
                         wrapInComponent(moduleName, node, b);
                     }
                 }
@@ -6134,11 +6223,16 @@ enifed('ember-template-compiler/tests/plugins/assert-local-variable-shadowing-he
         {{concat (foo)}}
         {{concat (foo bar baz)}}`, { moduleName: 'baz/foo-bar' });
 
-      // Not an invocation
+      // Not invocations
 
       (0, _index.compile)(`
         {{#let foo as |foo|}}
           {{concat foo}}
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        {{#let (concat foo) as |concat|}}
+          {{input value=concat}}
         {{/let}}`, { moduleName: 'baz/foo-bar' });
     }
 
@@ -6164,11 +6258,16 @@ enifed('ember-template-compiler/tests/plugins/assert-local-variable-shadowing-he
         {{concat (foo)}}
         {{concat (foo bar baz)}}`, { moduleName: 'baz/foo-bar' });
 
-      // Not an invocation
+      // Not invocations
 
       (0, _index.compile)(`
         <Foo as |foo|>
           {{concat foo}}
+        </Foo>`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        <Foo foo={{concat foo}} as |concat|>
+          {{input value=concat}}
         </Foo>`, { moduleName: 'baz/foo-bar' });
     }
 
@@ -6211,13 +6310,232 @@ enifed('ember-template-compiler/tests/plugins/assert-local-variable-shadowing-he
         {{concat (foo)}}
         {{concat (foo bar baz bat)}}`, { moduleName: 'baz/foo-bar' });
 
-      // Not an invocation
+      // Not invocations
 
       (0, _index.compile)(`
         {{#let foo as |foo|}}
           <FooBar as |bar|>
             {{#each items as |baz|}}
               {{concat foo}}
+            {{/each}}
+          </FooBar>
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        {{#let (foo foo) as |foo|}}
+          <FooBar bar=(bar bar) as |bar|>
+            {{#each (baz baz) as |baz|}}
+              {{concat foo bar baz}}
+            {{/each}}
+          </FooBar>
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+    }
+
+    [`@test block statements shadowing attribute sub-expression invocations`]() {
+      expectAssertion(() => {
+        (0, _index.compile)(`
+          {{#let foo as |foo|}}
+            <div class={{concat (foo bar baz)}} />
+          {{/let}}`, { moduleName: 'baz/foo-bar' });
+      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C32) `);
+
+      // Not shadowed
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}{{/let}}
+        <div class={{concat (foo)}} />
+        <div class={{concat (foo bar baz)}} />`, { moduleName: 'baz/foo-bar' });
+
+      // Not invocations
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}
+          <div class={{concat foo}} />
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        {{#let (foo foo) as |foo|}}
+          <div class={{concat foo}} />
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+    }
+
+    [`@test element nodes shadowing attribute sub-expression invocations`]() {
+      expectAssertion(() => {
+        (0, _index.compile)(`
+          <Foo as |foo|>
+            <div class={{concat (foo bar baz)}} />
+          </Foo>`, { moduleName: 'baz/foo-bar' });
+      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C32) `);
+
+      // Not shadowed
+
+      (0, _index.compile)(`
+        <Foo as |foo|></Foo>
+        <div class={{concat (foo)}} />
+        <div class={{concat (foo bar baz)}} />`, { moduleName: 'baz/foo-bar' });
+
+      // Not invocations
+
+      (0, _index.compile)(`
+        <Foo as |foo|>
+          <div class={{concat foo}} />
+        </Foo>`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        <Foo foo={{foo foo}} as |foo|>
+          <div class={{concat foo}} />
+        </Foo>`, { moduleName: 'baz/foo-bar' });
+    }
+
+    [`@test deeply nested attribute sub-expression invocations`]() {
+      expectAssertion(() => {
+        (0, _index.compile)(`
+          {{#let foo as |foo|}}
+            <FooBar as |bar|>
+              {{#each items as |baz|}}
+                <div class={{concat (foo bar baz)}} />
+              {{/each}}
+            </FooBar>
+          {{/let}}`, { moduleName: 'baz/foo-bar' });
+      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C36) `);
+
+      // Not shadowed
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}
+          <FooBar as |bar|>
+            {{#each items as |baz|}}
+            {{/each}}
+            <div class={{concat (baz)}} />
+            <div class={{concat (baz bat)}} />
+          </FooBar>
+          <div class={{concat (bar)}} />
+          <div class={{concat (bar baz bat)}} />
+        {{/let}}
+        <div class={{concat (foo)}} />
+        <div class={{concat (foo bar baz bat)}} />`, { moduleName: 'baz/foo-bar' });
+
+      // Not invocations
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}
+          <FooBar as |bar|>
+            {{#each items as |baz|}}
+              <div class={{concat foo}} />
+            {{/each}}
+          </FooBar>
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        {{#let (foo foo) as |foo|}}
+          <FooBar bar=(bar bar) as |bar|>
+            {{#each (baz baz) as |baz|}}
+              <div class={{concat foo bar baz}} />
+            {{/each}}
+          </FooBar>
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+    }
+
+    [`@test block statements shadowing attribute mustache invocations`]() {
+      expectAssertion(() => {
+        (0, _index.compile)(`
+          {{#let foo as |foo|}}
+            <div class={{foo bar baz}} />
+          {{/let}}`, { moduleName: 'baz/foo-bar' });
+      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C23) `);
+
+      // Not shadowed
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}{{/let}}
+        <div class={{foo}} />
+        <div class={{foo bar baz}} />`, { moduleName: 'baz/foo-bar' });
+
+      // Not invocations
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}
+          <div class={{foo}} />
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        {{#let (concat foo) as |concat|}}
+          <div class={{concat}} />
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+    }
+
+    [`@test element nodes shadowing attribute mustache invocations`]() {
+      expectAssertion(() => {
+        (0, _index.compile)(`
+          <Foo as |foo|>
+            <div class={{foo bar baz}} />
+          </Foo>`, { moduleName: 'baz/foo-bar' });
+      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C23) `);
+
+      // Not shadowed
+
+      (0, _index.compile)(`
+        <Foo as |foo|></Foo>
+        <div class={{foo}} />
+        <div class={{foo bar baz}} />`, { moduleName: 'baz/foo-bar' });
+
+      // Not invocations
+
+      (0, _index.compile)(`
+        <Foo as |foo|>
+          <div class={{foo}} />
+        </Foo>`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        <Foo foo={{concat foo}} as |concat|>
+          <div class={{concat}} />
+        </Foo>`, { moduleName: 'baz/foo-bar' });
+    }
+
+    [`@test deeply nested attribute mustache invocations`]() {
+      expectAssertion(() => {
+        (0, _index.compile)(`
+          {{#let foo as |foo|}}
+            <FooBar as |bar|>
+              {{#each items as |baz|}}
+                <div class={{foo bar baz}} />
+              {{/each}}
+            </FooBar>
+          {{/let}}`, { moduleName: 'baz/foo-bar' });
+      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C27) `);
+
+      // Not shadowed
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}
+          <FooBar as |bar|>
+            {{#each items as |baz|}}
+            {{/each}}
+            <div class={{baz}} />
+            <div class={{baz bat}} />
+          </FooBar>
+          <div class={{bar}} />
+          <div class={{bar baz bat}} />
+        {{/let}}
+        <div class={{foo}} />
+        <div class={{foo bar baz bat}} />`, { moduleName: 'baz/foo-bar' });
+
+      // Not invocations
+
+      (0, _index.compile)(`
+        {{#let foo as |foo|}}
+          <FooBar as |bar|>
+            {{#each items as |baz|}}
+              <div class={{foo}} />
+            {{/each}}
+          </FooBar>
+        {{/let}}`, { moduleName: 'baz/foo-bar' });
+
+      (0, _index.compile)(`
+        {{#let (foo foo) as |foo|}}
+          <FooBar bar=(bar bar) as |bar|>
+            {{#each (baz baz) as |baz|}}
+              <div foo={{foo}} bar={{bar}} baz={{baz}} />
             {{/each}}
           </FooBar>
         {{/let}}`, { moduleName: 'baz/foo-bar' });
@@ -7028,7 +7346,7 @@ enifed('ember-template-compiler/tests/system/compile_options_test', ['ember-temp
   });
 
   let customTransformCounter = 0;
-  class CustomTransform {
+  class LegacyCustomTransform {
     constructor(options) {
       customTransformCounter++;
       this.options = options;
@@ -7056,6 +7374,26 @@ enifed('ember-template-compiler/tests/system/compile_options_test', ['ember-temp
     }
   }
 
+  function customTransform() {
+    customTransformCounter++;
+
+    return {
+      name: 'remove-data-test',
+
+      visitor: {
+        ElementNode(node) {
+          for (var i = 0; i < node.attributes.length; i++) {
+            let attribute = node.attributes[i];
+
+            if (attribute.name === 'data-test') {
+              node.attributes.splice(i, 1);
+            }
+          }
+        }
+      }
+    };
+  }
+
   class CustomPluginsTests extends _internalTestHelpers.RenderingTestCase {
     afterEach() {
       customTransformCounter = 0;
@@ -7077,20 +7415,48 @@ enifed('ember-template-compiler/tests/system/compile_options_test', ['ember-temp
     }
   }
 
-  (0, _internalTestHelpers.moduleFor)('ember-template-compiler: registerPlugin with a custom plugins', class extends CustomPluginsTests {
+  (0, _internalTestHelpers.moduleFor)('ember-template-compiler: registerPlugin with a custom plugins in legacy format', class extends CustomPluginsTests {
     beforeEach() {
-      (0, _index.registerPlugin)('ast', CustomTransform);
+      (0, _index.registerPlugin)('ast', LegacyCustomTransform);
     }
 
     afterEach() {
-      (0, _index.unregisterPlugin)('ast', CustomTransform);
+      (0, _index.unregisterPlugin)('ast', LegacyCustomTransform);
       return super.afterEach();
     }
 
     ['@test custom registered plugins are deduplicated'](assert) {
-      (0, _index.registerPlugin)('ast', CustomTransform);
+      (0, _index.registerPlugin)('ast', LegacyCustomTransform);
       this.registerTemplate('application', '<div data-test="foo" data-blah="derp" class="hahaha"></div>');
       assert.equal(customTransformCounter, 1, 'transform should only be instantiated once');
+    }
+  });
+
+  (0, _internalTestHelpers.moduleFor)('ember-template-compiler: registerPlugin with a custom plugins', class extends CustomPluginsTests {
+    beforeEach() {
+      (0, _index.registerPlugin)('ast', customTransform);
+    }
+
+    afterEach() {
+      (0, _index.unregisterPlugin)('ast', customTransform);
+      return super.afterEach();
+    }
+
+    ['@test custom registered plugins are deduplicated'](assert) {
+      (0, _index.registerPlugin)('ast', customTransform);
+      this.registerTemplate('application', '<div data-test="foo" data-blah="derp" class="hahaha"></div>');
+      assert.equal(customTransformCounter, 1, 'transform should only be instantiated once');
+    }
+  });
+
+  (0, _internalTestHelpers.moduleFor)('ember-template-compiler: custom plugins in legacy format passed to compile', class extends _internalTestHelpers.RenderingTestCase {
+    // override so that we can provide custom AST plugins to compile
+    compile(templateString) {
+      return (0, _index.compile)(templateString, {
+        plugins: {
+          ast: [LegacyCustomTransform]
+        }
+      });
     }
   });
 
@@ -7099,7 +7465,7 @@ enifed('ember-template-compiler/tests/system/compile_options_test', ['ember-temp
     compile(templateString) {
       return (0, _index.compile)(templateString, {
         plugins: {
-          ast: [CustomTransform]
+          ast: [customTransform]
         }
       });
     }
@@ -7125,7 +7491,7 @@ enifed('ember-template-compiler/tests/system/dasherize-component-name-test', ['e
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.6.1";
+  exports.default = "3.7.0";
 });
 enifed("handlebars", ["exports"], function (exports) {
   "use strict";

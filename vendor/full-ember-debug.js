@@ -867,7 +867,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.6.1
+ * @version   3.7.0
  */
 
 /*globals process */
@@ -2872,7 +2872,7 @@ enifed('@ember/-internals/extension-support/lib/data_adapter', ['exports', '@emb
 enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/util', '@glimmer/node', 'node-module', '@ember/-internals/owner', '@glimmer/opcode-compiler', '@ember/-internals/runtime', '@ember/-internals/utils', '@glimmer/reference', '@ember/-internals/metal', '@ember/-internals/views', '@ember/debug', '@ember/-internals/browser-environment', '@ember/instrumentation', '@ember/service', '@ember/-internals/environment', '@ember/polyfills', '@ember/string', '@glimmer/wire-format', '@ember/-internals/container', '@ember/deprecated-features', '@ember/runloop', 'rsvp', '@ember/-internals/routing'], function (exports, _runtime, _util, _node, _nodeModule, _owner, _opcodeCompiler, _runtime2, _utils, _reference, _metal, _views, _debug, _browserEnvironment, _instrumentation, _service, _environment2, _polyfills, _string, _wireFormat, _container, _deprecatedFeatures, _runloop, _rsvp, _routing) {
     'use strict';
 
-    exports.getComponentManager = exports.setComponentManager = exports.capabilities = exports.OutletView = exports.DebugStack = exports.iterableFor = exports.INVOKE = exports.UpdatableReference = exports.AbstractComponentManager = exports._experimentalMacros = exports._registerMacros = exports.setupApplicationRegistry = exports.setupEngineRegistry = exports.setTemplates = exports.getTemplates = exports.hasTemplate = exports.setTemplate = exports.getTemplate = exports.renderSettled = exports._resetRenderers = exports.InteractiveRenderer = exports.InertRenderer = exports.Renderer = exports.isHTMLSafe = exports.htmlSafe = exports.escapeExpression = exports.SafeString = exports.Environment = exports.helper = exports.Helper = exports.ROOT_REF = exports.Component = exports.LinkComponent = exports.TextArea = exports.TextField = exports.Checkbox = exports.template = exports.RootTemplate = exports.NodeDOMTreeConstruction = exports.isSerializationFirstNode = exports.DOMTreeConstruction = exports.DOMChanges = undefined;
+    exports.modifierCapabilties = exports.getModifierManager = exports.setModifierManager = exports.getComponentManager = exports.setComponentManager = exports.capabilities = exports.OutletView = exports.DebugStack = exports.iterableFor = exports.INVOKE = exports.UpdatableReference = exports.AbstractComponentManager = exports._experimentalMacros = exports._registerMacros = exports.setupApplicationRegistry = exports.setupEngineRegistry = exports.setTemplates = exports.getTemplates = exports.hasTemplate = exports.setTemplate = exports.getTemplate = exports.renderSettled = exports._resetRenderers = exports.InteractiveRenderer = exports.InertRenderer = exports.Renderer = exports.isHTMLSafe = exports.htmlSafe = exports.escapeExpression = exports.SafeString = exports.Environment = exports.helper = exports.Helper = exports.ROOT_REF = exports.Component = exports.LinkComponent = exports.TextArea = exports.TextField = exports.Checkbox = exports.template = exports.RootTemplate = exports.NodeDOMTreeConstruction = exports.isSerializationFirstNode = exports.DOMTreeConstruction = exports.DOMChanges = undefined;
     Object.defineProperty(exports, 'DOMChanges', {
         enumerable: true,
         get: function () {
@@ -4891,15 +4891,6 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
             }
             return true;
         }),
-        _getModels(params) {
-            let modelCount = params.length - 1;
-            let models = new Array(modelCount);
-            for (let i = 0; i < modelCount; i++) {
-                let value = params[i + 1];
-                models[i] = value;
-            }
-            return models;
-        },
         /**
           The default href value to use while a link-to is loading.
           Only applies when tagName is 'a'
@@ -4938,11 +4929,8 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
             }
             this.set('queryParams', queryParams);
             // 4. Any remaining indices (excepting `targetRouteName` at 0) are `models`.
-            if (params.length > 1) {
-                this.set('models', this._getModels(params));
-            } else {
-                this.set('models', []);
-            }
+            params.shift();
+            this.set('models', params);
         }
     });
     LinkComponent.toString = () => '@ember/routing/link-component';
@@ -6979,6 +6967,29 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
         }
     }
 
+    const MANAGERS = new WeakMap();
+    const getPrototypeOf = Object.getPrototypeOf;
+    function setManager(factory, obj) {
+        MANAGERS.set(obj, factory);
+        return obj;
+    }
+    function getManager(obj) {
+        let pointer = obj;
+        while (pointer !== undefined && pointer !== null) {
+            if (MANAGERS.has(pointer)) {
+                return MANAGERS.get(pointer);
+            }
+            pointer = getPrototypeOf(pointer);
+        }
+        return;
+    }
+    function valueForCapturedArgs(args) {
+        return {
+            named: args.named.value(),
+            positional: args.positional.value()
+        };
+    }
+
     const CAPABILITIES$1 = {
         dynamicLayout: false,
         dynamicTag: false,
@@ -7004,12 +7015,6 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
     }
     function hasDestructors(delegate) {
         return delegate.capabilities.destructor;
-    }
-    function valueForCapturedArgs(args) {
-        return {
-            named: args.named.value(),
-            positional: args.positional.value()
-        };
     }
     /**
       The CustomComponentManager allows addons to provide custom component
@@ -7593,6 +7598,41 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
                 return (0, _runloop.join)(self, fn, ...processArgs(args));
             });
         };
+    }
+
+    /**
+    @module ember
+    */
+    /**
+       Use the `{{array}}` helper to create an array to pass as an option to your
+       components.
+    
+       ```handlebars
+       {{my-component people=(array
+         'Tom Dade'
+         'Yehuda Katz'
+         this.myOtherPerson)
+       }}
+       ```
+    
+       Would result in an object such as:
+    
+       ```js
+       ['Tom Date', 'Yehuda Katz', this.get('myOtherPerson')]
+       ```
+    
+       Where the 3rd item in the array is bound to updates of the `myOtherPerson` property.
+    
+       @method array
+       @for Ember.Templates.helpers
+       @param {Array} options
+       @return {Array} Array
+       @category array-helper
+       @since 3.7.0
+       @public
+     */
+    function array(_vm, args) {
+        return args.positional.capture();
     }
 
     const isEmpty = value => {
@@ -8377,6 +8417,83 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
         }
     }
 
+    // Currently there are no capabilities for modifiers
+    function capabilities$1(_managerAPI, _optionalFeatures) {
+        return {};
+    }
+    class CustomModifierDefinition {
+        constructor(name, ModifierClass, delegate) {
+            this.name = name;
+            this.ModifierClass = ModifierClass;
+            this.delegate = delegate;
+            this.manager = CUSTOM_MODIFIER_MANAGER;
+            this.state = {
+                ModifierClass,
+                name,
+                delegate
+            };
+        }
+    }
+    class CustomModifierState {
+        constructor(element, delegate, modifier, args) {
+            this.element = element;
+            this.delegate = delegate;
+            this.modifier = modifier;
+            this.args = args;
+        }
+        destroy() {
+            const { delegate, modifier, args } = this;
+            let modifierArgs = valueForCapturedArgs(args);
+            delegate.destroyModifier(modifier, modifierArgs);
+        }
+    }
+    /**
+      The CustomModifierManager allows addons to provide custom modifier
+      implementations that integrate seamlessly into Ember. This is accomplished
+      through a delegate, registered with the custom modifier manager, which
+      implements a set of hooks that determine modifier behavior.
+      To create a custom modifier manager, instantiate a new CustomModifierManager
+      class and pass the delegate as the first argument:
+      ```js
+      let manager = new CustomModifierManager({
+        // ...delegate implementation...
+      });
+      ```
+      ## Delegate Hooks
+      Throughout the lifecycle of a modifier, the modifier manager will invoke
+      delegate hooks that are responsible for surfacing those lifecycle changes to
+      the end developer.
+      * `createModifier()` - invoked when a new instance of a modifier should be created
+      * `installModifier()` - invoked when the modifier is installed on the element
+      * `updateModifier()` - invoked when the arguments passed to a modifier change
+      * `destroyModifier()` - invoked when the modifier is about to be destroyed
+    */
+    class CustomModifierManager {
+        create(element, definition, args) {
+            const capturedArgs = args.capture();
+            let modifierArgs = valueForCapturedArgs(capturedArgs);
+            let instance = definition.delegate.createModifier(definition.ModifierClass, modifierArgs);
+            return new CustomModifierState(element, definition.delegate, instance, capturedArgs);
+        }
+        getTag({ args }) {
+            return args.tag;
+        }
+        install(state) {
+            let { element, args, delegate, modifier } = state;
+            let modifierArgs = valueForCapturedArgs(args);
+            delegate.installModifier(modifier, element, modifierArgs);
+        }
+        update(state) {
+            let { args, delegate, modifier } = state;
+            let modifierArgs = valueForCapturedArgs(args);
+            delegate.updateModifier(modifier, modifierArgs);
+        }
+        getDestructor(state) {
+            return state;
+        }
+    }
+    const CUSTOM_MODIFIER_MANAGER = new CustomModifierManager();
+
     function hashToArgs(hash) {
         if (hash === null) return null;
         let names = hash[0].map(key => `@${key}`);
@@ -9020,9 +9137,7 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
         inlines.add('input', inputMacro);
         inlines.add('textarea', textAreaMacro);
         inlines.addMissing(refineInlineSyntax);
-        if (true /* EMBER_TEMPLATE_BLOCK_LET_HELPER */ === true) {
-            blocks.add('let', blockLetMacro);
-        }
+        blocks.add('let', blockLetMacro);
         blocks.addMissing(refineBlockSyntax);
         for (let i = 0; i < experimentalMacros.length; i++) {
             let macro = experimentalMacros[i];
@@ -9031,24 +9146,32 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
         return { blocks, inlines };
     }
 
-    const getPrototypeOf = Object.getPrototypeOf;
-    const MANAGERS = new WeakMap();
-    function setComponentManager(managerId, obj) {
-        MANAGERS.set(obj, managerId);
-        return obj;
+    function setComponentManager(stringOrFunction, obj) {
+        let factory;
+        if (typeof stringOrFunction === 'string') {
+            factory = function (owner) {
+                return owner.lookup(`component-manager:${stringOrFunction}`);
+            };
+        } else {
+            factory = stringOrFunction;
+        }
+        return setManager(factory, obj);
     }
     function getComponentManager(obj) {
         if (!true /* GLIMMER_CUSTOM_COMPONENT_MANAGER */) {
                 return;
             }
-        let pointer = obj;
-        while (pointer !== undefined && pointer !== null) {
-            if (MANAGERS.has(pointer)) {
-                return MANAGERS.get(pointer);
+        return getManager(obj);
+    }
+
+    function setModifierManager(factory, obj) {
+        return setManager(factory, obj);
+    }
+    function getModifierManager(obj) {
+        if (!false /* GLIMMER_MODIFIER_MANAGER */) {
+                return;
             }
-            pointer = getPrototypeOf(pointer);
-        }
-        return;
+        return getManager(obj);
     }
 
     function instrumentationPayload$1(name) {
@@ -9066,6 +9189,7 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
         concat: concat$1,
         get: get$1,
         hash,
+        array,
         log: log$1,
         mut,
         'query-params': queryParams$1,
@@ -9153,8 +9277,8 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
         /**
          * Called by CompileTimeLookup compiling the
          */
-        lookupModifier(name, _meta) {
-            return this.handle(this._lookupModifier(name));
+        lookupModifier(name, meta) {
+            return this.handle(this._lookupModifier(name, meta));
         }
         /**
          * Called by CompileTimeLookup to lookup partial
@@ -9235,8 +9359,18 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
                 throw new Error(`${name} is not a partial`);
             }
         }
-        _lookupModifier(name) {
-            return this.builtInModifiers[name];
+        _lookupModifier(name, meta) {
+            let builtin = this.builtInModifiers[name];
+            if (false /* GLIMMER_MODIFIER_MANAGER */ && builtin === undefined) {
+                let { owner } = meta;
+                let modifier = owner.factoryFor(`modifier:${name}`);
+                if (modifier !== undefined) {
+                    let managerFactory = getModifierManager(modifier.class);
+                    let manager = managerFactory(owner);
+                    return new CustomModifierDefinition(name, modifier, manager);
+                }
+            }
+            return builtin;
         }
         _parseNameForNamespace(_name) {
             let name = _name;
@@ -9273,12 +9407,10 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
                 return definition;
             }
             if (true /* GLIMMER_CUSTOM_COMPONENT_MANAGER */ && component && component.class) {
-                let managerId = getComponentManager(component.class);
-                if (managerId) {
-                    let manager = this._lookupComponentManager(meta.owner, managerId);
-                    true && !!!manager && (0, _debug.assert)(`Could not find custom component manager '${managerId}' which was specified by ${component.class}`, !!manager);
-
-                    let definition = new CustomManagerDefinition(name, component, manager, layout || meta.owner.lookup(_container.privatize`template:components/-default`));
+                let managerFactory = getComponentManager(component.class);
+                if (managerFactory) {
+                    let delegate = managerFactory(meta.owner);
+                    let definition = new CustomManagerDefinition(name, component, delegate, layout || meta.owner.lookup(_container.privatize`template:components/-default`));
                     finalizer();
                     this.componentDefinitionCache.set(key, definition);
                     return definition;
@@ -9555,6 +9687,9 @@ enifed('@ember/-internals/glimmer', ['exports', '@glimmer/runtime', '@glimmer/ut
     exports.capabilities = capabilities;
     exports.setComponentManager = setComponentManager;
     exports.getComponentManager = getComponentManager;
+    exports.setModifierManager = setModifierManager;
+    exports.getModifierManager = getModifierManager;
+    exports.modifierCapabilties = capabilities$1;
 });
 enifed('@ember/-internals/meta/index', ['exports', '@ember/-internals/meta/lib/meta'], function (exports, _meta) {
   'use strict';
@@ -10325,10 +10460,10 @@ enifed('@ember/-internals/meta/lib/meta', ['exports', '@ember/-internals/utils',
         return -1;
     }
 });
-enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember/-internals/meta', '@ember/debug', '@ember/runloop', '@glimmer/reference', '@ember/deprecated-features', '@ember/error', 'ember/version', '@ember/-internals/environment', '@ember/polyfills', '@ember/-internals/owner'], function (exports, _utils, _meta2, _debug, _runloop, _reference, _deprecatedFeatures, _error, _version, _environment, _polyfills, _owner) {
+enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember/-internals/meta', '@ember/debug', '@ember/runloop', '@glimmer/reference', '@ember/error', 'ember/version', '@ember/-internals/environment', '@ember/polyfills', '@ember/-internals/owner'], function (exports, _utils, _meta2, _debug, _runloop, _reference, _error, _version, _environment, _polyfills, _owner) {
     'use strict';
 
-    exports.setNamespaceSearchDisabled = exports.isNamespaceSearchDisabled = exports.removeNamespace = exports.processAllNamespaces = exports.processNamespace = exports.findNamespaces = exports.findNamespace = exports.classToString = exports.addNamespace = exports.NAMESPACES_BY_ID = exports.NAMESPACES = exports.tracked = exports.descriptor = exports.assertNotRendered = exports.didRender = exports.runInTransaction = exports.markObjectAsDirty = exports.tagFor = exports.tagForProperty = exports.setHasViews = exports.InjectedProperty = exports.applyMixin = exports.observer = exports.mixin = exports.aliasMethod = exports.Mixin = exports.removeObserver = exports.addObserver = exports.expandProperties = exports.setProperties = exports.getProperties = exports.Libraries = exports.libraries = exports.watcherCount = exports.watch = exports.unwatch = exports.isWatching = exports.unwatchPath = exports.watchPath = exports.removeChainWatcher = exports.finishChains = exports.ChainNode = exports.unwatchKey = exports.watchKey = exports.Descriptor = exports.defineProperty = exports.PROPERTY_DID_CHANGE = exports.propertyWillChange = exports.propertyDidChange = exports.overrideChains = exports.notifyPropertyChange = exports.endPropertyChanges = exports.changeProperties = exports.beginPropertyChanges = exports.isPresent = exports.isBlank = exports.isEmpty = exports.isNone = exports.sendEvent = exports.removeListener = exports.on = exports.hasListeners = exports.addListener = exports.eachProxyArrayDidChange = exports.eachProxyArrayWillChange = exports.eachProxyFor = exports.arrayContentDidChange = exports.arrayContentWillChange = exports.removeArrayObserver = exports.addArrayObserver = exports.replaceInNativeArray = exports.replace = exports.objectAt = exports.trySet = exports.set = exports.getWithDefault = exports.get = exports._getPath = exports.PROXY_CONTENT = exports.deprecateProperty = exports.alias = exports.peekCacheFor = exports.getCachedValueFor = exports.getCacheFor = exports._globalsComputed = exports.ComputedProperty = exports.computed = undefined;
+    exports.setNamespaceSearchDisabled = exports.isNamespaceSearchDisabled = exports.removeNamespace = exports.processAllNamespaces = exports.processNamespace = exports.findNamespaces = exports.findNamespace = exports.classToString = exports.addNamespace = exports.NAMESPACES_BY_ID = exports.NAMESPACES = exports.tracked = exports.descriptor = exports.assertNotRendered = exports.didRender = exports.runInTransaction = exports.markObjectAsDirty = exports.tagFor = exports.tagForProperty = exports.setHasViews = exports.InjectedProperty = exports.applyMixin = exports.observer = exports.mixin = exports.aliasMethod = exports.Mixin = exports.removeObserver = exports.addObserver = exports.expandProperties = exports.setProperties = exports.getProperties = exports.Libraries = exports.libraries = exports.watcherCount = exports.watch = exports.unwatch = exports.isWatching = exports.unwatchPath = exports.watchPath = exports.removeChainWatcher = exports.finishChains = exports.ChainNode = exports.unwatchKey = exports.watchKey = exports.Descriptor = exports.defineProperty = exports.PROPERTY_DID_CHANGE = exports.overrideChains = exports.notifyPropertyChange = exports.endPropertyChanges = exports.changeProperties = exports.beginPropertyChanges = exports.isPresent = exports.isBlank = exports.isEmpty = exports.isNone = exports.sendEvent = exports.removeListener = exports.on = exports.hasListeners = exports.addListener = exports.eachProxyArrayDidChange = exports.eachProxyArrayWillChange = exports.eachProxyFor = exports.arrayContentDidChange = exports.arrayContentWillChange = exports.removeArrayObserver = exports.addArrayObserver = exports.replaceInNativeArray = exports.replace = exports.objectAt = exports.trySet = exports.set = exports.getWithDefault = exports.get = exports._getPath = exports.PROXY_CONTENT = exports.deprecateProperty = exports.alias = exports.peekCacheFor = exports.getCachedValueFor = exports.getCacheFor = exports._globalsComputed = exports.ComputedProperty = exports.computed = undefined;
 
 
     const COMPUTED_PROPERTY_CACHED_VALUES = new WeakMap();
@@ -10820,44 +10955,9 @@ enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember
      @module ember
      @private
      */
-    const PROPERTY_DID_CHANGE$1 = (0, _utils.symbol)('PROPERTY_DID_CHANGE');
+    const PROPERTY_DID_CHANGE = (0, _utils.symbol)('PROPERTY_DID_CHANGE');
     const observerSet = new ObserverSet();
     let deferred = 0;
-    // ..........................................................
-    // PROPERTY CHANGES
-    //
-    /**
-      @method propertyWillChange
-      @for Ember
-      @private
-    */
-    let propertyWillChange;
-    if (_deprecatedFeatures.PROPERTY_WILL_CHANGE) {
-        exports.propertyWillChange = propertyWillChange = function propertyWillChange() {
-            true && !false && (0, _debug.deprecate)(`'propertyWillChange' is deprecated and has no effect. It is safe to remove this call.`, false, {
-                id: 'ember-metal.deprecate-propertyWillChange',
-                until: '3.5.0',
-                url: 'https://emberjs.com/deprecations/v3.x/#toc_use-notifypropertychange-instead-of-propertywillchange-and-propertydidchange'
-            });
-        };
-    }
-    /**
-      @method propertyDidChange
-      @for Ember
-      @private
-    */
-    let propertyDidChange;
-    if (_deprecatedFeatures.PROPERTY_DID_CHANGE) {
-        exports.propertyDidChange = propertyDidChange = function propertyDidChange(obj, keyName, _meta) {
-            true && !false && (0, _debug.deprecate)(`'propertyDidChange' is deprecated in favor of 'notifyPropertyChange'. It is safe to change this call to 'notifyPropertyChange'.`, false, {
-                id: 'ember-metal.deprecate-propertyDidChange',
-                until: '3.5.0',
-                url: 'https://emberjs.com/deprecations/v3.x/#toc_use-notifypropertychange-instead-of-propertywillchange-and-propertydidchange'
-            });
-
-            notifyPropertyChange(obj, keyName, _meta);
-        };
-    }
     /**
       This function is called just after an object property has changed.
       It will notify any observers and clear caches among other things.
@@ -10890,8 +10990,8 @@ enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember
             chainsDidChange(obj, keyName, meta$$1);
             notifyObservers(obj, keyName, meta$$1);
         }
-        if (PROPERTY_DID_CHANGE$1 in obj) {
-            obj[PROPERTY_DID_CHANGE$1](keyName);
+        if (PROPERTY_DID_CHANGE in obj) {
+            obj[PROPERTY_DID_CHANGE](keyName);
         }
         if (hasMeta) {
             if (meta$$1.isSourceDestroying()) {
@@ -11116,7 +11216,7 @@ enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember
       }));
       ```
     
-      @private
+      @public
       @method defineProperty
       @static
       @for @ember/object
@@ -11484,11 +11584,11 @@ enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember
                 tagFor(this).inner['dirty']();
                 dirty(tagForProperty(this, key));
                 this[shadowKey] = newValue;
-                propertyDidChange$1();
+                propertyDidChange();
             }
         };
     }
-    let propertyDidChange$1 = function () {};
+    let propertyDidChange = function () {};
 
     /**
     @module @ember/object
@@ -12774,12 +12874,11 @@ enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember
         }
         /* called before property is overridden */
         teardown(obj, keyName, meta$$1) {
-            if (this._volatile) {
-                return;
-            }
-            let cache = peekCacheFor(obj);
-            if (cache !== undefined && cache.delete(keyName)) {
-                removeDependentKeys(this, obj, keyName, meta$$1);
+            if (!this._volatile) {
+                let cache = peekCacheFor(obj);
+                if (cache !== undefined && cache.delete(keyName)) {
+                    removeDependentKeys(this, obj, keyName, meta$$1);
+                }
             }
             super.teardown(obj, keyName, meta$$1);
         }
@@ -14187,9 +14286,7 @@ enifed('@ember/-internals/metal', ['exports', '@ember/-internals/utils', '@ember
     exports.endPropertyChanges = endPropertyChanges;
     exports.notifyPropertyChange = notifyPropertyChange;
     exports.overrideChains = overrideChains;
-    exports.propertyDidChange = propertyDidChange;
-    exports.propertyWillChange = propertyWillChange;
-    exports.PROPERTY_DID_CHANGE = PROPERTY_DID_CHANGE$1;
+    exports.PROPERTY_DID_CHANGE = PROPERTY_DID_CHANGE;
     exports.defineProperty = defineProperty;
     exports.Descriptor = Descriptor;
     exports.watchKey = watchKey;
@@ -14498,8 +14595,7 @@ enifed('@ember/-internals/routing/lib/ext/controller', ['exports', '@ember/-inte
         aController.transitionToRoute('blogComment', 1, 13);
         ```
            It is also possible to pass a URL (a string that starts with a
-        `/`). This is intended for testing and debugging purposes and
-        should rarely be used in production code.
+        `/`).
            ```javascript
         aController.transitionToRoute('/');
         aController.transitionToRoute('/blog/post/1/comment/13');
@@ -14564,8 +14660,7 @@ enifed('@ember/-internals/routing/lib/ext/controller', ['exports', '@ember/-inte
         aController.replaceRoute('blogComment', 1, 13);
         ```
            It is also possible to pass a URL (a string that starts with a
-        `/`). This is intended for testing and debugging purposes and
-        should rarely be used in production code.
+        `/`).
            ```javascript
         aController.replaceRoute('/');
         aController.replaceRoute('/blog/post/1/comment/13');
@@ -15687,6 +15782,12 @@ enifed('@ember/-internals/routing/lib/services/router', ['exports', '@ember/-int
     rootURL: (0, _computed.readOnly)('_router.rootURL')
   });
   if (true /* EMBER_ROUTING_ROUTER_SERVICE */) {
+      const cleanURL = function (url, rootURL) {
+        if (rootURL === '/') {
+          return url;
+        }
+        return url.substr(rootURL.length, url.length);
+      };
       RouterService.reopen(_runtime.Evented, {
         init() {
           this._super(...arguments);
@@ -15707,7 +15808,7 @@ enifed('@ember/-internals/routing/lib/services/router', ['exports', '@ember/-int
          A RouteInfo that represents the current leaf route.
          It is guaranteed to change whenever a route transition
          happens (even when that transition only changes parameters
-        and doesn't change the active route)
+         and doesn't change the active route)
               @property currentRoute
          @type RouteInfo
          @category ember-routing-router-service
@@ -15747,12 +15848,6 @@ enifed('@ember/-internals/routing/lib/services/router', ['exports', '@ember/-int
           return this._router._routerMicrolib.recognizeAndLoad(internalURL);
         }
       });
-      function cleanURL(url, rootURL) {
-        if (rootURL === '/') {
-          return url;
-        }
-        return url.substr(rootURL.length, url.length);
-      }
     }
 });
 enifed('@ember/-internals/routing/lib/services/routing', ['exports', '@ember/-internals/metal', '@ember/object/computed', '@ember/polyfills', '@ember/service'], function (exports, _metal, _computed, _polyfills, _service) {
@@ -16124,7 +16219,7 @@ enifed("@ember/-internals/routing/lib/system/route-info", [], function () {
     A `RouteInfoWithAttributes` is an object that contains
     metadata, including the resolved value from the routes
     `model` hook. Like `RouteInfo`, a `RouteInfoWithAttributes`
-    represents a specific route with in a Transition.
+    represents a specific route within a Transition.
     It is read-only and internally immutable. It is also not
     observable, because a Transition instance is never
     changed after creation.
@@ -16148,8 +16243,8 @@ enifed("@ember/-internals/routing/lib/system/route-info", [], function () {
     @public
   */
   /**
-    The values of the route's parametes. These are the
-    same params that are recieved as arguments to the
+    The values of the route's parameters. These are the
+    same params that are received as arguments to the
     route's model hook. Contains only the parameters
     valid for this route, if any (params for parent or
     child routes are not merged).
@@ -16231,7 +16326,7 @@ enifed("@ember/-internals/routing/lib/system/route-info", [], function () {
   */
   /**
     A RouteInfo is an object that contains metadata
-    about a specific route with in a Transition. It is
+    about a specific route within a Transition. It is
     read-only and internally immutable. It is also not
     observable, because a Transition instance is never
     changed after creation.
@@ -16256,7 +16351,7 @@ enifed("@ember/-internals/routing/lib/system/route-info", [], function () {
   */
   /**
     The values of the route's parametes. These are the
-    same params that are recieved as arguments to the
+    same params that are received as arguments to the
     route's model hook. Contains only the parameters
     valid for this route, if any (params for parent or
     child routes are not merged).
@@ -16816,8 +16911,7 @@ enifed('@ember/-internals/routing/lib/system/route', ['exports', '@ember/-intern
         this.transitionTo('blogComment', 1, 13);
         ```
            It is also possible to pass a URL (a string that starts with a
-        `/`). This is intended for testing and debugging purposes and
-        should rarely be used in production code.
+        `/`).
            ```javascript
         this.transitionTo('/');
         this.transitionTo('/blog/post/1/comment/13');
@@ -18013,8 +18107,8 @@ enifed('@ember/-internals/routing/lib/system/route', ['exports', '@ember/-intern
         in the model hook.
            Currently, the required interface is:
            `store.find(modelName, findArguments)`
-           @method store
-        @param {Object} store
+           @property store
+        @type {Object}
         @private
       */
       store: (0, _metal.computed)(function () {
@@ -18036,15 +18130,6 @@ enifed('@ember/-internals/routing/lib/system/route', ['exports', '@ember/-intern
             }
          };
       }),
-      router: _deprecatedFeatures.ROUTER_ROUTER ? (0, _metal.computed)('_router', function () {
-         true && !false && (0, _debug.deprecate)('Route#router is an intimate API that has been renamed to Route#_router. However you might want to consider using the router service', false, {
-            id: 'ember-routing.route-router',
-            until: '3.5.0',
-            url: 'https://emberjs.com/deprecations/v3.x#toc_ember-routing-route-router'
-         });
-
-         return this._router;
-      }) : undefined,
       /**
           @private
              @property _qp
@@ -19777,8 +19862,8 @@ enifed('@ember/-internals/routing/lib/system/router', ['exports', '@ember/-inter
         location: 'hash',
         /**
          Represents the current URL.
-            @method url
-         @return {String} The current URL.
+            @property url
+         @type {String}
          @private
         */
         url: (0, _metal.computed)(function () {
@@ -22906,11 +22991,6 @@ enifed('@ember/-internals/runtime/lib/mixins/evented', ['exports', '@ember/-inte
       @public
     */
     one(name, target, method) {
-      if (!method) {
-        method = target;
-        target = null;
-      }
-
       (0, _metal.addListener)(this, name, target, method, true);
       return this;
     },
@@ -23113,24 +23193,6 @@ enifed('@ember/-internals/runtime/lib/mixins/observable', ['exports', '@ember/-i
     */
     endPropertyChanges() {
       (0, _metal.endPropertyChanges)();
-      return this;
-    },
-
-    /**
-      @method propertyWillChange
-      @private
-    */
-    propertyWillChange(keyName) {
-      (0, _metal.propertyWillChange)(this, keyName);
-      return this;
-    },
-
-    /**
-      @method propertyDidChange
-      @private
-    */
-    propertyDidChange(keyName) {
-      (0, _metal.propertyDidChange)(this, keyName);
       return this;
     },
 
@@ -23850,11 +23912,6 @@ enifed('@ember/-internals/runtime/lib/mixins/target_action_support', ['exports',
       } else {
         return target;
       }
-    }
-
-    // if a `targetObject` CP was provided, use it
-    if (target) {
-      return target;
     }
 
     // if _targetObject use it
@@ -30143,7 +30200,7 @@ enifed('@ember/application/lib/validate-type', ['exports', '@ember/debug'], func
 enifed('@ember/canary-features/index', ['exports', '@ember/-internals/environment', '@ember/polyfills'], function (exports, _environment, _polyfills) {
     'use strict';
 
-    exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = exports.EMBER_TEMPLATE_BLOCK_LET_HELPER = exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = exports.EMBER_METAL_TRACKED_PROPERTIES = exports.EMBER_MODULE_UNIFICATION = exports.EMBER_ENGINES_MOUNT_PARAMS = exports.EMBER_ROUTING_ROUTER_SERVICE = exports.EMBER_GLIMMER_NAMED_ARGUMENTS = exports.EMBER_IMPROVED_INSTRUMENTATION = exports.EMBER_LIBRARIES_ISREGISTERED = exports.FEATURES = exports.DEFAULT_FEATURES = undefined;
+    exports.GLIMMER_MODIFIER_MANAGER = exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = exports.EMBER_METAL_TRACKED_PROPERTIES = exports.EMBER_MODULE_UNIFICATION = exports.EMBER_ENGINES_MOUNT_PARAMS = exports.EMBER_ROUTING_ROUTER_SERVICE = exports.EMBER_GLIMMER_NAMED_ARGUMENTS = exports.EMBER_IMPROVED_INSTRUMENTATION = exports.EMBER_LIBRARIES_ISREGISTERED = exports.FEATURES = exports.DEFAULT_FEATURES = undefined;
     exports.isEnabled = isEnabled;
 
     /**
@@ -30164,7 +30221,7 @@ enifed('@ember/canary-features/index', ['exports', '@ember/-internals/environmen
         EMBER_ENGINES_MOUNT_PARAMS: true,
         EMBER_MODULE_UNIFICATION: false,
         GLIMMER_CUSTOM_COMPONENT_MANAGER: true,
-        EMBER_TEMPLATE_BLOCK_LET_HELPER: true,
+        GLIMMER_MODIFIER_MANAGER: false,
         EMBER_METAL_TRACKED_PROPERTIES: false,
         EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION: true
     };
@@ -30217,8 +30274,8 @@ enifed('@ember/canary-features/index', ['exports', '@ember/-internals/environmen
     const EMBER_MODULE_UNIFICATION = exports.EMBER_MODULE_UNIFICATION = featureValue(FEATURES.EMBER_MODULE_UNIFICATION);
     const EMBER_METAL_TRACKED_PROPERTIES = exports.EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
     const GLIMMER_CUSTOM_COMPONENT_MANAGER = exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = featureValue(FEATURES.GLIMMER_CUSTOM_COMPONENT_MANAGER);
-    const EMBER_TEMPLATE_BLOCK_LET_HELPER = exports.EMBER_TEMPLATE_BLOCK_LET_HELPER = featureValue(FEATURES.EMBER_TEMPLATE_BLOCK_LET_HELPER);
     const EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION);
+    const GLIMMER_MODIFIER_MANAGER = exports.GLIMMER_MODIFIER_MANAGER = featureValue(FEATURES.GLIMMER_MODIFIER_MANAGER);
 });
 enifed('@ember/controller/index', ['exports', '@ember/-internals/runtime', '@ember/controller/lib/controller_mixin', '@ember/-internals/metal'], function (exports, _runtime, _controller_mixin, _metal) {
   'use strict';
@@ -30813,9 +30870,6 @@ enifed('@ember/debug/lib/warn', ['exports', '@ember/debug/index', '@ember/debug/
       registerHandler(function logWarning(message) {
         /* eslint-disable no-console */
         console.warn(`WARNING: ${message}`);
-        if (console.trace) {
-          console.trace();
-        }
         /* eslint-enable no-console */
       });
       exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -30868,9 +30922,6 @@ enifed('@ember/deprecated-features/index', ['exports'], function (exports) {
   const RUN_SYNC = exports.RUN_SYNC = !!'3.0.0-beta.4';
   const LOGGER = exports.LOGGER = !!'3.2.0-beta.1';
   const POSITIONAL_PARAM_CONFLICT = exports.POSITIONAL_PARAM_CONFLICT = !!'3.1.0-beta.1';
-  const PROPERTY_WILL_CHANGE = exports.PROPERTY_WILL_CHANGE = !!'3.1.0-beta.1';
-  const PROPERTY_DID_CHANGE = exports.PROPERTY_DID_CHANGE = !!'3.1.0-beta.1';
-  const ROUTER_ROUTER = exports.ROUTER_ROUTER = !!'3.2.0-beta.1';
   const ARRAY_AT_EACH = exports.ARRAY_AT_EACH = !!'3.1.0-beta.1';
   const TARGET_OBJECT = exports.TARGET_OBJECT = !!'2.18.0-beta.1';
   const MAP = exports.MAP = !!'3.3.0-beta.1';
@@ -32355,6 +32406,22 @@ enifed('@ember/map/with-default', ['exports', '@ember/debug', '@ember/map/index'
   }
 
   exports.default = MapWithDefault;
+});
+enifed('@ember/modifier/index', ['exports', '@ember/-internals/glimmer'], function (exports, _glimmer) {
+  'use strict';
+
+  Object.defineProperty(exports, 'setModifierManager', {
+    enumerable: true,
+    get: function () {
+      return _glimmer.setModifierManager;
+    }
+  });
+  Object.defineProperty(exports, 'capabilties', {
+    enumerable: true,
+    get: function () {
+      return _glimmer.modifierCapabilties;
+    }
+  });
 });
 enifed('@ember/object/computed', ['exports', '@ember/object/lib/computed/computed_macros', '@ember/object/lib/computed/reduce_computed_macros'], function (exports, _computed_macros, _reduce_computed_macros) {
   'use strict';
@@ -46125,12 +46192,6 @@ enifed('ember/index', ['exports', 'require', '@ember/-internals/environment', 'n
   Ember.isEmpty = _metal.isEmpty;
   Ember.isBlank = _metal.isBlank;
   Ember.isPresent = _metal.isPresent;
-  if (_deprecatedFeatures.PROPERTY_WILL_CHANGE) {
-    Ember.propertyWillChange = _metal.propertyWillChange;
-  }
-  if (_deprecatedFeatures.PROPERTY_DID_CHANGE) {
-    Ember.propertyDidChange = _metal.propertyDidChange;
-  }
   Ember.notifyPropertyChange = _metal.notifyPropertyChange;
   Ember.overrideChains = _metal.overrideChains;
   Ember.beginPropertyChanges = _metal.beginPropertyChanges;
@@ -46350,6 +46411,8 @@ enifed('ember/index', ['exports', 'require', '@ember/-internals/environment', 'n
   Ember.LinkComponent = _glimmer.LinkComponent;
   Ember._setComponentManager = _glimmer.setComponentManager;
   Ember._componentManagerCapabilities = _glimmer.capabilities;
+  Ember._setModifierManager = _glimmer.setModifierManager;
+  Ember._modifierManagerCapabilties = _glimmer.modifierCapabilties;
   Ember.Handlebars = {
     template: _glimmer.template,
     Utils: {
@@ -46479,7 +46542,7 @@ enifed('ember/index', ['exports', 'require', '@ember/-internals/environment', 'n
 enifed("ember/version", ["exports"], function (exports) {
   "use strict";
 
-  exports.default = "3.6.1";
+  exports.default = "3.7.0";
 });
 /*global enifed, module */
 enifed('node-module', ['exports'], function(_exports) {
@@ -49050,16 +49113,19 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    @class RSVP.EventTarget
+    @class EventTarget
+    @for rsvp
+    @public
   */
   var EventTarget = {
 
     /**
-      `RSVP.EventTarget.mixin` extends an object with EventTarget methods. For
+      `EventTarget.mixin` extends an object with EventTarget methods. For
       Example:
        ```javascript
-      let object = {};
-       RSVP.EventTarget.mixin(object);
+      import EventTarget from 'rsvp';
+       let object = {};
+       EventTarget.mixin(object);
        object.on('finished', function(event) {
         // handle event
       });
@@ -49067,8 +49133,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
       ```
        `EventTarget.mixin` also works with prototypes:
        ```javascript
-      let Person = function() {};
-      RSVP.EventTarget.mixin(Person.prototype);
+      import EventTarget from 'rsvp';
+       let Person = function() {};
+      EventTarget.mixin(Person.prototype);
        let yehuda = new Person();
       let tom = new Person();
        yehuda.on('poke', function(event) {
@@ -49081,7 +49148,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
       tom.trigger('poke');
       ```
        @method mixin
-      @for RSVP.EventTarget
+      @for rsvp
       @private
       @param {Object} object object to extend with EventTarget methods
     */
@@ -49102,7 +49169,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
        object.trigger('event');
       ```
        @method on
-      @for RSVP.EventTarget
+      @for EventTarget
       @private
       @param {String} eventName name of the event to listen for
       @param {Function} callback function to be called when the event is triggered.
@@ -49146,7 +49213,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
       object.trigger('stuff'); // callback1 and callback2 will not be executed!
       ```
        @method off
-      @for RSVP.EventTarget
+      @for rsvp
       @private
       @param {String} eventName event to stop listening to
       @param {Function} callback optional argument. If given, only the function
@@ -49189,7 +49256,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
       // 'bar' logged to the console
       ```
        @method trigger
-      @for RSVP.EventTarget
+      @for rsvp
       @private
       @param {String} eventName name of the event to be triggered
       @param {*} options optional value to be passed to any event handlers for
@@ -49263,11 +49330,13 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    `RSVP.Promise.resolve` returns a promise that will become resolved with the
+    `Promise.resolve` returns a promise that will become resolved with the
     passed `value`. It is shorthand for the following:
   
     ```javascript
-    let promise = new RSVP.Promise(function(resolve, reject){
+    import Promise from 'rsvp';
+  
+    let promise = new Promise(function(resolve, reject){
       resolve(1);
     });
   
@@ -49279,6 +49348,8 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     Instead of writing the above, your code now simply becomes the following:
   
     ```javascript
+    import Promise from 'rsvp';
+  
     let promise = RSVP.Promise.resolve(1);
   
     promise.then(function(value){
@@ -49287,6 +49358,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     ```
   
     @method resolve
+    @for Promise
     @static
     @param {*} object value that the returned promise will be resolved with
     @param {String} label optional string for identifying the returned promise.
@@ -49685,7 +49757,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    `RSVP.Promise.all` accepts an array of promises, and returns a new promise which
+    `Promise.all` accepts an array of promises, and returns a new promise which
     is fulfilled with an array of fulfillment values for the passed promises, or
     rejected with the reason of the first passed promise to be rejected. It casts all
     elements of the passed iterable to promises as it runs this algorithm.
@@ -49693,12 +49765,14 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     Example:
   
     ```javascript
-    let promise1 = RSVP.resolve(1);
-    let promise2 = RSVP.resolve(2);
-    let promise3 = RSVP.resolve(3);
+    import Promise, { resolve } from 'rsvp';
+  
+    let promise1 = resolve(1);
+    let promise2 = resolve(2);
+    let promise3 = resolve(3);
     let promises = [ promise1, promise2, promise3 ];
   
-    RSVP.Promise.all(promises).then(function(array){
+    Promise.all(promises).then(function(array){
       // The array here would be [ 1, 2, 3 ];
     });
     ```
@@ -49710,12 +49784,14 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     Example:
   
     ```javascript
-    let promise1 = RSVP.resolve(1);
-    let promise2 = RSVP.reject(new Error("2"));
-    let promise3 = RSVP.reject(new Error("3"));
+    import Promise, { resolve, reject } from 'rsvp';
+  
+    let promise1 = resolve(1);
+    let promise2 = reject(new Error("2"));
+    let promise3 = reject(new Error("3"));
     let promises = [ promise1, promise2, promise3 ];
   
-    RSVP.Promise.all(promises).then(function(array){
+    Promise.all(promises).then(function(array){
       // Code here never runs because there are rejected promises!
     }, function(error) {
       // error.message === "2"
@@ -49723,7 +49799,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     ```
   
     @method all
-    @static
+    @for Promise
     @param {Array} entries array of promises
     @param {String} label optional string for labeling the promise.
     Useful for tooling.
@@ -49739,50 +49815,54 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    `RSVP.Promise.race` returns a new promise which is settled in the same way as the
+    `Promise.race` returns a new promise which is settled in the same way as the
     first passed promise to settle.
   
     Example:
   
     ```javascript
-    let promise1 = new RSVP.Promise(function(resolve, reject){
+    import Promise from 'rsvp';
+  
+    let promise1 = new Promise(function(resolve, reject){
       setTimeout(function(){
         resolve('promise 1');
       }, 200);
     });
   
-    let promise2 = new RSVP.Promise(function(resolve, reject){
+    let promise2 = new Promise(function(resolve, reject){
       setTimeout(function(){
         resolve('promise 2');
       }, 100);
     });
   
-    RSVP.Promise.race([promise1, promise2]).then(function(result){
+    Promise.race([promise1, promise2]).then(function(result){
       // result === 'promise 2' because it was resolved before promise1
       // was resolved.
     });
     ```
   
-    `RSVP.Promise.race` is deterministic in that only the state of the first
+    `Promise.race` is deterministic in that only the state of the first
     settled promise matters. For example, even if other promises given to the
     `promises` array argument are resolved, but the first settled promise has
     become rejected before the other promises became fulfilled, the returned
     promise will become rejected:
   
     ```javascript
-    let promise1 = new RSVP.Promise(function(resolve, reject){
+    import Promise from 'rsvp';
+  
+    let promise1 = new Promise(function(resolve, reject){
       setTimeout(function(){
         resolve('promise 1');
       }, 200);
     });
   
-    let promise2 = new RSVP.Promise(function(resolve, reject){
+    let promise2 = new Promise(function(resolve, reject){
       setTimeout(function(){
         reject(new Error('promise 2'));
       }, 100);
     });
   
-    RSVP.Promise.race([promise1, promise2]).then(function(result){
+    Promise.race([promise1, promise2]).then(function(result){
       // Code here never runs
     }, function(reason){
       // reason.message === 'promise 2' because promise 2 became rejected before
@@ -49793,10 +49873,13 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     An example real-world use case is implementing timeouts:
   
     ```javascript
-    RSVP.Promise.race([ajax('foo.json'), timeout(5000)])
+    import Promise from 'rsvp';
+  
+    Promise.race([ajax('foo.json'), timeout(5000)])
     ```
   
     @method race
+    @for Promise
     @static
     @param {Array} entries array of promises to observe
     @param {String} label optional string for describing the promise returned.
@@ -49823,11 +49906,13 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    `RSVP.Promise.reject` returns a promise rejected with the passed `reason`.
+    `Promise.reject` returns a promise rejected with the passed `reason`.
     It is shorthand for the following:
   
     ```javascript
-    let promise = new RSVP.Promise(function(resolve, reject){
+    import Promise from 'rsvp';
+  
+    let promise = new Promise(function(resolve, reject){
       reject(new Error('WHOOPS'));
     });
   
@@ -49841,7 +49926,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     Instead of writing the above, your code now simply becomes the following:
   
     ```javascript
-    let promise = RSVP.Promise.reject(new Error('WHOOPS'));
+    import Promise from 'rsvp';
+  
+    let promise = Promise.reject(new Error('WHOOPS'));
   
     promise.then(function(value){
       // Code here doesn't run because the promise is rejected!
@@ -49851,6 +49938,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     ```
   
     @method reject
+    @for Promise
     @static
     @param {*} reason value that the returned promise will be rejected with.
     @param {String} label optional string for identifying the returned promise.
@@ -49974,7 +50062,8 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     });
     ```
   
-    @class RSVP.Promise
+    @class Promise
+    @public
     @param {function} resolver
     @param {String} label optional string for labeling the promise.
     Useful for tooling.
@@ -50080,9 +50169,13 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
       let promise = this;
       let constructor = promise.constructor;
 
-      return promise.then(value => constructor.resolve(callback()).then(() => value), reason => constructor.resolve(callback()).then(() => {
-        throw reason;
-      }), label);
+      if (typeof callback === 'function') {
+        return promise.then(value => constructor.resolve(callback()).then(() => value), reason => constructor.resolve(callback()).then(() => {
+          throw reason;
+        }));
+      }
+
+      return promise.then(callback, callback);
     }
   }
 
@@ -50327,8 +50420,8 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    `RSVP.denodeify` takes a 'node-style' function and returns a function that
-    will return an `RSVP.Promise`. You can use `denodeify` in Node.js or the
+    `denodeify` takes a 'node-style' function and returns a function that
+    will return an `Promise`. You can use `denodeify` in Node.js or the
     browser when you'd prefer to use promises over using callbacks. For example,
     `denodeify` transforms the following:
   
@@ -50345,7 +50438,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   
     ```javascript
     let fs = require('fs');
-    let readFile = RSVP.denodeify(fs.readFile);
+    let readFile = denodeify(fs.readFile);
   
     readFile('myfile.txt').then(handleData, handleError);
     ```
@@ -50354,7 +50447,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     just returns the first one:
   
     ```javascript
-    let request = RSVP.denodeify(require('request'));
+    let request = denodeify(require('request'));
   
     request('http://example.com').then(function(res) {
       // ...
@@ -50366,7 +50459,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     as an array:
   
     ```javascript
-    let request = RSVP.denodeify(require('request'), true);
+    let request = denodeify(require('request'), true);
   
     request('http://example.com').then(function(result) {
       // result[0] -> res
@@ -50377,7 +50470,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     Or if you pass it an array with names it returns the parameters as a hash:
   
     ```javascript
-    let request = RSVP.denodeify(require('request'), ['res', 'body']);
+    let request = denodeify(require('request'), ['res', 'body']);
   
     request('http://example.com').then(function(result) {
       // result.res
@@ -50389,7 +50482,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   
     ```javascript
     let app = require('express')();
-    let render = RSVP.denodeify(app.render.bind(app));
+    let render = denodeify(app.render.bind(app));
     ```
   
     The denodified function inherits from the original function. It works in all
@@ -50398,7 +50491,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     denodeified function won't be changed on the original function. Example:
   
     ```javascript
-    let request = RSVP.denodeify(require('request')),
+    let request = denodeify(require('request')),
         cookieJar = request.jar(); // <- Inheritance is used here
   
     request('http://example.com', {jar: cookieJar}).then(function(res) {
@@ -50425,8 +50518,8 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   
     ```javascript
     let fs = require('fs');
-    let readFile = RSVP.denodeify(fs.readFile);
-    let writeFile = RSVP.denodeify(fs.writeFile);
+    let readFile = denodeify(fs.readFile);
+    let writeFile = denodeify(fs.writeFile);
   
     readFile('myfile.txt').then(function(data){
       return writeFile('myfile2.txt', data);
@@ -50438,8 +50531,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     ```
   
     @method denodeify
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {Function} nodeFunc a 'node-style' function that takes a callback as
     its last argument. The callback expects an error to be passed as its first
     argument (if an error occurred, otherwise null), and the value from the
@@ -50450,9 +50544,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     paramters. If you set this paramter to an array with names, the promise will
     fulfill with a hash with these names as keys and the success parameters as
     values.
-    @return {Function} a function that wraps `nodeFunc` to return an
-    `RSVP.Promise`
-    @static
+    @return {Function} a function that wraps `nodeFunc` to return a `Promise`
   */
   function denodeify(nodeFunc, options) {
     let fn = function () {
@@ -50534,11 +50626,12 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    This is a convenient alias for `RSVP.Promise.all`.
+    This is a convenient alias for `Promise.all`.
   
     @method all
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {Array} array Array of promises.
     @param {String} label An optional label. This is useful
     for tooling.
@@ -50546,6 +50639,11 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   function all$1(array, label) {
     return Promise.all(array, label);
   }
+
+  /**
+  @module rsvp
+  @public
+  **/
 
   class AllSettled extends Enumerator {
     constructor(Constructor, entries, label) {
@@ -50591,8 +50689,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   });
   ```
    @method allSettled
+  @public
   @static
-  @for RSVP
+  @for rsvp
   @param {Array} entries
   @param {String} label - optional string that describes the promise.
   Useful for tooling.
@@ -50609,11 +50708,12 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    This is a convenient alias for `RSVP.Promise.race`.
+    This is a convenient alias for `Promise.race`.
   
     @method race
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {Array} array Array of promises.
     @param {String} label An optional label. This is useful
     for tooling.
@@ -50651,7 +50751,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    `RSVP.hash` is similar to `RSVP.all`, but takes an object instead of an array
+    `hash` is similar to `all`, but takes an object instead of an array
     for its `promises` argument.
   
     Returns a promise that is fulfilled when all the given promises have been
@@ -50664,13 +50764,13 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   
     ```javascript
     let promises = {
-      myPromise: RSVP.resolve(1),
-      yourPromise: RSVP.resolve(2),
-      theirPromise: RSVP.resolve(3),
+      myPromise: resolve(1),
+      yourPromise: resolve(2),
+      theirPromise: resolve(3),
       notAPromise: 4
     };
   
-    RSVP.hash(promises).then(function(hash){
+    hash(promises).then(function(hash){
       // hash here is an object that looks like:
       // {
       //   myPromise: 1,
@@ -50679,45 +50779,46 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
       //   notAPromise: 4
       // }
     });
-    ````
+    ```
   
-    If any of the `promises` given to `RSVP.hash` are rejected, the first promise
+    If any of the `promises` given to `hash` are rejected, the first promise
     that is rejected will be given as the reason to the rejection handler.
   
     Example:
   
     ```javascript
     let promises = {
-      myPromise: RSVP.resolve(1),
-      rejectedPromise: RSVP.reject(new Error('rejectedPromise')),
-      anotherRejectedPromise: RSVP.reject(new Error('anotherRejectedPromise')),
+      myPromise: resolve(1),
+      rejectedPromise: reject(new Error('rejectedPromise')),
+      anotherRejectedPromise: reject(new Error('anotherRejectedPromise')),
     };
   
-    RSVP.hash(promises).then(function(hash){
+    hash(promises).then(function(hash){
       // Code here never runs because there are rejected promises!
     }, function(reason) {
       // reason.message === 'rejectedPromise'
     });
     ```
   
-    An important note: `RSVP.hash` is intended for plain JavaScript objects that
-    are just a set of keys and values. `RSVP.hash` will NOT preserve prototype
+    An important note: `hash` is intended for plain JavaScript objects that
+    are just a set of keys and values. `hash` will NOT preserve prototype
     chains.
   
     Example:
   
     ```javascript
+    import { hash, resolve } from 'rsvp';
     function MyConstructor(){
-      this.example = RSVP.resolve('Example');
+      this.example = resolve('Example');
     }
   
     MyConstructor.prototype = {
-      protoProperty: RSVP.resolve('Proto Property')
+      protoProperty: resolve('Proto Property')
     };
   
     let myObject = new MyConstructor();
   
-    RSVP.hash(myObject).then(function(hash){
+    hash(myObject).then(function(hash){
       // protoProperty will not be present, instead you will just have an
       // object that looks like:
       // {
@@ -50730,8 +50831,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     ```
   
     @method hash
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {Object} object
     @param {String} label optional string that describes the promise.
     Useful for tooling.
@@ -50739,11 +50841,12 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     have been fulfilled, or rejected if any of them become rejected.
   */
   function hash(object, label) {
-    if (object === null || typeof object !== 'object') {
-      return Promise.reject(new TypeError("Promise.hash must be called with an object"), label);
-    }
-
-    return new PromiseHash(Promise, object, label).promise;
+    return Promise.resolve(object, label).then(function (object) {
+      if (object === null || typeof object !== 'object') {
+        throw new TypeError("Promise.hash must be called with an object");
+      }
+      return new PromiseHash(Promise, object, label).promise;
+    });
   }
 
   class HashSettled extends PromiseHash {
@@ -50755,11 +50858,11 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   HashSettled.prototype._setResultAt = setSettledResult;
 
   /**
-    `RSVP.hashSettled` is similar to `RSVP.allSettled`, but takes an object
+    `hashSettled` is similar to `allSettled`, but takes an object
     instead of an array for its `promises` argument.
   
-    Unlike `RSVP.all` or `RSVP.hash`, which implement a fail-fast method,
-    but like `RSVP.allSettled`, `hashSettled` waits until all the
+    Unlike `all` or `hash`, which implement a fail-fast method,
+    but like `allSettled`, `hashSettled` waits until all the
     constituent promises have returned and then shows you all the results
     with their states and values/reasons. This is useful if you want to
     handle multiple promises' failure states together as a set.
@@ -50775,14 +50878,16 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     Example:
   
     ```javascript
+    import { hashSettled, resolve } from 'rsvp';
+  
     let promises = {
-      myPromise: RSVP.Promise.resolve(1),
-      yourPromise: RSVP.Promise.resolve(2),
-      theirPromise: RSVP.Promise.resolve(3),
+      myPromise: resolve(1),
+      yourPromise: resolve(2),
+      theirPromise: resolve(3),
       notAPromise: 4
     };
   
-    RSVP.hashSettled(promises).then(function(hash){
+    hashSettled(promises).then(function(hash){
       // hash here is an object that looks like:
       // {
       //   myPromise: { state: 'fulfilled', value: 1 },
@@ -50793,19 +50898,21 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     });
     ```
   
-    If any of the `promises` given to `RSVP.hash` are rejected, the state will
+    If any of the `promises` given to `hash` are rejected, the state will
     be set to 'rejected' and the reason for rejection provided.
   
     Example:
   
     ```javascript
+    import { hashSettled, reject, resolve } from 'rsvp';
+  
     let promises = {
-      myPromise: RSVP.Promise.resolve(1),
-      rejectedPromise: RSVP.Promise.reject(new Error('rejection')),
-      anotherRejectedPromise: RSVP.Promise.reject(new Error('more rejection')),
+      myPromise: resolve(1),
+      rejectedPromise: reject(new Error('rejection')),
+      anotherRejectedPromise: reject(new Error('more rejection')),
     };
   
-    RSVP.hashSettled(promises).then(function(hash){
+    hashSettled(promises).then(function(hash){
       // hash here is an object that looks like:
       // {
       //   myPromise:              { state: 'fulfilled', value: 1 },
@@ -50817,24 +50924,26 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     });
     ```
   
-    An important note: `RSVP.hashSettled` is intended for plain JavaScript objects that
-    are just a set of keys and values. `RSVP.hashSettled` will NOT preserve prototype
+    An important note: `hashSettled` is intended for plain JavaScript objects that
+    are just a set of keys and values. `hashSettled` will NOT preserve prototype
     chains.
   
     Example:
   
     ```javascript
+    import Promise, { hashSettled, resolve } from 'rsvp';
+  
     function MyConstructor(){
-      this.example = RSVP.Promise.resolve('Example');
+      this.example = resolve('Example');
     }
   
     MyConstructor.prototype = {
-      protoProperty: RSVP.Promise.resolve('Proto Property')
+      protoProperty: Promise.resolve('Proto Property')
     };
   
     let myObject = new MyConstructor();
   
-    RSVP.hashSettled(myObject).then(function(hash){
+    hashSettled(myObject).then(function(hash){
       // protoProperty will not be present, instead you will just have an
       // object that looks like:
       // {
@@ -50847,7 +50956,8 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     ```
   
     @method hashSettled
-    @for RSVP
+    @public
+    @for rsvp
     @param {Object} object
     @param {String} label optional string that describes the promise.
     Useful for tooling.
@@ -50857,35 +50967,39 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   */
 
   function hashSettled(object, label) {
-    if (object === null || typeof object !== 'object') {
-      return Promise.reject(new TypeError("RSVP.hashSettled must be called with an object"), label);
-    }
+    return Promise.resolve(object, label).then(function (object) {
+      if (object === null || typeof object !== 'object') {
+        throw new TypeError("hashSettled must be called with an object");
+      }
 
-    return new HashSettled(Promise, object, false, label).promise;
+      return new HashSettled(Promise, object, false, label).promise;
+    });
   }
 
   /**
-    `RSVP.rethrow` will rethrow an error on the next turn of the JavaScript event
+    `rethrow` will rethrow an error on the next turn of the JavaScript event
     loop in order to aid debugging.
   
     Promises A+ specifies that any exceptions that occur with a promise must be
     caught by the promises implementation and bubbled to the last handler. For
     this reason, it is recommended that you always specify a second rejection
-    handler function to `then`. However, `RSVP.rethrow` will throw the exception
+    handler function to `then`. However, `rethrow` will throw the exception
     outside of the promise, so it bubbles up to your console if in the browser,
     or domain/cause uncaught exception in Node. `rethrow` will also throw the
     error again so the error can be handled by the promise per the spec.
   
     ```javascript
+    import { rethrow } from 'rsvp';
+  
     function throws(){
       throw new Error('Whoops!');
     }
   
-    let promise = new RSVP.Promise(function(resolve, reject){
+    let promise = new Promise(function(resolve, reject){
       throws();
     });
   
-    promise.catch(RSVP.rethrow).then(function(){
+    promise.catch(rethrow).then(function(){
       // Code here doesn't run because the promise became rejected due to an
       // error!
     }, function (err){
@@ -50898,8 +51012,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     rejection handler given to `.then` or `.catch` on the returned promise.
   
     @method rethrow
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {Error} reason reason the promise became rejected.
     @throws Error
     @static
@@ -50912,13 +51027,13 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    `RSVP.defer` returns an object similar to jQuery's `$.Deferred`.
-    `RSVP.defer` should be used when porting over code reliant on `$.Deferred`'s
-    interface. New code should use the `RSVP.Promise` constructor instead.
+    `defer` returns an object similar to jQuery's `$.Deferred`.
+    `defer` should be used when porting over code reliant on `$.Deferred`'s
+    interface. New code should use the `Promise` constructor instead.
   
-    The object returned from `RSVP.defer` is a plain object with three properties:
+    The object returned from `defer` is a plain object with three properties:
   
-    * promise - an `RSVP.Promise`.
+    * promise - an `Promise`.
     * reject - a function that causes the `promise` property on this object to
       become rejected
     * resolve - a function that causes the `promise` property on this object to
@@ -50927,7 +51042,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     Example:
   
      ```javascript
-     let deferred = RSVP.defer();
+     let deferred = defer();
   
      deferred.resolve("Success!");
   
@@ -50937,8 +51052,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
      ```
   
     @method defer
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {String} label optional string for labeling the promise.
     Useful for tooling.
     @return {Object}
@@ -50987,73 +51103,78 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-   `RSVP.map` is similar to JavaScript's native `map` method. `mapFn` is eagerly called
+   `map` is similar to JavaScript's native `map` method. `mapFn` is eagerly called
     meaning that as soon as any promise resolves its value will be passed to `mapFn`.
-    `RSVP.map` returns a promise that will become fulfilled with the result of running
+    `map` returns a promise that will become fulfilled with the result of running
     `mapFn` on the values the promises become fulfilled with.
   
     For example:
   
     ```javascript
+    import { map, resolve } from 'rsvp';
   
-    let promise1 = RSVP.resolve(1);
-    let promise2 = RSVP.resolve(2);
-    let promise3 = RSVP.resolve(3);
+    let promise1 = resolve(1);
+    let promise2 = resolve(2);
+    let promise3 = resolve(3);
     let promises = [ promise1, promise2, promise3 ];
   
     let mapFn = function(item){
       return item + 1;
     };
   
-    RSVP.map(promises, mapFn).then(function(result){
+    map(promises, mapFn).then(function(result){
       // result is [ 2, 3, 4 ]
     });
     ```
   
-    If any of the `promises` given to `RSVP.map` are rejected, the first promise
+    If any of the `promises` given to `map` are rejected, the first promise
     that is rejected will be given as an argument to the returned promise's
     rejection handler. For example:
   
     ```javascript
-    let promise1 = RSVP.resolve(1);
-    let promise2 = RSVP.reject(new Error('2'));
-    let promise3 = RSVP.reject(new Error('3'));
+    import { map, reject, resolve } from 'rsvp';
+  
+    let promise1 = resolve(1);
+    let promise2 = reject(new Error('2'));
+    let promise3 = reject(new Error('3'));
     let promises = [ promise1, promise2, promise3 ];
   
     let mapFn = function(item){
       return item + 1;
     };
   
-    RSVP.map(promises, mapFn).then(function(array){
+    map(promises, mapFn).then(function(array){
       // Code here never runs because there are rejected promises!
     }, function(reason) {
       // reason.message === '2'
     });
     ```
   
-    `RSVP.map` will also wait if a promise is returned from `mapFn`. For example,
+    `map` will also wait if a promise is returned from `mapFn`. For example,
     say you want to get all comments from a set of blog posts, but you need
     the blog posts first because they contain a url to those comments.
   
     ```javscript
+    import { map } from 'rsvp';
   
     let mapFn = function(blogPost){
-      // getComments does some ajax and returns an RSVP.Promise that is fulfilled
+      // getComments does some ajax and returns an Promise that is fulfilled
       // with some comments data
       return getComments(blogPost.comments_url);
     };
   
-    // getBlogPosts does some ajax and returns an RSVP.Promise that is fulfilled
+    // getBlogPosts does some ajax and returns an Promise that is fulfilled
     // with some blog post data
-    RSVP.map(getBlogPosts(), mapFn).then(function(comments){
+    map(getBlogPosts(), mapFn).then(function(comments){
       // comments is the result of asking the server for the comments
       // of all blog posts returned from getBlogPosts()
     });
     ```
   
     @method map
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {Array} promises
     @param {Function} mapFn function to be called on each fulfilled promise.
     @param {String} label optional string for labeling the promise.
@@ -51061,26 +51182,27 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     @return {Promise} promise that is fulfilled with the result of calling
     `mapFn` on each fulfilled promise or value when they become fulfilled.
      The promise will be rejected if any of the given `promises` become rejected.
-    @static
   */
   function map(promises, mapFn, label) {
-    if (!Array.isArray(promises)) {
-      return Promise.reject(new TypeError("RSVP.map must be called with an array"), label);
-    }
-
     if (typeof mapFn !== 'function') {
-      return Promise.reject(new TypeError("RSVP.map expects a function as a second argument"), label);
+      return Promise.reject(new TypeError("map expects a function as a second argument"), label);
     }
 
-    return new MapEnumerator(Promise, promises, mapFn, label).promise;
+    return Promise.resolve(promises, label).then(function (promises) {
+      if (!Array.isArray(promises)) {
+        throw new TypeError("map must be called with an array");
+      }
+      return new MapEnumerator(Promise, promises, mapFn, label).promise;
+    });
   }
 
   /**
-    This is a convenient alias for `RSVP.Promise.resolve`.
+    This is a convenient alias for `Promise.resolve`.
   
     @method resolve
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {*} value value that the returned promise will be resolved with
     @param {String} label optional string for identifying the returned promise.
     Useful for tooling.
@@ -51092,11 +51214,12 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-    This is a convenient alias for `RSVP.Promise.reject`.
+    This is a convenient alias for `Promise.reject`.
   
     @method reject
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {*} reason value that the returned promise will be rejected with.
     @param {String} label optional string for identifying the returned promise.
     Useful for tooling.
@@ -51137,19 +51260,20 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
   }
 
   /**
-   `RSVP.filter` is similar to JavaScript's native `filter` method.
+   `filter` is similar to JavaScript's native `filter` method.
    `filterFn` is eagerly called meaning that as soon as any promise
-    resolves its value will be passed to `filterFn`. `RSVP.filter` returns
+    resolves its value will be passed to `filterFn`. `filter` returns
     a promise that will become fulfilled with the result of running
     `filterFn` on the values the promises become fulfilled with.
   
     For example:
   
     ```javascript
+    import { filter, resolve } from 'rsvp';
   
-    let promise1 = RSVP.resolve(1);
-    let promise2 = RSVP.resolve(2);
-    let promise3 = RSVP.resolve(3);
+    let promise1 = resolve(1);
+    let promise2 = resolve(2);
+    let promise3 = resolve(3);
   
     let promises = [promise1, promise2, promise3];
   
@@ -51157,44 +51281,47 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
       return item > 1;
     };
   
-    RSVP.filter(promises, filterFn).then(function(result){
+    filter(promises, filterFn).then(function(result){
       // result is [ 2, 3 ]
     });
     ```
   
-    If any of the `promises` given to `RSVP.filter` are rejected, the first promise
+    If any of the `promises` given to `filter` are rejected, the first promise
     that is rejected will be given as an argument to the returned promise's
     rejection handler. For example:
   
     ```javascript
-    let promise1 = RSVP.resolve(1);
-    let promise2 = RSVP.reject(new Error('2'));
-    let promise3 = RSVP.reject(new Error('3'));
+    import { filter, reject, resolve } from 'rsvp';
+  
+    let promise1 = resolve(1);
+    let promise2 = reject(new Error('2'));
+    let promise3 = reject(new Error('3'));
     let promises = [ promise1, promise2, promise3 ];
   
     let filterFn = function(item){
       return item > 1;
     };
   
-    RSVP.filter(promises, filterFn).then(function(array){
+    filter(promises, filterFn).then(function(array){
       // Code here never runs because there are rejected promises!
     }, function(reason) {
       // reason.message === '2'
     });
     ```
   
-    `RSVP.filter` will also wait for any promises returned from `filterFn`.
+    `filter` will also wait for any promises returned from `filterFn`.
     For instance, you may want to fetch a list of users then return a subset
     of those users based on some asynchronous operation:
   
     ```javascript
+    import { filter, resolve } from 'rsvp';
   
     let alice = { name: 'alice' };
     let bob   = { name: 'bob' };
     let users = [ alice, bob ];
   
     let promises = users.map(function(user){
-      return RSVP.resolve(user);
+      return resolve(user);
     });
   
     let filterFn = function(user){
@@ -51203,7 +51330,7 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
         return privs.can_create_blog_post === true;
       });
     };
-    RSVP.filter(promises, filterFn).then(function(users){
+    filter(promises, filterFn).then(function(users){
       // true, because the server told us only Alice can create a blog post.
       users.length === 1;
       // false, because Alice is the only user present in `users`
@@ -51212,8 +51339,9 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
     ```
   
     @method filter
+    @public
     @static
-    @for RSVP
+    @for rsvp
     @param {Array} promises
     @param {Function} filterFn - function to be called on each resolved value to
     filter the final results.
@@ -51224,12 +51352,12 @@ enifed('rsvp', ['exports', 'node-module'], function (exports, _nodeModule) {
 
   function filter(promises, filterFn, label) {
     if (typeof filterFn !== 'function') {
-      return Promise.reject(new TypeError("RSVP.filter expects function as a second argument"), label);
+      return Promise.reject(new TypeError("filter expects function as a second argument"), label);
     }
 
     return Promise.resolve(promises, label).then(function (promises) {
       if (!Array.isArray(promises)) {
-        throw new TypeError("RSVP.filter must be called with an array");
+        throw new TypeError("filter must be called with an array");
       }
       return new FilterEnumerator(Promise, promises, filterFn, label).promise;
     });
@@ -73267,7 +73395,7 @@ define("ember-data/-private/system/relationships/state/relationship", ["exports"
 });
 
       define('ember-data/version', ['exports'], function (exports) {
-        exports.default = '3.6.0';
+        exports.default = '3.7.0';
       });
     
 define("ember-load-initializers/index", ["exports"], function (_exports) {

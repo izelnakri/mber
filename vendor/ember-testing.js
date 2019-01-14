@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.6.1
+ * @version   3.7.0
  */
 
 /*globals process */
@@ -626,9 +626,6 @@ enifed('@ember/debug/lib/warn', ['exports', '@ember/debug/index', '@ember/debug/
       registerHandler(function logWarning(message) {
         /* eslint-disable no-console */
         console.warn(`WARNING: ${message}`);
-        if (console.trace) {
-          console.trace();
-        }
         /* eslint-enable no-console */
       });
       exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';

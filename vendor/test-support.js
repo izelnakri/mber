@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.6.1
+ * @version   3.7.0
  */
 
 /*globals process */
@@ -626,9 +626,6 @@ enifed('@ember/debug/lib/warn', ['exports', '@ember/debug/index', '@ember/debug/
       registerHandler(function logWarning(message) {
         /* eslint-disable no-console */
         console.warn(`WARNING: ${message}`);
-        if (console.trace) {
-          console.trace();
-        }
         /* eslint-enable no-console */
       });
       exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -2403,14 +2400,14 @@ Ember.setupForTesting = testing.setupForTesting;
 })();
 
 /*!
- * QUnit 2.8.0
+ * QUnit 2.9.1
  * https://qunitjs.com/
  *
  * Copyright jQuery Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2018-11-02T16:17Z
+ * Date: 2019-01-07T16:37Z
  */
 (function (global$1) {
   'use strict';
@@ -6390,11 +6387,13 @@ Ember.setupForTesting = testing.setupForTesting;
   				// We don't want to validate thrown error
   				if (!expected) {
   					result = true;
-  					expected = null;
 
   					// Expected is a regexp
   				} else if (expectedType === "regexp") {
   					result = expected.test(errorString(actual));
+
+  					// Log the string form of the regexp
+  					expected = String(expected);
 
   					// Expected is a constructor, maybe an Error constructor
   				} else if (expectedType === "function" && actual instanceof expected) {
@@ -6403,6 +6402,9 @@ Ember.setupForTesting = testing.setupForTesting;
   					// Expected is an Error object
   				} else if (expectedType === "object") {
   					result = actual instanceof expected.constructor && actual.name === expected.name && actual.message === expected.message;
+
+  					// Log the string form of the Error object
+  					expected = errorString(expected);
 
   					// Expected is a validation function which returns true if validation passed
   				} else if (expectedType === "function" && expected.call({}, actual) === true) {
@@ -6413,7 +6415,9 @@ Ember.setupForTesting = testing.setupForTesting;
 
   			currentTest.assert.pushResult({
   				result: result,
-  				actual: actual,
+
+  				// undefined if it didn't throw
+  				actual: actual && errorString(actual),
   				expected: expected,
   				message: message
   			});
@@ -6473,11 +6477,13 @@ Ember.setupForTesting = testing.setupForTesting;
   				// We don't want to validate
   				if (expected === undefined) {
   					result = true;
-  					expected = actual;
 
   					// Expected is a regexp
   				} else if (expectedType === "regexp") {
   					result = expected.test(errorString(actual));
+
+  					// Log the string form of the regexp
+  					expected = String(expected);
 
   					// Expected is a constructor, maybe an Error constructor
   				} else if (expectedType === "function" && actual instanceof expected) {
@@ -6486,6 +6492,9 @@ Ember.setupForTesting = testing.setupForTesting;
   					// Expected is an Error object
   				} else if (expectedType === "object") {
   					result = actual instanceof expected.constructor && actual.name === expected.name && actual.message === expected.message;
+
+  					// Log the string form of the Error object
+  					expected = errorString(expected);
 
   					// Expected is a validation function which returns true if validation passed
   				} else {
@@ -6502,7 +6511,9 @@ Ember.setupForTesting = testing.setupForTesting;
 
   				currentTest.assert.pushResult({
   					result: result,
-  					actual: actual,
+
+  					// leave rejection value of undefined as-is
+  					actual: actual && errorString(actual),
   					expected: expected,
   					message: message
   				});
@@ -6524,12 +6535,14 @@ Ember.setupForTesting = testing.setupForTesting;
   /**
    * Converts an error into a simple string for comparisons.
    *
-   * @param {Error} error
+   * @param {Error|Object} error
    * @return {String}
    */
   function errorString(error) {
   	var resultErrorString = error.toString();
 
+  	// If the error wasn't a subclass of Error but something like
+  	// an object literal with name and message properties...
   	if (resultErrorString.substring(0, 7) === "[object") {
   		var name = error.name ? error.name.toString() : "Error";
   		var message = error.message ? error.message.toString() : "";
@@ -6644,7 +6657,7 @@ Ember.setupForTesting = testing.setupForTesting;
   QUnit.isLocal = !(defined.document && window$1.location.protocol !== "file:");
 
   // Expose the current QUnit version
-  QUnit.version = "2.8.0";
+  QUnit.version = "2.9.1";
 
   extend(QUnit, {
   	on: on,
@@ -7817,7 +7830,7 @@ Ember.setupForTesting = testing.setupForTesting;
   		// Show the source of the test when showing assertions
   		if (details.source) {
   			sourceName = document.createElement("p");
-  			sourceName.innerHTML = "<strong>Source: </strong>" + details.source;
+  			sourceName.innerHTML = "<strong>Source: </strong>" + escapeText(details.source);
   			addClass(sourceName, "qunit-source");
   			if (testPassed) {
   				addClass(sourceName, "qunit-collapsed");
