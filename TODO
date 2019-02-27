@@ -1,6 +1,21 @@
 - upgrade fastboot
 - research further with ember-packages repo
 
+- added package.json to several folders
+- moved backburner.js to backburner/index.js
+- @glimmer/reference dep needed, downloaded from npm(nice) 
+- dag-map.js moved to dag-map/index.js + npm init
+- router.js moved to router/index.js + npm init
+- @glimmer/runtime dep needed, downloaded from npm(nice) 
+- @glimmer/opcode-compiler dep needed, downloaded from npm(nice) 
+- @glimmer/node dep needed, downloaded from npm(nice) 
+- !! /Users/izelnakri/mber-lib/node_modules/ember-glimmer/lib/protocol-for-url.js:3:33: Cannot resolve dependency 'node-module':
+- created a node-module package with mocked { IS_NODE: false, require: require }
+- @ember/deprecated-features have custom build logic that causes a runtime error: should toggle RUN_SYNC = false
+- @ember/object does not export the object
+
+
+
 - add code coverage
 - add directory and npm install check
 - maybe upgrade fastboot
