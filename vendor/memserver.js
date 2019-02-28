@@ -4772,7 +4772,7 @@ function startServer(Server) {
   window.Pretender.prototype.namespace = options.namespace;
   window.Pretender.prototype.urlPrefix = options.urlPrefix;
   window.Pretender.prototype.timing = options.timing;
-  var pretender$$1 = new window.Pretender(function () {
+  var pretender = new window.Pretender(function () {
     var MemServer = chalk.cyan('[MemServer]');
 
     if (options.logging) {
@@ -4802,14 +4802,14 @@ function startServer(Server) {
   }); // HACK: Pretender this.passthrough for better UX
   // TODO: this doesnt passthrough full http:// https://
 
-  pretender$$1.passthrough = function (url) {
+  pretender.passthrough = function (url) {
     var parent = window.Pretender.prototype;
     var verbs = ['get', 'post', 'put', 'delete'];
 
     if (!url) {
       ['/**', '/', '/*'].forEach(function (path) {
         verbs.forEach(function (verb) {
-          return pretender$$1[verb](path, parent.passthrough);
+          return pretender[verb](path, parent.passthrough);
         });
       });
       return;
@@ -4817,16 +4817,16 @@ function startServer(Server) {
 
     var fullUrl = (this.urlPrefix || '') + (this.namespace ? '/' + this.namespace : '') + url;
     verbs.forEach(function (verb) {
-      return pretender$$1[verb](fullUrl, parent.passthrough);
+      return pretender[verb](fullUrl, parent.passthrough);
     });
   };
 
   DEFAULT_PASSTHROUGHS.forEach(function (url) {
-    return pretender$$1.passthrough(url);
+    return pretender.passthrough(url);
   }); // END: Pretender this.passthrough for better UX
 
-  Server.apply(pretender$$1, [targetNamespace.MemServer.Models]);
-  return pretender$$1;
+  Server.apply(pretender, [targetNamespace.MemServer.Models]);
+  return pretender;
 }
 
 function colorStatusCode(statusCode) {
@@ -4905,52 +4905,52 @@ function nilifyStrings(value) {
 
 
 window.Pretender.prototype.handleRequest = function (request) {
-  var pretender$$1 = this;
+  var pretender = this;
   var verb = request.method.toUpperCase();
   var path = request.url;
 
-  var handler = pretender$$1._handlerFor(verb, path, request);
+  var handler = pretender._handlerFor(verb, path, request);
 
   var _handleRequest = function _handleRequest(result) {
     var statusCode, headers, body;
 
     if (Array.isArray(result) && result.length === 3) {
       statusCode = result[0];
-      headers = pretender$$1.prepareHeaders(result[1]);
-      body = pretender$$1.prepareBody(result[2], headers);
-      return pretender$$1.handleResponse(request, async, function () {
+      headers = pretender.prepareHeaders(result[1]);
+      body = pretender.prepareBody(result[2], headers);
+      return pretender.handleResponse(request, async, function () {
         request.respond(statusCode, headers, body);
-        pretender$$1.handledRequest(verb, path, request);
+        pretender.handledRequest(verb, path, request);
       });
     } else if (!result) {
-      headers = pretender$$1.prepareHeaders({
+      headers = pretender.prepareHeaders({
         'Content-Type': 'application/json'
       });
 
       if (verb === 'DELETE') {
-        return pretender$$1.handleResponse(request, async, function () {
-          request.respond(204, headers, pretender$$1.prepareBody('{}', headers));
-          pretender$$1.handledRequest(verb, path, request);
+        return pretender.handleResponse(request, async, function () {
+          request.respond(204, headers, pretender.prepareBody('{}', headers));
+          pretender.handledRequest(verb, path, request);
         });
       }
 
-      return pretender$$1.handleResponse(request, async, function () {
-        request.respond(500, headers, pretender$$1.prepareBody(JSON.stringify({
+      return pretender.handleResponse(request, async, function () {
+        request.respond(500, headers, pretender.prepareBody(JSON.stringify({
           error: "[MemServer] ".concat(verb, " ").concat(path, " route handler did not return anything to respond to the request!")
         }), headers));
-        pretender$$1.handledRequest(verb, path, request);
+        pretender.handledRequest(verb, path, request);
       });
     }
 
     statusCode = getDefaultStatusCode(verb);
-    headers = pretender$$1.prepareHeaders({
+    headers = pretender.prepareHeaders({
       'Content-Type': 'application/json'
     });
     var targetResult = typeof result === 'string' ? result : JSON.stringify(result);
-    body = pretender$$1.prepareBody(targetResult, headers);
-    return pretender$$1.handleResponse(request, async, function () {
+    body = pretender.prepareBody(targetResult, headers);
+    return pretender.handleResponse(request, async, function () {
       request.respond(statusCode, headers, body);
-      pretender$$1.handledRequest(verb, path, request);
+      pretender.handledRequest(verb, path, request);
     });
   };
 
