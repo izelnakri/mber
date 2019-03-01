@@ -77,7 +77,7 @@
     "fastboot": "^2.0.1",
     "fs-extra": "^7.0.1",
     "jquery": "^3.3.1",
-    "jsdom": "^13.2.0",
+    "jsdom": "^13.1.0",
     "klaw": "^3.0.0",
     "memserver": "^1.2.6",
     "mustache": "^3.0.1",
