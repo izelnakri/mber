@@ -41,7 +41,7 @@ test.serial('buildVendor() works', async (t) => {
   const { message, stats } = await buildVendor();
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -70,7 +70,7 @@ test.serial('buildVendor(development) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSSize = vendorJSBuffer.length;
@@ -130,7 +130,7 @@ test.serial('buildVendor(development, { fastboot: false }) works', async (t) => 
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.47 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.49 MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSSize = vendorJSBuffer.length;
@@ -190,7 +190,7 @@ test.serial('buildVendor(production) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[594\.80 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[600\.07 kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -221,7 +221,7 @@ test.serial('buildVendor(production) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[449.23 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[450.22 kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -254,7 +254,7 @@ test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[588.73 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[594.00 kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSSize = vendorJSBuffer.length;
@@ -286,7 +286,7 @@ test.serial('buildVendor(production, { fastboot: false }) works without ember da
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[443.16 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[444.14 kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -319,7 +319,7 @@ test.serial('buildVendor(test) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: test/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: test/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSSize = vendorJSBuffer.length;
@@ -387,7 +387,7 @@ test.serial('buildVendor(memserver) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: memserver/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: memserver/g.test(message));
 
   const targetSize = FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE + 91;
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
@@ -455,7 +455,7 @@ test.serial('buildVendor(demo) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[594.80 kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[600.07 kB\] Environment: demo/g.test(message));
 
   const targetSize = FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE - 6; // (120795)
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
@@ -487,7 +487,7 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[449.23 kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[450.21 kB\] Environment: demo/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSSize = vendorJSBuffer.length;
@@ -520,7 +520,7 @@ test.serial('buildVendor(custom) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: custom/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: custom/g.test(message));
 
   const targetSize = FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 5;
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
@@ -590,7 +590,7 @@ test.serial('buildVendor(development, { vendorPrepends }) work', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: development/g.test(message));
 
   const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
 
@@ -617,7 +617,7 @@ test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: custom/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: custom/g.test(message));
 
   const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
 
@@ -648,7 +648,7 @@ test.serial('buildVendor(memserver, { vendorPrepends, vendorAppends }) work', as
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.48 MB\] Environment: memserver/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.50 MB\] Environment: memserver/g.test(message));
 
   const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
 
