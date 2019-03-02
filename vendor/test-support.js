@@ -10503,12 +10503,12 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
   const RENDERING_CLEANUP = Object.create(null);
   _exports.RENDERING_CLEANUP = RENDERING_CLEANUP;
   const OUTLET_TEMPLATE = Ember.HTMLBars.template({
-    "id": "em3WhaQV",
+    "id": null,
     "block": "{\"symbols\":[],\"statements\":[[1,[21,\"outlet\"],false]],\"hasEval\":false}",
     "meta": {}
   });
   const EMPTY_TEMPLATE = Ember.HTMLBars.template({
-    "id": "xOcW61lH",
+    "id": null,
     "block": "{\"symbols\":[],\"statements\":[],\"hasEval\":false}",
     "meta": {}
   }); // eslint-disable-next-line require-jsdoc

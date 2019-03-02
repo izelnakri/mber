@@ -4,6 +4,7 @@ import chalk from 'ansi-colors';
 import UglifyJS from 'uglify-es';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
+import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd';
 import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
 import findProjectRoot from '../lib/utils/find-project-root';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
@@ -52,11 +53,7 @@ function readBuildFiles(projectPath, environment, options={ excludeEmberData: fa
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/modules/es2017'),
     fs.readFile(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     injectEmberJS(MODULE_PATH, environment),
-    new Promise((resolve) => resolve(`
-      define('@ember/ordered-set/index', ['exports'], function (exports) {
-        exports.default = Ember.__OrderedSet__ || Ember.OrderedSet;
-      });
-    `)), // NOTE: investigate this after 3.5 gte
+    transpileEmberOrderedSet(MODULE_PATH),
     importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon'),
   ];
 
@@ -77,6 +74,21 @@ function injectEmberJS(modulePath, environment) {
     `${emberDist}/ember.debug.js`; // TODO: should this move to ember-min?
 
   return fs.readFile(targetEmberBuild);
+}
+
+function transpileEmberOrderedSet(modulePath) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(`${modulePath}/@ember/ordered-set/addon/index.js`)
+      .then((fileBuffer) => {
+        const nonBroccoliEmberOrderedSet = fileBuffer.toString()
+          .replace(`import { gte } from 'ember-compatibility-helpers'`, '')
+          .replace(`const NEEDS_CUSTOM_ORDERED_SET = gte('3.5.0-alpha.1');`, 'const NEEDS_CUSTOM_ORDERED_SET = true;');
+
+        return convertESModuletoAMD(nonBroccoliEmberOrderedSet, { moduleName: '@ember/ordered-set' });
+      })
+      .then((result) => resolve(result))
+      .catch((error) => reject(error));
+  });
 }
 
 function buildEmberData(projectPath, environment) {

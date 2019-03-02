@@ -60033,11 +60033,187 @@ requireModule('ember')
 }());
 //# sourceMappingURL=ember.debug.map
 
+define("@ember/ordered-set", ["exports"], function (_exports) {
+  "use strict";
 
-      define('@ember/ordered-set/index', ['exports'], function (exports) {
-        exports.default = Ember.__OrderedSet__ || Ember.OrderedSet;
-      });
-    
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  ;
+  const NEEDS_CUSTOM_ORDERED_SET = true;
+  let OrderedSet;
+
+  if (NEEDS_CUSTOM_ORDERED_SET) {
+    /**
+    @class OrderedSet
+    @constructor
+    */
+    OrderedSet = class OrderedSet {
+      constructor() {
+        this.clear();
+      }
+      /**
+      @method create
+      @static
+      @return {OrderedSet}
+      */
+
+
+      static create() {
+        let Constructor = this;
+        return new Constructor();
+      }
+      /**
+      @method clear
+      */
+
+
+      clear() {
+        this.presenceSet = Object.create(null);
+        this.list = [];
+        this.size = 0;
+      }
+      /**
+      @method add
+      @param {*} obj
+      @param {string} [_guid] (for internal use)
+      @return {OrderedSet}
+      */
+
+
+      add(obj, _guid) {
+        let guid = _guid || Ember.guidFor(obj);
+
+        let presenceSet = this.presenceSet;
+        let list = this.list;
+
+        if (presenceSet[guid] !== true) {
+          presenceSet[guid] = true;
+          this.size = list.push(obj);
+        }
+
+        return this;
+      }
+      /**
+      @method delete
+      @param {*} obj
+      @param {string} [_guid] (for internal use)
+      @return {Boolean}
+      */
+
+
+      delete(obj, _guid) {
+        let guid = _guid || Ember.guidFor(obj);
+
+        let presenceSet = this.presenceSet;
+        let list = this.list;
+
+        if (presenceSet[guid] === true) {
+          delete presenceSet[guid];
+          let index = list.indexOf(obj);
+
+          if (index > -1) {
+            list.splice(index, 1);
+          }
+
+          this.size = list.length;
+          return true;
+        } else {
+          return false;
+        }
+      }
+      /**
+      @method isEmpty
+      @return {Boolean}
+      */
+
+
+      isEmpty() {
+        return this.size === 0;
+      }
+      /**
+      @method has
+      @param {*} obj
+      @return {Boolean}
+      */
+
+
+      has(obj) {
+        if (this.size === 0) {
+          return false;
+        }
+
+        let guid = Ember.guidFor(obj);
+        let presenceSet = this.presenceSet;
+        return presenceSet[guid] === true;
+      }
+      /**
+      @method forEach
+      @param {Function} fn
+      @param self
+      */
+
+
+      forEach(fn
+      /*, ...thisArg*/
+      ) {
+        (true && Ember.assert(`${Object.prototype.toString.call(fn)} is not a function`, typeof fn === 'function'));
+
+        if (this.size === 0) {
+          return;
+        }
+
+        let list = this.list;
+
+        if (arguments.length === 2) {
+          for (let i = 0; i < list.length; i++) {
+            fn.call(arguments[1], list[i]);
+          }
+        } else {
+          for (let i = 0; i < list.length; i++) {
+            fn(list[i]);
+          }
+        }
+      }
+      /**
+      @method toArray
+      @return {Array}
+      */
+
+
+      toArray() {
+        return this.list.slice();
+      }
+      /**
+      @method copy
+      @return {OrderedSet}
+      */
+
+
+      copy() {
+        let Constructor = this.constructor;
+        let set = new Constructor();
+        set.presenceSet = Object.create(null);
+
+        for (let prop in this.presenceSet) {
+          // hasOwnPropery is not needed because obj is Object.create(null);
+          set.presenceSet[prop] = this.presenceSet[prop];
+        }
+
+        set.list = this.toArray();
+        set.size = this.size;
+        return set;
+      }
+
+    };
+  } else {
+    OrderedSet = Ember.__OrderedSet__ || Ember.OrderedSet;
+  }
+
+  var _default = OrderedSet;
+  _exports.default = _default;
+});
 define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember-inflector/lib/ext/string"], function (_exports, _system, _string) {
   "use strict";
 
@@ -61666,6 +61842,163 @@ define("ember-data/-debug/index", ["exports"], function (_exports) {
     };
   }
 });
+define("ember-data/-private/attr", ["exports", "ember-data/-private/system/record-data-for"], function (_exports, _recordDataFor) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = attr;
+
+  /**
+    @module ember-data
+  */
+  function getDefaultValue(record, options, key) {
+    if (typeof options.defaultValue === 'function') {
+      return options.defaultValue.apply(null, arguments);
+    } else {
+      let defaultValue = options.defaultValue;
+      (true && Ember.assert(`Non primitive defaultValues are not supported because they are shared between all instances. If you would like to use a complex object as a default value please provide a function that returns the complex object.`, typeof defaultValue !== 'object' || defaultValue === null));
+      return defaultValue;
+    }
+  }
+
+  function hasValue(internalModel, key) {
+    return (0, _recordDataFor.default)(internalModel).hasAttr(key);
+  }
+
+  /**
+    `DS.attr` defines an attribute on a [DS.Model](/api/data/classes/DS.Model.html).
+    By default, attributes are passed through as-is, however you can specify an
+    optional type to have the value automatically transformed.
+    Ember Data ships with four basic transform types: `string`, `number`,
+    `boolean` and `date`. You can define your own transforms by subclassing
+    [DS.Transform](/api/data/classes/DS.Transform.html).
+  
+    Note that you cannot use `attr` to define an attribute of `id`.
+  
+    `DS.attr` takes an optional hash as a second parameter, currently
+    supported options are:
+  
+    - `defaultValue`: Pass a string or a function to be called to set the attribute
+    to a default value if none is supplied.
+  
+    Example
+  
+    ```app/models/user.js
+    import DS from 'ember-data';
+  
+    export default DS.Model.extend({
+      username: DS.attr('string'),
+      email: DS.attr('string'),
+      verified: DS.attr('boolean', { defaultValue: false })
+    });
+    ```
+  
+    Default value can also be a function. This is useful it you want to return
+    a new object for each attribute.
+  
+    ```app/models/user.js
+    import DS from 'ember-data';
+  
+    export default DS.Model.extend({
+      username: DS.attr('string'),
+      email: DS.attr('string'),
+      settings: DS.attr({
+        defaultValue() {
+          return {};
+        }
+      })
+    });
+    ```
+  
+    The `options` hash is passed as second argument to a transforms'
+    `serialize` and `deserialize` method. This allows to configure a
+    transformation and adapt the corresponding value, based on the config:
+  
+    ```app/models/post.js
+    import DS from 'ember-data';
+  
+    export default DS.Model.extend({
+      text: DS.attr('text', {
+        uppercase: true
+      })
+    });
+    ```
+  
+    ```app/transforms/text.js
+    import DS from 'ember-data';
+  
+    export default DS.Transform.extend({
+      serialize(value, options) {
+        if (options.uppercase) {
+          return value.toUpperCase();
+        }
+  
+        return value;
+      },
+  
+      deserialize(value) {
+        return value;
+      }
+    })
+    ```
+  
+    @namespace
+    @method attr
+    @for DS
+    @param {String|Object} type the attribute type
+    @param {Object} options a hash of options
+    @return {Attribute}
+  */
+  function attr(type, options) {
+    if (typeof type === 'object') {
+      options = type;
+      type = undefined;
+    } else {
+      options = options || {};
+    }
+
+    let meta = {
+      type: type,
+      isAttribute: true,
+      kind: 'attribute',
+      options: options
+    };
+    return Ember.computed({
+      get(key) {
+        if (true
+        /* DEBUG */
+        ) {
+          if (['_internalModel', 'recordData', 'currentState'].indexOf(key) !== -1) {
+            throw new Error(`'${key}' is a reserved property name on instances of classes extending Model. Please choose a different property name for your attr on ${this.constructor.toString()}`);
+          }
+        }
+
+        let internalModel = this._internalModel;
+
+        if (hasValue(internalModel, key)) {
+          return internalModel.getAttributeValue(key);
+        } else {
+          return getDefaultValue(this, options, key);
+        }
+      },
+
+      set(key, value) {
+        if (true
+        /* DEBUG */
+        ) {
+          if (['_internalModel', 'recordData', 'currentState'].indexOf(key) !== -1) {
+            throw new Error(`'${key}' is a reserved property name on instances of classes extending Model. Please choose a different property name for your attr on ${this.constructor.toString()}`);
+          }
+        }
+
+        return this._internalModel.setDirtyAttribute(key, value);
+      }
+
+    }).meta(meta);
+  }
+});
 define("ember-data/-private/core", ["exports", "ember-data/version"], function (_exports, _version) {
   "use strict";
 
@@ -61972,6 +62305,9 @@ define("ember-data/-private/index", ["exports", "ember-data/-private/system/mode
       return _snapshotRecordArray.default;
     }
   });
+});
+define("ember-data/-private/types", [], function () {
+  "use strict";
 });
 define("ember-data/-private/utils", ["exports"], function (_exports) {
   "use strict";
@@ -68085,6 +68421,57 @@ define("ember-data/-private/system/backburner", ["exports"], function (_exports)
   var _default = backburner;
   _exports.default = _default;
 });
+define("ember-data/-private/system/clone-null", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = cloneNull;
+
+  function cloneNull(source) {
+    let clone = Object.create(null);
+
+    for (let key in source) {
+      clone[key] = source[key];
+    }
+
+    return clone;
+  }
+});
+define("ember-data/-private/system/coerce-id", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  // Used by the store to normalize IDs entering the store.  Despite the fact
+  // that developers may provide IDs as numbers (e.g., `store.findRecord('person', 1)`),
+  // it is important that internally we use strings, since IDs may be serialized
+  // and lose type information.  For example, Ember's router may put a record's
+  // ID into the URL, and if we later try to deserialize that URL and find the
+  // corresponding record, we will not know if it is a string or a number.
+  function coerceId(id) {
+    if (id === null || id === undefined || id === '') {
+      return null;
+    }
+
+    if (typeof id === 'string') {
+      return id;
+    }
+
+    if (typeof id === 'symbol') {
+      return id.toString();
+    }
+
+    return '' + id;
+  }
+
+  var _default = coerceId;
+  _exports.default = _default;
+});
 define("ember-data/-private/system/diff-array", ["exports"], function (_exports) {
   "use strict";
 
@@ -68152,6 +68539,189 @@ define("ember-data/-private/system/diff-array", ["exports"], function (_exports)
       removedCount
     };
   }
+});
+define("ember-data/-private/system/identity-map", ["exports", "ember-data/-private/system/internal-model-map"], function (_exports, _internalModelMap) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+  /**
+   `IdentityMap` is a custom storage map for records by modelName
+   used by `DS.Store`.
+  
+   @class IdentityMap
+   @private
+   */
+  class IdentityMap {
+    constructor() {
+      _defineProperty(this, "_map", Object.create(null));
+    }
+
+    /**
+     Retrieves the `InternalModelMap` for a given modelName,
+     creating one if one did not already exist. This is
+     similar to `getWithDefault` or `get` on a `MapWithDefault`
+      @method retrieve
+     @param modelName a previously normalized modelName
+     @return {InternalModelMap} the InternalModelMap for the given modelName
+     */
+    retrieve(modelName) {
+      let map = this._map[modelName];
+
+      if (map === undefined) {
+        map = this._map[modelName] = new _internalModelMap.default(modelName);
+      }
+
+      return map;
+    }
+    /**
+     Clears the contents of all known `RecordMaps`, but does
+     not remove the InternalModelMap instances.
+      @method clear
+     */
+
+
+    clear() {
+      let map = this._map;
+      let keys = Object.keys(map);
+
+      for (let i = 0; i < keys.length; i++) {
+        let key = keys[i];
+        map[key].clear();
+      }
+    }
+
+  }
+
+  _exports.default = IdentityMap;
+});
+define("ember-data/-private/system/internal-model-map", ["exports", "ember-data/-private/system/model/internal-model"], function (_exports, _internalModel) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+  /**
+   `InternalModelMap` is a custom storage map for internalModels of a given modelName
+   used by `IdentityMap`.
+  
+   It was extracted from an implicit pojo based "internalModel map" and preserves
+   that interface while we work towards a more official API.
+  
+   @class InternalModelMap
+   @private
+   */
+  class InternalModelMap {
+    constructor(modelName) {
+      this.modelName = modelName;
+
+      _defineProperty(this, "_idToModel", Object.create(null));
+
+      _defineProperty(this, "_models", []);
+
+      _defineProperty(this, "_metadata", null);
+    }
+    /**
+     * @method get
+     * @param id {String}
+     * @return {InternalModel}
+     */
+
+
+    get(id) {
+      return this._idToModel[id];
+    }
+
+    has(id) {
+      return !!this._idToModel[id];
+    }
+
+    get length() {
+      return this._models.length;
+    }
+
+    set(id, internalModel) {
+      (true && Ember.assert(`You cannot index an internalModel by an empty id'`, typeof id === 'string' && id.length > 0));
+      (true && Ember.assert(`You cannot set an index for an internalModel to something other than an internalModel`, internalModel instanceof _internalModel.default));
+      (true && Ember.assert(`You cannot set an index for an internalModel that is not in the InternalModelMap`, this.contains(internalModel)));
+      (true && Ember.assert(`You cannot update the id index of an InternalModel once set. Attempted to update ${id}.`, !this.has(id) || this.get(id) === internalModel));
+      this._idToModel[id] = internalModel;
+    }
+
+    add(internalModel, id) {
+      (true && Ember.assert(`You cannot re-add an already present InternalModel to the InternalModelMap.`, !this.contains(internalModel)));
+
+      if (id) {
+        (true && Ember.assert(`Duplicate InternalModel for ${this.modelName}:${id} detected.`, !this.has(id) || this.get(id) === internalModel));
+        this._idToModel[id] = internalModel;
+      }
+
+      this._models.push(internalModel);
+    }
+
+    remove(internalModel, id) {
+      delete this._idToModel[id];
+
+      let loc = this._models.indexOf(internalModel);
+
+      if (loc !== -1) {
+        this._models.splice(loc, 1);
+      }
+    }
+
+    contains(internalModel) {
+      return this._models.indexOf(internalModel) !== -1;
+    }
+    /**
+     An array of all models of this modelName
+     @property models
+     @type Array
+     */
+
+
+    get models() {
+      return this._models;
+    }
+    /**
+     * meta information about internalModels
+     * @property metadata
+     * @type Object
+     */
+
+
+    get metadata() {
+      return this._metadata || (this._metadata = Object.create(null));
+    }
+    /**
+     Destroy all models in the internalModelTest and wipe metadata.
+      @method clear
+     */
+
+
+    clear() {
+      let internalModels = this._models;
+      this._models = [];
+
+      for (let i = 0; i < internalModels.length; i++) {
+        let internalModel = internalModels[i];
+        internalModel.unloadRecord();
+      }
+
+      this._metadata = null;
+    }
+
+  }
+
+  _exports.default = InternalModelMap;
 });
 define("ember-data/-private/system/many-array", ["exports", "ember-data/-private/system/promise-proxies", "ember-data/-private/system/store/common", "ember-data/-private/system/diff-array", "ember-data/-private/system/record-data-for"], function (_exports, _promiseProxies, _common, _diffArray, _recordDataFor) {
   "use strict";
@@ -73525,7 +74095,6 @@ define("ember-data/-private/system/model/internal-model", ["exports", "ember-dat
       // removes the internal model from the array and Ember arrays will always
       // `objectAt(0)` and `objectAt(len -1)` to check whether `firstObject` or
       // `lastObject` have changed.  When this happens we don't want those
-      // models to rematerialize their records.
       return this._isDematerializing || this.hasScheduledDestroy() || this.isDestroyed || this.currentState.stateName === 'root.deleted.saved' || this.isEmpty();
     }
 
@@ -78787,6 +79356,334 @@ define("ember-data/-private/system/references/has-many", ["exports", "ember-data
 
   _exports.default = HasManyReference;
 });
+define("ember-data/-private/system/references/record", ["exports", "ember-data/-private/system/references/reference"], function (_exports, _reference) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+  /**
+     An RecordReference is a low-level API that allows users and
+     addon author to perform meta-operations on a record.
+  
+     @class RecordReference
+     @namespace DS
+  */
+  class RecordReference extends _reference.default {
+    constructor(...args) {
+      super(...args);
+
+      _defineProperty(this, "type", this.internalModel.modelName);
+
+      _defineProperty(this, "_id", this.internalModel.id);
+    }
+
+    /**
+       The `id` of the record that this reference refers to.
+        Together, the `type` and `id` properties form a composite key for
+       the identity map.
+        Example
+        ```javascript
+       let userRef = store.getReference('user', 1);
+        userRef.id(); // '1'
+       ```
+        @method id
+       @return {String} The id of the record.
+    */
+    id() {
+      return this._id;
+    }
+    /**
+       How the reference will be looked up when it is loaded: Currently
+       this always return `identity` to signifying that a record will be
+       loaded by the `type` and `id`.
+        Example
+        ```javascript
+       const userRef = store.getReference('user', 1);
+        userRef.remoteType(); // 'identity'
+       ```
+        @method remoteType
+       @return {String} 'identity'
+    */
+
+
+    remoteType() {
+      return 'identity';
+    }
+    /**
+      This API allows you to provide a reference with new data. The
+      simplest usage of this API is similar to `store.push`: you provide a
+      normalized hash of data and the object represented by the reference
+      will update.
+       If you pass a promise to `push`, Ember Data will not ask the adapter
+      for the data if another attempt to fetch it is made in the
+      interim. When the promise resolves, the underlying object is updated
+      with the new data, and the promise returned by *this function* is resolved
+      with that object.
+       For example, `recordReference.push(promise)` will be resolved with a
+      record.
+        Example
+        ```javascript
+       let userRef = store.getReference('user', 1);
+        // provide data for reference
+       userRef.push({ data: { id: 1, username: "@user" }}).then(function(user) {
+         userRef.value() === user;
+       });
+       ```
+       @method push
+      @param objectOrPromise {Promise|Object}
+      @return RSVP.Promise<record> a promise for the value (record or relationship)
+    */
+
+
+    push(objectOrPromise) {
+      return Ember.RSVP.resolve(objectOrPromise).then(data => {
+        return this.store.push(data);
+      });
+    }
+    /**
+      If the entity referred to by the reference is already loaded, it is
+      present as `reference.value`. Otherwise the value returned by this function
+      is `null`.
+        Example
+        ```javascript
+       let userRef = store.getReference('user', 1);
+        userRef.value(); // user
+       ```
+        @method value
+       @return {DS.Model} the record for this RecordReference
+    */
+
+
+    value() {
+      if (this.internalModel.hasRecord) {
+        return this.internalModel.getRecord();
+      }
+
+      return null;
+    }
+    /**
+       Triggers a fetch for the backing entity based on its `remoteType`
+       (see `remoteType` definitions per reference type).
+        Example
+        ```javascript
+       let userRef = store.getReference('user', 1);
+        // load user (via store.find)
+       userRef.load().then(...)
+       ```
+        @method load
+       @return {Promise<record>} the record for this RecordReference
+    */
+
+
+    load() {
+      return this.store.findRecord(this.type, this._id);
+    }
+    /**
+       Reloads the record if it is already loaded. If the record is not
+       loaded it will load the record via `store.findRecord`
+        Example
+        ```javascript
+       let userRef = store.getReference('user', 1);
+        // or trigger a reload
+       userRef.reload().then(...)
+       ```
+        @method reload
+       @return {Promise<record>} the record for this RecordReference
+    */
+
+
+    reload() {
+      let record = this.value();
+
+      if (record) {
+        return record.reload();
+      }
+
+      return this.load();
+    }
+
+  }
+
+  _exports.default = RecordReference;
+});
+define("ember-data/-private/system/references/reference", ["exports", "ember-data/-private/system/record-data-for"], function (_exports, _recordDataFor) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+  function isResourceIdentiferWithRelatedLinks(value) {
+    return value && value.links && value.links.related;
+  }
+  /**
+    This is the baseClass for the different References
+    like RecordReference/HasManyReference/BelongsToReference
+  
+   @class Reference
+   @namespace DS
+   */
+
+
+  class Reference {
+    constructor(store, internalModel) {
+      this.store = store;
+      this.internalModel = internalModel;
+
+      _defineProperty(this, "recordData", void 0);
+
+      this.recordData = (0, _recordDataFor.default)(this);
+    }
+
+    _resource() {}
+    /**
+     This returns a string that represents how the reference will be
+     looked up when it is loaded. If the relationship has a link it will
+     use the "link" otherwise it defaults to "id".
+      Example
+      ```app/models/post.js
+     export default DS.Model.extend({
+       comments: DS.hasMany({ async: true })
+     });
+     ```
+      ```javascript
+     let post = store.push({
+       data: {
+         type: 'post',
+         id: 1,
+         relationships: {
+           comments: {
+             data: [{ type: 'comment', id: 1 }]
+           }
+         }
+       }
+     });
+      let commentsRef = post.hasMany('comments');
+      // get the identifier of the reference
+     if (commentsRef.remoteType() === "ids") {
+       let ids = commentsRef.ids();
+     } else if (commentsRef.remoteType() === "link") {
+       let link = commentsRef.link();
+     }
+     ```
+      @method remoteType
+     @return {String} The name of the remote type. This should either be "link" or "ids"
+     */
+
+
+    remoteType() {
+      let value = this._resource();
+
+      if (isResourceIdentiferWithRelatedLinks(value)) {
+        return 'link';
+      }
+
+      return 'id';
+    }
+    /**
+     The link Ember Data will use to fetch or reload this belongs-to
+     relationship.
+      Example
+      ```javascript
+     // models/blog.js
+     export default DS.Model.extend({
+        user: DS.belongsTo({ async: true })
+      });
+      let blog = store.push({
+        data: {
+          type: 'blog',
+          id: 1,
+          relationships: {
+            user: {
+              links: {
+                related: '/articles/1/author'
+              }
+            }
+          }
+        }
+      });
+     let userRef = blog.belongsTo('user');
+      // get the identifier of the reference
+     if (userRef.remoteType() === "link") {
+        let link = userRef.link();
+      }
+     ```
+      @method link
+     @return {String} The link Ember Data will use to fetch or reload this belongs-to relationship.
+     */
+
+
+    link() {
+      let link = null;
+
+      let resource = this._resource();
+
+      if (isResourceIdentiferWithRelatedLinks(resource)) {
+        if (resource.links) {
+          link = resource.links.related;
+        }
+      }
+
+      return link;
+    }
+    /**
+     The meta data for the belongs-to relationship.
+      Example
+      ```javascript
+     // models/blog.js
+     export default DS.Model.extend({
+        user: DS.belongsTo({ async: true })
+      });
+      let blog = store.push({
+        data: {
+          type: 'blog',
+          id: 1,
+          relationships: {
+            user: {
+              links: {
+                related: {
+                  href: '/articles/1/author',
+                  meta: {
+                    lastUpdated: 1458014400000
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+      let userRef = blog.belongsTo('user');
+      userRef.meta() // { lastUpdated: 1458014400000 }
+     ```
+      @method meta
+     @return {Object} The meta information for the belongs-to relationship.
+     */
+
+
+    meta() {
+      let meta = null;
+
+      let resource = this._resource();
+
+      if (resource && resource.meta && typeof resource.meta === 'object') {
+        meta = resource.meta;
+      }
+
+      return meta;
+    }
+
+  }
+
+  _exports.default = Reference;
+});
 define("ember-data/-private/system/relationships/belongs-to", ["exports", "ember-data/-private/system/normalize-model-name"], function (_exports, _normalizeModelName) {
   "use strict";
 
@@ -80321,7 +81218,6 @@ define("ember-data/-private/system/relationships/state/has-many", ["exports", "e
       let newRecordDatas = this.currentState.filter( // only add new internalModels which are not yet in the canonical state of this
       // relationship (a new internalModel can be in the canonical state if it has
       // been 'acknowleged' to be in the relationship via a store.push)
-      //TODO Igor deal with this
       recordData => recordData.isNew() && toSet.indexOf(recordData) === -1);
       toSet = toSet.concat(newRecordDatas);
       /*
