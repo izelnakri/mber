@@ -85,7 +85,7 @@
     "mustache": "^3.0.1",
     "node-sass": "4.11.0",
     "ora": "^3.2.0",
-    "puppeteer": "1.12.2",
+    "puppeteer": "1.11.0",
     "say": "^0.15.0",
     "through2": "^3.0.0",
     "uglify-es": "^3.3.9",
