@@ -96,8 +96,8 @@ test.serial('buildMemserver(production) works', async (t) => {
   const memserverSize = memserverJSBuffer.length;
   const memserverJSCode = memserverJSBuffer.toString().trim();
 
-  t.true(memserverSize === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
-  t.true(stats.size === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(memserverSize >= MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE - 1000);
+  t.true(stats.size >= MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE - 1000);
   t.true(memserverJSCode.includes('window.fetch='));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
@@ -127,8 +127,8 @@ test.serial('buildMemserver(test) works', async (t) => {
   const memserverSize = memserverJSBuffer.length;
   const memserverJSCode = memserverJSBuffer.toString().trim();
 
-  t.true(memserverSize === MEMSERVER_JS_TARGET_BYTE_SIZE);
-  t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE);
+  t.true(memserverSize >= MEMSERVER_JS_TARGET_BYTE_SIZE - 1000);
+  t.true(stats.size >= MEMSERVER_JS_TARGET_BYTE_SIZE - 1000);
   t.true(memserverJSCode.includes('window.fetch = undefined'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
@@ -158,8 +158,8 @@ test.serial('buildMemserver(demo) works', async (t) => {
   const memserverSize = memserverJSBuffer.length;
   const memserverJSCode = memserverJSBuffer.toString().trim();
 
-  t.true(memserverSize === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
-  t.true(stats.size === MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE);
+  t.true(memserverSize >= MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE - 1000);
+  t.true(stats.size >= MEMSERVER_JS_COMPRESSED_TARGET_BYTE_SIZE - 1000);
   t.true(memserverJSCode.includes('window.fetch='));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
@@ -189,8 +189,8 @@ test.serial('buildMemserver(custom) works', async (t) => {
   const memserverSize = memserverJSBuffer.length;
   const memserverJSCode = memserverJSBuffer.toString().trim();
 
-  t.true(memserverSize === MEMSERVER_JS_TARGET_BYTE_SIZE - 12);
-  t.true(stats.size === MEMSERVER_JS_TARGET_BYTE_SIZE - 12);
+  t.true(memserverSize < MEMSERVER_JS_TARGET_BYTE_SIZE);
+  t.true(stats.size < MEMSERVER_JS_TARGET_BYTE_SIZE);
   t.true(memserverJSCode.includes('window.fetch = undefined;'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/model'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'memserver/response'));
