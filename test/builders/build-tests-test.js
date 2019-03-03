@@ -30,8 +30,8 @@ test.serial('buildTests() works', async (t) => {
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
-  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(testsJSBuffer.length >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
+  t.true(stats.size >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
@@ -57,8 +57,8 @@ test.serial('buildTests(development) works', async (t) => {
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
-  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(testsJSBuffer.length >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
+  t.true(stats.size >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
@@ -84,8 +84,8 @@ test.serial('buildTests(test) works', async (t) => {
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
-  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(testsJSBuffer.length >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
+  t.true(stats.size >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
@@ -113,8 +113,8 @@ test.serial('buildTests(custom) works', async (t) => {
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 11);
-  t.true(stats.size === TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 11);
+  t.true(testsJSBuffer.length < TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(stats.size < TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/test-helper'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/components/welcome-page/integration-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/routes/index/unit-test'));

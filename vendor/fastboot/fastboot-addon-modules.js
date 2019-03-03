@@ -20,6 +20,13 @@ define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"]
 
     if (current) {
       let endMarker = document.getElementById('fastboot-body-end');
+      let shoeboxNodes = document.querySelectorAll('[type="fastboot/shoebox"]');
+      let shoeboxNodesArray = []; // Note that IE11 doesn't support more concise options like Array.from, so we have to do something like this
+
+      for (let i = 0; i < shoeboxNodes.length; i++) {
+        shoeboxNodesArray.push(shoeboxNodes[i]);
+      }
+
       let parent = current.parentElement;
       let nextNode;
 
@@ -27,7 +34,7 @@ define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"]
         nextNode = current.nextSibling;
         parent.removeChild(current);
         current = nextNode;
-      } while (nextNode && nextNode !== endMarker);
+      } while (nextNode && nextNode !== endMarker && shoeboxNodesArray.indexOf(nextNode) < 0);
 
       parent.removeChild(endMarker);
     }
@@ -110,8 +117,6 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
     value: true
   });
   _exports.default = void 0;
-
-  /* global FastBoot */
   const RequestObject = Ember.Object.extend({
     init() {
       this._super(...arguments);
