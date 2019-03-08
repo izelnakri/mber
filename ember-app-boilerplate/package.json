@@ -25,6 +25,7 @@
     "eslint-plugin-ember": "^6.1.0"
   },
   "dependencies": {
+    "node-threadpool": "psastras/node-threadpool#master",
     "ember-cli-fastboot": "^2.0.0",
     "ember-data": "^3.6.0",
     "ember-devtools": "^6.0.0",

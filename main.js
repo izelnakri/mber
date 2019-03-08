@@ -68,7 +68,7 @@ export default {
           const CLI_ARGUMENTS = Object.assign({}, {
             fastboot: true,
             port: 1234,
-            socketPort: (global.MBER_BUILD || ENV.environment === 'production') ? null : 65511,
+            socketPort: (global.MBER_DISABLE_SOCKETS|| ENV.environment === 'production') ? null : 65511,
             talk: true,
             testing: ENV.environment !== 'production'
           }, parseCLIArguments());

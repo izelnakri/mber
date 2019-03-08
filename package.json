@@ -84,6 +84,7 @@
     "memserver": "^1.2.6",
     "mustache": "^3.0.1",
     "node-sass": "4.11.0",
+    "node-threadpool": "psastras/node-threadpool#master",
     "ora": "^3.2.0",
     "puppeteer": "1.11.0",
     "say": "^0.15.0",
