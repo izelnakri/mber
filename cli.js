@@ -1,5 +1,5 @@
 #! /usr/bin/env node
-require = require('esm')(module);
+require = require('esm')(module); // eslint-disable-line
 require('@babel/register')({
   presets: ['@babel/preset-env']
 });
