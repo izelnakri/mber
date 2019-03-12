@@ -56,7 +56,7 @@ export default {
       ].reduce((result, key) => {
         if (this[key].length > 0) {
           return Object.assign(result, {
-            [key]: readTranspile(PROJECT_ROOT, this[key], APPLICATION_NAME)
+            [key]: transpileAddonToES5(PROJECT_ROOT, this[key], APPLICATION_NAME)
           });
         }
 
@@ -97,8 +97,7 @@ export default {
   }
 }
 
-
-function readTranspile(projectRoot, arrayOfImportableObjects, applicationName) {
+function transpileAddonToES5(projectRoot, arrayOfImportableObjects, applicationName) {
   return new Promise((resolve) => {
     Promise.all(arrayOfImportableObjects.map((importObject) => {
       if (importObject.type === 'amdModule') {
@@ -109,7 +108,7 @@ function readTranspile(projectRoot, arrayOfImportableObjects, applicationName) {
 
       return appImportTransformation(importObject, projectRoot);
     })).then((contents) => resolve(contents.join('\n')))
-      .catch((error) => console.log('readTranspile error', error));
+      .catch((error) => console.log('transpileAddonToES5 error', error));
   });
 }
 
