@@ -3,8 +3,6 @@ import buildAssets from './lib/builders/build-assets';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';
 import appImportTransformation from './lib/transpilers/app-import-transformation';
-import importAddonFolderToAMD from './lib/transpilers/import-addon-folder-to-amd';
-import transpileNPMImports from './lib/transpilers/transpile-npm-imports';
 import parseCLIArguments from './lib/utils/parse-cli-arguments';
 import resolvePortNumberFor from './lib/utils/resolve-port-number-for';
 
@@ -88,7 +86,7 @@ export default {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
             indexHTMLInjections: this.indexHTMLInjections,
-            jsLinter: new eslint.CLIEngine(require(`${PROJECT_ROOT}/.eslintrc.js`)),
+            // jsLinter: new eslint.CLIEngine(require(`${PROJECT_ROOT}/.eslintrc.js`)),
           });
 
           resolve(result);
@@ -101,9 +99,11 @@ function transpileAddonToES5(projectRoot, arrayOfImportableObjects, applicationN
   return new Promise((resolve) => {
     Promise.all(arrayOfImportableObjects.map((importObject) => {
       if (importObject.type === 'amdModule') {
-        return transpileNPMImports(importObject.name, importObject.path, importObject.options);
+        return global.MBER_THREAD_POOL.submit({ action: 'NPM_IMPORT', importObject });
       } else if (importObject.type === 'addon') {
-        return importAddonToAMD(importObject.name, importObject.path, { applicationName, projectRoot });
+        return global.MBER_THREAD_POOL.submit({
+          action: 'IMPORT_ADDON_TO_AMD', importObject, applicationName, projectRoot
+        });
       }
 
       return appImportTransformation(importObject, projectRoot);
@@ -117,15 +117,6 @@ function reportErrorAndExit(error)  {
   console.log(error);
 
   process.exit();
-}
-
-function importAddonToAMD(name, path, { applicationName, projectRoot }) {
-  return new Promise((resolve) => {
-    Promise.all([
-      importAddonFolderToAMD(name, `${path}/addon`, projectRoot),
-      importAddonFolderToAMD(applicationName, `${path}/app`, projectRoot)
-    ]).then((content) => resolve(content.join('\n')));
-  });
 }
 
 function serializeRegExp(object) {
