@@ -86,7 +86,6 @@ export default {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
             indexHTMLInjections: this.indexHTMLInjections,
-            // jsLinter: new eslint.CLIEngine(require(`${PROJECT_ROOT}/.eslintrc.js`)),
           });
 
           resolve(result);
@@ -113,8 +112,7 @@ function transpileAddonToES5(projectRoot, arrayOfImportableObjects, applicationN
 }
 
 function reportErrorAndExit(error)  {
-  Console.error('Error occured:', error);
-  console.log(error);
+  Console.log('Error occured, exiting!');
 
   process.exit();
 }
