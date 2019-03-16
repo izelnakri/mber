@@ -114,7 +114,7 @@ function transpileAddonToES5(projectRoot, arrayOfImportableObjects, applicationN
 function reportErrorAndExit(error)  {
   Console.log('Error occured, exiting!');
 
-  process.exit();
+  setTimeout(() => process.exit(1), 100);
 }
 
 function serializeRegExp(object) {
