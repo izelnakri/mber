@@ -1,10 +1,11 @@
-import eslint from 'eslint';
+import os from 'os';
 import buildAssets from './lib/builders/build-assets';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';
 import appImportTransformation from './lib/transpilers/app-import-transformation';
 import parseCLIArguments from './lib/utils/parse-cli-arguments';
 import resolvePortNumberFor from './lib/utils/resolve-port-number-for';
+import WorkerPool from './lib/worker-pool';
 
 export default {
   indexHTMLInjections: {},
@@ -45,6 +46,8 @@ export default {
   },
   build(environment) {
     return new Promise(async (resolve) => {
+      global.MBER_THREAD_POOL = WorkerPool.start(os.cpus().length);
+
       const PROJECT_ROOT = await findProjectRoot();
       const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
       const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
