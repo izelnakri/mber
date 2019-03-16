@@ -1,4 +1,3 @@
-import os from 'os';
 import fs from 'fs-extra';
 import test from 'ava';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
@@ -15,17 +14,14 @@ const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
 const APPLICATION_JS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.js`;
 
-test.before(async () => {
-  global.MBER_THREAD_POOL = WorkerPool.start(1);
-  await new Promise((resolve) => setTimeout(resolve, 250));
-});
-// test.after.always(async () => {
-//   global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
-// });
-
 test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
   await fs.remove(`${PROJECT_ROOT}/tmp`);
   await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+});
+
+test.afterEach.always(async () => {
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
 });
 
 test.serial('buildApplication() works', async (t) => {
