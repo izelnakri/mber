@@ -7,6 +7,8 @@ import parseCLIArguments from './lib/utils/parse-cli-arguments';
 import resolvePortNumberFor from './lib/utils/resolve-port-number-for';
 import WorkerPool from './lib/worker-pool';
 
+global.mainContext = global.mainContext || global;
+
 export default {
   indexHTMLInjections: {},
   vendorPrepends: [],
