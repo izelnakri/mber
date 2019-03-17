@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import test from 'ava';
 import createDummyApp from '../helpers/create-dummy-app';
 import buildAssets from '../../lib/builders/build-assets';
+import WorkerPool from '../../lib/worker-pool';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 
 const CWD = process.cwd();
@@ -13,6 +14,8 @@ const MEMSERVER_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/memserver.js`;
 const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/index.html`;
 
 test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
+
   await fs.remove(`${PROJECT_ROOT}/myapp`);
   await createDummyApp('myapp');
   await Promise.all([
@@ -21,13 +24,15 @@ test.beforeEach(async () => {
     fs.remove(CSS_OUTPUT_PATH),
     fs.remove(INDEX_HTML_OUTPUT_PATH),
     fs.remove(MEMSERVER_OUTPUT_PATH)
-  ])
+  ]);
 });
 
 test.afterEach.always(async () => {
   if (await fs.exists('myapp')) {
     await fs.remove('myapp');
   }
+
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
 });
 
 test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
@@ -60,7 +65,6 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
     fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.js`),
     fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.css`),
     fs.exists(`${PROJECT_ROOT}/tmp/package.json`),
-  ]);
 
   t.deepEqual(postResult, [true, true, true, true, false, false, false, false, true]);
 
