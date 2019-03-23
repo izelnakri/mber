@@ -50,16 +50,16 @@ export default {
     return new Promise(async (resolve) => {
       global.MBER_THREAD_POOL = WorkerPool.start(os.cpus().length);
 
-      const PROJECT_ROOT = await findProjectRoot();
-      const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
-      const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
+      const projectRoot = await findProjectRoot();
+      const ENV = serializeRegExp(require(`${projectRoot}/config/environment`)(environment));
+      const applicationName = ENV.modulePrefix || 'frontend';
       const buildMeta = [
         'vendorPrepends', 'vendorAppends', 'applicationPrepends', 'applicationAppends',
         'testPrepends', 'testAppends'
       ].reduce((result, key) => {
         if (this[key].length > 0) {
           return Object.assign(result, {
-            [key]: transpileAddonToES5(PROJECT_ROOT, this[key], APPLICATION_NAME)
+            [key]: transpileAddonToES5(projectRoot, this[key], applicationName)
           });
         }
 
@@ -68,25 +68,25 @@ export default {
 
       Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
         .then(async (finishedBuild) => {
-          const CLI_ARGUMENTS = Object.assign({}, {
+          const cliArguments = Object.assign({}, {
             fastboot: true,
             port: 1234,
             socketPort: (global.MBER_DISABLE_SOCKETS|| ENV.environment === 'production') ? null : 65511,
             talk: true,
             testing: ENV.environment !== 'production'
           }, parseCLIArguments());
-          const { socketPort, port } = CLI_ARGUMENTS;
+          const { socketPort, port } = cliArguments;
           const targetPort = await resolvePortNumberFor('Web server', port);
           const targetSocketPort = socketPort ?
             (await resolvePortNumberFor('Websocket server', socketPort)) : null;
           const result = await buildAssets({
             applicationName: ENV.modulePrefix || 'frontend',
             ENV: ENV,
-            cliArguments: Object.assign({}, CLI_ARGUMENTS, {
+            cliArguments: Object.assign({}, cliArguments, {
               port: targetPort,
               socketPort: targetSocketPort,
             }),
-            projectRoot: PROJECT_ROOT,
+            projectRoot: projectRoot,
             buildCache: finishedBuild.reduce((result, code, index) => {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
@@ -117,6 +117,7 @@ function transpileAddonToES5(projectRoot, arrayOfImportableObjects, applicationN
 }
 
 function reportErrorAndExit(error)  {
+  console.log(error);
   Console.log('Error occured, exiting!');
 
   setTimeout(() => process.exit(1), 100);

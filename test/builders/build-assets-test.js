@@ -65,6 +65,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
     fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.js`),
     fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.css`),
     fs.exists(`${PROJECT_ROOT}/tmp/package.json`),
+  ]);
 
   t.deepEqual(postResult, [true, true, true, true, false, false, false, false, true]);
 
