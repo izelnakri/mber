@@ -6,8 +6,17 @@ import buildApplication from '../../lib/builders/build-application';
 import buildVendor from '../../lib/builders/build-vendor';
 import buildCSS from '../../lib/builders/build-css';
 import startHTTPServer from '../../lib/runners/start-http-server';
+import WorkerPool from '../../lib/worker-pool';
 
 const CWD = process.cwd();
+
+test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
+});
+
+test.afterEach.always(async () => {
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
+});
 
 test.serial('injectBrowserToNode() works when there is no html or http server running with index.html', async (t) => {
   t.plan(6);
