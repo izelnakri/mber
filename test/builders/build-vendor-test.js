@@ -6,6 +6,7 @@ import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import codeHasWatchSocket from '../helpers/code-has-watch-socket';
 import buildVendor from '../../lib/builders/build-vendor';
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
+import WorkerPool from '../../lib/worker-pool';
 import {
   VENDOR_JS_BUILD_TIME_THRESHOLD,
   VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD
@@ -28,8 +29,14 @@ const DEFAULT_BROWSER_EMBER_ENV = {
 };
 
 test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
+
   await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
   await fs.mkdirp(`${CWD}/ember-app-boilerplate/tmp/assets`);
+});
+
+test.afterEach.always(async () => {
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
 });
 
 test.serial('buildVendor() works', async (t) => {

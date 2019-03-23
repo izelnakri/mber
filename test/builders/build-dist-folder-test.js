@@ -5,6 +5,7 @@ import createDummyApp from '../helpers/create-dummy-app';
 import buildAssets from '../../lib/builders/build-assets';
 import buildDistFolder from '../../lib/builders/build-dist-folder';
 import countTime from '../../lib/utils/count-time';
+import WorkerPool from '../../lib/worker-pool';
 import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds';
 
 const CWD = process.cwd();
@@ -15,6 +16,8 @@ const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/index.html`;
 const TEST_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/tests.html`;
 
 test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
+
   await fs.remove(`${CWD}/some-app`);
   await createDummyApp('some-app');
   await Promise.all([
@@ -27,6 +30,8 @@ test.afterEach.always(async () => {
   if (await fs.exists(PROJECT_ROOT)) {
     await fs.remove(PROJECT_ROOT);
   }
+
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
 });
 
 test.serial('buildDistFolder() works', async (t) => {
