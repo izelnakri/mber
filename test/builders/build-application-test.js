@@ -87,7 +87,7 @@ test.serial('buildApplication(development) works', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({
     ENV: { environment: 'development', modulePrefix: 'frontend' }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -143,7 +143,7 @@ test.serial('buildApplication(production) works', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({
     ENV: { environment: 'production', modulePrefix: 'frontend' }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -184,7 +184,7 @@ test.serial('buildApplication(test) works', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({
     ENV: { environment: 'test', modulePrefix: 'frontend' }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -240,7 +240,7 @@ test.serial('buildApplication(demo) works', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication({
     ENV: { environment: 'demo', modulePrefix: 'frontend' }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -282,7 +282,7 @@ test.serial('buildApplication(custom) works', async (t) => {
   const { message, stats } = await buildApplication({
     applicationName: 'my-app',
     ENV: { environment: 'custom', modulePrefix: 'my-app' }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -340,7 +340,7 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
   const { message, stats } = await buildApplication({
     ENV: { environment: 'development', modulePrefix: 'frontend' },
     buildCache: { applicationPrepends: CODE_TO_PREPEND }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -365,7 +365,7 @@ test.serial('buildApplication(development, { applicationAppends }) work', async 
   const { message, stats } = await buildApplication({
     ENV: { environment: 'development', modulePrefix: 'frontend' },
     buildCache: { applicationAppends: CODE_TO_APPEND }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
@@ -391,7 +391,7 @@ test.serial('buildApplication(development, { applicationPrepends, applicationApp
   const { message, stats } = await buildApplication({
     ENV: { environment: 'development', modulePrefix: 'frontend' },
     buildCache: { applicationPrepends: CODE_TO_PREPEND, applicationAppends: CODE_TO_APPEND }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/application\.js in \d+ms/g)[0]
     .replace('application.js in ', '')
     .replace('ms', '')
