@@ -53,7 +53,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
   await buildAssets({
     projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('development')
-  });
+  }, false);
 
   const postResult = await Promise.all([
     fs.exists(APPLICATION_JS_OUTPUT_PATH),
@@ -86,7 +86,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
     projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('development'),
     entrypoint: `${PROJECT_ROOT}/index.html`
-  });
+  }, false);
 
   const postResult = await Promise.all([
     fs.exists(APPLICATION_JS_OUTPUT_PATH),
@@ -114,7 +114,7 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
   await buildAssets({
     projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('memserver')
-  });
+  }, false);
 
   const postResult = await Promise.all([
     fs.exists(APPLICATION_JS_OUTPUT_PATH),
@@ -143,7 +143,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
     projectRoot: PROJECT_ROOT,
     cliArguments: { testing: true },
     ENV: environmentFunction('test'),
-  });
+  }, false);
 
   const targetFiles = [
     'assets/application.js',

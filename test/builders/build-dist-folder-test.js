@@ -47,7 +47,7 @@ test.serial('buildDistFolder() works', async (t) => {
     applicationName: 'some-app',
     cliArguments: { testing: true },
     ENV: ENV
-  });
+  }, false);
 
   const timer = countTime();
   const files = await buildDistFolder({
@@ -130,7 +130,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
-  await buildAssets({ ENV: ENV, cliArguments: { testing: true } });
+  await buildAssets({ ENV: ENV, cliArguments: { testing: true } }, false);
 
   const timer = countTime();
   const files = await buildDistFolder({
@@ -219,7 +219,7 @@ test.serial('buildDistFolder() works for production', async (t) => {
     applicationName: 'some-app',
     cliArguments: { testing: true },
     ENV: ENV
-  });
+  }, false);
 
   const timer = countTime();
   const files = await buildDistFolder({
@@ -294,7 +294,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
     applicationName: 'some-app',
     cliArguments: { fastboot: false, testing: false },
     ENV: ENV
-  });
+  }, false);
 
   const timer = countTime();
   const files = await buildDistFolder({
@@ -371,7 +371,7 @@ test.serial('buildDistFolder() resets dist', async (t) => {
   t.true(await fs.exists(`${PROJECT_ROOT}/dist`));
   t.true(await fs.exists(`${PROJECT_ROOT}/dist/assets/izel.js`));
 
-  await buildAssets({ projectRoot: PROJECT_ROOT, ENV: ENV });
+  await buildAssets({ projectRoot: PROJECT_ROOT, ENV: ENV }, false);
 
   await buildDistFolder({
     applicationName: 'frontend',

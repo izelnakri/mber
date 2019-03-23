@@ -54,7 +54,7 @@ test.serial('buildTests(development) works', async (t) => {
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({ ENV: { environment: 'development' } });
+  const { message, stats } = await buildTests({ ENV: { environment: 'development' } }, false);
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
@@ -81,7 +81,7 @@ test.serial('buildTests(test) works', async (t) => {
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({ ENV: { environment: 'test' } });
+  const { message, stats } = await buildTests({ ENV: { environment: 'test' } }, false);
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
@@ -110,7 +110,7 @@ test.serial('buildTests(custom) works', async (t) => {
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests({
     ENV: { environment: 'test-backend', modulePrefix: 'coolapp' }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
@@ -142,7 +142,7 @@ test.serial('buildTests(development, { testPrepends }) work', async (t) => {
   const { message, stats } = await buildTests({
     ENV: { environment: 'development' },
     buildCache: { testPrepends: CODE_TO_PREPEND }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
@@ -175,7 +175,7 @@ test.serial('buildVendor(development, { testAppends }) work', async (t) => {
   const { message, stats } = await buildTests({
     ENV: { environment: 'development' },
     buildCache: { testAppends: CODE_TO_APPEND }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
@@ -209,7 +209,7 @@ test.serial('buildVendor(memserver, { testPrepends, testAppends }) work', async 
   const { message, stats } = await buildTests({
     ENV: { environment: 'development' },
     buildCache: { testPrepends: CODE_TO_PREPEND, testAppends: CODE_TO_APPEND }
-  });
+  }, false);
   const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '')
