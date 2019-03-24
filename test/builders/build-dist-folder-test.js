@@ -131,6 +131,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
   await buildAssets({ ENV: ENV, cliArguments: { testing: true } }, false);
+  console.log('BUILDASSETS FINISHED');
 
   const timer = countTime();
   const files = await buildDistFolder({
@@ -141,6 +142,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
 
   t.true(files.length === 9);
   t.true(timePassed < TIME_TO_BUILD_DIST_THRESHOLD);
+  console.log('passed treshold test');
 
   const fileNames = files.reduce((result, file) => {
     if (!file.fileName.includes('documentation')) {
@@ -150,6 +152,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
     return result;
   }, []);
   const outputHTML = (await fs.readFile(INDEX_HTML_OUTPUT_PATH)).toString();
+  console.log('reading file contents');
   const allFileContents = await Promise.all([
     fs.readFile(`${PROJECT_ROOT}/tmp/assets/application.css`),
     fs.readFile(`${PROJECT_ROOT}/tmp/assets/application.js`),
@@ -162,12 +165,14 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   const targetIndexHTMLAssets = fileNames
     .filter((fileName) => !fileName.includes('tests') && !fileName.includes('test-support'));
 
+  console.log('read all contents');
   await Promise.all(targetIndexHTMLAssets.map((fileName) => {
     const targetFileName = fileName.replace('./', '');
 
     t.true(outputHTML.includes(targetFileName.replace('dist/', '/')));
   }));
 
+  console.log('assets are inside index.html test passed');
   const testHTML = (await fs.readFile(TEST_HTML_OUTPUT_PATH)).toString();
   const hashedFileContents = await Promise.all(fileNames.map((fileName) => {
     const targetFileName = fileName.replace('./', '');
@@ -184,6 +189,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
     t.truthy(!INITIAL_BUILD_FILES.find((fileName) => file.fileName.endsWith(fileName)));
     t.true((file.gzipSize > 0) && (file.gzipSize < file.size));
   });
+  console.log('file size tests passes');
 
   t.true(await fs.exists(`${PROJECT_ROOT}/dist/package.json`));
 
@@ -202,6 +208,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   t.truthy(targetFileNames.find((fileName) => fileName === assetMap.assets['assets/test-support.js']))
   t.truthy(targetFileNames.find((fileName) => fileName === assetMap.assets['assets/test-support.css']))
   t.truthy(targetFileNames.find((fileName) => fileName === assetMap.assets['assets/tests.js']))
+  console.log('all passes');
 
   mock.removeMock();
 });

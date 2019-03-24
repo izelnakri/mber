@@ -377,7 +377,8 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  await new Promise((resolve) => setTimeout(resolve, 3000));
   // t.true(stdoutOccurenceCount(stdout, /memserver\.js build error!/g) === 2);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 3); // NOTE: this doesnt tell which file!!
 
