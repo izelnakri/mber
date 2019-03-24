@@ -6,6 +6,7 @@ import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import listenCurrentStdout from '../helpers/listen-current-stdout';
 import mockProcessCWD from '../helpers/mock-process-cwd';
+import WorkerPool from '../../lib/worker-pool';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
@@ -97,6 +98,13 @@ const HBS_SYNTAX_ERROR = `
 {{/another-component}}
 `;
 
+test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
+});
+
+test.afterEach.always(async () => {
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
+});
 // TODO: later assert error html content
 test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
   await fs.remove('dummyapp');

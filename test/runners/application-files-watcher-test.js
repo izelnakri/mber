@@ -6,6 +6,7 @@ import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 import listenCurrentStdout from '../helpers/listen-current-stdout';
+import WorkerPool from '../../lib/worker-pool';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
@@ -75,6 +76,14 @@ module('Integration | Component | welcome-page', function(hooks) {
     assert.ok(this.element.querySelector('#ember-welcome-page-id-selector'));
  });
 });`;
+
+test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
+});
+
+test.afterEach.always(async () => {
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
+});
 
 test.serial('it watches correctly on development mode', async (t) => {
   await fs.remove('dummyapp');
