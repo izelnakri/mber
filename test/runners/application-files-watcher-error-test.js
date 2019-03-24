@@ -288,7 +288,7 @@ async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
-  t.true(stdoutOccurenceCount(stdout, /application\.js build error:/g) === 2);
+  t.true(stdoutOccurenceCount(stdout, /application\.js build error!/g) === 2);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 1); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === await readApplicationJS());
@@ -333,7 +333,7 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 7);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
-  t.true(stdoutOccurenceCount(stdout, /application\.js build error:/g) === 8);
+  t.true(stdoutOccurenceCount(stdout, /application\.js build error!/g) === 8);
   t.true(stdoutOccurenceCount(stdout, /message: 'Unclosed element `h1`/g) === 1); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === await readApplicationJS());
@@ -343,7 +343,7 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/template.hbs') === 2);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 8);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
-  t.true(stdoutOccurenceCount(stdout, /application\.js build error:/g) === 12);
+  t.true(stdoutOccurenceCount(stdout, /application\.js build error!/g) === 12);
   t.true(stdoutOccurenceCount(stdout, /Error: Parse error on line 3:/g) === 1);
 
   t.true(firstContent === await readApplicationJS());
@@ -377,7 +377,7 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
-  t.true(stdoutOccurenceCount(stdout, /memserver\.js build error:/g) === 2);
+  t.true(stdoutOccurenceCount(stdout, /memserver\.js build error!/g) === 2);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 3); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === await readMemServerJS());
@@ -387,7 +387,7 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 2);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
-  t.true(stdoutOccurenceCount(stdout, /memserver\.js build error:/g) === 4);
+  t.true(stdoutOccurenceCount(stdout, /memserver\.js build error!/g) === 4);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) >= 3);
 
   t.true(firstContent === await readMemServerJS());
@@ -423,7 +423,7 @@ async function testTestJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
-  t.true(stdoutOccurenceCount(stdout, /tests\.js build error:/g) === 2);
+  t.true(stdoutOccurenceCount(stdout, /tests\.js build error!/g) === 2);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) >= 3); // NOTE: this doesnt tell which file
 
   t.true(firstContent === await readTestsJS());
@@ -433,7 +433,7 @@ async function testTestJSErrorHandlingWorks(t, stdout, environment) {
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 2);
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
-  t.true(stdoutOccurenceCount(stdout, /tests\.js build error:/g) === 4);
+  t.true(stdoutOccurenceCount(stdout, /tests\.js build error!/g) === 4);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) >= 3); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === await readTestsJS());
