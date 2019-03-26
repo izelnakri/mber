@@ -111,3 +111,14 @@ Expecting 'EOF', got 'OPEN_ENDBLOCK'
   at Object.exports.default (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:6154:37)
   at default‍ (/Users/izelnakri/mber-lib/lib/transpilers/convert-hbs-to-amd.js:4:36)
   at fs.readFile.then (/Users/izelnakri/mber-lib/lib/builders/build-application.js:95:24)
+
+// function utf16StringToSharedArrayBuffer(str) {
+//     // 2 bytes for each char
+//     const buffer = new SharedArrayBuffer(2 * str.length);
+//     const arrayBuffer = new Uint16Array(buffer);
+//     for (let i = 0, strLen = str.length; i < strLen; i++) {
+//         arrayBuffer[i] = str.charCodeAt(i);
+//     }
+//
+//     return { array: arrayBuffer, buffer: buffer };
+// }
