@@ -12,7 +12,7 @@ const CWD = process.cwd();
 const shell = promisify(exec);
 const PROJECT_ROOT = `${CWD}/dummyapp`;
 const HTTP_PORT = 1234;
-const BASE_CI_TEST_TIME_THRESHOLD = 25000;
+const BASE_CI_TEST_TIME_THRESHOLD = 40000;
 
 let childProcessTree = [];
 
@@ -250,6 +250,7 @@ test.serial('$ mber test --server -> can run fail successfully and then watches 
       });
     });
   `);
+  await waitForRecompile(2000);
 
   const secondVisit = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 

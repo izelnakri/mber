@@ -1,5 +1,6 @@
 ember-app-boilerplate/tmp
 ember-app-boilerplate/dist
+ember-app-boilerplate/node_modules
 node_modules
 dist/*
 ./example

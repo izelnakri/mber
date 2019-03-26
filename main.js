@@ -1,12 +1,13 @@
-import eslint from 'eslint';
+import os from 'os';
 import buildAssets from './lib/builders/build-assets';
 import Console from './lib/utils/console';
 import findProjectRoot from './lib/utils/find-project-root';
 import appImportTransformation from './lib/transpilers/app-import-transformation';
-import importAddonFolderToAMD from './lib/transpilers/import-addon-folder-to-amd';
-import transpileNPMImports from './lib/transpilers/transpile-npm-imports';
 import parseCLIArguments from './lib/utils/parse-cli-arguments';
 import resolvePortNumberFor from './lib/utils/resolve-port-number-for';
+import WorkerPool from './lib/worker-pool';
+
+global.mainContext = global.mainContext || global;
 
 export default {
   indexHTMLInjections: {},
@@ -47,16 +48,18 @@ export default {
   },
   build(environment) {
     return new Promise(async (resolve) => {
-      const PROJECT_ROOT = await findProjectRoot();
-      const ENV = serializeRegExp(require(`${PROJECT_ROOT}/config/environment`)(environment));
-      const APPLICATION_NAME = ENV.modulePrefix || 'frontend';
+      global.MBER_THREAD_POOL = WorkerPool.start(os.cpus().length);
+
+      const projectRoot = await findProjectRoot();
+      const ENV = serializeRegExp(require(`${projectRoot}/config/environment`)(environment));
+      const applicationName = ENV.modulePrefix || 'frontend';
       const buildMeta = [
         'vendorPrepends', 'vendorAppends', 'applicationPrepends', 'applicationAppends',
         'testPrepends', 'testAppends'
       ].reduce((result, key) => {
         if (this[key].length > 0) {
           return Object.assign(result, {
-            [key]: readTranspile(PROJECT_ROOT, this[key], APPLICATION_NAME)
+            [key]: transpileAddonToES5(projectRoot, this[key], applicationName)
           });
         }
 
@@ -65,30 +68,29 @@ export default {
 
       Promise.all(Object.keys(buildMeta).map((metaKey) => buildMeta[metaKey]))
         .then(async (finishedBuild) => {
-          const CLI_ARGUMENTS = Object.assign({}, {
+          const cliArguments = Object.assign({}, {
             fastboot: true,
             port: 1234,
-            socketPort: (global.MBER_BUILD || ENV.environment === 'production') ? null : 65511,
+            socketPort: (global.MBER_DISABLE_SOCKETS|| ENV.environment === 'production') ? null : 65511,
             talk: true,
             testing: ENV.environment !== 'production'
           }, parseCLIArguments());
-          const { socketPort, port } = CLI_ARGUMENTS;
+          const { socketPort, port } = cliArguments;
           const targetPort = await resolvePortNumberFor('Web server', port);
           const targetSocketPort = socketPort ?
             (await resolvePortNumberFor('Websocket server', socketPort)) : null;
           const result = await buildAssets({
             applicationName: ENV.modulePrefix || 'frontend',
             ENV: ENV,
-            cliArguments: Object.assign({}, CLI_ARGUMENTS, {
+            cliArguments: Object.assign({}, cliArguments, {
               port: targetPort,
               socketPort: targetSocketPort,
             }),
-            projectRoot: PROJECT_ROOT,
+            projectRoot: projectRoot,
             buildCache: finishedBuild.reduce((result, code, index) => {
               return Object.assign(result, { [`${Object.keys(buildMeta)[index]}`]: code });
             }, {}),
             indexHTMLInjections: this.indexHTMLInjections,
-            jsLinter: new eslint.CLIEngine(require(`${PROJECT_ROOT}/.eslintrc.js`)),
           });
 
           resolve(result);
@@ -97,36 +99,28 @@ export default {
   }
 }
 
-
-function readTranspile(projectRoot, arrayOfImportableObjects, applicationName) {
+function transpileAddonToES5(projectRoot, arrayOfImportableObjects, applicationName) {
   return new Promise((resolve) => {
     Promise.all(arrayOfImportableObjects.map((importObject) => {
       if (importObject.type === 'amdModule') {
-        return transpileNPMImports(importObject.name, importObject.path, importObject.options);
+        return global.MBER_THREAD_POOL.submit({ action: 'NPM_IMPORT', importObject });
       } else if (importObject.type === 'addon') {
-        return importAddonToAMD(importObject.name, importObject.path, { applicationName, projectRoot });
+        return global.MBER_THREAD_POOL.submit({
+          action: 'IMPORT_ADDON_TO_AMD', importObject, applicationName, projectRoot
+        });
       }
 
       return appImportTransformation(importObject, projectRoot);
     })).then((contents) => resolve(contents.join('\n')))
-      .catch((error) => console.log('readTranspile error', error));
+      .catch((error) => console.log('transpileAddonToES5 error', error));
   });
 }
 
 function reportErrorAndExit(error)  {
-  Console.error('Error occured:', error);
   console.log(error);
+  Console.log('Error occured, exiting!');
 
-  process.exit();
-}
-
-function importAddonToAMD(name, path, { applicationName, projectRoot }) {
-  return new Promise((resolve) => {
-    Promise.all([
-      importAddonFolderToAMD(name, `${path}/addon`, projectRoot),
-      importAddonFolderToAMD(applicationName, `${path}/app`, projectRoot)
-    ]).then((content) => resolve(content.join('\n')));
-  });
+  setTimeout(() => process.exit(1), 100);
 }
 
 function serializeRegExp(object) {

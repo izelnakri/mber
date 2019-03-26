@@ -1,17 +1,13 @@
 - upgrade fastboot
 - research further with ember-packages repo
-
 - add code coverage
 - add directory and npm install check
 - maybe upgrade fastboot
-- OrderedSet mocking might cause issues
-
 - add unit tests for resolvePortNumberFor + add e2e test for mber s + mber t while port is in use(so it changes)
 configuration file: .mber
-styleguide solution
 display the error html page for hbs errors, css errors: js syntax errors
 - we need to inject fastboot still to vendor.js because of fastboot service injections
-- add prember functionality
+- add prember functionality?
 
 styleguide TODO:
 - display autogenerate services, routes, components, models, helpers, utils(modules)
@@ -115,3 +111,14 @@ Expecting 'EOF', got 'OPEN_ENDBLOCK'
   at Object.exports.default (/Users/izelnakri/mber-lib/vendor/ember-template-compiler.js:6154:37)
   at default‍ (/Users/izelnakri/mber-lib/lib/transpilers/convert-hbs-to-amd.js:4:36)
   at fs.readFile.then (/Users/izelnakri/mber-lib/lib/builders/build-application.js:95:24)
+
+// function utf16StringToSharedArrayBuffer(str) {
+//     // 2 bytes for each char
+//     const buffer = new SharedArrayBuffer(2 * str.length);
+//     const arrayBuffer = new Uint16Array(buffer);
+//     for (let i = 0, strLen = str.length; i < strLen; i++) {
+//         arrayBuffer[i] = str.charCodeAt(i);
+//     }
+//
+//     return { array: arrayBuffer, buffer: buffer };
+// }

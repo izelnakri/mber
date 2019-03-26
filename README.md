@@ -1,10 +1,19 @@
 # mber: Modern Ember.js CLI alternative, without broccoli.
 
-This build system uses [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default. I've recently rewrote ember-cli, because it uses a slow, clunky, messy broccoli build system that does too much counter-intuitive magic. One day after reading ember-cli source code, I've realized rewriting this beast from scratch is the only way to move forward.  
+This build system uses [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default.
+It also runs JS transpilation, bundling and linting in a multithreaded context with a thread pool in order to utilize all your CPU cores.
+I've recently rewrote ember-cli, because it uses a not-so-ideal broccoli build system that does too much counter-intuitive magic.
+One day after reading ember-cli source code, I've realized rewriting this from scratch is the only way to move forward for me personally.
 
-Mber is a very minimal, fast and strict alternative for ember-cli. Mber does pretty much everything ember-cli does unless you want to create your own addon. You can use most of the ember addons, as long as the addon itself doesn't inject things to your broccoli/ember-cli runtime. In future I might support addon creation/testing as well.
+Mber is a very minimal, fast and strict alternative for ember-cli. Mber does pretty much everything ember-cli does unless you want to create your own addon.
+You can use most of the ember addons, as long as the addon itself doesn't inject things to your broccoli/ember-cli runtime.
+In future I might support addon creation/testing as well.
 
-Lots of thought and effort went into designing this replacement. Mber has a full testing suite. Currently mber has 54 less dependencies than ember-cli as of this writing, this is without counting the massive sub-dependencies. It is highly suggested to read the source code, it is very simple, readable and written with ES modules and async/await. Contributions are always welcome. Mber never blocks the nodejs event loop.
+Lots of thought and effort went into designing this replacement.
+Mber has a full testing suite. Currently mber has 54 less dependencies than ember-cli as of this writing,
+this is without counting the massive sub-dependencies.
+It is highly suggested to read the source code, it is very simple, readable and written with ES modules and async/await.
+Contributions are always welcome. Mber never blocks the nodejs event loop.
 
 <p>
   WARNING: No guarantee is given for backward compatibility with ember-cli.
@@ -18,7 +27,9 @@ I've never benchmarked this against ember-cli, but my observation is, mber is at
 
 ## Installation
 
-Make sure you have node.js v10+ installed. Then install mber CLI:
+Required: node.js v10.5+
+
+Make sure you have node.js v11+ installed. `mber` uses the latest native nodejs `worker_thread` to achive multithreading. Then install mber CLI:
 
 ```
 npm install -g mber

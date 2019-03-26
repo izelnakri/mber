@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import test from 'ava';
 import createDummyApp from '../helpers/create-dummy-app';
 import buildAssets from '../../lib/builders/build-assets';
+import WorkerPool from '../../lib/worker-pool';
 import mockProcessCWD from '../helpers/mock-process-cwd';
 
 const CWD = process.cwd();
@@ -13,6 +14,8 @@ const MEMSERVER_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/memserver.js`;
 const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/index.html`;
 
 test.beforeEach(async () => {
+  global.MBER_THREAD_POOL = WorkerPool.start();
+
   await fs.remove(`${PROJECT_ROOT}/myapp`);
   await createDummyApp('myapp');
   await Promise.all([
@@ -21,13 +24,15 @@ test.beforeEach(async () => {
     fs.remove(CSS_OUTPUT_PATH),
     fs.remove(INDEX_HTML_OUTPUT_PATH),
     fs.remove(MEMSERVER_OUTPUT_PATH)
-  ])
+  ]);
 });
 
 test.afterEach.always(async () => {
   if (await fs.exists('myapp')) {
     await fs.remove('myapp');
   }
+
+  global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
 });
 
 test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
@@ -48,7 +53,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
   await buildAssets({
     projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('development')
-  });
+  }, false);
 
   const postResult = await Promise.all([
     fs.exists(APPLICATION_JS_OUTPUT_PATH),
@@ -81,7 +86,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
     projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('development'),
     entrypoint: `${PROJECT_ROOT}/index.html`
-  });
+  }, false);
 
   const postResult = await Promise.all([
     fs.exists(APPLICATION_JS_OUTPUT_PATH),
@@ -109,7 +114,7 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
   await buildAssets({
     projectRoot: PROJECT_ROOT,
     ENV: environmentFunction('memserver')
-  });
+  }, false);
 
   const postResult = await Promise.all([
     fs.exists(APPLICATION_JS_OUTPUT_PATH),
@@ -138,7 +143,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
     projectRoot: PROJECT_ROOT,
     cliArguments: { testing: true },
     ENV: environmentFunction('test'),
-  });
+  }, false);
 
   const targetFiles = [
     'assets/application.js',
