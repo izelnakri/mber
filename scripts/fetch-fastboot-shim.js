@@ -74,7 +74,7 @@ define('fetch/ajax', ['exports'], function() {
   );
 });
 
-define("new-ember/initializers/ajax", ["exports"], function (_exports) {
+define("{{applicationName}}/initializers/ajax", ["exports"], function (_exports) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -119,7 +119,7 @@ define("new-ember/initializers/ajax", ["exports"], function (_exports) {
   };
   _exports.default = _default;
 });
-define("new-ember/initializers/error-handler", ["exports"], function (_exports) {
+define("{{applicationName}}/initializers/error-handler", ["exports"], function (_exports) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -146,7 +146,7 @@ define("new-ember/initializers/error-handler", ["exports"], function (_exports) 
   };
   _exports.default = _default;
 });
-define("new-ember/instance-initializers/setup-fetch", ["exports", "fetch"], function (_exports, _fetch) {
+define("{{applicationName}}/instance-initializers/setup-fetch", ["exports", "fetch"], function (_exports, _fetch) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -172,4 +172,4 @@ define("new-ember/instance-initializers/setup-fetch", ["exports", "fetch"], func
     initialize: patchFetchForRelativeURLs
   };
   _exports.default = _default;
-});//# sourceMappingURL=new-ember-fastboot.map
+});

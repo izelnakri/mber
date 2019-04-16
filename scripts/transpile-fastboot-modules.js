@@ -19,14 +19,16 @@ function transpileFastbootModules() {
     const MODULE_PATH = `${PROJECT_PATH}/node_modules/ember-cli-fastboot`;
 
     await fs.ensureDir(`${PROJECT_PATH}/vendor/fastboot`);
+    await fs.ensureDir(`${PROJECT_PATH}/vendor/fetch`);
     await fs.ensureDir(`${PROJECT_PATH}/vendor/fastboot/initializers`);
 
     return Promise.all([
       importAddonFolderToAMD('ember-cli-fastboot', 'ember-cli-fastboot/addon'),
       fs.copyFile(`${MODULE_PATH}/fastboot/initializers/ajax.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/ajax.js`),
-      fs.copyFile(`${PROJECT_PATH}/scripts/fastboot/initializers/error-handler.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/error-handler.js`),
       fs.copyFile(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
-      fs.copyFile(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot/fastboot-app-module.js`)
+      fs.copyFile(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot/fastboot-app-module.js`),
+      fs.copyFile(`${PROJECT_PATH}/scripts/fetch-shim.js`, `${PROJECT_PATH}/vendor/fetch/fetch-shim.js`),
+      fs.copyFile(`${PROJECT_PATH}/scripts/fetch-fastboot-shim.js`, `${PROJECT_PATH}/vendor/fetch/fetch-fastboot-shim.js`)
     ]).then(([fastbootAddon]) => {
       return fs.writeFile(OUTPUT_PATH, fastbootAddon);
     }).then(() => {
