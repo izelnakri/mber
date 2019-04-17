@@ -24,7 +24,12 @@
     "eslint": "^5.11.1",
     "eslint-plugin-ember": "^6.1.0"
   },
+  "fastbootDependencies": [
+    "node-fetch",
+    "abortcontroller-polyfill/dist/cjs-ponyfill"
+  ],
   "dependencies": {
+    "abortcontroller-polyfill": "1.3.0",
     "ember-cli-fastboot": "^2.0.0",
     "ember-data": "^3.6.0",
     "ember-devtools": "^6.0.0",
@@ -32,6 +37,7 @@
     "highlight.js": "^9.12.0",
     "jquery": "^3.3.1",
     "mber-head": "^0.1.0",
-    "memserver": "^1.2.3"
+    "memserver": "^1.2.3",
+    "node-fetch": "2.3.0"
   }
 }
