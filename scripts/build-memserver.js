@@ -29,7 +29,7 @@ async function build() {
       }
     `, { moduleName: 'memserver/response' });
 
-    // TODO: investigate removing fetch replacements
+    // NOTE: cant remove fetch replacements because ember-fetch injection doesnt take into account the possiblity of fetch mocking in node.js
     return Promise.all([
       fs.copy(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
       fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
