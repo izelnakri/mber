@@ -96,6 +96,8 @@ function assignSandboxGlobals() { // TODO: maybe add PORT as argument
 
   MemServer.start();
 
+  console.log('fetch is');
+  console.log(global.window.fetch);
   return {
     global: global,
     window: global.window,
