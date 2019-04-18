@@ -79,7 +79,7 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
 
             this.urlPrefix = ENV.APP ? ENV.APP.API_HOST : 'http://localhost:3000';
 
-            this.get('/users', ({ headers, queryParams }) => {
+            this.get('/users', ({ queryParams }) => {
               if (queryParams.active) {
                 return {
                   users: User.serializer(User.findAll({ active: true }))

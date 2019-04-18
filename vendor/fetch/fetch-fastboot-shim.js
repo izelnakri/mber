@@ -7,7 +7,7 @@ if (typeof FastBoot !== 'undefined') {
     var AbortControllerPolyfill = FastBoot.require(
       'abortcontroller-polyfill/dist/cjs-ponyfill'
     );
-    var nodeFetch = FastBoot.require('node-fetch');
+    var nodeFetch = window.fetch || FastBoot.require('node-fetch');
 
     /**
      * Build the absolute url if it's not, can handle:

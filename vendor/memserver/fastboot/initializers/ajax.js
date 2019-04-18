@@ -1,7 +1,5 @@
-/* globals najax */
 import Ember from 'ember';
-
-const { get } = Ember;
+import fetch from 'fetch';
 
 var nodeAjax = function(options) {
   let httpRegex = /^https?:\/\//;
@@ -19,8 +17,9 @@ var nodeAjax = function(options) {
   }
 
   return new Ember.RSVP.Promise((resolve, reject) => {
-    window.$.ajax(options)
-      .then((a) => resolve(a))
+    fetch(options.url)
+      .then((response) => response.json())
+      .then((result) => resolve(result))
       .catch((error) => reject(error));
   }); // NOTE: maybe Promise is unnecessary
 };

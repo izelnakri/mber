@@ -41,6 +41,7 @@
     "loader.js": "^4.7.0",
     "mber-head": "^0.1.0",
     "morgan": "^1.9.1",
+    "node-fetch": "2.3.0",
     "qunit": "2.9.2",
     "strip-ansi": "^5.0.0",
     "whatwg-fetch": "^3.0.0"

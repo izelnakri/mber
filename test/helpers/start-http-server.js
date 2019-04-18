@@ -102,6 +102,7 @@ function assignSandboxGlobals() { // TODO: maybe add PORT as argument
     document: global.document,
     location: global.window.location,
     XMLHttpRequest: global.window.XMLHttpRequest,
+    fetch: global.window.fetch,
     $: $,
     jQuery: $,
     navigator: global.window.navigator

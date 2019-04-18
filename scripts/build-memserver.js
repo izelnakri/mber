@@ -29,6 +29,7 @@ async function build() {
       }
     `, { moduleName: 'memserver/response' });
 
+    // TODO: investigate removing fetch replacements
     return Promise.all([
       fs.copy(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
       fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
