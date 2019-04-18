@@ -23,14 +23,13 @@ const build = async () => {
       commonjs()
     ]
   });
-  const OUTPUT_OPTIONS = {
+
+  await bundle.write({
     format: 'iife',
     name: 'jQuery',
     file: './vendor/jquery.js',
     sourcemap: true
-  };
-
-  await bundle.write(OUTPUT_OPTIONS);
+  });
 }
 
 build();

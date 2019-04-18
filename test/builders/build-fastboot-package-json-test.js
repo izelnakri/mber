@@ -54,7 +54,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
     vendorFiles: [EXAMPLE_ASSET_MAP['assets/vendor.js']]
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
-  t.deepEqual(packageJSON.fastboot.moduleWhitelist, []);
+  t.deepEqual(packageJSON.fastboot.moduleWhitelist, ['node-fetch', 'abortcontroller-polyfill']);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
   mock.removeMock();
@@ -86,7 +86,7 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
     vendorFiles: [SECOND_EXAMPLE_ASSET_MAP['assets/vendor.js']]
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
-  t.deepEqual(packageJSON.fastboot.moduleWhitelist, []);
+  t.deepEqual(packageJSON.fastboot.moduleWhitelist, ['node-fetch', 'abortcontroller-polyfill']);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
   mock.removeMock();
@@ -119,7 +119,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
     vendorFiles: [EXAMPLE_ASSET_MAP['assets/vendor.js']]
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
-  t.deepEqual(packageJSON.fastboot.moduleWhitelist, []);
+  t.deepEqual(packageJSON.fastboot.moduleWhitelist, ['node-fetch', 'abortcontroller-polyfill']);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
   mock.removeMock();

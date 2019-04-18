@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.8.0
+ * @version   3.9.1
  */
 
 /*globals process */
@@ -352,9 +352,9 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
       setDebugFunction('deprecateFunc', function deprecateFunc(...args) {
         if (args.length === 3) {
           let [message, options, func] = args;
-          return function () {
+          return function (...args) {
             deprecate(message, false, options);
-            return func.apply(this, arguments);
+            return func.apply(this, args);
           };
         } else {
           let [message, func] = args;
@@ -10504,7 +10504,7 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
   _exports.RENDERING_CLEANUP = RENDERING_CLEANUP;
   const OUTLET_TEMPLATE = Ember.HTMLBars.template({
     "id": null,
-    "block": "{\"symbols\":[],\"statements\":[[1,[21,\"outlet\"],false]],\"hasEval\":false}",
+    "block": "{\"symbols\":[],\"statements\":[[1,[23,\"outlet\"],false]],\"hasEval\":false}",
     "meta": {}
   });
   const EMPTY_TEMPLATE = Ember.HTMLBars.template({
@@ -10582,7 +10582,7 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
       let toplevelView = owner.lookup('-top-level-view:main');
       let OutletTemplate = lookupOutletTemplate(owner);
       templateId += 1;
-      let templateFullName = `template:-undertest-${templateId}`;
+      let templateFullName = "template:-undertest-".concat(templateId);
       owner.register(templateFullName, template);
       let outletState = {
         render: {
@@ -11105,7 +11105,7 @@ define("@ember/test-helpers/-internal/debug-info", ["exports"], function (_expor
     }
 
     _formatCount(title, count) {
-      return `${title}: ${count}`;
+      return "".concat(title, ": ").concat(count);
     }
 
   }
@@ -11311,11 +11311,11 @@ define("@ember/test-helpers/dom/blur", ["exports", "@ember/test-helpers/dom/-get
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`blur('${target}')\`.`);
+        throw new Error("Element not found when calling `blur('".concat(target, "')`."));
       }
 
       if (!(0, _isFocusable.default)(element)) {
-        throw new Error(`${target} is not focusable`);
+        throw new Error("".concat(target, " is not focusable"));
       }
 
       __blur__(element);
@@ -11393,7 +11393,7 @@ define("@ember/test-helpers/dom/click", ["exports", "@ember/test-helpers/dom/-ge
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`click('${target}')\`.`);
+        throw new Error("Element not found when calling `click('".concat(target, "')`."));
       }
 
       let isDisabledFormControl = (0, _isFormControl.default)(element) && element.disabled;
@@ -11484,7 +11484,7 @@ define("@ember/test-helpers/dom/double-click", ["exports", "@ember/test-helpers/
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`doubleClick('${target}')\`.`);
+        throw new Error("Element not found when calling `doubleClick('".concat(target, "')`."));
       }
 
       __doubleClick__(element, options);
@@ -11520,7 +11520,7 @@ define("@ember/test-helpers/dom/fill-in", ["exports", "@ember/test-helpers/dom/-
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`fillIn('${target}')\`.`);
+        throw new Error("Element not found when calling `fillIn('".concat(target, "')`."));
       }
 
       let isControl = (0, _isFormControl.default)(element);
@@ -11890,11 +11890,11 @@ define("@ember/test-helpers/dom/focus", ["exports", "@ember/test-helpers/dom/-ge
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`focus('${target}')\`.`);
+        throw new Error("Element not found when calling `focus('".concat(target, "')`."));
       }
 
       if (!(0, _isFocusable.default)(element)) {
-        throw new Error(`${target} is not focusable`);
+        throw new Error("".concat(target, " is not focusable"));
       }
 
       __focus__(element);
@@ -11947,7 +11947,7 @@ define("@ember/test-helpers/dom/get-root-element", ["exports", "@ember/test-help
         return _rootElement;
       }
 
-      throw new Error(`Application.rootElement (${rootElement}) not found`);
+      throw new Error("Application.rootElement (".concat(rootElement, ") not found"));
     } else {
       throw new Error('Application.rootElement must be an element or a selector string');
     }
@@ -12005,7 +12005,7 @@ define("@ember/test-helpers/dom/tap", ["exports", "@ember/test-helpers/dom/-get-
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`tap('${target}')\`.`);
+        throw new Error("Element not found when calling `tap('".concat(target, "')`."));
       }
 
       let touchstartEv = (0, _fireEvent.default)(element, 'touchstart', options);
@@ -12057,11 +12057,11 @@ define("@ember/test-helpers/dom/trigger-event", ["exports", "@ember/test-helpers
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`triggerEvent('${target}', ...)\`.`);
+        throw new Error("Element not found when calling `triggerEvent('".concat(target, "', ...)`."));
       }
 
       if (!eventType) {
-        throw new Error(`Must provide an \`eventType\` to \`triggerEvent\``);
+        throw new Error("Must provide an `eventType` to `triggerEvent`");
       }
 
       (0, _fireEvent.default)(element, eventType, options);
@@ -12207,17 +12207,17 @@ define("@ember/test-helpers/dom/trigger-key-event", ["exports", "@ember/test-hel
       let element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`triggerKeyEvent('${target}', ...)\`.`);
+        throw new Error("Element not found when calling `triggerKeyEvent('".concat(target, "', ...)`."));
       }
 
       if (!eventType) {
-        throw new Error(`Must provide an \`eventType\` to \`triggerKeyEvent\``);
+        throw new Error("Must provide an `eventType` to `triggerKeyEvent`");
       }
 
       if (!(0, _fireEvent.isKeyboardEventType)(eventType)) {
         let validEventTypes = _fireEvent.KEYBOARD_EVENT_TYPES.join(', ');
 
-        throw new Error(`Must provide an \`eventType\` of ${validEventTypes} to \`triggerKeyEvent\` but you passed \`${eventType}\`.`);
+        throw new Error("Must provide an `eventType` of ".concat(validEventTypes, " to `triggerKeyEvent` but you passed `").concat(eventType, "`."));
       }
 
       let props;
@@ -12232,11 +12232,11 @@ define("@ember/test-helpers/dom/trigger-key-event", ["exports", "@ember/test-hel
         let firstCharacter = key[0];
 
         if (firstCharacter !== firstCharacter.toUpperCase()) {
-          throw new Error(`Must provide a \`key\` to \`triggerKeyEvent\` that starts with an uppercase character but you passed \`${key}\`.`);
+          throw new Error("Must provide a `key` to `triggerKeyEvent` that starts with an uppercase character but you passed `".concat(key, "`."));
         }
 
         if ((0, _utils.isNumeric)(key) && key.length > 1) {
-          throw new Error(`Must provide a numeric \`keyCode\` to \`triggerKeyEvent\` but you passed \`${key}\` as a string.`);
+          throw new Error("Must provide a numeric `keyCode` to `triggerKeyEvent` but you passed `".concat(key, "` as a string."));
         }
 
         let keyCode = keyCodeFromKey(key);
@@ -12246,7 +12246,7 @@ define("@ember/test-helpers/dom/trigger-key-event", ["exports", "@ember/test-hel
           key
         };
       } else {
-        throw new Error(`Must provide a \`key\` or \`keyCode\` to \`triggerKeyEvent\``);
+        throw new Error("Must provide a `key` or `keyCode` to `triggerKeyEvent`");
       }
 
       let options = Ember.assign(props, modifiers);
@@ -12289,7 +12289,7 @@ define("@ember/test-helpers/dom/type-in", ["exports", "@ember/test-helpers/-util
       const element = (0, _getElement.default)(target);
 
       if (!element) {
-        throw new Error(`Element not found when calling \`typeIn('${target}')\``);
+        throw new Error("Element not found when calling `typeIn('".concat(target, "')`"));
       }
 
       if (!(0, _isFormControl.default)(element)) {
@@ -12374,7 +12374,7 @@ define("@ember/test-helpers/dom/wait-for", ["exports", "@ember/test-helpers/wait
       } = options;
 
       if (!timeoutMessage) {
-        timeoutMessage = `waitFor timed out waiting for selector "${selector}"`;
+        timeoutMessage = "waitFor timed out waiting for selector \"".concat(selector, "\"");
       }
 
       let callback;
@@ -12913,7 +12913,7 @@ define("ember-qunit/index", ["exports", "ember-qunit/legacy-2-x/module-for", "em
       _qunit.default.test('Ember.onerror is functioning properly', function (assert) {
         assert.expect(1);
         let result = (0, _testHelpers.validateErrorHandler)();
-        assert.ok(result.isValid, `Ember.onerror handler with invalid testing behavior detected. An Ember.onerror handler _must_ rethrow exceptions when \`Ember.testing\` is \`true\` or the test suite is unreliable. See https://git.io/vbine for more details.`);
+        assert.ok(result.isValid, "Ember.onerror handler with invalid testing behavior detected. An Ember.onerror handler _must_ rethrow exceptions when `Ember.testing` is `true` or the test suite is unreliable. See https://git.io/vbine for more details.");
       });
     });
   }
@@ -13010,13 +13010,13 @@ define("ember-qunit/test-isolation-validation", ["exports", "qunit", "@ember/tes
       let {
         debugInfo
       } = (0, _testHelpers.getSettledState)();
-      console.group(`${test.module.name}: ${test.testName}`);
+      console.group("".concat(test.module.name, ": ").concat(test.testName));
       debugInfo.toConsole();
       console.groupEnd();
       test.expected++;
       test.assert.pushResult({
         result: false,
-        message: `${message} ${debugInfo.message}`
+        message: "".concat(message, " ").concat(debugInfo.message)
       });
     }
   }
@@ -13640,11 +13640,11 @@ define("ember-test-helpers/legacy-0-6-x/abstract-test-module", ["exports", "embe
     setToString() {
       this.context.toString = () => {
         if (this.subjectName) {
-          return `test context for: ${this.subjectName}`;
+          return "test context for: ".concat(this.subjectName);
         }
 
         if (this.name) {
-          return `test context for: ${this.name}`;
+          return "test context for: ".concat(this.name);
         }
       };
     }

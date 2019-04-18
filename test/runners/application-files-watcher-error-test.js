@@ -18,7 +18,6 @@ const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/dummyapp`;
 const DEFAULT_SOCKET_PORT = 65511;
 const DEFAULT_COMPONENT_JS = `
-  import Ember from 'ember';
   import Component from '@ember/component';
   import { computed } from '@ember/object';
 
@@ -28,9 +27,7 @@ const DEFAULT_COMPONENT_JS = `
     }
   });`;
 const DEFAULT_EDITED_COMPONENT_JS = `
-import Ember from 'ember';
 import Component from '@ember/component';
-import { computed } from '@ember/object';
 
 export default Component.extend({
   init() {

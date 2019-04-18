@@ -10,7 +10,7 @@ You can use most of the ember addons, as long as the addon itself doesn't inject
 In future I might support addon creation/testing as well.
 
 Lots of thought and effort went into designing this replacement.
-Mber has a full testing suite. Currently mber has 54 less dependencies than ember-cli as of this writing,
+Mber has a full test suite. Currently mber has 54 less dependencies than ember-cli as of this writing,
 this is without counting the massive sub-dependencies.
 It is highly suggested to read the source code, it is very simple, readable and written with ES modules and async/await.
 Contributions are always welcome. Mber never blocks the nodejs event loop.
