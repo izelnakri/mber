@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.9.1
+ * @version   3.10.0
  */
 
 /*globals process */
@@ -281,7 +281,7 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
       */
       setDebugFunction('assert', function assert(desc, test) {
         if (!test) {
-          throw new _error.default(`Assertion Failed: ${desc}`);
+          throw new _error.default("Assertion Failed: " + desc);
         }
       });
       /**
@@ -303,9 +303,9 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
       setDebugFunction('debug', function debug(message) {
         /* eslint-disable no-console */
         if (console.debug) {
-          console.debug(`DEBUG: ${message}`);
+          console.debug("DEBUG: " + message);
         } else {
-          console.log(`DEBUG: ${message}`);
+          console.log("DEBUG: " + message);
         }
         /* eslint-ensable no-console */
 
@@ -400,7 +400,13 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         Object.seal(obj);
       });
       setDebugFunction('debugFreeze', function debugFreeze(obj) {
-        Object.freeze(obj);
+        // re-freezing an already frozen object introduces a significant
+        // performance penalty on Chrome (tested through 59).
+        //
+        // See: https://bugs.chromium.org/p/v8/issues/detail?id=6450
+        if (!Object.isFrozen(obj)) {
+          Object.freeze(obj);
+        }
       });
       setDebugFunction('deprecate', _deprecate2.default);
       setDebugFunction('warn', _warn2.default);
@@ -424,7 +430,7 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
             downloadURL = 'https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/';
           }
 
-          debug(`For more advanced debugging, install the Ember Inspector from ${downloadURL}`);
+          debug("For more advanced debugging, install the Ember Inspector from " + downloadURL);
         }
       }, false);
     }
@@ -501,11 +507,11 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
         let message = _message;
 
         if (options && options.id) {
-          message = message + ` [deprecation id: ${options.id}]`;
+          message = message + (" [deprecation id: " + options.id + "]");
         }
 
         if (options && options.url) {
-          message += ` See ${options.url} for more details.`;
+          message += " See " + options.url + " for more details.";
         }
 
         return message;
@@ -513,7 +519,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
       registerHandler(function logDeprecationToConsole(message, options) {
         let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+        console.warn("DEPRECATION: " + updatedMessage); // eslint-disable-line no-console
       });
       let captureErrorForStack;
 
@@ -545,11 +551,11 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
               stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
             }
 
-            stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+            stackStr = "\n    " + stack.slice(2).join('\n    ');
           }
 
           let updatedMessage = formatMessage(message, options);
-          console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+          console.warn("DEPRECATION: " + updatedMessage + stackStr); // eslint-disable-line no-console
         } else {
           next(message, options);
         }
@@ -713,7 +719,7 @@ enifed("@ember/debug/lib/warn", ["exports", "@ember/debug/index", "@ember/debug/
 
       registerHandler(function logWarning(message) {
         /* eslint-disable no-console */
-        console.warn(`WARNING: ${message}`);
+        console.warn("WARNING: " + message);
         /* eslint-enable no-console */
       });
       _exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -2306,7 +2312,7 @@ enifed("ember-testing/lib/test/promise", ["exports", "@ember/-internals/runtime"
   _exports.default = TestPromise;
 
   function promise(resolver, label) {
-    let fullLabel = `Ember.Test.promise: ${label || '<Unknown Promise>'}`;
+    let fullLabel = "Ember.Test.promise: " + (label || '<Unknown Promise>');
     return new TestPromise(resolver, fullLabel);
   }
   /**

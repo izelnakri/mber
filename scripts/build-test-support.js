@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import { promisify } from 'util';
 import chalk from 'ansi-colors';
-import sass from 'node-sass';
+import sass from 'sass';
 import Console from '../lib/utils/console';
 import countTime from '../lib/utils/count-time';
 import findProjectRoot from '../lib/utils/find-project-root';
