@@ -21,8 +21,8 @@
   },
   "devDependencies": {
     "mber": "{{mberVersion}}",
-    "eslint": "^5.11.1",
-    "eslint-plugin-ember": "^6.1.0"
+    "eslint": "^5.16.0",
+    "eslint-plugin-ember": "^6.4.1"
   },
   "fastbootDependencies": [
     "node-fetch",
@@ -30,14 +30,14 @@
   ],
   "dependencies": {
     "abortcontroller-polyfill": "1.3.0",
-    "ember-cli-fastboot": "^2.0.0",
-    "ember-data": "^3.6.0",
+    "ember-cli-fastboot": "^2.0.4",
+    "ember-data": "3.10.0",
     "ember-devtools": "^6.0.0",
     "fastboot": "^2.0.1",
     "highlight.js": "^9.12.0",
-    "jquery": "^3.3.1",
+    "jquery": "^3.4.1",
     "mber-head": "^0.1.0",
-    "memserver": "^1.2.3",
-    "node-fetch": "2.3.0"
+    "memserver": "^1.2.7",
+    "node-fetch": "2.6.0"
   }
 }
