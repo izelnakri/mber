@@ -9,7 +9,7 @@ module('Integration | Component | welcome-page', function(hooks) {
   test('should render correctly', async function(assert) {
     assert.expect(1);
 
-    await render(hbs`{{welcome-page}}`);
+    await render(hbs`<WelcomePage/>`);
 
     assert.ok(this.element.querySelector('#ember-welcome-page-id-selector'));
  });
