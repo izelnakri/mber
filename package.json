@@ -86,7 +86,7 @@
     "mustache": "^3.0.1",
     "sass": "1.20.1",
     "ora": "^3.4.0",
-    "puppeteer": "1.14.0",
+    "puppeteer": "1.16.0",
     "say": "^0.15.0",
     "through2": "^3.0.0",
     "uglify-es": "^3.3.9",
