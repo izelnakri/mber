@@ -29,7 +29,7 @@
     "abortcontroller-polyfill'"
   ],
   "dependencies": {
-    "abortcontroller-polyfill": "1.3.0",
+    "abortcontroller-polyfill": "^1.3.0",
     "ember-cli-fastboot": "^2.0.4",
     "ember-data": "3.10.0",
     "ember-devtools": "^6.0.0",
