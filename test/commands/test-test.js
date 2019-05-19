@@ -309,7 +309,7 @@ async function runTestsInBrowser(url) {
     console.log(...args);
   });
 
-  await page.goto(`${url}/tests`, { timeout: 0 });
+  await page.goto(`${url}/tests`, { timeout: 0, waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
     window.QUnit.done((details) => {
       window.QUNIT_RESULT = details;
