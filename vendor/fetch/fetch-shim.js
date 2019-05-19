@@ -1,4 +1,4 @@
-;if (typeof FastBoot === 'undefined') {
+if (typeof FastBoot === 'undefined') {
       var preferNative = true;
       (function (global) {
   define('fetch', ['exports'], function (self) {
@@ -347,3 +347,4 @@
     }
     exports.default = serializeQueryParams;
 });
+

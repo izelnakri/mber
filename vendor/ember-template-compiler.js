@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.9.1
+ * @version   3.10.0
  */
 
 /*globals process */
@@ -517,7 +517,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
     @final
   */
 
-  const GUID_KEY = intern(`__ember${Date.now()}`);
+  const GUID_KEY = intern("__ember" + Date.now());
   /**
     Generates a new guid, optionally saving the guid to the object that you
     pass in. You will rarely need to use this method. Instead you should
@@ -608,7 +608,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
     // want to require non-enumerability for this API, which
     // would introduce a large cost.
     let id = GUID_KEY + Math.floor(Math.random() * Date.now());
-    let symbol = intern(`__${debugName}${id}__`);
+    let symbol = intern("__" + debugName + id + "__");
     GENERATED_SYMBOLS.push(symbol);
     return symbol;
   } // the delete is meant to hint at runtimes that this object should remain in
@@ -813,7 +813,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
         return value.toString();
 
       case 'function':
-        return value.toString === functionToString ? value.name ? `[Function:${value.name}]` : `[Function]` : value.toString();
+        return value.toString === functionToString ? value.name ? "[Function:" + value.name + "]" : "[Function]" : value.toString();
 
       case 'string':
         return stringify(value);
@@ -828,7 +828,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
     if (seen === undefined) {
       seen = new _polyfills._WeakSet();
     } else {
-      if (seen.has(value)) return `[Circular]`;
+      if (seen.has(value)) return "[Circular]";
     }
 
     seen.add(value);
@@ -851,7 +851,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
       s += i === 0 ? ' ' : ', ';
 
       if (i >= LIST_LIMIT) {
-        s += `... ${keys.length - LIST_LIMIT} more keys`;
+        s += "... " + (keys.length - LIST_LIMIT) + " more keys";
         break;
       }
 
@@ -874,7 +874,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
       s += i === 0 ? ' ' : ', ';
 
       if (i >= LIST_LIMIT) {
-        s += `... ${arr.length - LIST_LIMIT} more items`;
+        s += "... " + (arr.length - LIST_LIMIT) + " more items";
         break;
       }
 
@@ -1040,9 +1040,9 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
   _exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
   const PROXIES = new _polyfills._WeakSet();
 
-  function isProxy(object) {
-    if (isObject(object)) {
-      return PROXIES.has(object);
+  function isProxy(value) {
+    if (isObject(value)) {
+      return PROXIES.has(value);
     }
 
     return false;
@@ -1112,7 +1112,7 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   "use strict";
 
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = _exports.EMBER_GLIMMER_ARRAY_HELPER = _exports.GLIMMER_MODIFIER_MANAGER = _exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = _exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_ENGINES_MOUNT_PARAMS = _exports.EMBER_ROUTING_ROUTER_SERVICE = _exports.EMBER_GLIMMER_NAMED_ARGUMENTS = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -1127,16 +1127,12 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   const DEFAULT_FEATURES = {
     EMBER_LIBRARIES_ISREGISTERED: false,
     EMBER_IMPROVED_INSTRUMENTATION: false,
-    EMBER_GLIMMER_NAMED_ARGUMENTS: true,
-    EMBER_ROUTING_ROUTER_SERVICE: true,
-    EMBER_ENGINES_MOUNT_PARAMS: true,
     EMBER_MODULE_UNIFICATION: false,
-    GLIMMER_CUSTOM_COMPONENT_MANAGER: true,
-    GLIMMER_MODIFIER_MANAGER: true,
     EMBER_METAL_TRACKED_PROPERTIES: false,
-    EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION: true,
-    EMBER_GLIMMER_ARRAY_HELPER: true,
-    EMBER_ROUTING_BUILD_ROUTEINFO_METADATA: false
+    EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS: true,
+    EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP: true,
+    EMBER_ROUTING_BUILD_ROUTEINFO_METADATA: true,
+    EMBER_NATIVE_DECORATOR_SUPPORT: true
   };
   /**
     The hash of enabled Canary features. Add to this, any canary features
@@ -1192,26 +1188,18 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_LIBRARIES_ISREGISTERED = EMBER_LIBRARIES_ISREGISTERED;
   const EMBER_IMPROVED_INSTRUMENTATION = featureValue(FEATURES.EMBER_IMPROVED_INSTRUMENTATION);
   _exports.EMBER_IMPROVED_INSTRUMENTATION = EMBER_IMPROVED_INSTRUMENTATION;
-  const EMBER_GLIMMER_NAMED_ARGUMENTS = featureValue(FEATURES.EMBER_GLIMMER_NAMED_ARGUMENTS);
-  _exports.EMBER_GLIMMER_NAMED_ARGUMENTS = EMBER_GLIMMER_NAMED_ARGUMENTS;
-  const EMBER_ROUTING_ROUTER_SERVICE = featureValue(FEATURES.EMBER_ROUTING_ROUTER_SERVICE);
-  _exports.EMBER_ROUTING_ROUTER_SERVICE = EMBER_ROUTING_ROUTER_SERVICE;
-  const EMBER_ENGINES_MOUNT_PARAMS = featureValue(FEATURES.EMBER_ENGINES_MOUNT_PARAMS);
-  _exports.EMBER_ENGINES_MOUNT_PARAMS = EMBER_ENGINES_MOUNT_PARAMS;
   const EMBER_MODULE_UNIFICATION = featureValue(FEATURES.EMBER_MODULE_UNIFICATION);
   _exports.EMBER_MODULE_UNIFICATION = EMBER_MODULE_UNIFICATION;
   const EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
   _exports.EMBER_METAL_TRACKED_PROPERTIES = EMBER_METAL_TRACKED_PROPERTIES;
-  const GLIMMER_CUSTOM_COMPONENT_MANAGER = featureValue(FEATURES.GLIMMER_CUSTOM_COMPONENT_MANAGER);
-  _exports.GLIMMER_CUSTOM_COMPONENT_MANAGER = GLIMMER_CUSTOM_COMPONENT_MANAGER;
-  const EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION);
-  _exports.EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION = EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION;
-  const GLIMMER_MODIFIER_MANAGER = featureValue(FEATURES.GLIMMER_MODIFIER_MANAGER);
-  _exports.GLIMMER_MODIFIER_MANAGER = GLIMMER_MODIFIER_MANAGER;
-  const EMBER_GLIMMER_ARRAY_HELPER = featureValue(FEATURES.EMBER_GLIMMER_ARRAY_HELPER);
-  _exports.EMBER_GLIMMER_ARRAY_HELPER = EMBER_GLIMMER_ARRAY_HELPER;
+  const EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP);
+  _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP;
+  const EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS);
+  _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS;
   const EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = featureValue(FEATURES.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA);
   _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = EMBER_ROUTING_BUILD_ROUTEINFO_METADATA;
+  const EMBER_NATIVE_DECORATOR_SUPPORT = featureValue(FEATURES.EMBER_NATIVE_DECORATOR_SUPPORT);
+  _exports.EMBER_NATIVE_DECORATOR_SUPPORT = EMBER_NATIVE_DECORATOR_SUPPORT;
 });
 enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2) {
   "use strict";
@@ -1375,7 +1363,7 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
       */
       setDebugFunction('assert', function assert(desc, test) {
         if (!test) {
-          throw new _error.default(`Assertion Failed: ${desc}`);
+          throw new _error.default("Assertion Failed: " + desc);
         }
       });
       /**
@@ -1397,9 +1385,9 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
       setDebugFunction('debug', function debug(message) {
         /* eslint-disable no-console */
         if (console.debug) {
-          console.debug(`DEBUG: ${message}`);
+          console.debug("DEBUG: " + message);
         } else {
-          console.log(`DEBUG: ${message}`);
+          console.log("DEBUG: " + message);
         }
         /* eslint-ensable no-console */
 
@@ -1494,7 +1482,13 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         Object.seal(obj);
       });
       setDebugFunction('debugFreeze', function debugFreeze(obj) {
-        Object.freeze(obj);
+        // re-freezing an already frozen object introduces a significant
+        // performance penalty on Chrome (tested through 59).
+        //
+        // See: https://bugs.chromium.org/p/v8/issues/detail?id=6450
+        if (!Object.isFrozen(obj)) {
+          Object.freeze(obj);
+        }
       });
       setDebugFunction('deprecate', _deprecate2.default);
       setDebugFunction('warn', _warn2.default);
@@ -1518,7 +1512,7 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
             downloadURL = 'https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/';
           }
 
-          debug(`For more advanced debugging, install the Ember Inspector from ${downloadURL}`);
+          debug("For more advanced debugging, install the Ember Inspector from " + downloadURL);
         }
       }, false);
     }
@@ -1595,11 +1589,11 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
         let message = _message;
 
         if (options && options.id) {
-          message = message + ` [deprecation id: ${options.id}]`;
+          message = message + (" [deprecation id: " + options.id + "]");
         }
 
         if (options && options.url) {
-          message += ` See ${options.url} for more details.`;
+          message += " See " + options.url + " for more details.";
         }
 
         return message;
@@ -1607,7 +1601,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
       registerHandler(function logDeprecationToConsole(message, options) {
         let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+        console.warn("DEPRECATION: " + updatedMessage); // eslint-disable-line no-console
       });
       let captureErrorForStack;
 
@@ -1639,11 +1633,11 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
               stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
             }
 
-            stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+            stackStr = "\n    " + stack.slice(2).join('\n    ');
           }
 
           let updatedMessage = formatMessage(message, options);
-          console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+          console.warn("DEPRECATION: " + updatedMessage + stackStr); // eslint-disable-line no-console
         } else {
           next(message, options);
         }
@@ -1807,7 +1801,7 @@ enifed("@ember/debug/lib/warn", ["exports", "@ember/debug/index", "@ember/debug/
 
       registerHandler(function logWarning(message) {
         /* eslint-disable no-console */
-        console.warn(`WARNING: ${message}`);
+        console.warn("WARNING: " + message);
         /* eslint-enable no-console */
       });
       _exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -1856,7 +1850,7 @@ enifed("@ember/debug/lib/warn", ["exports", "@ember/debug/index", "@ember/debug/
 enifed("@ember/deprecated-features/index", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.TRANSITION_STATE = _exports.ROUTER_EVENTS = _exports.HANDLER_INFOS = _exports.MERGE = _exports.LOGGER = _exports.RUN_SYNC = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
+  _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.RUN_SYNC = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
 
   /* eslint-disable no-implicit-coercion */
   // These versions should be the version that the deprecation was _introduced_,
@@ -1871,19 +1865,15 @@ enifed("@ember/deprecated-features/index", ["exports"], function (_exports) {
   _exports.LOGGER = LOGGER;
   const MERGE = !!'3.6.0-beta.1';
   _exports.MERGE = MERGE;
-  const HANDLER_INFOS = !!'3.9.0';
-  _exports.HANDLER_INFOS = HANDLER_INFOS;
-  const ROUTER_EVENTS = !!'3.9.0';
+  const ROUTER_EVENTS = !!'4.0.0';
   _exports.ROUTER_EVENTS = ROUTER_EVENTS;
-  const TRANSITION_STATE = !!'3.9.0';
-  _exports.TRANSITION_STATE = TRANSITION_STATE;
   const COMPONENT_MANAGER_STRING_LOOKUP = !!'3.8.0';
   _exports.COMPONENT_MANAGER_STRING_LOOKUP = COMPONENT_MANAGER_STRING_LOOKUP;
   const JQUERY_INTEGRATION = !!'3.9.0';
   _exports.JQUERY_INTEGRATION = JQUERY_INTEGRATION;
   const ALIAS_METHOD = !!'3.9.0';
   _exports.ALIAS_METHOD = ALIAS_METHOD;
-  const APP_CTRL_ROUTER_PROPS = !!'4.0.0';
+  const APP_CTRL_ROUTER_PROPS = !!'3.10.0';
   _exports.APP_CTRL_ROUTER_PROPS = APP_CTRL_ROUTER_PROPS;
 });
 enifed("@ember/error/index", ["exports"], function (_exports) {
@@ -2129,7 +2119,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
       let block = this.blocks[name];
 
       if (!block) {
-        block = this.blocks[name] = this.allocate(`&${name}`);
+        block = this.blocks[name] = this.allocate("&" + name);
       }
 
       return block;
@@ -2560,7 +2550,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
         let arg = op[1];
 
         if (!this[opcode]) {
-          throw new Error(`unimplemented ${opcode} on JavaScriptCompiler`);
+          throw new Error("unimplemented " + opcode + " on JavaScriptCompiler");
         }
 
         this[opcode](arg);
@@ -2625,7 +2615,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
       let tag = element.tag;
 
       if (element.blockParams.length > 0) {
-        throw new Error(`Compile Error: <${element.tag}> is not a component and doesn't support block parameters`);
+        throw new Error("Compile Error: <" + element.tag + "> is not a component and doesn't support block parameters");
       } else {
         this.push([_wireFormat.Ops.OpenSplattedElement, tag]);
       }
@@ -2635,7 +2625,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
       let tag = element.tag;
 
       if (element.blockParams.length > 0) {
-        throw new Error(`Compile Error: <${element.tag}> is not a component and doesn't support block parameters`);
+        throw new Error("Compile Error: <" + element.tag + "> is not a component and doesn't support block parameters");
       } else {
         this.push([_wireFormat.Ops.OpenElement, tag]);
       }
@@ -3058,7 +3048,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
     process(actions) {
       actions.forEach(([name, ...args]) => {
         if (!this[name]) {
-          throw new Error(`Unimplemented ${name} on TemplateCompiler`);
+          throw new Error("Unimplemented " + name + " on TemplateCompiler");
         }
 
         this[name](...args);
@@ -3244,7 +3234,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
       let {
         parts: [head, ...rest]
       } = path;
-      this.opcode(['get', [`@${head}`, rest]], path);
+      this.opcode(['get', ["@" + head, rest]], path);
     }
 
     mustacheExpression(expr) {
@@ -3523,7 +3513,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
 
   function assertIsSimplePath(path, loc, context) {
     if (!isSimplePath(path)) {
-      throw new _syntax.SyntaxError(`\`${path.original}\` is not a valid name for a ${context} on line ${loc.start.line}.`, path.loc);
+      throw new _syntax.SyntaxError("`" + path.original + "` is not a valid name for a " + context + " on line " + loc.start.line + ".", path.loc);
     }
   }
 
@@ -3533,9 +3523,9 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
     } = statement.hash;
 
     if (pairs.length === 1 && pairs[0].key !== 'to' || pairs.length > 1) {
-      throw new _syntax.SyntaxError(`yield only takes a single named argument: 'to'`, statement.loc);
+      throw new _syntax.SyntaxError("yield only takes a single named argument: 'to'", statement.loc);
     } else if (pairs.length === 1 && pairs[0].value.type !== 'StringLiteral') {
-      throw new _syntax.SyntaxError(`you can only yield to a literal value`, statement.loc);
+      throw new _syntax.SyntaxError("you can only yield to a literal value", statement.loc);
     } else if (pairs.length === 0) {
       return 'default';
     } else {
@@ -3552,11 +3542,11 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
     } = statement;
 
     if (params && params.length !== 1) {
-      throw new _syntax.SyntaxError(`Partial found with no arguments. You must specify a template name. (on line ${loc.start.line})`, statement.loc);
+      throw new _syntax.SyntaxError("Partial found with no arguments. You must specify a template name. (on line " + loc.start.line + ")", statement.loc);
     } else if (hash && hash.pairs.length > 0) {
-      throw new _syntax.SyntaxError(`partial does not take any named arguments (on line ${loc.start.line})`, statement.loc);
+      throw new _syntax.SyntaxError("partial does not take any named arguments (on line " + loc.start.line + ")", statement.loc);
     } else if (!escaped) {
-      throw new _syntax.SyntaxError(`{{{partial ...}}} is not supported, please use {{partial ...}} instead (on line ${loc.start.line})`, statement.loc);
+      throw new _syntax.SyntaxError("{{{partial ...}}} is not supported, please use {{partial ...}} instead (on line " + loc.start.line + ")", statement.loc);
     }
 
     return params;
@@ -3570,7 +3560,7 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
     } = call;
 
     if (hash && hash.pairs.length > 0) {
-      throw new _syntax.SyntaxError(`${type} does not take any named arguments`, call.loc);
+      throw new _syntax.SyntaxError(type + " does not take any named arguments", call.loc);
     }
 
     if (params.length === 0) {
@@ -3581,10 +3571,10 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
       if (param.type === 'StringLiteral') {
         return param.value;
       } else {
-        throw new _syntax.SyntaxError(`you can only yield to a literal value (on line ${loc.start.line})`, call.loc);
+        throw new _syntax.SyntaxError("you can only yield to a literal value (on line " + loc.start.line + ")", call.loc);
       }
     } else {
-      throw new _syntax.SyntaxError(`${type} only takes a single positional argument (on line ${loc.start.line})`, call.loc);
+      throw new _syntax.SyntaxError(type + " only takes a single positional argument (on line " + loc.start.line + ")", call.loc);
     }
   }
 
@@ -3595,13 +3585,13 @@ enifed("@glimmer/compiler", ["exports", "node-module", "@glimmer/util", "@glimme
     } = statement;
 
     if (hash && hash.pairs.length > 0) {
-      throw new _syntax.SyntaxError(`debugger does not take any named arguments`, statement.loc);
+      throw new _syntax.SyntaxError("debugger does not take any named arguments", statement.loc);
     }
 
     if (params.length === 0) {
       return 'default';
     } else {
-      throw new _syntax.SyntaxError(`debugger does not take any positional arguments`, statement.loc);
+      throw new _syntax.SyntaxError("debugger does not take any positional arguments", statement.loc);
     }
   }
 
@@ -4155,7 +4145,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
     }
 
     cursor() {
-      return `%cursor:${this.cursorCount++}%`;
+      return "%cursor:" + this.cursorCount++ + "%";
     }
 
     Program(program) {
@@ -4254,7 +4244,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
         case "tagName"
         /* tagName */
         :
-          throw new SyntaxError(`Cannot use mustaches in an elements tagname: \`${this.sourceForNode(rawMustache, rawMustache.path)}\` at L${loc.start.line}:C${loc.start.column}`, mustache.loc);
+          throw new SyntaxError("Cannot use mustaches in an elements tagname: `" + this.sourceForNode(rawMustache, rawMustache.path) + "` at L" + loc.start.line + ":C" + loc.start.column, mustache.loc);
 
         case "beforeAttributeName"
         /* beforeAttributeName */
@@ -4358,7 +4348,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
           break;
 
         default:
-          throw new SyntaxError(`Using a Handlebars comment when in the \`${tokenizer['state']}\` state is not supported: "${comment.value}" on line ${loc.start.line}:${loc.start.column}`, rawComment.loc);
+          throw new SyntaxError("Using a Handlebars comment when in the `" + tokenizer['state'] + "` state is not supported: \"" + comment.value + "\" on line " + loc.start.line + ":" + loc.start.column, rawComment.loc);
       }
 
       return comment;
@@ -4368,28 +4358,28 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
       let {
         loc
       } = partial;
-      throw new SyntaxError(`Handlebars partials are not supported: "${this.sourceForNode(partial, partial.name)}" at L${loc.start.line}:C${loc.start.column}`, partial.loc);
+      throw new SyntaxError("Handlebars partials are not supported: \"" + this.sourceForNode(partial, partial.name) + "\" at L" + loc.start.line + ":C" + loc.start.column, partial.loc);
     }
 
     PartialBlockStatement(partialBlock) {
       let {
         loc
       } = partialBlock;
-      throw new SyntaxError(`Handlebars partial blocks are not supported: "${this.sourceForNode(partialBlock, partialBlock.name)}" at L${loc.start.line}:C${loc.start.column}`, partialBlock.loc);
+      throw new SyntaxError("Handlebars partial blocks are not supported: \"" + this.sourceForNode(partialBlock, partialBlock.name) + "\" at L" + loc.start.line + ":C" + loc.start.column, partialBlock.loc);
     }
 
     Decorator(decorator) {
       let {
         loc
       } = decorator;
-      throw new SyntaxError(`Handlebars decorators are not supported: "${this.sourceForNode(decorator, decorator.path)}" at L${loc.start.line}:C${loc.start.column}`, decorator.loc);
+      throw new SyntaxError("Handlebars decorators are not supported: \"" + this.sourceForNode(decorator, decorator.path) + "\" at L" + loc.start.line + ":C" + loc.start.column, decorator.loc);
     }
 
     DecoratorBlock(decoratorBlock) {
       let {
         loc
       } = decoratorBlock;
-      throw new SyntaxError(`Handlebars decorator blocks are not supported: "${this.sourceForNode(decoratorBlock, decoratorBlock.path)}" at L${loc.start.line}:C${loc.start.column}`, decoratorBlock.loc);
+      throw new SyntaxError("Handlebars decorator blocks are not supported: \"" + this.sourceForNode(decoratorBlock, decoratorBlock.path) + "\" at L" + loc.start.line + ":C" + loc.start.column, decoratorBlock.loc);
     }
 
     SubExpression(sexpr) {
@@ -4410,21 +4400,21 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
 
       if (original.indexOf('/') !== -1) {
         if (original.slice(0, 2) === './') {
-          throw new SyntaxError(`Using "./" is not supported in Glimmer and unnecessary: "${path.original}" on line ${loc.start.line}.`, path.loc);
+          throw new SyntaxError("Using \"./\" is not supported in Glimmer and unnecessary: \"" + path.original + "\" on line " + loc.start.line + ".", path.loc);
         }
 
         if (original.slice(0, 3) === '../') {
-          throw new SyntaxError(`Changing context using "../" is not supported in Glimmer: "${path.original}" on line ${loc.start.line}.`, path.loc);
+          throw new SyntaxError("Changing context using \"../\" is not supported in Glimmer: \"" + path.original + "\" on line " + loc.start.line + ".", path.loc);
         }
 
         if (original.indexOf('.') !== -1) {
-          throw new SyntaxError(`Mixing '.' and '/' in paths is not supported in Glimmer; use only '.' to separate property paths: "${path.original}" on line ${loc.start.line}.`, path.loc);
+          throw new SyntaxError("Mixing '.' and '/' in paths is not supported in Glimmer; use only '.' to separate property paths: \"" + path.original + "\" on line " + loc.start.line + ".", path.loc);
         }
 
         parts = [path.parts.join('/')];
       } else if (original === '.') {
-        let locationInfo = `L${loc.start.line}:C${loc.start.column}`;
-        throw new SyntaxError(`'.' is not a supported path in Glimmer; check for a path with a trailing '.' at ${locationInfo}.`, path.loc);
+        let locationInfo = "L" + loc.start.line + ":C" + loc.start.column;
+        throw new SyntaxError("'.' is not a supported path in Glimmer; check for a path with a trailing '.' at " + locationInfo + ".", path.loc);
       } else {
         parts = path.parts;
       }
@@ -4544,9 +4534,9 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
     } = mustache;
 
     if (isLiteral(path)) {
-      let modifier = `{{${printLiteral(path)}}}`;
-      let tag = `<${element.name} ... ${modifier} ...`;
-      throw new SyntaxError(`In ${tag}, ${modifier} is not a valid modifier: "${path.original}" on line ${loc && loc.start.line}.`, mustache.loc);
+      let modifier = "{{" + printLiteral(path) + "}}";
+      let tag = "<" + element.name + " ... " + modifier + " ...";
+      throw new SyntaxError("In " + tag + ", " + modifier + " is not a valid modifier: \"" + path.original + "\" on line " + (loc && loc.start.line) + ".", mustache.loc);
     }
 
     let modifier = b.elementModifier(path, params, hash, loc);
@@ -4914,7 +4904,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
         }
 
         if (ast.blockParams.length) {
-          output.push(' ', 'as', ' ', `|${ast.blockParams.join(' ')}|`);
+          output.push(' ', 'as', ' ', "|" + ast.blockParams.join(' ') + "|");
         }
 
         if (voidMap[ast.tag]) {
@@ -5037,7 +5027,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
 
       case 'StringLiteral':
         {
-          output.push(`"${ast.value}"`);
+          output.push("\"" + ast.value + "\"");
         }
         break;
 
@@ -5069,7 +5059,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
 
       case 'HashPair':
         {
-          output.push(`${ast.key}=${build(ast.value)}`);
+          output.push(ast.key + "=" + build(ast.value));
         }
         break;
     }
@@ -5125,7 +5115,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
     const params = block.program.blockParams;
 
     if (params.length) {
-      return ` as |${params.join(' ')}|`;
+      return " as |" + params.join(' ') + "|";
     }
 
     return null;
@@ -5338,7 +5328,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
       let tag = this.currentTag;
 
       if (tag.type === 'EndTag') {
-        throw new SyntaxError(`Invalid end tag: closing tag must not have attributes, ` + `in \`${tag.name}\` (on line ${this.tokenizer.line}).`, tag.loc);
+        throw new SyntaxError("Invalid end tag: closing tag must not have attributes, " + ("in `" + tag.name + "` (on line " + this.tokenizer.line + ")."), tag.loc);
       }
 
       this.currentAttribute = {
@@ -5402,7 +5392,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
     }
 
     reportSyntaxError(message) {
-      throw new SyntaxError(`Syntax error at line ${this.tokenizer.line} col ${this.tokenizer.column}: ${message}`, b.loc(this.tokenizer.line, this.tokenizer.column));
+      throw new SyntaxError("Syntax error at line " + this.tokenizer.line + " col " + this.tokenizer.column + ": " + message, b.loc(this.tokenizer.line, this.tokenizer.column));
     }
 
   }
@@ -5415,7 +5405,7 @@ enifed("@glimmer/syntax", ["exports", "simple-html-tokenizer", "@glimmer/util", 
         if (parts.length === 1 || parts.length === 2 && parts[1].type === 'TextNode' && parts[1].chars === '/') {
           return parts[0];
         } else {
-          throw new SyntaxError(`An unquoted attribute value must be a string or a mustache, ` + `preceeded by whitespace or a '=' character, and ` + `followed by whitespace, a '>' character, or '/>' (on line ${line})`, b.loc(line, 0));
+          throw new SyntaxError("An unquoted attribute value must be a string or a mustache, " + "preceeded by whitespace or a '=' character, and " + ("followed by whitespace, a '>' character, or '/>' (on line " + line + ")"), b.loc(line, 0));
         }
       }
     } else {
@@ -5508,7 +5498,7 @@ enifed("@glimmer/util", ["exports"], function (_exports) {
   _exports.EMPTY_ARRAY = _exports.ListSlice = _exports.ListNode = _exports.LinkedList = _exports.EMPTY_SLICE = _exports.DictSet = _exports.Stack = void 0;
 
   function unwrap(val) {
-    if (val === null || val === undefined) throw new Error(`Expected value to be present`);
+    if (val === null || val === undefined) throw new Error("Expected value to be present");
     return val;
   }
 
@@ -5820,6 +5810,7 @@ enifed("@glimmer/wire-format", ["exports"], function (_exports) {
 enifed("ember-babel", ["exports"], function (_exports) {
   "use strict";
 
+  _exports.wrapNativeSuper = wrapNativeSuper;
   _exports.classCallCheck = classCallCheck;
   _exports.inheritsLoose = inheritsLoose;
   _exports.taggedTemplateLiteralLoose = taggedTemplateLiteralLoose;
@@ -5828,6 +5819,29 @@ enifed("ember-babel", ["exports"], function (_exports) {
   _exports.possibleConstructorReturn = possibleConstructorReturn;
   _exports.objectDestructuringEmpty = objectDestructuringEmpty;
   const setPrototypeOf = Object.setPrototypeOf;
+  var nativeWrapperCache = new Map(); // Super minimal version of Babel's wrapNativeSuper. We only use this for
+  // extending Function, for ComputedDecoratorImpl and AliasDecoratorImpl. We know
+  // we will never directly create an instance of these classes so no need to
+  // include `construct` code or other helpers.
+
+  function wrapNativeSuper(Class) {
+    if (nativeWrapperCache.has(Class)) {
+      return nativeWrapperCache.get(Class);
+    }
+
+    function Wrapper() {}
+
+    Wrapper.prototype = Object.create(Class.prototype, {
+      constructor: {
+        value: Wrapper,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    nativeWrapperCache.set(Class, Wrapper);
+    return setPrototypeOf(Wrapper, Class);
+  }
 
   function classCallCheck(instance, Constructor) {
     if (true
@@ -6033,19 +6047,19 @@ enifed("ember-template-compiler/lib/plugins/assert-if-helper-without-arguments",
       visitor: {
         BlockStatement(node) {
           if (isInvalidBlockIf(node)) {
-            true && !false && (0, _debug.assert)(`${blockAssertMessage(node.path.original)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`);
+            true && !false && (0, _debug.assert)(blockAssertMessage(node.path.original) + " " + (0, _calculateLocationDisplay.default)(moduleName, node.loc));
           }
         },
 
         MustacheStatement(node) {
           if (isInvalidInlineIf(node)) {
-            true && !false && (0, _debug.assert)(`${inlineAssertMessage(node.path.original)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`);
+            true && !false && (0, _debug.assert)(inlineAssertMessage(node.path.original) + " " + (0, _calculateLocationDisplay.default)(moduleName, node.loc));
           }
         },
 
         SubExpression(node) {
           if (isInvalidInlineIf(node)) {
-            true && !false && (0, _debug.assert)(`${inlineAssertMessage(node.path.original)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`);
+            true && !false && (0, _debug.assert)(inlineAssertMessage(node.path.original) + " " + (0, _calculateLocationDisplay.default)(moduleName, node.loc));
           }
         }
 
@@ -6054,11 +6068,11 @@ enifed("ember-template-compiler/lib/plugins/assert-if-helper-without-arguments",
   }
 
   function blockAssertMessage(original) {
-    return `#${original} requires a single argument.`;
+    return "#" + original + " requires a single argument.";
   }
 
   function inlineAssertMessage(original) {
-    return `The inline form of the '${original}' helper expects two or three arguments.`;
+    return "The inline form of the '" + original + "' helper expects two or three arguments.";
   }
 
   function isInvalidInlineIf(node) {
@@ -6095,7 +6109,7 @@ enifed("ember-template-compiler/lib/plugins/assert-input-helper-without-block", 
 
   function assertMessage(moduleName, node) {
     let sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
-    return `The {{input}} helper cannot be used in block form. ${sourceInformation}`;
+    return "The {{input}} helper cannot be used in block form. " + sourceInformation;
   }
 });
 enifed("ember-template-compiler/lib/plugins/assert-local-variable-shadowing-helper-invocation", ["exports", "@ember/debug", "ember-template-compiler/lib/system/calculate-location-display"], function (_exports, _debug, _calculateLocationDisplay) {
@@ -6140,20 +6154,20 @@ enifed("ember-template-compiler/lib/plugins/assert-local-variable-shadowing-help
           if (isPath(node.path) && hasArguments(node)) {
             let name = node.path.parts[0];
             let type = 'helper';
-            true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(`${messageFor(name, type)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals));
+            true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(messageFor(name, type) + " " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), !isLocalVariable(node.path, locals));
           }
         },
 
         SubExpression(node) {
           let name = node.path.parts[0];
           let type = 'helper';
-          true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(`${messageFor(name, type)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals));
+          true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(messageFor(name, type) + " " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), !isLocalVariable(node.path, locals));
         },
 
         ElementModifierStatement(node) {
           let name = node.path.parts[0];
           let type = 'modifier';
-          true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(`${messageFor(name, type)} ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`, !isLocalVariable(node.path, locals));
+          true && !!isLocalVariable(node.path, locals) && (0, _debug.assert)(messageFor(name, type) + " " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), !isLocalVariable(node.path, locals));
         }
 
       }
@@ -6169,7 +6183,7 @@ enifed("ember-template-compiler/lib/plugins/assert-local-variable-shadowing-help
   }
 
   function messageFor(name, type) {
-    return `Cannot invoke the \`${name}\` ${type} because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict.`;
+    return "Cannot invoke the `" + name + "` " + type + " because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict.";
   }
 
   function isPath(node) {
@@ -6184,8 +6198,6 @@ enifed("ember-template-compiler/lib/plugins/assert-reserved-named-arguments", ["
   "use strict";
 
   _exports.default = assertReservedNamedArguments;
-  const RESERVED = ['@arguments', '@args', '@block', '@else'];
-  let isReserved, assertMessage;
 
   function assertReservedNamedArguments(env) {
     let {
@@ -6194,12 +6206,34 @@ enifed("ember-template-compiler/lib/plugins/assert-reserved-named-arguments", ["
     return {
       name: 'assert-reserved-named-arguments',
       visitor: {
+        // In general, we don't assert on the invocation side to avoid creating migration
+        // hazards (e.g. using angle bracket to invoke a classic component that uses
+        // `this.someReservedName`. However, we want to avoid leaking special internal
+        // things, such as `__ARGS__`, so those would need to be asserted on both sides.
+        AttrNode({
+          name,
+          loc
+        }) {
+          if (name === '@__ARGS__') {
+            true && !false && (0, _debug.assert)(assertMessage(name) + " " + (0, _calculateLocationDisplay.default)(moduleName, loc));
+          }
+        },
+
+        HashPair({
+          key,
+          loc
+        }) {
+          if (key === '__ARGS__') {
+            true && !false && (0, _debug.assert)(assertMessage(key) + " " + (0, _calculateLocationDisplay.default)(moduleName, loc));
+          }
+        },
+
         PathExpression({
           original,
           loc
         }) {
           if (isReserved(original)) {
-            true && !false && (0, _debug.assert)(`${assertMessage(original)} ${(0, _calculateLocationDisplay.default)(moduleName, loc)}`);
+            true && !false && (0, _debug.assert)(assertMessage(original) + " " + (0, _calculateLocationDisplay.default)(moduleName, loc));
           }
         }
 
@@ -6207,16 +6241,14 @@ enifed("ember-template-compiler/lib/plugins/assert-reserved-named-arguments", ["
     };
   }
 
-  if (true
-  /* EMBER_GLIMMER_NAMED_ARGUMENTS */
-  ) {
-      isReserved = name => RESERVED.indexOf(name) !== -1 || Boolean(name.match(/^@[^a-z]/));
+  const RESERVED = ['@arguments', '@args', '@block', '@else'];
 
-      assertMessage = name => `'${name}' is reserved.`;
-    } else {
-    isReserved = name => name[0] === '@';
+  function isReserved(name) {
+    return RESERVED.indexOf(name) !== -1 || Boolean(name.match(/^@[^a-z]/));
+  }
 
-    assertMessage = name => `'${name}' is not a valid path.`;
+  function assertMessage(name) {
+    return "'" + name + "' is reserved.";
   }
 });
 enifed("ember-template-compiler/lib/plugins/assert-splattribute-expression", ["exports", "@ember/debug", "ember-template-compiler/lib/system/calculate-location-display"], function (_exports, _debug, _calculateLocationDisplay) {
@@ -6231,23 +6263,12 @@ enifed("ember-template-compiler/lib/plugins/assert-splattribute-expression", ["e
     return {
       name: 'assert-splattribute-expressions',
       visitor: {
-        AttrNode({
-          name,
-          loc
-        }) {
-          if (!true
-          /* EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION */
-          && name === '...attributes') {
-            true && !false && (0, _debug.assert)(`${errorMessage()} ${(0, _calculateLocationDisplay.default)(moduleName, loc)}`);
-          }
-        },
-
         PathExpression({
           original,
           loc
         }) {
           if (original === '...attributes') {
-            true && !false && (0, _debug.assert)(`${errorMessage()} ${(0, _calculateLocationDisplay.default)(moduleName, loc)}`);
+            true && !false && (0, _debug.assert)(errorMessage() + " " + (0, _calculateLocationDisplay.default)(moduleName, loc));
           }
         }
 
@@ -6256,13 +6277,7 @@ enifed("ember-template-compiler/lib/plugins/assert-splattribute-expression", ["e
   }
 
   function errorMessage() {
-    if (true
-    /* EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION */
-    ) {
-        return `Using "...attributes" can only be used in the element position e.g. <div ...attributes />. It cannot be used as a path.`;
-      }
-
-    return `...attributes is an invalid path`;
+    return '`...attributes` can only be used in the element position e.g. `<div ...attributes />`. It cannot be used as a path.';
   }
 });
 enifed("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", "@ember/debug", "@ember/deprecated-features", "ember-template-compiler/lib/system/calculate-location-display"], function (_exports, _debug, _deprecatedFeatures, _calculateLocationDisplay) {
@@ -6277,14 +6292,54 @@ enifed("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
         moduleName
       } = env.meta;
 
-      let deprecationMessage = (node, evName, action) => {
+      let deprecationMessage = (node, eventName, actionName) => {
         let sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
-        return `Please refactor \`{{input ${evName}="${action}"}}\` to \`{{input ${evName}=(action "${action}")}}\. ${sourceInformation}`;
+
+        if (true
+        /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
+        && node.type === 'ElementNode') {
+          return "Passing actions to components as strings (like `<Input @" + eventName + "=\"" + actionName + "\" />`) is deprecated. Please use closure actions instead (`<Input @" + eventName + "={{action \"" + actionName + "\"}} />`). " + sourceInformation;
+        } else {
+          return "Passing actions to components as strings (like `{{input " + eventName + "=\"" + actionName + "\"}}`) is deprecated. Please use closure actions instead (`{{input " + eventName + "=(action \"" + actionName + "\")}}`). " + sourceInformation;
+        }
       };
 
       return {
         name: 'deprecate-send-action',
         visitor: {
+          ElementNode(node) {
+            if (!true
+            /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
+            || node.tag !== 'Input') {
+              return;
+            }
+
+            node.attributes.forEach(({
+              name,
+              value
+            }) => {
+              if (name.charAt(0) === '@') {
+                let eventName = name.substring(1);
+
+                if (EVENTS.indexOf(eventName) > -1) {
+                  if (value.type === 'TextNode') {
+                    true && !false && (0, _debug.deprecate)(deprecationMessage(node, eventName, value.chars), false, {
+                      id: 'ember-component.send-action',
+                      until: '4.0.0',
+                      url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action'
+                    });
+                  } else if (value.type === 'MustacheStatement' && value.path.type === 'StringLiteral') {
+                    true && !false && (0, _debug.deprecate)(deprecationMessage(node, eventName, value.path.original), false, {
+                      id: 'ember-component.send-action',
+                      until: '4.0.0',
+                      url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action'
+                    });
+                  }
+                }
+              }
+            });
+          },
+
           MustacheStatement(node) {
             if (node.path.original !== 'input') {
               return;
@@ -6308,11 +6363,17 @@ enifed("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
     return;
   }
 });
-enifed("ember-template-compiler/lib/plugins/index", ["exports", "ember-template-compiler/lib/plugins/assert-if-helper-without-arguments", "ember-template-compiler/lib/plugins/assert-input-helper-without-block", "ember-template-compiler/lib/plugins/assert-local-variable-shadowing-helper-invocation", "ember-template-compiler/lib/plugins/assert-reserved-named-arguments", "ember-template-compiler/lib/plugins/assert-splattribute-expression", "ember-template-compiler/lib/plugins/deprecate-send-action", "ember-template-compiler/lib/plugins/transform-action-syntax", "ember-template-compiler/lib/plugins/transform-attrs-into-args", "ember-template-compiler/lib/plugins/transform-component-invocation", "ember-template-compiler/lib/plugins/transform-each-in-into-each", "ember-template-compiler/lib/plugins/transform-has-block-syntax", "ember-template-compiler/lib/plugins/transform-in-element", "ember-template-compiler/lib/plugins/transform-inline-link-to", "ember-template-compiler/lib/plugins/transform-input-type-syntax", "ember-template-compiler/lib/plugins/transform-old-class-binding-syntax", "ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings", "@ember/deprecated-features"], function (_exports, _assertIfHelperWithoutArguments, _assertInputHelperWithoutBlock, _assertLocalVariableShadowingHelperInvocation, _assertReservedNamedArguments, _assertSplattributeExpression, _deprecateSendAction, _transformActionSyntax, _transformAttrsIntoArgs, _transformComponentInvocation, _transformEachInIntoEach, _transformHasBlockSyntax, _transformInElement, _transformInlineLinkTo, _transformInputTypeSyntax, _transformOldClassBindingSyntax, _transformQuotedBindingsIntoJustBindings, _deprecatedFeatures) {
+enifed("ember-template-compiler/lib/plugins/index", ["exports", "ember-template-compiler/lib/plugins/assert-if-helper-without-arguments", "ember-template-compiler/lib/plugins/assert-input-helper-without-block", "ember-template-compiler/lib/plugins/assert-local-variable-shadowing-helper-invocation", "ember-template-compiler/lib/plugins/assert-reserved-named-arguments", "ember-template-compiler/lib/plugins/assert-splattribute-expression", "ember-template-compiler/lib/plugins/deprecate-send-action", "ember-template-compiler/lib/plugins/transform-action-syntax", "ember-template-compiler/lib/plugins/transform-attrs-into-args", "ember-template-compiler/lib/plugins/transform-component-invocation", "ember-template-compiler/lib/plugins/transform-each-in-into-each", "ember-template-compiler/lib/plugins/transform-has-block-syntax", "ember-template-compiler/lib/plugins/transform-in-element", "ember-template-compiler/lib/plugins/transform-input-type-syntax", "ember-template-compiler/lib/plugins/transform-link-to", "ember-template-compiler/lib/plugins/transform-old-class-binding-syntax", "ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings", "@ember/deprecated-features"], function (_exports, _assertIfHelperWithoutArguments, _assertInputHelperWithoutBlock, _assertLocalVariableShadowingHelperInvocation, _assertReservedNamedArguments, _assertSplattributeExpression, _deprecateSendAction, _transformActionSyntax, _transformAttrsIntoArgs, _transformComponentInvocation, _transformEachInIntoEach, _transformHasBlockSyntax, _transformInElement, _transformInputTypeSyntax, _transformLinkTo, _transformOldClassBindingSyntax, _transformQuotedBindingsIntoJustBindings, _deprecatedFeatures) {
   "use strict";
 
   _exports.default = void 0;
-  const transforms = [_transformComponentInvocation.default, _transformInlineLinkTo.default, _transformOldClassBindingSyntax.default, _transformQuotedBindingsIntoJustBindings.default, _assertReservedNamedArguments.default, _transformActionSyntax.default, _transformInputTypeSyntax.default, _transformAttrsIntoArgs.default, _transformEachInIntoEach.default, _transformHasBlockSyntax.default, _assertLocalVariableShadowingHelperInvocation.default, _assertInputHelperWithoutBlock.default, _transformInElement.default, _assertIfHelperWithoutArguments.default, _assertSplattributeExpression.default];
+  const transforms = [_transformComponentInvocation.default, _transformOldClassBindingSyntax.default, _transformQuotedBindingsIntoJustBindings.default, _assertReservedNamedArguments.default, _transformActionSyntax.default, _transformAttrsIntoArgs.default, _transformEachInIntoEach.default, _transformHasBlockSyntax.default, _assertLocalVariableShadowingHelperInvocation.default, _transformLinkTo.default, _assertInputHelperWithoutBlock.default, _transformInElement.default, _assertIfHelperWithoutArguments.default, _assertSplattributeExpression.default];
+
+  if (!true
+  /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
+  ) {
+      transforms.push(_transformInputTypeSyntax.default);
+    }
 
   if (_deprecatedFeatures.SEND_ACTION) {
     transforms.push(_deprecateSendAction.default);
@@ -6441,7 +6502,7 @@ enifed("ember-template-compiler/lib/plugins/transform-attrs-into-args", ["export
         PathExpression(node) {
           if (isAttrs(node, stack[stack.length - 1])) {
             let path = b.path(node.original.substr(6));
-            path.original = `@${path.original}`;
+            path.original = "@" + path.original;
             path.data = true;
             return path;
           }
@@ -6700,7 +6761,7 @@ enifed("ember-template-compiler/lib/plugins/transform-component-invocation", ["e
   }
 
   function wrapInAssertion(moduleName, node, b) {
-    let error = b.string(`expected \`${node.original}\` to be a contextual component but found a string. Did you mean \`(component ${node.original})\`? ${(0, _calculateLocationDisplay.default)(moduleName, node.loc)}`);
+    let error = b.string("expected `" + node.original + "` to be a contextual component but found a string. Did you mean `(component " + node.original + ")`? " + (0, _calculateLocationDisplay.default)(moduleName, node.loc));
     return b.sexpr(b.path('-assert-implicit-component-helper-argument'), [node, error], b.hash(), node.loc);
   }
 
@@ -6899,7 +6960,7 @@ enifed("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
                 hasNextSibling = true;
               }
             });
-            let guid = b.literal('StringLiteral', `%cursor:${cursorCount++}%`);
+            let guid = b.literal('StringLiteral', "%cursor:" + cursorCount++ + "%");
             let guidPair = b.pair('guid', guid);
             hash.pairs.unshift(guidPair);
 
@@ -6917,58 +6978,13 @@ enifed("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
 
   function assertMessage(moduleName, node) {
     let sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
-    return `The {{in-element}} helper cannot be used. ${sourceInformation}`;
+    return "The {{in-element}} helper cannot be used. " + sourceInformation;
   }
 });
-enifed("ember-template-compiler/lib/plugins/transform-inline-link-to", ["exports"], function (_exports) {
+enifed("ember-template-compiler/lib/plugins/transform-input-type-syntax", ["exports", "@glimmer/util"], function (_exports, _util) {
   "use strict";
 
-  _exports.default = transformInlineLinkTo;
-
-  function buildProgram(b, content, loc) {
-    return b.program([buildStatement(b, content, loc)], undefined, loc);
-  }
-
-  function buildStatement(b, content, loc) {
-    switch (content.type) {
-      case 'PathExpression':
-        return b.mustache(content, undefined, undefined, undefined, loc);
-
-      case 'SubExpression':
-        return b.mustache(content.path, content.params, content.hash, undefined, loc);
-      // The default case handles literals.
-
-      default:
-        return b.text(`${content.value}`, loc);
-    }
-  }
-
-  function unsafeHtml(b, expr) {
-    return b.sexpr('-html-safe', [expr]);
-  }
-
-  function transformInlineLinkTo(env) {
-    let {
-      builders: b
-    } = env.syntax;
-    return {
-      name: 'transform-inline-link-to',
-      visitor: {
-        MustacheStatement(node) {
-          if (node.path.original === 'link-to') {
-            let content = node.escaped ? node.params[0] : unsafeHtml(b, node.params[0]);
-            return b.block('link-to', node.params.slice(1), node.hash, buildProgram(b, content, node.loc), null, node.loc);
-          }
-        }
-
-      }
-    };
-  }
-});
-enifed("ember-template-compiler/lib/plugins/transform-input-type-syntax", ["exports"], function (_exports) {
-  "use strict";
-
-  _exports.default = transformInputTypeSyntax;
+  _exports.default = void 0;
 
   /**
    @module ember
@@ -6994,39 +7010,181 @@ enifed("ember-template-compiler/lib/plugins/transform-input-type-syntax", ["expo
     @private
     @class TransformInputTypeSyntax
   */
-  function transformInputTypeSyntax(env) {
-    let b = env.syntax.builders;
+  let transformInputTypeSyntax;
+
+  if (true
+  /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
+  ) {
+      transformInputTypeSyntax = () => {
+        throw (0, _util.unreachable)();
+      };
+    } else {
+    transformInputTypeSyntax = function transformInputTypeSyntax(env) {
+      let b = env.syntax.builders;
+      return {
+        name: 'transform-input-type-syntax',
+        visitor: {
+          MustacheStatement(node) {
+            if (isInput(node)) {
+              insertTypeHelperParameter(node, b);
+            }
+          }
+
+        }
+      };
+    };
+
+    let isInput = function isInput(node) {
+      return node.path.original === 'input';
+    };
+
+    let insertTypeHelperParameter = function insertTypeHelperParameter(node, builders) {
+      let pairs = node.hash.pairs;
+      let pair = null;
+
+      for (let i = 0; i < pairs.length; i++) {
+        if (pairs[i].key === 'type') {
+          pair = pairs[i];
+          break;
+        }
+      }
+
+      if (pair && pair.value.type !== 'StringLiteral') {
+        node.params.unshift(builders.sexpr('-input-type', [pair.value], undefined, pair.loc));
+      }
+    };
+  }
+
+  var _default = transformInputTypeSyntax;
+  _exports.default = _default;
+});
+enifed("ember-template-compiler/lib/plugins/transform-link-to", ["exports", "@ember/debug", "ember-template-compiler/lib/system/calculate-location-display"], function (_exports, _debug, _calculateLocationDisplay) {
+  "use strict";
+
+  _exports.default = transformLinkTo;
+
+  function isInlineLinkTo(node) {
+    return node.path.original === 'link-to';
+  }
+
+  function isBlockLinkTo(node) {
+    return node.path.original === 'link-to';
+  }
+
+  function isSubExpression(node) {
+    return node.type === 'SubExpression';
+  }
+
+  function isQueryParams(node) {
+    return isSubExpression(node) && node.path.original === 'query-params';
+  }
+
+  function transformInlineLinkToIntoBlockForm(env, node) {
+    let {
+      builders: b
+    } = env.syntax;
+    return b.block('link-to', node.params.slice(1), node.hash, buildProgram(b, node.params[0], node.escaped, node.loc), null, node.loc);
+  }
+
+  function transformPositionalLinkToIntoNamedArguments(env, node) {
+    let {
+      builders: b
+    } = env.syntax;
+    let {
+      moduleName
+    } = env.meta;
+    let {
+      params,
+      hash: {
+        pairs
+      }
+    } = node;
+    let keys = pairs.map(pair => pair.key);
+
+    if (params.length === 0) {
+      true && !(keys.indexOf('params') !== -1 || keys.indexOf('route') !== -1 || keys.indexOf('model') !== -1 || keys.indexOf('models') !== -1 || keys.indexOf('query') !== -1) && (0, _debug.assert)("You must provide one or more parameters to the `{{link-to}}` component. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), keys.indexOf('params') !== -1 || keys.indexOf('route') !== -1 || keys.indexOf('model') !== -1 || keys.indexOf('models') !== -1 || keys.indexOf('query') !== -1);
+      return node;
+    } else {
+      true && !(keys.indexOf('params') === -1) && (0, _debug.assert)("You cannot pass positional parameters and the `params` argument to the `{{link-to}}` component at the same time. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), keys.indexOf('params') === -1);
+      true && !(keys.indexOf('route') === -1) && (0, _debug.assert)("You cannot pass positional parameters and the `route` argument to the `{{link-to}}` component at the same time. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), keys.indexOf('route') === -1);
+      true && !(keys.indexOf('model') === -1) && (0, _debug.assert)("You cannot pass positional parameters and the `model` argument to the `{{link-to}}` component at the same time. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), keys.indexOf('model') === -1);
+      true && !(keys.indexOf('models') === -1) && (0, _debug.assert)("You cannot pass positional parameters and the `models` argument to the `{{link-to}}` component at the same time. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), keys.indexOf('models') === -1);
+      true && !(keys.indexOf('query') === -1) && (0, _debug.assert)("You cannot pass positional parameters and the `query` argument to the `{{link-to}}` component at the same time. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), keys.indexOf('query') === -1);
+    }
+
+    true && !(params.length > 0) && (0, _debug.assert)("You must provide one or more parameters to the `{{link-to}}` component. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc), params.length > 0); // 1. The last argument is possibly the `query` object.
+
+    let query = params[params.length - 1];
+
+    if (query && isQueryParams(query)) {
+      params.pop();
+      true && !(query.params.length === 0) && (0, _debug.assert)("The `(query-params ...)` helper does not take positional arguments. " + (0, _calculateLocationDisplay.default)(moduleName, query.loc), query.params.length === 0);
+      pairs.push(b.pair('query', b.sexpr(b.path('hash', query.path.loc), [], query.hash, query.loc), query.loc));
+    } // 2. If there is a `route`, it is now at index 0.
+
+
+    let route = params.shift();
+
+    if (route) {
+      pairs.push(b.pair('route', route, route.loc));
+    } // 3. Any remaining indices (if any) are `models`.
+
+
+    if (params.length === 1) {
+      pairs.push(b.pair('model', params[0], params[0].loc));
+    } else if (params.length > 1) {
+      pairs.push(b.pair('models', b.sexpr(b.path('array', node.loc), params, undefined, node.loc), node.loc));
+    }
+
+    return b.block(node.path, null, b.hash(pairs, node.hash.loc), node.program, node.inverse, node.loc);
+  }
+
+  function buildProgram(b, content, escaped, loc) {
+    return b.program([buildStatement(b, content, escaped, loc)], undefined, loc);
+  }
+
+  function buildStatement(b, content, escaped, loc) {
+    switch (content.type) {
+      case 'PathExpression':
+        return b.mustache(content, undefined, undefined, !escaped, loc);
+
+      case 'SubExpression':
+        return b.mustache(content.path, content.params, content.hash, !escaped, loc);
+      // The default case handles literals.
+
+      default:
+        return b.text("" + content.value, loc);
+    }
+  }
+
+  function transformLinkTo(env) {
     return {
-      name: 'transform-input-type-syntax',
+      name: 'transform-link-to',
       visitor: {
         MustacheStatement(node) {
-          if (isInput(node)) {
-            insertTypeHelperParameter(node, b);
+          if (isInlineLinkTo(node)) {
+            let block = transformInlineLinkToIntoBlockForm(env, node);
+
+            if (true
+            /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
+            ) {
+                block = transformPositionalLinkToIntoNamedArguments(env, block);
+              }
+
+            return block;
+          }
+        },
+
+        BlockStatement(node) {
+          if (true
+          /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
+          && isBlockLinkTo(node)) {
+            return transformPositionalLinkToIntoNamedArguments(env, node);
           }
         }
 
       }
     };
-  }
-
-  function isInput(node) {
-    return node.path.original === 'input';
-  }
-
-  function insertTypeHelperParameter(node, builders) {
-    let pairs = node.hash.pairs;
-    let pair = null;
-
-    for (let i = 0; i < pairs.length; i++) {
-      if (pairs[i].key === 'type') {
-        pair = pairs[i];
-        break;
-      }
-    }
-
-    if (pair && pair.value.type !== 'StringLiteral') {
-      node.params.unshift(builders.sexpr('-input-type', [pair.value], undefined, pair.loc));
-    }
   }
 });
 enifed("ember-template-compiler/lib/plugins/transform-old-class-binding-syntax", ["exports"], function (_exports) {
@@ -7255,7 +7413,7 @@ enifed("ember-template-compiler/lib/system/bootstrap", ["exports", "ember-templa
       }); // Check if template of same name already exists.
 
       if (hasTemplate(templateName)) {
-        throw new Error(`Template named "${templateName}" already exists.`);
+        throw new Error("Template named \"" + templateName + "\" already exists.");
       } // For templates which have a name, we save them and then remove them from the DOM.
 
 
@@ -7277,7 +7435,7 @@ enifed("ember-template-compiler/lib/system/calculate-location-display", ["export
     let moduleInfo = '';
 
     if (moduleName) {
-      moduleInfo += `'${moduleName}' `;
+      moduleInfo += "'" + moduleName + "' ";
     }
 
     if (loc) {
@@ -7295,12 +7453,12 @@ enifed("ember-template-compiler/lib/system/calculate-location-display", ["export
           moduleInfo += '@ ';
         }
 
-        moduleInfo += `L${line}:C${column}`;
+        moduleInfo += "L" + line + ":C" + column;
       }
     }
 
     if (moduleInfo) {
-      moduleInfo = `(${moduleInfo}) `;
+      moduleInfo = "(" + moduleInfo + ") ";
     }
 
     return moduleInfo;
@@ -7376,7 +7534,7 @@ enifed("ember-template-compiler/lib/system/compile-options", ["exports", "@ember
 
   function registerPlugin(type, _plugin) {
     if (type !== 'ast') {
-      throw new Error(`Attempting to register ${_plugin} as "${type}" which is not a valid Glimmer plugin type.`);
+      throw new Error("Attempting to register " + _plugin + " as \"" + type + "\" which is not a valid Glimmer plugin type.");
     }
 
     for (let i = 0; i < USER_PLUGINS.length; i++) {
@@ -7393,7 +7551,7 @@ enifed("ember-template-compiler/lib/system/compile-options", ["exports", "@ember
 
   function unregisterPlugin(type, PluginClass) {
     if (type !== 'ast') {
-      throw new Error(`Attempting to unregister ${PluginClass} as "${type}" which is not a valid Glimmer plugin type.`);
+      throw new Error("Attempting to unregister " + PluginClass + " as \"" + type + "\" which is not a valid Glimmer plugin type.");
     }
 
     USER_PLUGINS = USER_PLUGINS.filter(plugin => plugin !== PluginClass && plugin.__raw !== PluginClass);
@@ -7430,7 +7588,7 @@ enifed("ember-template-compiler/lib/system/compile", ["exports", "require", "emb
     }
 
     let precompiledTemplateString = (0, _precompile.default)(templateString, options);
-    let templateJS = new Function(`return ${precompiledTemplateString}`)();
+    let templateJS = new Function("return " + precompiledTemplateString)();
     return template(templateJS);
   }
 });
@@ -7443,15 +7601,25 @@ enifed("ember-template-compiler/lib/system/dasherize-component-name", ["exports"
     This diverges from `Ember.String.dasherize` so that`<XFoo />` can resolve to `x-foo`.
     `Ember.String.dasherize` would resolve it to `xfoo`..
   */
-  const SIMPLE_DASHERIZE_REGEXP = /[A-Z]/g;
+  const SIMPLE_DASHERIZE_REGEXP = /[A-Z]|::/g;
   const ALPHA = /[A-Za-z0-9]/;
 
   var _default = new _utils.Cache(1000, key => key.replace(SIMPLE_DASHERIZE_REGEXP, (char, index) => {
+    if (char === '::') {
+      if (true
+      /* EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP */
+      ) {
+          return '/';
+        } else {
+        return char;
+      }
+    }
+
     if (index === 0 || !ALPHA.test(key[index - 1])) {
       return char.toLowerCase();
     }
 
-    return `-${char.toLowerCase()}`;
+    return "-" + char.toLowerCase();
   }));
 
   _exports.default = _default;
@@ -7520,42 +7688,42 @@ enifed("ember-template-compiler/tests/plugins/assert-if-helper-without-arguments
   "use strict";
 
   (0, _internalTestHelpers.moduleFor)('ember-template-compiler: assert-if-helper-without-argument', class extends _internalTestHelpers.AbstractTestCase {
-    [`@test block if helper expects one argument`]() {
+    ["@test block if helper expects one argument"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`{{#if}}aVal{{/if}}`, {
+        (0, _index.compile)("{{#if}}aVal{{/if}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `#if requires a single argument. ('baz/foo-bar' @ L1:C0) `);
+      }, "#if requires a single argument. ('baz/foo-bar' @ L1:C0) ");
       expectAssertion(() => {
-        (0, _index.compile)(`{{#if val1 val2}}aVal{{/if}}`, {
+        (0, _index.compile)("{{#if val1 val2}}aVal{{/if}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `#if requires a single argument. ('baz/foo-bar' @ L1:C0) `);
+      }, "#if requires a single argument. ('baz/foo-bar' @ L1:C0) ");
       expectAssertion(() => {
-        (0, _index.compile)(`{{#if}}aVal{{/if}}`, {
+        (0, _index.compile)("{{#if}}aVal{{/if}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `#if requires a single argument. ('baz/foo-bar' @ L1:C0) `);
+      }, "#if requires a single argument. ('baz/foo-bar' @ L1:C0) ");
     }
 
-    [`@test inline if helper expects between one and three arguments`]() {
+    ["@test inline if helper expects between one and three arguments"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`{{if}}`, {
+        (0, _index.compile)("{{if}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `The inline form of the 'if' helper expects two or three arguments. ('baz/foo-bar' @ L1:C0) `);
-      (0, _index.compile)(`{{if foo bar baz}}`, {
+      }, "The inline form of the 'if' helper expects two or three arguments. ('baz/foo-bar' @ L1:C0) ");
+      (0, _index.compile)("{{if foo bar baz}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
     ['@test subexpression if helper expects between one and three arguments']() {
       expectAssertion(() => {
-        (0, _index.compile)(`{{input foo=(if)}}`, {
+        (0, _index.compile)("{{input foo=(if)}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `The inline form of the 'if' helper expects two or three arguments. ('baz/foo-bar' @ L1:C12) `);
-      (0, _index.compile)(`{{some-thing foo=(if foo bar baz)}}`, {
+      }, "The inline form of the 'if' helper expects two or three arguments. ('baz/foo-bar' @ L1:C12) ");
+      (0, _index.compile)("{{some-thing foo=(if foo bar baz)}}", {
         moduleName: 'baz/foo-bar'
       });
     }
@@ -7567,7 +7735,7 @@ enifed("ember-template-compiler/tests/plugins/assert-input-helper-without-block-
 
   (0, _internalTestHelpers.moduleFor)('ember-template-compiler: assert-input-helper-without-block', class extends _internalTestHelpers.AbstractTestCase {
     ['@test Using {{#input}}{{/input}} is not valid']() {
-      let expectedMessage = `The {{input}} helper cannot be used in block form. ('baz/foo-bar' @ L1:C0) `;
+      let expectedMessage = "The {{input}} helper cannot be used in block form. ('baz/foo-bar' @ L1:C0) ";
       expectAssertion(() => {
         (0, _index.compile)('{{#input value="123"}}Completely invalid{{/input}}', {
           moduleName: 'baz/foo-bar'
@@ -7581,529 +7749,275 @@ enifed("ember-template-compiler/tests/plugins/assert-local-variable-shadowing-he
   "use strict";
 
   (0, _internalTestHelpers.moduleFor)('ember-template-compiler: assert-local-variable-shadowing-helper-invocation', class extends _internalTestHelpers.AbstractTestCase {
-    [`@test block statements shadowing sub-expression invocations`]() {
+    ["@test block statements shadowing sub-expression invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            {{concat (foo)}}
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            {{concat (foo)}}\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) `);
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) ");
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            {{concat (foo bar baz)}}
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            {{concat (foo bar baz)}}\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}{{/let}}
-        {{concat (foo)}}
-        {{concat (foo bar baz)}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}{{/let}}\n        {{concat (foo)}}\n        {{concat (foo bar baz)}}", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          {{concat foo}}
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          {{concat foo}}\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let (concat foo) as |concat|}}
-          {{input value=concat}}
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let (concat foo) as |concat|}}\n          {{input value=concat}}\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test element nodes shadowing sub-expression invocations`]() {
+    ["@test element nodes shadowing sub-expression invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          <Foo as |foo|>
-            {{concat (foo)}}
-          </Foo>`, {
+        (0, _index.compile)("\n          <Foo as |foo|>\n            {{concat (foo)}}\n          </Foo>", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) `);
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) ");
       expectAssertion(() => {
-        (0, _index.compile)(`
-          <Foo as |foo|>
-            {{concat (foo bar baz)}}
-          </Foo>`, {
+        (0, _index.compile)("\n          <Foo as |foo|>\n            {{concat (foo bar baz)}}\n          </Foo>", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C21) "); // Not shadowed
 
-      (0, _index.compile)(`
-        <Foo as |foo|></Foo>
-        {{concat (foo)}}
-        {{concat (foo bar baz)}}`, {
+      (0, _index.compile)("\n        <Foo as |foo|></Foo>\n        {{concat (foo)}}\n        {{concat (foo bar baz)}}", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        <Foo as |foo|>
-          {{concat foo}}
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo as |foo|>\n          {{concat foo}}\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        <Foo foo={{concat foo}} as |concat|>
-          {{input value=concat}}
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo foo={{concat foo}} as |concat|>\n          {{input value=concat}}\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test deeply nested sub-expression invocations`]() {
+    ["@test deeply nested sub-expression invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <FooBar as |bar|>
-              {{#each items as |baz|}}
-                {{concat (foo)}}
-              {{/each}}
-            </FooBar>
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <FooBar as |bar|>\n              {{#each items as |baz|}}\n                {{concat (foo)}}\n              {{/each}}\n            </FooBar>\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C25) `);
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C25) ");
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <FooBar as |bar|>
-              {{#each items as |baz|}}
-                {{concat (foo bar baz)}}
-              {{/each}}
-            </FooBar>
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <FooBar as |bar|>\n              {{#each items as |baz|}}\n                {{concat (foo bar baz)}}\n              {{/each}}\n            </FooBar>\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C25) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C25) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-            {{/each}}
-            {{concat (baz)}}
-            {{concat (baz bat)}}
-          </FooBar>
-          {{concat (bar)}}
-          {{concat (bar baz bat)}}
-        {{/let}}
-        {{concat (foo)}}
-        {{concat (foo bar baz bat)}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n            {{/each}}\n            {{concat (baz)}}\n            {{concat (baz bat)}}\n          </FooBar>\n          {{concat (bar)}}\n          {{concat (bar baz bat)}}\n        {{/let}}\n        {{concat (foo)}}\n        {{concat (foo bar baz bat)}}", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-              {{concat foo}}
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n              {{concat foo}}\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let (foo foo) as |foo|}}
-          <FooBar bar=(bar bar) as |bar|>
-            {{#each (baz baz) as |baz|}}
-              {{concat foo bar baz}}
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let (foo foo) as |foo|}}\n          <FooBar bar=(bar bar) as |bar|>\n            {{#each (baz baz) as |baz|}}\n              {{concat foo bar baz}}\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test block statements shadowing attribute sub-expression invocations`]() {
+    ["@test block statements shadowing attribute sub-expression invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <div class={{concat (foo bar baz)}} />
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <div class={{concat (foo bar baz)}} />\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C32) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C32) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}{{/let}}
-        <div class={{concat (foo)}} />
-        <div class={{concat (foo bar baz)}} />`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}{{/let}}\n        <div class={{concat (foo)}} />\n        <div class={{concat (foo bar baz)}} />", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <div class={{concat foo}} />
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <div class={{concat foo}} />\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let (foo foo) as |foo|}}
-          <div class={{concat foo}} />
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let (foo foo) as |foo|}}\n          <div class={{concat foo}} />\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test element nodes shadowing attribute sub-expression invocations`]() {
+    ["@test element nodes shadowing attribute sub-expression invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          <Foo as |foo|>
-            <div class={{concat (foo bar baz)}} />
-          </Foo>`, {
+        (0, _index.compile)("\n          <Foo as |foo|>\n            <div class={{concat (foo bar baz)}} />\n          </Foo>", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C32) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C32) "); // Not shadowed
 
-      (0, _index.compile)(`
-        <Foo as |foo|></Foo>
-        <div class={{concat (foo)}} />
-        <div class={{concat (foo bar baz)}} />`, {
+      (0, _index.compile)("\n        <Foo as |foo|></Foo>\n        <div class={{concat (foo)}} />\n        <div class={{concat (foo bar baz)}} />", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        <Foo as |foo|>
-          <div class={{concat foo}} />
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo as |foo|>\n          <div class={{concat foo}} />\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        <Foo foo={{foo foo}} as |foo|>
-          <div class={{concat foo}} />
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo foo={{foo foo}} as |foo|>\n          <div class={{concat foo}} />\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test deeply nested attribute sub-expression invocations`]() {
+    ["@test deeply nested attribute sub-expression invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <FooBar as |bar|>
-              {{#each items as |baz|}}
-                <div class={{concat (foo bar baz)}} />
-              {{/each}}
-            </FooBar>
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <FooBar as |bar|>\n              {{#each items as |baz|}}\n                <div class={{concat (foo bar baz)}} />\n              {{/each}}\n            </FooBar>\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C36) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C36) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-            {{/each}}
-            <div class={{concat (baz)}} />
-            <div class={{concat (baz bat)}} />
-          </FooBar>
-          <div class={{concat (bar)}} />
-          <div class={{concat (bar baz bat)}} />
-        {{/let}}
-        <div class={{concat (foo)}} />
-        <div class={{concat (foo bar baz bat)}} />`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n            {{/each}}\n            <div class={{concat (baz)}} />\n            <div class={{concat (baz bat)}} />\n          </FooBar>\n          <div class={{concat (bar)}} />\n          <div class={{concat (bar baz bat)}} />\n        {{/let}}\n        <div class={{concat (foo)}} />\n        <div class={{concat (foo bar baz bat)}} />", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-              <div class={{concat foo}} />
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n              <div class={{concat foo}} />\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let (foo foo) as |foo|}}
-          <FooBar bar=(bar bar) as |bar|>
-            {{#each (baz baz) as |baz|}}
-              <div class={{concat foo bar baz}} />
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let (foo foo) as |foo|}}\n          <FooBar bar=(bar bar) as |bar|>\n            {{#each (baz baz) as |baz|}}\n              <div class={{concat foo bar baz}} />\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test block statements shadowing attribute mustache invocations`]() {
+    ["@test block statements shadowing attribute mustache invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <div class={{foo bar baz}} />
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <div class={{foo bar baz}} />\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C23) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C23) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}{{/let}}
-        <div class={{foo}} />
-        <div class={{foo bar baz}} />`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}{{/let}}\n        <div class={{foo}} />\n        <div class={{foo bar baz}} />", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <div class={{foo}} />
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <div class={{foo}} />\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let (concat foo) as |concat|}}
-          <div class={{concat}} />
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let (concat foo) as |concat|}}\n          <div class={{concat}} />\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test element nodes shadowing attribute mustache invocations`]() {
+    ["@test element nodes shadowing attribute mustache invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          <Foo as |foo|>
-            <div class={{foo bar baz}} />
-          </Foo>`, {
+        (0, _index.compile)("\n          <Foo as |foo|>\n            <div class={{foo bar baz}} />\n          </Foo>", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C23) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C23) "); // Not shadowed
 
-      (0, _index.compile)(`
-        <Foo as |foo|></Foo>
-        <div class={{foo}} />
-        <div class={{foo bar baz}} />`, {
+      (0, _index.compile)("\n        <Foo as |foo|></Foo>\n        <div class={{foo}} />\n        <div class={{foo bar baz}} />", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        <Foo as |foo|>
-          <div class={{foo}} />
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo as |foo|>\n          <div class={{foo}} />\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        <Foo foo={{concat foo}} as |concat|>
-          <div class={{concat}} />
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo foo={{concat foo}} as |concat|>\n          <div class={{concat}} />\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test deeply nested attribute mustache invocations`]() {
+    ["@test deeply nested attribute mustache invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <FooBar as |bar|>
-              {{#each items as |baz|}}
-                <div class={{foo bar baz}} />
-              {{/each}}
-            </FooBar>
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <FooBar as |bar|>\n              {{#each items as |baz|}}\n                <div class={{foo bar baz}} />\n              {{/each}}\n            </FooBar>\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C27) `); // Not shadowed
+      }, "Cannot invoke the `foo` helper because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C27) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-            {{/each}}
-            <div class={{baz}} />
-            <div class={{baz bat}} />
-          </FooBar>
-          <div class={{bar}} />
-          <div class={{bar baz bat}} />
-        {{/let}}
-        <div class={{foo}} />
-        <div class={{foo bar baz bat}} />`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n            {{/each}}\n            <div class={{baz}} />\n            <div class={{baz bat}} />\n          </FooBar>\n          <div class={{bar}} />\n          <div class={{bar baz bat}} />\n        {{/let}}\n        <div class={{foo}} />\n        <div class={{foo bar baz bat}} />", {
         moduleName: 'baz/foo-bar'
       }); // Not invocations
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-              <div class={{foo}} />
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n              <div class={{foo}} />\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let (foo foo) as |foo|}}
-          <FooBar bar=(bar bar) as |bar|>
-            {{#each (baz baz) as |baz|}}
-              <div foo={{foo}} bar={{bar}} baz={{baz}} />
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let (foo foo) as |foo|}}\n          <FooBar bar=(bar bar) as |bar|>\n            {{#each (baz baz) as |baz|}}\n              <div foo={{foo}} bar={{bar}} baz={{baz}} />\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test block statements shadowing mustache invocations`](assert) {
+    ["@test block statements shadowing mustache invocations"](assert) {
       // These are fine, because they should already be considered contextual
       // component invocations, not helper invocations
       assert.expect(0);
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          {{foo}}
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          {{foo}}\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          {{foo bar baz}}
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          {{foo bar baz}}\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test element nodes shadowing mustache invocations`](assert) {
+    ["@test element nodes shadowing mustache invocations"](assert) {
       // These are fine, because they should already be considered contextual
       // component invocations, not helper invocations
       assert.expect(0);
-      (0, _index.compile)(`
-        <Foo as |foo|>
-          {{foo}}
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo as |foo|>\n          {{foo}}\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        <Foo as |foo|>
-          {{foo bar baz}}
-        </Foo>`, {
+      (0, _index.compile)("\n        <Foo as |foo|>\n          {{foo bar baz}}\n        </Foo>", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test deeply nested mustache invocations`](assert) {
+    ["@test deeply nested mustache invocations"](assert) {
       // These are fine, because they should already be considered contextual
       // component invocations, not helper invocations
       assert.expect(0);
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-              {{foo}}
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n              {{foo}}\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-              {{foo bar baz}}
-            {{/each}}
-          </FooBar>
-        {{/let}}`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n              {{foo bar baz}}\n            {{/each}}\n          </FooBar>\n        {{/let}}", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test block statements shadowing modifier invocations`]() {
+    ["@test block statements shadowing modifier invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <div {{foo}} />
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <div {{foo}} />\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) `);
+      }, "Cannot invoke the `foo` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) ");
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <div {{foo bar baz}} />
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <div {{foo bar baz}} />\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) `); // Not shadowed
+      }, "Cannot invoke the `foo` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}{{/let}}
-        <div {{foo}} />
-        <div {{foo bar baz}} />`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}{{/let}}\n        <div {{foo}} />\n        <div {{foo bar baz}} />", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test element nodes shadowing modifier invocations`]() {
+    ["@test element nodes shadowing modifier invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          <Foo as |foo|>
-            <div {{foo}} />
-          </Foo>`, {
+        (0, _index.compile)("\n          <Foo as |foo|>\n            <div {{foo}} />\n          </Foo>", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) `);
+      }, "Cannot invoke the `foo` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) ");
       expectAssertion(() => {
-        (0, _index.compile)(`
-          <Foo as |foo|>
-            <div {{foo bar baz}} />
-          </Foo>`, {
+        (0, _index.compile)("\n          <Foo as |foo|>\n            <div {{foo bar baz}} />\n          </Foo>", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) `); // Not shadowed
+      }, "Cannot invoke the `foo` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L3:C17) "); // Not shadowed
 
-      (0, _index.compile)(`
-        <Foo as |foo|></Foo>
-        <div {{foo}} />
-        <div {{foo bar baz}} />`, {
+      (0, _index.compile)("\n        <Foo as |foo|></Foo>\n        <div {{foo}} />\n        <div {{foo bar baz}} />", {
         moduleName: 'baz/foo-bar'
       });
     }
 
-    [`@test deeply nested modifier invocations`]() {
+    ["@test deeply nested modifier invocations"]() {
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <FooBar as |bar|>
-              {{#each items as |baz|}}
-                <div {{foo}} />
-              {{/each}}
-            </FooBar>
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <FooBar as |bar|>\n              {{#each items as |baz|}}\n                <div {{foo}} />\n              {{/each}}\n            </FooBar>\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C21) `);
+      }, "Cannot invoke the `foo` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C21) ");
       expectAssertion(() => {
-        (0, _index.compile)(`
-          {{#let foo as |foo|}}
-            <FooBar as |bar|>
-              {{#each items as |baz|}}
-                <div {{foo bar baz}} />
-              {{/each}}
-            </FooBar>
-          {{/let}}`, {
+        (0, _index.compile)("\n          {{#let foo as |foo|}}\n            <FooBar as |bar|>\n              {{#each items as |baz|}}\n                <div {{foo bar baz}} />\n              {{/each}}\n            </FooBar>\n          {{/let}}", {
           moduleName: 'baz/foo-bar'
         });
-      }, `Cannot invoke the \`foo\` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C21) `); // Not shadowed
+      }, "Cannot invoke the `foo` modifier because it was shadowed by a local variable (i.e. a block param) with the same name. Please rename the local variable to resolve the conflict. ('baz/foo-bar' @ L5:C21) "); // Not shadowed
 
-      (0, _index.compile)(`
-        {{#let foo as |foo|}}
-          <FooBar as |bar|>
-            {{#each items as |baz|}}
-            {{/each}}
-            <div {{baz}} />
-            <div {{baz bat}} />
-          </FooBar>
-          <div {{bar}} />
-          <div {{bar baz bat}} />
-        {{/let}}
-        <div {{foo}} />
-        <div {{foo bar baz bat}} />`, {
+      (0, _index.compile)("\n        {{#let foo as |foo|}}\n          <FooBar as |bar|>\n            {{#each items as |baz|}}\n            {{/each}}\n            <div {{baz}} />\n            <div {{baz bat}} />\n          </FooBar>\n          <div {{bar}} />\n          <div {{bar baz bat}} />\n        {{/let}}\n        <div {{foo}} />\n        <div {{foo bar baz bat}} />", {
         moduleName: 'baz/foo-bar'
       });
     }
@@ -8113,398 +8027,396 @@ enifed("ember-template-compiler/tests/plugins/assert-local-variable-shadowing-he
 enifed("ember-template-compiler/tests/plugins/assert-reserved-named-arguments-test", ["ember-template-compiler/index", "internal-test-helpers"], function (_index, _internalTestHelpers) {
   "use strict";
 
-  if (true
-  /* EMBER_GLIMMER_NAMED_ARGUMENTS */
-  ) {
-      (0, _internalTestHelpers.moduleFor)('ember-template-compiler: assert-reserved-named-arguments (EMBER_GLIMMER_NAMED_ARGUMENTS) ', class extends _internalTestHelpers.AbstractTestCase {
-        [`@test '@arguments' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@arguments}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@arguments' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @arguments}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@arguments' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @arguments "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@arguments' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+  (0, _internalTestHelpers.moduleFor)('ember-template-compiler: assert-reserved-named-arguments', class extends _internalTestHelpers.AbstractTestCase {
+    ["@test '@arguments' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@arguments}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@arguments' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @arguments}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@arguments' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @arguments \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@arguments' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@args' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@args}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@args' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @args}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@args' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @args "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@args' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@args' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@args}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@args' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @args}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@args' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @args \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@args' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@block' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@block}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@block' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @block}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@block' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @block "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@block' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@block' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@block}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@block' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @block}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@block' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @block \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@block' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@else' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@else}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@else' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @else}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@else' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @else "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@else' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        } // anything else that doesn't start with a lower case letter
+    ["@test '@else' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@else}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@else' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @else}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@else' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @else \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@else' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    } // anything else that doesn't start with a lower case letter
 
 
-        [`@test '@Arguments' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@Arguments}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Arguments' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @Arguments}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Arguments' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @Arguments "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Arguments' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@Arguments' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@Arguments}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Arguments' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @Arguments}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Arguments' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @Arguments \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Arguments' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@Args' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@Args}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Args' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @Args}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Args' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @Args "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Args' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@Args' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@Args}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Args' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @Args}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Args' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @Args \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Args' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@FOO' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@FOO}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@FOO' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @FOO}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@FOO' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @FOO "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@FOO' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@FOO' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@FOO}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@FOO' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @FOO}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@FOO' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @FOO \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@FOO' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@Foo' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@Foo}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Foo' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @Foo}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Foo' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @Foo "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@Foo' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@Foo' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@Foo}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Foo' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @Foo}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Foo' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @Foo \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@Foo' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@.' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@.}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@.' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @.}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@.' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @. "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@.' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@.' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@.}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@.' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @.}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@.' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @. \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@.' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@_' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@_}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@_' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @_}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@_' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @_ "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@_' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@_' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@_}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@_' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @_}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@_' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @_ \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@_' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@-' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@-}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@-' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @-}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@-' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @- "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@-' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@-' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@-}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@-' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @-}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@-' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @- \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@-' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@$' is reserved`]() {
-          expectAssertion(() => {
-            (0, _index.compile)(`{{@$}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@$' is reserved. ('baz/foo-bar' @ L1:C2) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{#if @$}}Yup{{/if}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@$' is reserved. ('baz/foo-bar' @ L1:C6) `);
-          expectAssertion(() => {
-            (0, _index.compile)(`{{input type=(if @$ "bar" "baz")}}`, {
-              moduleName: 'baz/foo-bar'
-            });
-          }, `'@$' is reserved. ('baz/foo-bar' @ L1:C17) `);
-        }
+    ["@test '@$' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("{{@$}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@$' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @$}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@$' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @$ \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@$' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@' is de facto reserved (parse error)`](assert) {
-          assert.throws(() => {
-            (0, _index.compile)('{{@}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{#if @}}Yup{{/if}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{input type=(if @ "bar" "baz")}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-        }
+    ["@test '@__ARGS__' is reserved"]() {
+      expectAssertion(() => {
+        (0, _index.compile)("<Foo @__ARGS__=\"bar\" />", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@__ARGS__' is reserved. ('baz/foo-bar' @ L1:C5) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{foo __ARGS__=\"bar\"}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'__ARGS__' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#let (component \"foo\" __ARGS__=\"bar\") as |c|}}{{c}}{{/let}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'__ARGS__' is reserved. ('baz/foo-bar' @ L1:C24) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{@__ARGS__}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@__ARGS__' is reserved. ('baz/foo-bar' @ L1:C2) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{#if @__ARGS__}}Yup{{/if}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@__ARGS__' is reserved. ('baz/foo-bar' @ L1:C6) ");
+      expectAssertion(() => {
+        (0, _index.compile)("{{input type=(if @__ARGS__ \"bar\" \"baz\")}}", {
+          moduleName: 'baz/foo-bar'
+        });
+      }, "'@__ARGS__' is reserved. ('baz/foo-bar' @ L1:C17) ");
+    }
 
-        [`@test '@0' is de facto reserved (parse error)`](assert) {
-          assert.throws(() => {
-            (0, _index.compile)('{{@0}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{#if @0}}Yup{{/if}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{input type=(if @0 "bar" "baz")}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-        }
+    ["@test '@' is de facto reserved (parse error)"](assert) {
+      assert.throws(() => {
+        (0, _index.compile)('{{@}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{#if @}}Yup{{/if}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{input type=(if @ "bar" "baz")}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+    }
 
-        [`@test '@1' is de facto reserved (parse error)`](assert) {
-          assert.throws(() => {
-            (0, _index.compile)('{{@1}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{#if @1}}Yup{{/if}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{input type=(if @1 "bar" "baz")}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-        }
+    ["@test '@0' is de facto reserved (parse error)"](assert) {
+      assert.throws(() => {
+        (0, _index.compile)('{{@0}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{#if @0}}Yup{{/if}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{input type=(if @0 "bar" "baz")}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+    }
 
-        [`@test '@2' is de facto reserved (parse error)`](assert) {
-          assert.throws(() => {
-            (0, _index.compile)('{{@2}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{#if @2}}Yup{{/if}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{input type=(if @2 "bar" "baz")}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-        }
+    ["@test '@1' is de facto reserved (parse error)"](assert) {
+      assert.throws(() => {
+        (0, _index.compile)('{{@1}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{#if @1}}Yup{{/if}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{input type=(if @1 "bar" "baz")}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+    }
 
-        [`@test '@@' is de facto reserved (parse error)`](assert) {
-          assert.throws(() => {
-            (0, _index.compile)('{{@@}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{#if @@}}Yup{{/if}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{input type=(if @@ "bar" "baz")}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-        }
+    ["@test '@2' is de facto reserved (parse error)"](assert) {
+      assert.throws(() => {
+        (0, _index.compile)('{{@2}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{#if @2}}Yup{{/if}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{input type=(if @2 "bar" "baz")}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+    }
 
-        [`@test '@=' is de facto reserved (parse error)`](assert) {
-          assert.throws(() => {
-            (0, _index.compile)('{{@=}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{#if @=}}Yup{{/if}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{input type=(if @= "bar" "baz")}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-        }
+    ["@test '@@' is de facto reserved (parse error)"](assert) {
+      assert.throws(() => {
+        (0, _index.compile)('{{@@}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{#if @@}}Yup{{/if}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{input type=(if @@ "bar" "baz")}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+    }
 
-        [`@test '@!' is de facto reserved (parse error)`](assert) {
-          assert.throws(() => {
-            (0, _index.compile)('{{@!}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{#if @!}}Yup{{/if}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-          assert.throws(() => {
-            (0, _index.compile)('{{input type=(if @! "bar" "baz")}}', {
-              moduleName: 'baz/foo-bar'
-            });
-          }, /Expecting 'ID'/);
-        }
+    ["@test '@=' is de facto reserved (parse error)"](assert) {
+      assert.throws(() => {
+        (0, _index.compile)('{{@=}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{#if @=}}Yup{{/if}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{input type=(if @= "bar" "baz")}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+    }
 
-      });
-    } else {
-    (0, _internalTestHelpers.moduleFor)('ember-template-compiler: assert-reserved-named-arguments', class extends _internalTestHelpers.AbstractTestCase {
-      ['@test Paths beginning with @ are not valid']() {
-        expectAssertion(() => {
-          (0, _index.compile)('{{@foo}}', {
-            moduleName: 'baz/foo-bar'
-          });
-        }, `'@foo' is not a valid path. ('baz/foo-bar' @ L1:C2) `);
-        expectAssertion(() => {
-          (0, _index.compile)('{{#if @foo}}Yup{{/if}}', {
-            moduleName: 'baz/foo-bar'
-          });
-        }, `'@foo' is not a valid path. ('baz/foo-bar' @ L1:C6) `);
-        expectAssertion(() => {
-          (0, _index.compile)('{{input type=(if @foo "bar" "baz")}}', {
-            moduleName: 'baz/foo-bar'
-          });
-        }, `'@foo' is not a valid path. ('baz/foo-bar' @ L1:C17) `);
-      }
+    ["@test '@!' is de facto reserved (parse error)"](assert) {
+      assert.throws(() => {
+        (0, _index.compile)('{{@!}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{#if @!}}Yup{{/if}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+      assert.throws(() => {
+        (0, _index.compile)('{{input type=(if @! "bar" "baz")}}', {
+          moduleName: 'baz/foo-bar'
+        });
+      }, /Expecting 'ID'/);
+    }
 
-    });
-  }
+  });
 });
 enifed("ember-template-compiler/tests/plugins/assert-splattribute-expression-test", ["internal-test-helpers", "ember-template-compiler/index"], function (_internalTestHelpers, _index) {
   "use strict";
 
   (0, _internalTestHelpers.moduleFor)('ember-template-compiler: assert-splattribute-expression', class extends _internalTestHelpers.AbstractTestCase {
     expectedMessage(locInfo) {
-      return true
-      /* EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION */
-      ? `Using "...attributes" can only be used in the element position e.g. <div ...attributes />. It cannot be used as a path. (${locInfo}) ` : `...attributes is an invalid path (${locInfo}) `;
+      return "`...attributes` can only be used in the element position e.g. `<div ...attributes />`. It cannot be used as a path. (" + locInfo + ") ";
     }
 
     '@test ...attributes is in element space'(assert) {
-      if (true
-      /* EMBER_GLIMMER_ANGLE_BRACKET_INVOCATION */
-      ) {
-          assert.expect(0);
-          (0, _index.compile)('<div ...attributes>Foo</div>');
-        } else {
-        expectAssertion(() => {
-          (0, _index.compile)('<div ...attributes>Foo</div>');
-        }, this.expectedMessage('L1:C5'));
-      }
+      assert.expect(0);
+      (0, _index.compile)('<div ...attributes>Foo</div>');
     }
 
     '@test {{...attributes}} is not valid'() {
@@ -8512,7 +8424,7 @@ enifed("ember-template-compiler/tests/plugins/assert-splattribute-expression-tes
         (0, _index.compile)('<div>{{...attributes}}</div>', {
           moduleName: 'foo-bar'
         });
-      }, this.expectedMessage(`'foo-bar' @ L1:C7`));
+      }, this.expectedMessage("'foo-bar' @ L1:C7"));
     }
 
     '@test {{...attributes}} is not valid path expression'() {
@@ -8520,7 +8432,7 @@ enifed("ember-template-compiler/tests/plugins/assert-splattribute-expression-tes
         (0, _index.compile)('<div>{{...attributes}}</div>', {
           moduleName: 'foo-bar'
         });
-      }, this.expectedMessage(`'foo-bar' @ L1:C7`));
+      }, this.expectedMessage("'foo-bar' @ L1:C7"));
     }
 
     '@test {{...attributes}} is not valid modifier'() {
@@ -8528,7 +8440,7 @@ enifed("ember-template-compiler/tests/plugins/assert-splattribute-expression-tes
         (0, _index.compile)('<div {{...attributes}}>Wat</div>', {
           moduleName: 'foo-bar'
         });
-      }, this.expectedMessage(`'foo-bar' @ L1:C7`));
+      }, this.expectedMessage("'foo-bar' @ L1:C7"));
     }
 
     '@test {{...attributes}} is not valid attribute'() {
@@ -8536,7 +8448,7 @@ enifed("ember-template-compiler/tests/plugins/assert-splattribute-expression-tes
         (0, _index.compile)('<div class={{...attributes}}>Wat</div>', {
           moduleName: 'foo-bar'
         });
-      }, this.expectedMessage(`'foo-bar' @ L1:C13`));
+      }, this.expectedMessage("'foo-bar' @ L1:C13"));
     }
 
   });
@@ -8549,10 +8461,10 @@ enifed("ember-template-compiler/tests/plugins/deprecate-send-action-test", ["emb
   class DeprecateSendActionTest extends _internalTestHelpers.AbstractTestCase {}
 
   EVENTS.forEach(function (e) {
-    DeprecateSendActionTest.prototype[`@test Using \`{{input ${e}="actionName"}}\` provides a deprecation`] = function () {
-      let expectedMessage = `Please refactor \`{{input ${e}="foo-bar"}}\` to \`{{input ${e}=(action "foo-bar")}}\. ('baz/foo-bar' @ L1:C0) `;
+    DeprecateSendActionTest.prototype["@test Using `{{input " + e + "=\"actionName\"}}` provides a deprecation"] = function () {
+      let expectedMessage = "Passing actions to components as strings (like `{{input " + e + "=\"foo-bar\"}}`) is deprecated. Please use closure actions instead (`{{input " + e + "=(action \"foo-bar\")}}`). ('baz/foo-bar' @ L1:C0) ";
       expectDeprecation(() => {
-        (0, _index.compile)(`{{input ${e}="foo-bar"}}`, {
+        (0, _index.compile)("{{input " + e + "=\"foo-bar\"}}", {
           moduleName: 'baz/foo-bar'
         });
       }, expectedMessage);
@@ -8575,21 +8487,8 @@ enifed("ember-template-compiler/tests/plugins/transform-component-invocation-tes
       '<input disabled={{true}}>', // GH#15740
       '<td colspan={{3}}></td>'].forEach((layout, i) => {
         (0, _index.compile)(layout, {
-          moduleName: `example-${i}`
+          moduleName: "example-" + i
         });
-      });
-    }
-
-  });
-});
-enifed("ember-template-compiler/tests/plugins/transform-inline-link-to-test", ["ember-template-compiler/index", "internal-test-helpers"], function (_index, _internalTestHelpers) {
-  "use strict";
-
-  (0, _internalTestHelpers.moduleFor)('ember-template-compiler: inline-link-to', class extends _internalTestHelpers.AbstractTestCase {
-    ['@test Can transform an inline {{link-to}} without error'](assert) {
-      assert.expect(0);
-      (0, _index.compile)(`{{link-to 'foo' 'index'}}`, {
-        moduleName: 'foo/bar/baz'
       });
     }
 
@@ -8601,20 +8500,192 @@ enifed("ember-template-compiler/tests/plugins/transform-input-type-syntax-test",
   (0, _internalTestHelpers.moduleFor)('ember-template-compiler: input type syntax', class extends _internalTestHelpers.AbstractTestCase {
     ['@test Can compile an {{input}} helper that has a sub-expression value as its type'](assert) {
       assert.expect(0);
-      (0, _index.compile)(`{{input type=(if true 'password' 'text')}}`);
+      (0, _index.compile)("{{input type=(if true 'password' 'text')}}");
     }
 
     ['@test Can compile an {{input}} helper with a string literal type'](assert) {
       assert.expect(0);
-      (0, _index.compile)(`{{input type='text'}}`);
+      (0, _index.compile)("{{input type='text'}}");
     }
 
     ['@test Can compile an {{input}} helper with a type stored in a var'](assert) {
       assert.expect(0);
-      (0, _index.compile)(`{{input type=_type}}`);
+      (0, _index.compile)("{{input type=_type}}");
     }
 
   });
+});
+enifed("ember-template-compiler/tests/plugins/transform-link-to-test", ["ember-template-compiler/tests/utils/transform-test-case", "ember-template-compiler/index", "internal-test-helpers"], function (_transformTestCase, _index, _internalTestHelpers) {
+  "use strict";
+
+  if (true
+  /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
+  ) {
+      (0, _internalTestHelpers.moduleFor)('ember-template-compiler: transforming inline {{link-to}} into the block form', class extends _transformTestCase.default {
+        ['@test it transforms an inline {{link-to}} into its block form']() {
+          this.assertTransformed("{{link-to 'foo' 'index'}}", "{{#link-to route='index'}}foo{{/link-to}}");
+        }
+
+        ['@test bound link title']() {
+          this.assertTransformed("{{link-to foo 'index'}}", "{{#link-to route='index'}}{{foo}}{{/link-to}}");
+          this.assertTransformed("{{link-to this.foo 'index'}}", "{{#link-to route='index'}}{{this.foo}}{{/link-to}}");
+          this.assertTransformed("{{link-to foo.bar.baz 'index'}}", "{{#link-to route='index'}}{{foo.bar.baz}}{{/link-to}}");
+          this.assertTransformed("{{link-to @foo 'index'}}", "{{#link-to route='index'}}{{@foo}}{{/link-to}}");
+        }
+
+        ['@test sexp link title']() {
+          this.assertTransformed("{{link-to (foo) 'index'}}", "{{#link-to route='index'}}{{foo}}{{/link-to}}");
+          this.assertTransformed("{{link-to (foo bar) 'index'}}", "{{#link-to route='index'}}{{foo bar}}{{/link-to}}");
+          this.assertTransformed("{{link-to (foo bar baz=bat) 'index'}}", "{{#link-to route='index'}}{{foo bar baz=bat}}{{/link-to}}");
+        }
+
+      });
+      (0, _internalTestHelpers.moduleFor)('ember-template-compiler: transforming inline {{{link-to}}} into the block form', class extends _transformTestCase.default {
+        ['@test it transforms an inline {{{link-to}}} into its block form']() {
+          this.assertTransformed("{{{link-to 'foo' 'index'}}}", "{{#link-to route='index'}}foo{{/link-to}}");
+        }
+
+        ['@test bound link title']() {
+          this.assertTransformed("{{{link-to foo 'index'}}}", "{{#link-to route='index'}}{{{foo}}}{{/link-to}}");
+          this.assertTransformed("{{{link-to this.foo 'index'}}}", "{{#link-to route='index'}}{{{this.foo}}}{{/link-to}}");
+          this.assertTransformed("{{{link-to foo.bar.baz 'index'}}}", "{{#link-to route='index'}}{{{foo.bar.baz}}}{{/link-to}}");
+          this.assertTransformed("{{{link-to @foo 'index'}}}", "{{#link-to route='index'}}{{{@foo}}}{{/link-to}}");
+        }
+
+        ['@test sexp link title']() {
+          this.assertTransformed("{{{link-to (foo) 'index'}}}", "{{#link-to route='index'}}{{{foo}}}{{/link-to}}");
+          this.assertTransformed("{{{link-to (foo bar) 'index'}}}", "{{#link-to route='index'}}{{{foo bar}}}{{/link-to}}");
+          this.assertTransformed("{{{link-to (foo bar baz=bat) 'index'}}}", "{{#link-to route='index'}}{{{foo bar baz=bat}}}{{/link-to}}");
+        }
+
+      });
+      (0, _internalTestHelpers.moduleFor)('ember-template-compiler: transforming positional arguments into named arguments', class extends _transformTestCase.default {
+        ['@test no arguments']() {
+          expectAssertion(() => (0, _index.compile)('{{#link-to}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          }), /You must provide one or more parameters to the `{{link-to}}` component. \('-top-level' @ L1:C0\)/);
+          expectAssertion(() => (0, _index.compile)('{{#link-to class="wow"}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          }), /You must provide one or more parameters to the `{{link-to}}` component. \('-top-level' @ L1:C0\)/); // these are ok
+
+          (0, _index.compile)('{{#link-to params=foo}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          });
+          (0, _index.compile)('{{#link-to route=foo}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          });
+          (0, _index.compile)('{{#link-to model=foo}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          });
+          (0, _index.compile)('{{#link-to models=foo}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          });
+          (0, _index.compile)('{{#link-to query=foo}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          });
+        }
+
+        ['@test mixing positional and named arguments']() {
+          expectAssertion(() => (0, _index.compile)('{{#link-to foo params=bar}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          }), /cannot pass positional parameters and the `params` argument to the `{{link-to}}` component at the same time. \('-top-level' @ L1:C0\)/);
+          expectAssertion(() => (0, _index.compile)('{{#link-to foo route=bar}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          }), /cannot pass positional parameters and the `route` argument to the `{{link-to}}` component at the same time. \('-top-level' @ L1:C0\)/);
+          expectAssertion(() => (0, _index.compile)('{{#link-to foo model=bar}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          }), /cannot pass positional parameters and the `model` argument to the `{{link-to}}` component at the same time. \('-top-level' @ L1:C0\)/);
+          expectAssertion(() => (0, _index.compile)('{{#link-to foo models=bar}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          }), /cannot pass positional parameters and the `models` argument to the `{{link-to}}` component at the same time. \('-top-level' @ L1:C0\)/);
+          expectAssertion(() => (0, _index.compile)('{{#link-to foo query=bar}}zomg{{/link-to}}', {
+            moduleName: '-top-level'
+          }), /cannot pass positional parameters and the `query` argument to the `{{link-to}}` component at the same time. \('-top-level' @ L1:C0\)/);
+        }
+
+        ['@test route only']() {
+          this.assertTransformed("{{#link-to 'foo'}}Foo{{/link-to}}", "{{#link-to route='foo'}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to foo}}Foo{{/link-to}}", "{{#link-to route=foo}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to this.foo}}Foo{{/link-to}}", "{{#link-to route=this.foo}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to foo.bar.baz}}Foo{{/link-to}}", "{{#link-to route=foo.bar.baz}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to @foo}}Foo{{/link-to}}", "{{#link-to route=@foo}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to @foo}}Foo{{/link-to}}", "{{#link-to route=@foo}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to (foo)}}Foo{{/link-to}}", "{{#link-to route=(foo)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to (foo bar)}}Foo{{/link-to}}", "{{#link-to route=(foo bar)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to (foo bar baz=bat)}}Foo{{/link-to}}", "{{#link-to route=(foo bar baz=bat)}}Foo{{/link-to}}");
+        }
+
+        ['@test single model']() {
+          this.assertTransformed("{{#link-to 'foo' 'bar'}}Foo{{/link-to}}", "{{#link-to route='foo' model='bar'}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' bar}}Foo{{/link-to}}", "{{#link-to route='foo' model=bar}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' this.bar}}Foo{{/link-to}}", "{{#link-to route='foo' model=this.bar}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' bar.baz.bat}}Foo{{/link-to}}", "{{#link-to route='foo' model=bar.baz.bat}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' @bar}}Foo{{/link-to}}", "{{#link-to route='foo' model=@bar}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' (bar)}}Foo{{/link-to}}", "{{#link-to route='foo' model=(bar)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' (bar baz)}}Foo{{/link-to}}", "{{#link-to route='foo' model=(bar baz)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' (bar baz bat=wat)}}Foo{{/link-to}}", "{{#link-to route='foo' model=(bar baz bat=wat)}}Foo{{/link-to}}");
+        }
+
+        ['@test multi models']() {
+          this.assertTransformed("{{#link-to 'foo' 'bar' 'baz' 'bat'}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array 'bar' 'baz' 'bat')}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' bar baz bat}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array bar baz bat)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' this.bar this.baz this.bat}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array this.bar this.baz this.bat)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' bar.baz.bat baz.bat.bar bat.bar.baz}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array bar.baz.bat baz.bat.bar bat.bar.baz)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' @bar @baz @bat}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array @bar @baz @bat)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' (bar) (baz) (bat)}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array (bar) (baz) (bat))}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' (bar baz) (baz bat) (bat bar)}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array (bar baz) (baz bat) (bat bar))}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' (bar baz bat=wat) (baz bat wat=bar) (bat wat bar=baz)}}Foo{{/link-to}}", "{{#link-to route='foo' models=(array (bar baz bat=wat) (baz bat wat=bar) (bat wat bar=baz))}}Foo{{/link-to}}");
+        }
+
+        ['@test query params']() {
+          this.assertTransformed("{{#link-to (query-params)}}Foo{{/link-to}}", "{{#link-to query=(hash)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to (query-params foo='bar' baz=bat)}}Foo{{/link-to}}", "{{#link-to query=(hash foo='bar' baz=bat)}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' (query-params foo='bar' baz=bat)}}Foo{{/link-to}}", "{{#link-to query=(hash foo='bar' baz=bat) route='foo'}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' 'bar' (query-params foo='bar' baz=bat)}}Foo{{/link-to}}", "{{#link-to query=(hash foo='bar' baz=bat) route='foo' model='bar'}}Foo{{/link-to}}");
+          this.assertTransformed("{{#link-to 'foo' 'bar' 'baz' 'bat' 'wat' (query-params foo='bar' baz=bat)}}Foo{{/link-to}}", "{{#link-to query=(hash foo='bar' baz=bat) route='foo' models=(array 'bar' 'baz' 'bat' 'wat')}}Foo{{/link-to}}");
+        }
+
+      });
+    } else {
+    (0, _internalTestHelpers.moduleFor)('ember-template-compiler: transforming inline {{link-to}} into the block form', class extends _transformTestCase.default {
+      ['@test it transforms an inline {{link-to}} into its block form']() {
+        this.assertTransformed("{{link-to 'foo' 'index'}}", "{{#link-to 'index'}}foo{{/link-to}}");
+      }
+
+      ['@test bound link title']() {
+        this.assertTransformed("{{link-to foo 'index'}}", "{{#link-to 'index'}}{{foo}}{{/link-to}}");
+        this.assertTransformed("{{link-to this.foo 'index'}}", "{{#link-to 'index'}}{{this.foo}}{{/link-to}}");
+        this.assertTransformed("{{link-to foo.bar.baz 'index'}}", "{{#link-to 'index'}}{{foo.bar.baz}}{{/link-to}}");
+        this.assertTransformed("{{link-to @foo 'index'}}", "{{#link-to 'index'}}{{@foo}}{{/link-to}}");
+      }
+
+      ['@test sexp link title']() {
+        this.assertTransformed("{{link-to (foo) 'index'}}", "{{#link-to 'index'}}{{foo}}{{/link-to}}");
+        this.assertTransformed("{{link-to (foo bar) 'index'}}", "{{#link-to 'index'}}{{foo bar}}{{/link-to}}");
+        this.assertTransformed("{{link-to (foo bar baz=bat) 'index'}}", "{{#link-to 'index'}}{{foo bar baz=bat}}{{/link-to}}");
+      }
+
+    });
+    (0, _internalTestHelpers.moduleFor)('ember-template-compiler: transforming inline {{{link-to}}} into the block form', class extends _transformTestCase.default {
+      ['@test it transforms an inline {{{link-to}}} into its block form']() {
+        this.assertTransformed("{{{link-to 'foo' 'index'}}}", "{{#link-to 'index'}}foo{{/link-to}}");
+      }
+
+      ['@test bound link title']() {
+        this.assertTransformed("{{{link-to foo 'index'}}}", "{{#link-to 'index'}}{{{foo}}}{{/link-to}}");
+        this.assertTransformed("{{{link-to this.foo 'index'}}}", "{{#link-to 'index'}}{{{this.foo}}}{{/link-to}}");
+        this.assertTransformed("{{{link-to foo.bar.baz 'index'}}}", "{{#link-to 'index'}}{{{foo.bar.baz}}}{{/link-to}}");
+        this.assertTransformed("{{{link-to @foo 'index'}}}", "{{#link-to 'index'}}{{{@foo}}}{{/link-to}}");
+      }
+
+      ['@test sexp link title']() {
+        this.assertTransformed("{{{link-to (foo) 'index'}}}", "{{#link-to 'index'}}{{{foo}}}{{/link-to}}");
+        this.assertTransformed("{{{link-to (foo bar) 'index'}}}", "{{#link-to 'index'}}{{{foo bar}}}{{/link-to}}");
+        this.assertTransformed("{{{link-to (foo bar baz=bat) 'index'}}}", "{{#link-to 'index'}}{{{foo bar baz=bat}}}{{/link-to}}");
+      }
+
+    });
+  }
 });
 enifed("ember-template-compiler/tests/system/bootstrap-test", ["@ember/runloop", "@ember/-internals/glimmer", "ember-template-compiler/lib/system/bootstrap", "internal-test-helpers"], function (_runloop, _glimmer, _bootstrap, _internalTestHelpers) {
   "use strict";
@@ -8671,7 +8742,7 @@ enifed("ember-template-compiler/tests/system/bootstrap-test", ["@ember/runloop",
     } // Add this test case, only for typeof Handlebars === 'object';
 
 
-    [`${typeof Handlebars === 'object' ? '@test' : '@skip'} template with type text/x-raw-handlebars should be parsed`](assert) {
+    [(typeof Handlebars === 'object' ? '@test' : '@skip') + " template with type text/x-raw-handlebars should be parsed"](assert) {
       fixture.innerHTML = '<script type="text/x-raw-handlebars" data-template-name="funkyTemplate">{{name}}</script>';
       (0, _runloop.run)(() => (0, _bootstrap.default)({
         context: fixture,
@@ -8747,7 +8818,7 @@ enifed("ember-template-compiler/tests/system/compile_options_test", ["ember-temp
 
       for (let i = 0; i < _index.defaultPlugins.length; i++) {
         let plugin = _index.defaultPlugins[i];
-        assert.ok(plugins.indexOf(plugin) > -1, `includes ${plugin}`);
+        assert.ok(plugins.indexOf(plugin) > -1, "includes " + plugin);
       }
     }
 
@@ -8896,19 +8967,99 @@ enifed("ember-template-compiler/tests/system/dasherize-component-name-test", ["e
       assert.equal(_dasherizeComponentName.default.get('FooB3ar'), 'foo-b3ar');
       assert.equal(_dasherizeComponentName.default.get('XBlah'), 'x-blah');
       assert.equal(_dasherizeComponentName.default.get('X-Blah'), 'x-blah');
-      assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz'), 'foo::bar-baz');
-      assert.equal(_dasherizeComponentName.default.get('Foo::Bar-Baz'), 'foo::bar-baz');
       assert.equal(_dasherizeComponentName.default.get('Foo@BarBaz'), 'foo@bar-baz');
       assert.equal(_dasherizeComponentName.default.get('Foo@Bar-Baz'), 'foo@bar-baz');
+
+      if (true
+      /* EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP */
+      ) {
+          assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz'), 'foo/bar-baz');
+          assert.equal(_dasherizeComponentName.default.get('Foo::Bar-Baz'), 'foo/bar-baz');
+          assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz::Bang'), 'foo/bar-baz/bang');
+        } else {
+        assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz'), 'foo::bar-baz');
+        assert.equal(_dasherizeComponentName.default.get('Foo::Bar-Baz'), 'foo::bar-baz');
+      }
     }
 
   });
+});
+enifed("ember-template-compiler/tests/utils/transform-test-case", ["exports", "@glimmer/compiler", "internal-test-helpers", "ember-template-compiler/index"], function (_exports, _compiler, _internalTestHelpers, _index) {
+  "use strict";
+
+  _exports.default = void 0;
+
+  class _default extends _internalTestHelpers.AbstractTestCase {
+    assertTransformed(before, after) {
+      this.assert.deepEqual(deloc(ast(before)), deloc(ast(after)));
+    }
+
+  }
+
+  _exports.default = _default;
+
+  function ast(template) {
+    let program = null;
+
+    function extractProgram() {
+      return {
+        name: 'extract-program',
+        visitor: {
+          Program: {
+            exit(node) {
+              program = clone(node);
+            }
+
+          }
+        }
+      };
+    }
+
+    let options = (0, _index.compileOptions)({
+      moduleName: '-top-level'
+    });
+    options.plugins.ast.push(extractProgram);
+    (0, _compiler.precompile)(template, options);
+    return program;
+  }
+
+  function clone(node) {
+    let out = Object.create(null);
+    let keys = Object.keys(node);
+    keys.forEach(key => {
+      let value = node[key];
+
+      if (value !== null && typeof value === 'object') {
+        out[key] = clone(value);
+      } else {
+        out[key] = value;
+      }
+    });
+    return out;
+  }
+
+  function deloc(node) {
+    let out = Object.create(null);
+    let keys = Object.keys(node);
+    keys.forEach(key => {
+      let value = node[key];
+
+      if (key === 'loc') {
+        return;
+      } else if (value !== null && typeof value === 'object') {
+        out[key] = deloc(value);
+      } else {
+        out[key] = value;
+      }
+    });
+    return out;
+  }
 });
 enifed("ember/version", ["exports"], function (_exports) {
   "use strict";
 
   _exports.default = void 0;
-  var _default = "3.9.1";
+  var _default = "3.10.0";
   _exports.default = _default;
 });
 enifed("handlebars", ["exports"], function (_exports) {

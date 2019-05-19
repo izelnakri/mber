@@ -9,7 +9,7 @@ const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
 const APPLICATION_CSS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.css`;
 const APPLICATION_CSS_TARGET_BYTE_SIZE = '2.15 kB';
-const APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE = '1.80 kB';
+const APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE = '1.78 kB';
 
 test.beforeEach(async () => {
   await fs.remove(`${PROJECT_ROOT}/tmp`);
@@ -103,10 +103,11 @@ test.serial('buildCSS(production) works', async (t) => {
 
   const applicationCSSStats = await fs.stat(APPLICATION_CSS_OUTPUT_PATH);
 
+  console.log(applicationCSSStats.size);
   t.true(formatSize(applicationCSSStats.size) === APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(formatSize(size) === APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE);
 
-  t.true(/BUILT: application\.css in \d+ms \[1\.80 kB\] Environment: production/g.test(message));
+  t.true(/BUILT: application\.css in \d+ms \[1\.78 kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
@@ -130,7 +131,7 @@ test.serial('buildCSS(demo) works', async (t) => {
   t.true(formatSize(applicationCSSStats.size) === APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(formatSize(size) === APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE);
 
-  t.true(/BUILT: application\.css in \d+ms \[1\.80 kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: application\.css in \d+ms \[1\.78 kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });

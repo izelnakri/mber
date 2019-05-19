@@ -27,7 +27,6 @@ function transpileFastbootModules() {
       fs.copyFile(`${MODULE_PATH}/fastboot/initializers/ajax.js`, `${PROJECT_PATH}/vendor/fastboot/initializers/ajax.js`),
       fs.copyFile(`${MODULE_PATH}/vendor/experimental-render-mode-rehydrate.js`, `${PROJECT_PATH}/vendor/fastboot/experimental-render-mode-rehydrate.js`),
       fs.copyFile(`${MODULE_PATH}/lib/utilities/fastboot-app-module.js`, `${PROJECT_PATH}/vendor/fastboot/fastboot-app-module.js`),
-      fs.copyFile(`${PROJECT_PATH}/scripts/fetch-shim.js`, `${PROJECT_PATH}/vendor/fetch/fetch-shim.js`),
       fs.copyFile(`${PROJECT_PATH}/scripts/fetch-fastboot-shim.js`, `${PROJECT_PATH}/vendor/fetch/fetch-fastboot-shim.js`)
     ]).then(([fastbootAddon]) => {
       return fs.writeFile(OUTPUT_PATH, fastbootAddon);
