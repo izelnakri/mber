@@ -1,9 +1,4 @@
-#! /usr/bin/env node
-require = require('esm')(module); // eslint-disable-line
-require('@babel/register')({
-  presets: ['@babel/preset-env']
-});
-require('@babel/polyfill/dist/polyfill.min.js');
+#! /usr/bin/env node --experimental-modules
 
 process.title = 'mber';
 global.mainContext = global; // NOTE: needed for ember-template-compiler

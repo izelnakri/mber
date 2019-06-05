@@ -284,7 +284,7 @@ test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfull
   t.true(/ember BUILT: application\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
   t.true(/ember BUILT: memserver\.js in \d+ms \[\d+\.\d+ kB\] Environment: memserver/g.test(stdout));
 
-  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
+  let { html, document } = await testSuccessfullServe(t, stdout, { memserver: true, fastboot: false });
 
   t.true(!document.querySelector('html').innerHTML.includes(CONTENT_TO_INJECT));
   t.true(!html.includes(CONTENT_TO_INJECT));
@@ -295,7 +295,7 @@ test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfull
   t.true(stdoutAfterInjection.includes('ember BUILDING: application.js...'));
   t.true(stdoutAfterInjection.includes('ember BUILT: application.js'));
 
-  const result = await testSuccessfullServe(t, stdout, { memserver: false, fastboot: false });
+  const result = await testSuccessfullServe(t, stdout, { memserver: true, fastboot: false });
   const newHTML = result.html;
 
   t.true(newHTML.includes(CONTENT_TO_INJECT));
