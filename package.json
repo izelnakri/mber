@@ -21,7 +21,7 @@
     "build": "npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:test-support && npm run build:memserver && npm run build:fastboot-modules",
     "prepack": "npm run build",
     "bin": "node --experimental-modules cli.js",
-    "test": "node_modules/.bin/ava --verbose --experimental-modules"
+    "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
     "@ember/test-helpers": "1.5.0",

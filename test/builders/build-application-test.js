@@ -75,6 +75,7 @@ test.serial('buildApplication() works', async (t) => {
   t.true(!codeIncludesAMDModule(applicationJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(applicationJSBuffer.length >= APPLICATION_JS_TARGET_BYTE_SIZE - 1000);
   t.true(stats.size >= APPLICATION_JS_TARGET_BYTE_SIZE - 1000);
+  console.log('MESSAGE WAS', message);
   t.true(/BUILT: application\.js in \d+ms \[11.96 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
