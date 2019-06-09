@@ -1,11 +1,11 @@
 import os from 'os';
-import buildAssets from './lib/builders/build-assets';
-import Console from './lib/utils/console';
-import findProjectRoot from './lib/utils/find-project-root';
-import appImportTransformation from './lib/transpilers/app-import-transformation';
-import parseCLIArguments from './lib/utils/parse-cli-arguments';
-import resolvePortNumberFor from './lib/utils/resolve-port-number-for';
-import WorkerPool from './lib/worker-pool';
+import buildAssets from './lib/builders/build-assets.js';
+import Console from './lib/utils/console.js';
+import findProjectRoot from './lib/utils/find-project-root.js';
+import appImportTransformation from './lib/transpilers/app-import-transformation.js';
+import parseCLIArguments from './lib/utils/parse-cli-arguments.js';
+import resolvePortNumberFor from './lib/utils/resolve-port-number-for.js';
+import WorkerPool from './lib/worker-pool/index.js';
 
 global.mainContext = global.mainContext || global;
 
@@ -51,7 +51,7 @@ export default {
       global.MBER_THREAD_POOL = WorkerPool.start(os.cpus().length);
 
       const projectRoot = await findProjectRoot();
-      const ENV = serializeRegExp(require(`${projectRoot}/config/environment`)(environment));
+      const ENV = serializeRegExp((await import(`${projectRoot}/config/environment.js`)).default(environment));
       const applicationName = ENV.modulePrefix || 'frontend';
       const buildMeta = [
         'vendorPrepends', 'vendorAppends', 'applicationPrepends', 'applicationAppends',

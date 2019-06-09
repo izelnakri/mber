@@ -1,3 +1,5 @@
+import target from './main.js';
+
 process.title = 'mber';
 
-module.exports = require('./main').default;
+export default target;

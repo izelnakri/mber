@@ -1,7 +1,4 @@
-/* eslint-env node */
-'use strict';
-
-module.exports = function(environment) {
+export default function(environment) {
   let ENV = {
     modulePrefix: '{{applicationName}}',
     environment,

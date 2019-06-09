@@ -47,7 +47,9 @@ test.serial('$ mber build -> builds successfully', async (t) => {
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node ${CWD}/cli.js build`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build`, { cwd: PROJECT_ROOT });
+
+  console.log('stdout is', stdout);
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
   t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
@@ -73,7 +75,7 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node ${CWD}/cli.js build --env=production`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=production`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
   t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD);
@@ -99,7 +101,7 @@ test.serial('$ mber build --env=memserver -> builds successfully', async (t) => 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node ${CWD}/cli.js build --env=memserver`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=memserver`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
   t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
@@ -128,7 +130,7 @@ test.serial('$ mber build --env=custom -> builds successfully', async (t) => {
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node ${CWD}/cli.js build --env=custom`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=custom`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
   t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
@@ -154,7 +156,7 @@ test.serial('$ mber build --fastboot=false -> builds successfully', async (t) =>
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node ${CWD}/cli.js build --fastboot=false`, {
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
 
@@ -182,7 +184,7 @@ test.serial('$ mber build --env=memserver --fastboot=false -> builds successfull
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node ${CWD}/cli.js build --env=memserver --fastboot=false`, {
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=memserver --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
 

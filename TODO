@@ -1,3 +1,5 @@
+- there could be an issue with eslint configs
+
 - upgrade fastboot
 - research further with ember-packages repo
 - add code coverage

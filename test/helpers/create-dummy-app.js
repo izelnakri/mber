@@ -1,6 +1,10 @@
 import fs from 'fs-extra';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const shell = promisify(exec);
 const CWD = process.cwd();
@@ -12,6 +16,7 @@ export default async function(appName='dummyapp') {
   const TARGET_PROJECT_PATH = `${CWD}/${appName}`;
 
   if (!(await fs.exists(`${TARGET_PROJECT_PATH}/node_modules`))) {
+    // await fs.mkdirp(TARGET_PROJECT_PATH);
     await fs.symlink(`${__dirname}/../../node_modules`, `${TARGET_PROJECT_PATH}/node_modules`); // TODO: this is huge
   }
 
@@ -19,8 +24,9 @@ export default async function(appName='dummyapp') {
 
   await fs.writeFile(
     `${TARGET_PROJECT_PATH}/index.js`,
-    contents.replace("const app = require('mber');", "const app = require('../index.js');")
+    contents.replace("import app from 'mber';", "import app from '../index.js';")
   );
+// const app = require('mber');
   await Promise.all([
     fs.remove(`${TARGET_PROJECT_PATH}/dist`),
     fs.remove(`${TARGET_PROJECT_PATH}/tmp`),
