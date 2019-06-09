@@ -44,7 +44,7 @@ test.serial('buildTests() works', async (t) => {
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.18 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.19 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -71,7 +71,7 @@ test.serial('buildTests(development) works', async (t) => {
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.18 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.19 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -98,7 +98,7 @@ test.serial('buildTests(test) works', async (t) => {
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.18 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.19 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -127,7 +127,7 @@ test.serial('buildTests(custom) works', async (t) => {
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('coolapp/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.17 kB\] Environment: test-backend/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.18 kB\] Environment: test-backend/g.test(message));
 
   mock.removeMock();
 });

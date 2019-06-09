@@ -10,7 +10,7 @@ import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds'
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/some-app`;
-const environmentFunc = require(`${CWD}/ember-app-boilerplate/config/environment.js`);
+const environmentFunc = require(`${CWD}/ember-app-boilerplate/config/environment.js`).default;
 const INITIAL_BUILD_FILES = ['application.css', 'application.js', 'vendor.js'];
 const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/index.html`;
 const TEST_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/tests.html`;
