@@ -260,7 +260,7 @@ test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) =>
 });
 
 test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfully', async (t) => {
-  t.plan(41);
+  t.plan(43);
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
@@ -327,7 +327,7 @@ async function spawnProcess(command, options) {
     childProcess.stderr.on('data', (data) => {
       console.log('SPAWNED PROCESS STDERR ERROR:');
       console.log(data);
-      reject(data);
+      // resolve(data);
     });
 
     setTimeout(() => {
