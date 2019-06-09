@@ -41,7 +41,7 @@ CLI.command(['test', 't'], () => testCommand())// TODO: add --proxy
 CLI.command(['build', 'b'], () => buildCommand()); // TODO: add --proxy
 CLI.command(['console', 'c'], () => consoleCommand());
 
-CLI.command(['help', 'h', 'print', 'p'], printCommand());
+CLI.command(['help', 'h', 'print', 'p'], () => printCommand());
 CLI.command(['init', 'new'], () => newCommand());
 CLI.command(['generate', 'g', 'create'], () => generateCommand(process.argv[3], process.argv[4]));
 CLI.command(['delete', 'd', 'destroy', 'remove'], () => deleteCommand(process.argv[3], process.argv[4]));
