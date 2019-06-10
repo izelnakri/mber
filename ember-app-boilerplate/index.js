@@ -1,4 +1,4 @@
-import app from '../index.js';
+import app from 'mber';
 
 export default function(ENV) {
   const { environment } = ENV;
