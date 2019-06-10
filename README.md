@@ -27,9 +27,9 @@ I've never benchmarked this against ember-cli, but my observation is, mber is at
 
 ## Installation
 
-Required: node.js v10.5+
+Required: node.js v12.4+
 
-Make sure you have node.js v11+ installed. `mber` uses the latest native nodejs `worker_thread` to achive multithreading. Then install mber CLI:
+Make sure you have node.js v12.4+ installed. `mber` uses the latest native nodejs `worker_thread` to achive multithreading. Then install mber CLI:
 
 ```
 npm install -g mber

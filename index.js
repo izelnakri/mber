@@ -1,7 +1,5 @@
-require('@babel/register')({
-  presets: ['@babel/preset-env']
-});
+import target from './main.js';
 
 process.title = 'mber';
 
-module.exports = require('./main').default;
+export default target;

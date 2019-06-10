@@ -1,5 +1,7 @@
 import test from 'ava';
-import { formatTimePassed, formatSize } from '../../lib/utils/asset-reporter';
+import assetReporter from '../../lib/utils/asset-reporter.js';
+
+const { formatTimePassed, formatSize } = assetReporter;
 
 test('formatTimePassed(number) turns number into ${number}ms', (t) => {
   t.true(formatTimePassed(14230).includes('14230ms'));

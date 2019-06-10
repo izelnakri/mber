@@ -1,17 +1,20 @@
-#! /usr/bin/env node
-require = require('esm')(module); // eslint-disable-line
-require('@babel/register')({
-  presets: ['@babel/preset-env']
-});
-require('@babel/polyfill/dist/polyfill.min.js');
+#! /usr/bin/env node --experimental-modules
+
+import chalk from 'ansi-colors';
+import Console from './lib/utils/console.js';
+import printCommand from './lib/commands/index.js';
+import serveCommand from './lib/commands/serve.js';
+import testCommand from './lib/commands/test.js';
+import buildCommand from './lib/commands/build.js';
+import consoleCommand from './lib/commands/console.js';
+import newCommand from './lib/commands/new.js';
+import generateCommand from './lib/commands/generate.js';
+import deleteCommand from './lib/commands/delete.js';
 
 process.title = 'mber';
 global.mainContext = global; // NOTE: needed for ember-template-compiler
 
 let shouldRunCommand = false;
-
-const Console = require('./lib/utils/console').default;
-const printCommand = () => require('./lib/commands').default();
 
 const CLI = {
   default(commandHandler) {
@@ -33,24 +36,20 @@ const CLI = {
 };
 
 CLI.default(() => printCommand());
-CLI.command(['serve', 'server', 's'], () => require('./lib/commands/serve').default()); // TODO: add proxy
-CLI.command(['test', 't'], () => require('./lib/commands/test').default()); // TODO: add --proxy
-CLI.command(['build', 'b'], () => require('./lib/commands/build').default()); // TODO: add --proxy
-CLI.command(['console', 'c'], () => require('./lib/commands/console').default());
+CLI.command(['serve', 'server', 's'], () => serveCommand()); // TODO: add proxy
+CLI.command(['test', 't'], () => testCommand())// TODO: add --proxy
+CLI.command(['build', 'b'], () => buildCommand()); // TODO: add --proxy
+CLI.command(['console', 'c'], () => consoleCommand());
 
-CLI.command(['help', 'h', 'print', 'p'], printCommand);
-CLI.command(['init', 'new'], () => require('./lib/commands/new').default());
-CLI.command(['generate', 'g', 'create'], () => {
-  require('./lib/commands/generate').default(process.argv[3], process.argv[4]);
-});
-CLI.command(['delete', 'd', 'destroy', 'remove'], () => {
-  require('./lib/commands/delete').default(process.argv[3], process.argv[4]);
-});
+CLI.command(['help', 'h', 'print', 'p'], () => printCommand());
+CLI.command(['init', 'new'], () => newCommand());
+CLI.command(['generate', 'g', 'create'], () => generateCommand(process.argv[3], process.argv[4]));
+CLI.command(['delete', 'd', 'destroy', 'remove'], () => deleteCommand(process.argv[3], process.argv[4]));
 
 if (!shouldRunCommand) {
-  Console.log(require('ansi-colors').red('unknown command. Available options are:'));
+  Console.log(chalk.red('unknown command. Available options are:'));
   printCommand();
-  process.exit(1);
+  setTimeout(() => process.exit(1), 100);
 }
 
 // NOTE: maybe merge server and console commands in future?

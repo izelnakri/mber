@@ -1,7 +1,6 @@
-/* eslint-env node */
-const app = require('../index.js');
+import app from '../index.js';
 
-module.exports = function(ENV) {
+export default function(ENV) {
   const { environment } = ENV;
 
   // app.import('node_modules/jquery/dist/jquery.min.js', {

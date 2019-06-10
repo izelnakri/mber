@@ -1,4 +1,4 @@
-FROM node:12.2
+FROM node:12.4
 
 RUN apt-get update && \
   apt-get install -y lsof vim libgtk-3-0 libatk1.0-0 libx11-xcb1 libnss3 libxss1 libasound2

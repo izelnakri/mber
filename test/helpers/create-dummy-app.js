@@ -7,11 +7,12 @@ const CWD = process.cwd();
 
 // TODO: reset tmp and dist folders
 export default async function(appName='dummyapp') {
-  await shell(`node ${CWD}/cli.js new ${appName}`);
+  await shell(`node --experimental-modules ${CWD}/cli.js new ${appName}`);
 
   const TARGET_PROJECT_PATH = `${CWD}/${appName}`;
 
   if (!(await fs.exists(`${TARGET_PROJECT_PATH}/node_modules`))) {
+    // await fs.mkdirp(TARGET_PROJECT_PATH);
     await fs.symlink(`${__dirname}/../../node_modules`, `${TARGET_PROJECT_PATH}/node_modules`); // TODO: this is huge
   }
 
@@ -19,8 +20,9 @@ export default async function(appName='dummyapp') {
 
   await fs.writeFile(
     `${TARGET_PROJECT_PATH}/index.js`,
-    contents.replace("const app = require('mber');", "const app = require('../index.js');")
+    contents.replace("import app from 'mber';", "import app from '../index.js';")
   );
+// const app = require('mber');
   await Promise.all([
     fs.remove(`${TARGET_PROJECT_PATH}/dist`),
     fs.remove(`${TARGET_PROJECT_PATH}/tmp`),
