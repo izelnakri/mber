@@ -1,7 +1,7 @@
 {
   "name": "mber",
-  "version": "0.8.3",
-  "type" : "module",
+  "version": "0.8.4",
+  "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "main": "index.js",
   "engines": {
@@ -43,7 +43,7 @@
     "loader.js": "^4.7.0",
     "mber-head": "^0.1.0",
     "morgan": "^1.9.1",
-    "node-fetch": "2.6.0",
+    "node-fetch": "^2.6.0",
     "qunit": "2.9.2",
     "strip-ansi": "^5.2.0",
     "whatwg-fetch": "^3.0.0"
