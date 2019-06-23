@@ -77487,6 +77487,7 @@ define("ember-data/-private/system/model/internal-model", ["exports", "ember-dat
       // removes the internal model from the array and Ember arrays will always
       // `objectAt(0)` and `objectAt(len -1)` to check whether `firstObject` or
       // `lastObject` have changed.  When this happens we don't want those
+      // models to rematerialize their records.
       return this._isDematerializing || this.hasScheduledDestroy() || this.isDestroyed || this.currentState.stateName === 'root.deleted.saved' || this.isEmpty();
     }
 
@@ -84658,6 +84659,7 @@ define("ember-data/-private/system/relationships/state/has-many", ["exports", "e
       let newRecordDatas = this.currentState.filter( // only add new internalModels which are not yet in the canonical state of this
       // relationship (a new internalModel can be in the canonical state if it has
       // been 'acknowleged' to be in the relationship via a store.push)
+      //TODO Igor deal with this
       recordData => recordData.isNew() && toSet.indexOf(recordData) === -1);
       toSet = toSet.concat(newRecordDatas);
       /*

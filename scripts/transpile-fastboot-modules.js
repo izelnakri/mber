@@ -1,10 +1,10 @@
 import fs from 'fs-extra';
 import chalk from 'ansi-colors';
-import Console from '../lib/utils/console';
-import findProjectRoot from '../lib/utils/find-project-root';
-import countTime from '../lib/utils/count-time';
-import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
-import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
+import Console from '../lib/utils/console.js';
+import findProjectRoot from '../lib/utils/find-project-root.js';
+import countTime from '../lib/utils/count-time.js';
+import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd.js';
+import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter.js';
 
 const FILENAME = 'fastboot-addon-modules.js';
 

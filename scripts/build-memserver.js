@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
-import findProjectRoot from '../lib/utils/find-project-root';
-import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd';
-import transpileNPMImport from '../lib/transpilers/transpile-npm-imports';
+import findProjectRoot from '../lib/utils/find-project-root.js';
+import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd.js';
+import transpileNPMImport from '../lib/transpilers/transpile-npm-imports.js';
 
 const removeFetch = `
   (function() {

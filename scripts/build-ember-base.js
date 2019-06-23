@@ -1,13 +1,12 @@
-// TODO: probably needs transpiling adjustments due to ember-data upgrade
 import fs from 'fs-extra';
 import chalk from 'ansi-colors';
 import UglifyJS from 'uglify-es';
-import Console from '../lib/utils/console';
-import countTime from '../lib/utils/count-time';
-import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd';
-import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
-import findProjectRoot from '../lib/utils/find-project-root';
-import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
+import Console from '../lib/utils/console.js';
+import countTime from '../lib/utils/count-time.js';
+import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd.js';
+import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd.js';
+import findProjectRoot from '../lib/utils/find-project-root.js';
+import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter.js';
 
 function build(environment, options={ excludeEmberData: false }) {
   const FILENAME = getFileName(environment, options);
@@ -19,7 +18,7 @@ function build(environment, options={ excludeEmberData: false }) {
     const PROJECT_PATH = await findProjectRoot();
     const OUTPUT_PATH = `${PROJECT_PATH}/vendor/${FILENAME}.js`;
 
-    return Promise.all(readBuildFiles(PROJECT_PATH, environment, options))
+    return Promise.all(await readBuildFiles(PROJECT_PATH, environment, options))
       .then((fileContents) => writeVendorJS(OUTPUT_PATH, fileContents.join('\n'), environment))
       .then(() => {
         const timePassed = timer.stop();
@@ -45,7 +44,7 @@ function getFileName(environment, options) {
   return environment === 'production' ? 'full-ember-prod' : 'full-ember-debug';
 }
 
-function readBuildFiles(projectPath, environment, options={ excludeEmberData: false }){
+async function readBuildFiles(projectPath, environment, options={ excludeEmberData: false }){
   const MODULE_PATH = `${projectPath}/node_modules`;
 
   let baseBuilds = [
@@ -58,7 +57,7 @@ function readBuildFiles(projectPath, environment, options={ excludeEmberData: fa
   ];
 
   if (!options.excludeEmberData) {
-    baseBuilds = baseBuilds.concat(buildEmberData(projectPath, environment));
+    baseBuilds = baseBuilds.concat(await buildEmberData(projectPath, environment));
   }
 
   return baseBuilds.concat([
@@ -91,8 +90,8 @@ function transpileEmberOrderedSet(modulePath) {
   });
 }
 
-function buildEmberData(projectPath, environment) {
-  const emberDataVersion = require(`${projectPath}/package.json`).devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
+async function buildEmberData(projectPath, environment) {
+  const emberDataVersion = (await import(`${projectPath}/package.json`)).default.devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
   const options = environment === 'production' ? {
     filter: (item) => !item.path.includes('/-debug')
   } : {};

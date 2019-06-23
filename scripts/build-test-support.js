@@ -2,11 +2,11 @@ import fs from 'fs-extra';
 import { promisify } from 'util';
 import chalk from 'ansi-colors';
 import sass from 'sass';
-import Console from '../lib/utils/console';
-import countTime from '../lib/utils/count-time';
-import findProjectRoot from '../lib/utils/find-project-root';
-import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd';
-import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter';
+import Console from '../lib/utils/console.js';
+import countTime from '../lib/utils/count-time.js';
+import findProjectRoot from '../lib/utils/find-project-root.js';
+import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd.js';
+import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter.js';
 
 const compileScssAsync = promisify(sass.render);
 
