@@ -87,7 +87,7 @@
     "memserver": "^1.2.7",
     "mustache": "^3.0.1",
     "ora": "^3.4.0",
-    "puppeteer": "1.16.0",
+    "puppeteer": "1.18.0",
     "sass": "1.21.0",
     "say": "^0.16.0",
     "through2": "^3.0.0",
