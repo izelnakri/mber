@@ -10,9 +10,9 @@ export default function(ENV) {
   // app.importAsAMDModule('moment', 'node_modules/moment/min/moment.min.js');
   // app.importAsAMDModule('bip39');
 
-  if (environment !== 'production') {
-    app.importAddon('ember-devtools', { type: 'vendor' });
-  }
+  // if (environment !== 'production') {
+  //   app.importAddon('ember-devtools', { type: 'vendor' });
+  // }
 
   if (ENV.googleAnalyticsId) {
     app.injectInlineContent('googleAnalytics', `
