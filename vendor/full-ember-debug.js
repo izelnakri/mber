@@ -64838,6 +64838,8 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember
       return _system.Inflector;
     }
 
+  }, {
+    configurable: true
   });
   Object.defineProperty(Ember.String, 'singularize', {
     get() {
@@ -64848,6 +64850,8 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember
       return _system.singularize;
     }
 
+  }, {
+    configurable: true
   });
   Object.defineProperty(Ember.String, 'pluralize', {
     get() {
@@ -64858,6 +64862,8 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember
       return _system.pluralize;
     }
 
+  }, {
+    configurable: true
   });
   var _default = _system.Inflector;
   _exports.default = _default;
@@ -64914,6 +64920,8 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
         };
       }
 
+    }, {
+      configurable: true
     });
     /**
       See {{#crossLink "Ember.String/singularize"}}{{/crossLink}}
@@ -64932,6 +64940,8 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
         };
       }
 
+    }, {
+      configurable: true
     });
   }
 });
