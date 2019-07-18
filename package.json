@@ -26,9 +26,9 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
-    "@ember/test-helpers": "1.6.0",
+    "@ember/test-helpers": "1.5.0",
     "@glimmer/resolver": "^0.4.3",
-    "ava": "^2.2.0",
+    "ava": "^1.4.1",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "^2.1.2",
     "ember-cli-test-loader": "^2.2.0",
