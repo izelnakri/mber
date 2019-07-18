@@ -26,7 +26,7 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
-    "@ember/test-helpers": "1.5.0",
+    "@ember/test-helpers": "1.6.0",
     "@glimmer/resolver": "^0.4.3",
     "ava": "^1.4.1",
     "cors": "^2.8.5",
@@ -54,11 +54,11 @@
     "url": "https://github.com/izelnakri/mber.git"
   },
   "dependencies": {
-    "@babel/core": "^7.4.5",
-    "@babel/plugin-proposal-class-properties": "^7.4.4",
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-decorators": "^7.4.4",
-    "@babel/plugin-transform-modules-amd": "^7.2.0",
-    "@babel/plugin-transform-typescript": "^7.4.5",
+    "@babel/plugin-transform-modules-amd": "^7.5.0",
+    "@babel/plugin-transform-typescript": "^7.5.5",
     "@babel/polyfill": "^7.4.4",
     "@babel/preset-env": "^7.4.5",
     "@babel/register": "^7.4.4",
@@ -88,7 +88,7 @@
     "mustache": "^3.0.1",
     "ora": "^3.4.0",
     "puppeteer": "1.18.1",
-    "sass": "1.22.5",
+    "sass": "1.22.6",
     "say": "^0.16.0",
     "through2": "^3.0.0",
     "uglify-es": "^3.3.9",
