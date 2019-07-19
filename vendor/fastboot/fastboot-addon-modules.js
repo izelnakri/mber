@@ -36,7 +36,7 @@ define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"]
         current = nextNode;
       } while (nextNode && nextNode !== endMarker && shoeboxNodesArray.indexOf(nextNode) < 0);
 
-      parent.removeChild(endMarker);
+      endMarker.parentElement.removeChild(endMarker);
     }
   }
 

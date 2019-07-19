@@ -353,9 +353,11 @@ define("@glimmer/resolver/index", ["exports", "@glimmer/resolver/resolver", "@gl
     }
   });
 });
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibW9kdWxlLXJlZ2lzdHJ5LmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsic3JjL21vZHVsZS1yZWdpc3RyeS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiIiwic291cmNlc0NvbnRlbnQiOlsiZXhwb3J0IGludGVyZmFjZSBNb2R1bGVSZWdpc3RyeSB7XG4gIGhhcyhzcGVjaWZpZXI6IHN0cmluZyk6IGJvb2xlYW47XG5cbiAgZ2V0KHNwZWNpZmllcjogc3RyaW5nKTogYW55O1xufVxuIl19
 define("@glimmer/resolver/module-registry", [], function () {
   "use strict";
 });
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVzb2x2ZXItY29uZmlndXJhdGlvbi5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbInNyYy9yZXNvbHZlci1jb25maWd1cmF0aW9uLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiIiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBEaWN0IH0gZnJvbSAnQGdsaW1tZXIvZGknO1xuXG5leHBvcnQgaW50ZXJmYWNlIFBhY2thZ2VEZWZpbml0aW9uIHtcbiAgLyoqXG4gICAqIFRoZSBuYW1lIG9mIHRoZSBwYWNrYWdlLCBhcyBkZWZpbmVkIGluIGBwYWNrYWdlLmpzb25gLlxuICAgKlxuICAgKiBGb3IgZXhhbXBsZSwgYSBwYWNrYWdlIHB1Ymxpc2hlZCB0byBucG0gYXMgYGVtYmVyLXN1cGVyLWlucHV0YCBtdXN0XG4gICAqIGFsc28gdXNlIHRoaXMgYG5hbWVgLlxuICAgKi9cbiAgbmFtZTogc3RyaW5nO1xuXG4gIC8qKlxuICAgKiBUaGUgcGF0aCB0byB0aGUgZGlyZWN0b3J5IHRoYXQgY29udGFpbnMgdGhlIGBtYWluYCBleHBvcnQgZm9yIHRoZVxuICAgKiBwYWNrYWdlLlxuICAgKlxuICAgKiBCeSBkZWZhdWx0LCBgbWFpblBhdGggPSAnL3NyYydgLlxuICAgKi9cbiAgbWFpblBhdGg/OiBzdHJpbmc7XG5cbiAgLyoqXG4gICAqIEFuIGFsaWFzIHVzZWQgZm9yIG1vZHVsZSByZXNvbHV0aW9uLlxuICAgKlxuICAgKiBGb3IgYWRkb25zLCB0aGUgYHJvb3ROYW1lYCB3aWxsIGluaXRpYWxseSBiZSBhIHJlYWQtb25seSBwcm9wZXJ0eSB0aGF0XG4gICAqIGVxdWFscyB0aGUgcGFja2FnZSBgbmFtZWAgd2l0aCBhbnkgYGVtYmVyLWAgYW5kIGBlbWJlci1jbGktYCBwcmVmaXhlc1xuICAgKiBzdHJpcHBlZC4gKGUuZy4gYGVtYmVyLXN1cGVyLWlucHV0YCBiZWNvbWVzIGBzdXBlci1pbnB1dGApLiBJdCdzXG4gICAqIHBvc3NpYmxlIHRoYXQgY3VzdG9tIG92ZXJyaWRlcyAvIGFsaWFzZXMgd2lsbCBiZSBhbGxvd2VkIGluIHRoZSBmdXR1cmUuXG4gICAqXG4gICAqIEFsbCBhcHBzIHNob3VsZCB1c2UgYSBgcm9vdE5hbWVgIG9mIFwiYXBwXCIgZm9yIGNvbnNpc3RlbmN5LlxuICAgKi9cbiAgcm9vdE5hbWU/OiBzdHJpbmc7XG59XG5cbmV4cG9ydCBpbnRlcmZhY2UgTW9kdWxlVHlwZURlZmluaXRpb24ge1xuICBkZWZpbml0aXZlQ29sbGVjdGlvbj86IHN0cmluZztcbiAgdW5yZXNvbHZhYmxlPzogYm9vbGVhbjtcbn1cblxuZXhwb3J0IGludGVyZmFjZSBNb2R1bGVDb2xsZWN0aW9uRGVmaW5pdGlvbiB7XG4gIGdyb3VwPzogc3RyaW5nO1xuICB0eXBlcz86IHN0cmluZ1tdO1xuICBkZWZhdWx0VHlwZT86IHN0cmluZztcbiAgcHJpdmF0ZUNvbGxlY3Rpb25zPzogc3RyaW5nW107XG4gIHVucmVzb2x2YWJsZT86IGJvb2xlYW47XG59XG5cbmV4cG9ydCBpbnRlcmZhY2UgUmVzb2x2ZXJDb25maWd1cmF0aW9uIHtcbiAgYXBwPzogUGFja2FnZURlZmluaXRpb247XG4gIHR5cGVzOiBEaWN0PE1vZHVsZVR5cGVEZWZpbml0aW9uPjtcbiAgY29sbGVjdGlvbnM6IERpY3Q8TW9kdWxlQ29sbGVjdGlvbkRlZmluaXRpb24+O1xufVxuIl19
 define("@glimmer/resolver/resolver-configuration", [], function () {
   "use strict";
 });
@@ -493,7 +495,8 @@ define("@glimmer/resolver/resolver", ["exports", "@glimmer/di", "@glimmer/resolv
       }
     }
 
-  }
+  } //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicmVzb2x2ZXIuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJzcmMvcmVzb2x2ZXIudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsT0FBTyxFQUdMLHlCQUF5QixFQUN6Qix5QkFBeUIsRUFDekIsb0JBQW9CLEVBQ3BCLGtCQUFrQixFQUNuQixNQUFNLGFBQWEsQ0FBQztBQUNyQixPQUFPLEVBQUUsTUFBTSxFQUFFLE1BQU0sZUFBZSxDQUFDO0FBQ3ZDLE9BQU8sRUFBRSwrQkFBK0IsRUFBRSxNQUFNLG9CQUFvQixDQUFDO0FBSXJFLE1BQU0sQ0FBQyxPQUFPO0lBSVosWUFBWSxNQUE2QixFQUFFLFFBQXdCO1FBQ2pFLElBQUksQ0FBQyxNQUFNLEdBQUcsTUFBTSxDQUFDO1FBQ3JCLElBQUksQ0FBQyxRQUFRLEdBQUcsUUFBUSxDQUFDO0lBQzNCLENBQUM7SUFFRCxRQUFRLENBQUMsU0FBaUIsRUFBRSxRQUFpQjtRQUMzQyxFQUFFLENBQUMsQ0FBQyx5QkFBeUIsQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDLENBQUM7WUFDekMsTUFBTSxDQUFDLFNBQVMsQ0FBQztRQUNuQixDQUFDO1FBRUQsSUFBSSxDQUFDLEdBQUcsb0JBQW9CLENBQUMsU0FBUyxDQUFDLENBQUM7UUFDeEMsSUFBSSxNQUFjLENBQUM7UUFFbkIsRUFBRSxDQUFDLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQztZQUNiLElBQUksQ0FBQyxHQUFHLG9CQUFvQixDQUFDLFFBQVEsQ0FBQyxDQUFDO1lBRXZDLEVBQUUsQ0FBQyxDQUFDLHlCQUF5QixDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztnQkFDakMsTUFBTSxDQUFDLHlHQUF5RyxFQUFFLENBQUMsQ0FBQyxRQUFRLEtBQUssU0FBUyxJQUFJLENBQUMsQ0FBQyxVQUFVLEtBQUssU0FBUyxJQUFJLENBQUMsQ0FBQyxTQUFTLEtBQUssU0FBUyxDQUFDLENBQUM7Z0JBRXZNLENBQUMsQ0FBQyxRQUFRLEdBQUcsQ0FBQyxDQUFDLFFBQVEsQ0FBQztnQkFDeEIsQ0FBQyxDQUFDLFVBQVUsR0FBRyxDQUFDLENBQUMsVUFBVSxDQUFDO2dCQUM1QixJQUFJLG9CQUFvQixHQUFHLElBQUksQ0FBQyxxQkFBcUIsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLENBQUM7Z0JBRTlELEVBQUUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUFDLENBQUM7b0JBQ1o7Ozt1QkFHRztvQkFDSCxDQUFDLENBQUMsU0FBUyxHQUFHLENBQUMsQ0FBQyxTQUFTLENBQUM7b0JBQzFCLENBQUMsQ0FBQyxJQUFJLEdBQUcsQ0FBQyxDQUFDLElBQUksQ0FBQztvQkFDaEIsTUFBTSxDQUFDLElBQUksQ0FBQyxtQkFBbUIsQ0FBQyxDQUFDLENBQUMsQ0FBQztnQkFDckMsQ0FBQztnQkFFRCxDQUFDLENBQUMsU0FBUyxHQUFHLENBQUMsQ0FBQyxTQUFTLEdBQUcsQ0FBQyxDQUFDLFNBQVMsR0FBRyxHQUFHLEdBQUcsQ0FBQyxDQUFDLElBQUksR0FBRyxDQUFDLENBQUMsSUFBSSxDQUFDO2dCQUNoRSxFQUFFLENBQUMsQ0FBQywrQkFBK0IsQ0FBQyxDQUFDLENBQUMsS0FBSyxvQkFBb0IsQ0FBQyxDQUFDLENBQUM7b0JBQ2hFOzs7dUJBR0c7b0JBQ0gsRUFBRSxDQUFDLENBQUMsTUFBTSxHQUFHLElBQUksQ0FBQyxtQkFBbUIsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7d0JBQUMsTUFBTSxDQUFDLE1BQU0sQ0FBQztvQkFBQyxDQUFDO2dCQUM5RCxDQUFDO2dCQUVELDREQUE0RDtnQkFDNUQsRUFBRSxDQUFDLENBQUMsb0JBQW9CLENBQUMsQ0FBQyxDQUFDO29CQUN6QixDQUFDLENBQUMsU0FBUyxJQUFJLElBQUksR0FBRyxvQkFBb0IsQ0FBQztvQkFDM0MsRUFBRSxDQUFDLENBQUMsTUFBTSxHQUFHLElBQUksQ0FBQyxtQkFBbUIsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUM7d0JBQUMsTUFBTSxDQUFDLE1BQU0sQ0FBQztvQkFBQyxDQUFDO2dCQUM5RCxDQUFDO2dCQUVELG1GQUFtRjtnQkFDbkYsdUNBQXVDO2dCQUN2QyxDQUFDLENBQUMsUUFBUSxHQUFHLENBQUMsQ0FBQyxVQUFVLEdBQUcsQ0FBQyxDQUFDLFNBQVMsR0FBRyxTQUFTLENBQUM7WUFDdEQsQ0FBQztZQUFDLElBQUksQ0FBQyxDQUFDO2dCQUNOLE1BQU0sQ0FBQyx5RkFBeUYsRUFBRSxDQUFDLENBQUMsSUFBSSxDQUFDLENBQUM7Z0JBRTFHLDREQUE0RDtnQkFDNUQsQ0FBQyxDQUFDLFVBQVUsR0FBRyxJQUFJLENBQUMscUJBQXFCLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUFDO2dCQUNsRCxFQUFFLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxTQUFTLENBQUMsQ0FBQyxDQUFDO29CQUNqQixDQUFDLENBQUMsU0FBUyxHQUFHLENBQUMsQ0FBQyxRQUFRLENBQUM7Z0JBQzNCLENBQUM7Z0JBQ0QsTUFBTSxDQUFDLElBQUksQ0FBQyxDQUFDLElBQUkseUNBQXlDLEVBQUUsQ0FBQyxDQUFDLFVBQVUsQ0FBQyxDQUFDO1lBQzVFLENBQUM7UUFDSCxDQUFDO1FBRUQsaUZBQWlGO1FBQ2pGLEVBQUUsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDLFVBQVUsQ0FBQyxDQUFDLENBQUM7WUFDbEIsQ0FBQyxDQUFDLFVBQVUsR0FBRyxJQUFJLENBQUMscUJBQXFCLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUFDO1lBQ2xELE1BQU0sQ0FBQyxJQUFJLENBQUMsQ0FBQyxJQUFJLHlDQUF5QyxFQUFFLENBQUMsQ0FBQyxVQUFVLENBQUMsQ0FBQztRQUM1RSxDQUFDO1FBRUQsRUFBRSxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsUUFBUSxDQUFDLENBQUMsQ0FBQztZQUNoQixrRUFBa0U7WUFDbEUsQ0FBQyxDQUFDLFFBQVEsR0FBRyxJQUFJLENBQUMsTUFBTSxDQUFDLEdBQUcsQ0FBQyxRQUFRLElBQUksS0FBSyxDQUFDO1lBQy9DLEVBQUUsQ0FBQyxDQUFDLE1BQU0sR0FBRyxJQUFJLENBQUMsbUJBQW1CLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO2dCQUFDLE1BQU0sQ0FBQyxNQUFNLENBQUM7WUFBQyxDQUFDO1lBRTVELG9EQUFvRDtZQUNwRCxFQUFFLENBQUMsQ0FBQyxDQUFDLENBQUMsU0FBUyxDQUFDLENBQUMsQ0FBQztnQkFDaEIsQ0FBQyxDQUFDLFFBQVEsR0FBRyxDQUFDLENBQUMsU0FBUyxDQUFDO2dCQUN6QixDQUFDLENBQUMsU0FBUyxHQUFHLFNBQVMsQ0FBQztZQUUxQixDQUFDO1lBQUMsSUFBSSxDQUFDLENBQUM7Z0JBQ04sQ0FBQyxDQUFDLFFBQVEsR0FBRyxDQUFDLENBQUMsSUFBSSxDQUFDO2dCQUNwQixDQUFDLENBQUMsSUFBSSxHQUFHLE1BQU0sQ0FBQztZQUNsQixDQUFDO1FBQ0gsQ0FBQztRQUVELEVBQUUsQ0FBQyxDQUFDLE1BQU0sR0FBRyxJQUFJLENBQUMsbUJBQW1CLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO1lBQUMsTUFBTSxDQUFDLE1BQU0sQ0FBQztRQUFDLENBQUM7SUFDOUQsQ0FBQztJQUVELFFBQVEsQ0FBQyxTQUFpQjtRQUN4QixNQUFNLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxHQUFHLENBQUMsU0FBUyxDQUFDLENBQUM7SUFDdEMsQ0FBQztJQUVELE9BQU8sQ0FBQyxTQUFpQixFQUFFLFFBQWlCO1FBQzFDLElBQUksRUFBRSxHQUFHLElBQUksQ0FBQyxRQUFRLENBQUMsU0FBUyxFQUFFLFFBQVEsQ0FBQyxDQUFDO1FBQzVDLEVBQUUsQ0FBQyxDQUFDLEVBQUUsQ0FBQyxDQUFDLENBQUM7WUFDUCxNQUFNLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxFQUFFLENBQUMsQ0FBQztRQUMzQixDQUFDO0lBQ0gsQ0FBQztJQUVPLHFCQUFxQixDQUFDLElBQVk7UUFDeEMsSUFBSSxPQUFPLEdBQUcsSUFBSSxDQUFDLE1BQU0sQ0FBQyxLQUFLLENBQUMsSUFBSSxDQUFDLENBQUM7UUFDdEMsTUFBTSxDQUFDLElBQUksSUFBSSw0QkFBNEIsRUFBRSxPQUFPLENBQUMsQ0FBQztRQUN0RCxNQUFNLENBQUMsT0FBTyxDQUFDLG9CQUFvQixDQUFDO0lBQ3RDLENBQUM7SUFFTyxtQkFBbUIsQ0FBQyxTQUFvQjtRQUM5QyxJQUFJLFVBQVUsR0FBRyxrQkFBa0IsQ0FBQyxTQUFTLENBQUMsQ0FBQztRQUMvQyxFQUFFLENBQUMsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLEdBQUcsQ0FBQyxVQUFVLENBQUMsQ0FBQyxDQUFDLENBQUM7WUFDbEMsTUFBTSxDQUFDLFVBQVUsQ0FBQztRQUNwQixDQUFDO0lBQ0gsQ0FBQztDQUNGIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHtcbiAgUmVzb2x2ZXIgYXMgSVJlc29sdmVyLFxuICBTcGVjaWZpZXIsXG4gIGlzU3BlY2lmaWVyU3RyaW5nQWJzb2x1dGUsXG4gIGlzU3BlY2lmaWVyT2JqZWN0QWJzb2x1dGUsXG4gIGRlc2VyaWFsaXplU3BlY2lmaWVyLFxuICBzZXJpYWxpemVTcGVjaWZpZXJcbn0gZnJvbSAnQGdsaW1tZXIvZGknO1xuaW1wb3J0IHsgYXNzZXJ0IH0gZnJvbSAnLi91dGlscy9kZWJ1Zyc7XG5pbXBvcnQgeyBkZXRlY3RMb2NhbFJlc29sdXRpb25Db2xsZWN0aW9uIH0gZnJvbSAnLi91dGlscy9zcGVjaWZpZXJzJztcbmltcG9ydCB7IE1vZHVsZVJlZ2lzdHJ5IH0gZnJvbSAnLi9tb2R1bGUtcmVnaXN0cnknO1xuaW1wb3J0IHsgUmVzb2x2ZXJDb25maWd1cmF0aW9uIH0gZnJvbSAnLi9yZXNvbHZlci1jb25maWd1cmF0aW9uJztcblxuZXhwb3J0IGRlZmF1bHQgY2xhc3MgUmVzb2x2ZXIgaW1wbGVtZW50cyBJUmVzb2x2ZXIge1xuICBwdWJsaWMgY29uZmlnOiBSZXNvbHZlckNvbmZpZ3VyYXRpb247XG4gIHB1YmxpYyByZWdpc3RyeTogTW9kdWxlUmVnaXN0cnk7XG5cbiAgY29uc3RydWN0b3IoY29uZmlnOiBSZXNvbHZlckNvbmZpZ3VyYXRpb24sIHJlZ2lzdHJ5OiBNb2R1bGVSZWdpc3RyeSkge1xuICAgIHRoaXMuY29uZmlnID0gY29uZmlnO1xuICAgIHRoaXMucmVnaXN0cnkgPSByZWdpc3RyeTtcbiAgfVxuXG4gIGlkZW50aWZ5KHNwZWNpZmllcjogc3RyaW5nLCByZWZlcnJlcj86IHN0cmluZyk6IHN0cmluZyB7XG4gICAgaWYgKGlzU3BlY2lmaWVyU3RyaW5nQWJzb2x1dGUoc3BlY2lmaWVyKSkge1xuICAgICAgcmV0dXJuIHNwZWNpZmllcjtcbiAgICB9XG5cbiAgICBsZXQgcyA9IGRlc2VyaWFsaXplU3BlY2lmaWVyKHNwZWNpZmllcik7XG4gICAgbGV0IHJlc3VsdDogc3RyaW5nO1xuXG4gICAgaWYgKHJlZmVycmVyKSB7XG4gICAgICBsZXQgciA9IGRlc2VyaWFsaXplU3BlY2lmaWVyKHJlZmVycmVyKTtcblxuICAgICAgaWYgKGlzU3BlY2lmaWVyT2JqZWN0QWJzb2x1dGUocikpIHtcbiAgICAgICAgYXNzZXJ0KCdTcGVjaWZpZXIgbXVzdCBub3QgaW5jbHVkZSBhIHJvb3ROYW1lLCBjb2xsZWN0aW9uLCBvciBuYW1lc3BhY2Ugd2hlbiBjb21iaW5lZCB3aXRoIGFuIGFic29sdXRlIHJlZmVycmVyJywgcy5yb290TmFtZSA9PT0gdW5kZWZpbmVkICYmIHMuY29sbGVjdGlvbiA9PT0gdW5kZWZpbmVkICYmIHMubmFtZXNwYWNlID09PSB1bmRlZmluZWQpO1xuXG4gICAgICAgIHMucm9vdE5hbWUgPSByLnJvb3ROYW1lO1xuICAgICAgICBzLmNvbGxlY3Rpb24gPSByLmNvbGxlY3Rpb247XG4gICAgICAgIGxldCBkZWZpbml0aXZlQ29sbGVjdGlvbiA9IHRoaXMuX2RlZmluaXRpdmVDb2xsZWN0aW9uKHMudHlwZSk7XG5cbiAgICAgICAgaWYgKCFzLm5hbWUpIHtcbiAgICAgICAgICAvKlxuICAgICAgICAgICAqIEZvciBzcGVjaWZpZXJzIHdpdGhvdXQgYSBuYW1lIHVzZSB0aGUgcmVmZXJyZXIncyBuYW1lIGFuZFxuICAgICAgICAgICAqIGRvIG5vdCBmYWxsYmFjayB0byBhbnkgb3RoZXIgcmVzb2x1dGlvbiBydWxlcy5cbiAgICAgICAgICAgKi9cbiAgICAgICAgICBzLm5hbWVzcGFjZSA9IHIubmFtZXNwYWNlO1xuICAgICAgICAgIHMubmFtZSA9IHIubmFtZTtcbiAgICAgICAgICByZXR1cm4gdGhpcy5fc2VyaWFsaXplQW5kVmVyaWZ5KHMpO1xuICAgICAgICB9XG5cbiAgICAgICAgcy5uYW1lc3BhY2UgPSByLm5hbWVzcGFjZSA/IHIubmFtZXNwYWNlICsgJy8nICsgci5uYW1lIDogci5uYW1lO1xuICAgICAgICBpZiAoZGV0ZWN0TG9jYWxSZXNvbHV0aW9uQ29sbGVjdGlvbihzKSA9PT0gZGVmaW5pdGl2ZUNvbGxlY3Rpb24pIHtcbiAgICAgICAgICAvKlxuICAgICAgICAgICAqIEZvciBzcGVjaWZpZXJzIHdpdGggYSBuYW1lLCB0cnkgbG9jYWwgcmVzb2x1dGlvbi4gQmFzZWQgb25cbiAgICAgICAgICAgKiB0aGUgcmVmZXJyZXIuXG4gICAgICAgICAgICovXG4gICAgICAgICAgaWYgKHJlc3VsdCA9IHRoaXMuX3NlcmlhbGl6ZUFuZFZlcmlmeShzKSkgeyByZXR1cm4gcmVzdWx0OyB9XG4gICAgICAgIH1cblxuICAgICAgICAvLyBMb29rIGZvciBhIHByaXZhdGUgY29sbGVjdGlvbiBpbiB0aGUgcmVmZXJyZXIncyBuYW1lc3BhY2VcbiAgICAgICAgaWYgKGRlZmluaXRpdmVDb2xsZWN0aW9uKSB7XG4gICAgICAgICAgcy5uYW1lc3BhY2UgKz0gJy8tJyArIGRlZmluaXRpdmVDb2xsZWN0aW9uO1xuICAgICAgICAgIGlmIChyZXN1bHQgPSB0aGlzLl9zZXJpYWxpemVBbmRWZXJpZnkocykpIHsgcmV0dXJuIHJlc3VsdDsgfVxuICAgICAgICB9XG5cbiAgICAgICAgLy8gQmVjYXVzZSBsb2NhbCBhbmQgcHJpdmF0ZSByZXNvbHV0aW9uIGhhcyBmYWlsZWQsIGNsZWFyIGFsbCBidXQgYG5hbWVgIGFuZCBgdHlwZWBcbiAgICAgICAgLy8gdG8gcHJvY2VlZCB3aXRoIHRvcC1sZXZlbCByZXNvbHV0aW9uXG4gICAgICAgIHMucm9vdE5hbWUgPSBzLmNvbGxlY3Rpb24gPSBzLm5hbWVzcGFjZSA9IHVuZGVmaW5lZDtcbiAgICAgIH0gZWxzZSB7XG4gICAgICAgIGFzc2VydCgnUmVmZXJyZXIgbXVzdCBlaXRoZXIgYmUgXCJhYnNvbHV0ZVwiIG9yIGluY2x1ZGUgYSBgdHlwZWAgdG8gZGV0ZXJtaW5lIHRoZSBhc3NvY2lhdGVkIHR5cGUnLCByLnR5cGUpO1xuXG4gICAgICAgIC8vIExvb2sgaW4gdGhlIGRlZmluaXRpdmUgY29sbGVjdGlvbiBmb3IgdGhlIGFzc29jaWF0ZWQgdHlwZVxuICAgICAgICBzLmNvbGxlY3Rpb24gPSB0aGlzLl9kZWZpbml0aXZlQ29sbGVjdGlvbihyLnR5cGUpO1xuICAgICAgICBpZiAoIXMubmFtZXNwYWNlKSB7XG4gICAgICAgICAgcy5uYW1lc3BhY2UgPSByLnJvb3ROYW1lO1xuICAgICAgICB9XG4gICAgICAgIGFzc2VydChgJyR7ci50eXBlfScgZG9lcyBub3QgaGF2ZSBhIGRlZmluaXRpdmUgY29sbGVjdGlvbmAsIHMuY29sbGVjdGlvbik7XG4gICAgICB9XG4gICAgfVxuXG4gICAgLy8gSWYgdGhlIGNvbGxlY3Rpb24gaXMgdW5zcGVjaWZpZWQsIHVzZSB0aGUgZGVmaW5pdGl2ZSBjb2xsZWN0aW9uIGZvciB0aGUgYHR5cGVgXG4gICAgaWYgKCFzLmNvbGxlY3Rpb24pIHtcbiAgICAgIHMuY29sbGVjdGlvbiA9IHRoaXMuX2RlZmluaXRpdmVDb2xsZWN0aW9uKHMudHlwZSk7XG4gICAgICBhc3NlcnQoYCcke3MudHlwZX0nIGRvZXMgbm90IGhhdmUgYSBkZWZpbml0aXZlIGNvbGxlY3Rpb25gLCBzLmNvbGxlY3Rpb24pO1xuICAgIH1cblxuICAgIGlmICghcy5yb290TmFtZSkge1xuICAgICAgLy8gSWYgdGhlIHJvb3QgbmFtZSBpcyB1bnNwZWNpZmllZCwgdHJ5IHRoZSBhcHAncyBgcm9vdE5hbWVgIGZpcnN0XG4gICAgICBzLnJvb3ROYW1lID0gdGhpcy5jb25maWcuYXBwLnJvb3ROYW1lIHx8ICdhcHAnO1xuICAgICAgaWYgKHJlc3VsdCA9IHRoaXMuX3NlcmlhbGl6ZUFuZFZlcmlmeShzKSkgeyByZXR1cm4gcmVzdWx0OyB9XG5cbiAgICAgIC8vIFRoZW4gbG9vayBmb3IgYW4gYWRkb24gd2l0aCBhIG1hdGNoaW5nIGByb290TmFtZWBcbiAgICAgIGlmIChzLm5hbWVzcGFjZSkge1xuICAgICAgICBzLnJvb3ROYW1lID0gcy5uYW1lc3BhY2U7XG4gICAgICAgIHMubmFtZXNwYWNlID0gdW5kZWZpbmVkO1xuXG4gICAgICB9IGVsc2Uge1xuICAgICAgICBzLnJvb3ROYW1lID0gcy5uYW1lO1xuICAgICAgICBzLm5hbWUgPSAnbWFpbic7XG4gICAgICB9XG4gICAgfVxuXG4gICAgaWYgKHJlc3VsdCA9IHRoaXMuX3NlcmlhbGl6ZUFuZFZlcmlmeShzKSkgeyByZXR1cm4gcmVzdWx0OyB9XG4gIH1cblxuICByZXRyaWV2ZShzcGVjaWZpZXI6IHN0cmluZyk6IGFueSB7XG4gICAgcmV0dXJuIHRoaXMucmVnaXN0cnkuZ2V0KHNwZWNpZmllcik7XG4gIH1cblxuICByZXNvbHZlKHNwZWNpZmllcjogc3RyaW5nLCByZWZlcnJlcj86IHN0cmluZyk6IGFueSB7XG4gICAgbGV0IGlkID0gdGhpcy5pZGVudGlmeShzcGVjaWZpZXIsIHJlZmVycmVyKTtcbiAgICBpZiAoaWQpIHtcbiAgICAgIHJldHVybiB0aGlzLnJldHJpZXZlKGlkKTtcbiAgICB9XG4gIH1cblxuICBwcml2YXRlIF9kZWZpbml0aXZlQ29sbGVjdGlvbih0eXBlOiBzdHJpbmcpOiBzdHJpbmcge1xuICAgIGxldCB0eXBlRGVmID0gdGhpcy5jb25maWcudHlwZXNbdHlwZV07XG4gICAgYXNzZXJ0KGAnJHt0eXBlfScgaXMgbm90IGEgcmVjb2duaXplZCB0eXBlYCwgdHlwZURlZik7XG4gICAgcmV0dXJuIHR5cGVEZWYuZGVmaW5pdGl2ZUNvbGxlY3Rpb247XG4gIH1cblxuICBwcml2YXRlIF9zZXJpYWxpemVBbmRWZXJpZnkoc3BlY2lmaWVyOiBTcGVjaWZpZXIpOiBzdHJpbmcge1xuICAgIGxldCBzZXJpYWxpemVkID0gc2VyaWFsaXplU3BlY2lmaWVyKHNwZWNpZmllcik7XG4gICAgaWYgKHRoaXMucmVnaXN0cnkuaGFzKHNlcmlhbGl6ZWQpKSB7XG4gICAgICByZXR1cm4gc2VyaWFsaXplZDtcbiAgICB9XG4gIH1cbn1cbiJdfQ==
+
 
   _exports.default = Resolver;
 });
@@ -518,7 +521,8 @@ define("@glimmer/resolver/module-registries/basic-registry", ["exports"], functi
       return this._entries[specifier];
     }
 
-  }
+  } //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiYmFzaWMtcmVnaXN0cnkuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvbW9kdWxlLXJlZ2lzdHJpZXMvYmFzaWMtcmVnaXN0cnkudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBR0EsTUFBTSxDQUFDLE9BQU87SUFHWixZQUFZLFVBQXFCLEVBQUU7UUFDakMsSUFBSSxDQUFDLFFBQVEsR0FBRyxPQUFPLENBQUM7SUFDMUIsQ0FBQztJQUVELEdBQUcsQ0FBQyxTQUFpQjtRQUNuQixNQUFNLENBQUMsU0FBUyxJQUFJLElBQUksQ0FBQyxRQUFRLENBQUM7SUFDcEMsQ0FBQztJQUVELEdBQUcsQ0FBQyxTQUFpQjtRQUNuQixNQUFNLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxTQUFTLENBQUMsQ0FBQztJQUNsQyxDQUFDO0NBQ0YiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBNb2R1bGVSZWdpc3RyeSB9IGZyb20gJy4uL21vZHVsZS1yZWdpc3RyeSc7XG5pbXBvcnQgeyBEaWN0IH0gZnJvbSAnQGdsaW1tZXIvZGknO1xuXG5leHBvcnQgZGVmYXVsdCBjbGFzcyBCYXNpY1JlZ2lzdHJ5IGltcGxlbWVudHMgTW9kdWxlUmVnaXN0cnkge1xuICBwcml2YXRlIF9lbnRyaWVzOiBEaWN0PGFueT47XG5cbiAgY29uc3RydWN0b3IoZW50cmllczogRGljdDxhbnk+ID0ge30pIHtcbiAgICB0aGlzLl9lbnRyaWVzID0gZW50cmllcztcbiAgfVxuXG4gIGhhcyhzcGVjaWZpZXI6IHN0cmluZyk6IGJvb2xlYW4ge1xuICAgIHJldHVybiBzcGVjaWZpZXIgaW4gdGhpcy5fZW50cmllcztcbiAgfVxuXG4gIGdldChzcGVjaWZpZXI6IHN0cmluZyk6IGFueSB7XG4gICAgcmV0dXJuIHRoaXMuX2VudHJpZXNbc3BlY2lmaWVyXTtcbiAgfVxufVxuIl19
+
 
   _exports.default = BasicRegistry;
 });
@@ -534,7 +538,8 @@ define("@glimmer/resolver/utils/debug", ["exports"], function (_exports) {
     if (!test) {
       throw new Error('Assertion Failed: ' + description);
     }
-  }
+  } //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZGVidWcuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi9zcmMvdXRpbHMvZGVidWcudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUEsTUFBTSxpQkFBaUIsV0FBbUIsRUFBRSxJQUFTO0lBQ25ELEVBQUUsQ0FBQyxDQUFDLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQztRQUNWLE1BQU0sSUFBSSxLQUFLLENBQUMsb0JBQW9CLEdBQUcsV0FBVyxDQUFDLENBQUM7SUFDdEQsQ0FBQztBQUNILENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyJleHBvcnQgZnVuY3Rpb24gYXNzZXJ0KGRlc2NyaXB0aW9uOiBzdHJpbmcsIHRlc3Q6IGFueSkge1xuICBpZiAoIXRlc3QpIHtcbiAgICB0aHJvdyBuZXcgRXJyb3IoJ0Fzc2VydGlvbiBGYWlsZWQ6ICcgKyBkZXNjcmlwdGlvbik7XG4gIH1cbn1cbiJdfQ==
+
 });
 define("@glimmer/resolver/utils/specifiers", ["exports"], function (_exports) {
   "use strict";
@@ -560,7 +565,8 @@ define("@glimmer/resolver/utils/specifiers", ["exports"], function (_exports) {
     }
 
     return collection;
-  }
+  } //# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic3BlY2lmaWVycy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uL3NyYy91dGlscy9zcGVjaWZpZXJzLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUVBLE1BQU0sMENBQTBDLFNBQW9CO0lBQ2xFLElBQUksRUFBRSxTQUFTLEVBQUUsVUFBVSxFQUFFLEdBQUcsU0FBUyxDQUFDO0lBRTFDLHdFQUF3RTtJQUN4RSx1REFBdUQ7SUFDdkQsSUFBSSxRQUFRLEdBQUcsU0FBUyxDQUFDLFdBQVcsQ0FBQyxJQUFJLENBQUMsQ0FBQztJQUMzQyxFQUFFLENBQUMsQ0FBQyxRQUFRLEdBQUcsQ0FBQyxDQUFDLENBQUMsQ0FBQyxDQUFDO1FBQ2xCLFFBQVEsSUFBSSxDQUFDLENBQUM7UUFDZCxJQUFJLE1BQU0sR0FBRyxTQUFTLENBQUMsT0FBTyxDQUFDLEdBQUcsRUFBRSxRQUFRLENBQUMsQ0FBQztRQUM5QyxVQUFVLEdBQUcsU0FBUyxDQUFDLEtBQUssQ0FBQyxRQUFRLEVBQUUsTUFBTSxHQUFHLENBQUMsQ0FBQyxHQUFHLE1BQU0sR0FBRyxTQUFTLENBQUMsQ0FBQztJQUMzRSxDQUFDO0lBRUQsTUFBTSxDQUFDLFVBQVUsQ0FBQztBQUNwQixDQUFDIiwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgU3BlY2lmaWVyIH0gZnJvbSAnQGdsaW1tZXIvZGknO1xuXG5leHBvcnQgZnVuY3Rpb24gZGV0ZWN0TG9jYWxSZXNvbHV0aW9uQ29sbGVjdGlvbihzcGVjaWZpZXI6IFNwZWNpZmllcik6IHN0cmluZyB7XG4gIGxldCB7IG5hbWVzcGFjZSwgY29sbGVjdGlvbiB9ID0gc3BlY2lmaWVyO1xuXG4gIC8vIExvb2sgZm9yIHRoZSBsb2NhbC1tb3N0IHByaXZhdGUgY29sbGVjdGlvbiBjb250YWluZWQgaW4gdGhlIG5hbWVzcGFjZVxuICAvLyAod2hpY2ggd2lsbCBhcHBlYXIgY2xvc2VzdCB0byB0aGUgZW5kIG9mIHRoZSBzdHJpbmcpXG4gIGxldCBzdGFydFBvcyA9IG5hbWVzcGFjZS5sYXN0SW5kZXhPZignLy0nKTtcbiAgaWYgKHN0YXJ0UG9zID4gLTEpIHtcbiAgICBzdGFydFBvcyArPSAyO1xuICAgIGxldCBlbmRQb3MgPSBuYW1lc3BhY2UuaW5kZXhPZignLycsIHN0YXJ0UG9zKTtcbiAgICBjb2xsZWN0aW9uID0gbmFtZXNwYWNlLnNsaWNlKHN0YXJ0UG9zLCBlbmRQb3MgPiAtMSA/IGVuZFBvcyA6IHVuZGVmaW5lZCk7XG4gIH1cblxuICByZXR1cm4gY29sbGVjdGlvbjtcbn1cbiJdfQ==
+
 });
 define('@glimmer/di', ['exports'], function (exports) { 'use strict';
 
@@ -867,7 +873,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.10.0
+ * @version   3.11.1
  */
 
 /*globals process */
@@ -1695,7 +1701,7 @@ enifed("@ember/-internals/container", ["exports", "@ember/-internals/owner", "@e
         }
 
       if (!this.class.create) {
-        throw new Error("Failed to create an instance of '" + this.normalizedName + "'. Most likely an improperly defined class or" + " an invalid module export.");
+        throw new Error("Failed to create an instance of '" + this.normalizedName + "'. Most likely an improperly defined class or an invalid module export.");
       } // required to allow access to things like
       // the customized toString, _debugContainerKey,
       // owner, etc. without a double extend and without
@@ -2410,7 +2416,7 @@ enifed("@ember/-internals/container", ["exports", "@ember/-internals/owner", "@e
   */
 
 });
-enifed("@ember/-internals/environment", ["exports"], function (_exports) {
+enifed("@ember/-internals/environment", ["exports", "@ember/deprecated-features"], function (_exports, _deprecatedFeatures) {
   "use strict";
 
   _exports.getLookup = getLookup;
@@ -2596,12 +2602,20 @@ enifed("@ember/-internals/environment", ["exports"], function (_exports) {
     if (EXTEND_PROTOTYPES !== undefined) {
       if (typeof EXTEND_PROTOTYPES === 'object' && EXTEND_PROTOTYPES !== null) {
         ENV.EXTEND_PROTOTYPES.String = EXTEND_PROTOTYPES.String !== false;
-        ENV.EXTEND_PROTOTYPES.Function = EXTEND_PROTOTYPES.Function !== false;
+
+        if (_deprecatedFeatures.FUNCTION_PROTOTYPE_EXTENSIONS) {
+          ENV.EXTEND_PROTOTYPES.Function = EXTEND_PROTOTYPES.Function !== false;
+        }
+
         ENV.EXTEND_PROTOTYPES.Array = EXTEND_PROTOTYPES.Array !== false;
       } else {
         let isEnabled = EXTEND_PROTOTYPES !== false;
         ENV.EXTEND_PROTOTYPES.String = isEnabled;
-        ENV.EXTEND_PROTOTYPES.Function = isEnabled;
+
+        if (_deprecatedFeatures.FUNCTION_PROTOTYPE_EXTENSIONS) {
+          ENV.EXTEND_PROTOTYPES.Function = isEnabled;
+        }
+
         ENV.EXTEND_PROTOTYPES.Array = isEnabled;
       }
     } // TODO this does not seem to be used by anything,
@@ -3265,7 +3279,7 @@ enifed("@ember/-internals/extension-support/lib/data_adapter", ["exports", "@emb
 
   _exports.default = _default;
 });
-enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internals/owner", "@glimmer/opcode-compiler", "@ember/-internals/runtime", "@ember/-internals/utils", "@glimmer/reference", "@ember/-internals/metal", "@ember/debug", "@glimmer/runtime", "@glimmer/util", "@ember/-internals/views", "@ember/-internals/browser-environment", "@ember/instrumentation", "@ember/polyfills", "@ember/service", "@ember/-internals/environment", "@ember/string", "@glimmer/wire-format", "@ember/-internals/container", "@ember/runloop", "rsvp", "@glimmer/node", "@ember/-internals/routing", "@ember/deprecated-features"], function (_exports, _nodeModule, _owner, _opcodeCompiler, _runtime, _utils, _reference, _metal, _debug, _runtime2, _util, _views, _browserEnvironment, _instrumentation, _polyfills, _service, _environment2, _string, _wireFormat, _container, _runloop, _rsvp, _node, _routing, _deprecatedFeatures) {
+enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internals/owner", "@glimmer/opcode-compiler", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/runloop", "@glimmer/reference", "@ember/-internals/metal", "@ember/debug", "@glimmer/runtime", "@glimmer/util", "@ember/-internals/views", "@ember/-internals/browser-environment", "@ember/instrumentation", "@ember/polyfills", "@ember/service", "@ember/-internals/environment", "@ember/string", "@glimmer/wire-format", "@ember/-internals/container", "rsvp", "@glimmer/node", "@ember/-internals/routing", "@ember/deprecated-features"], function (_exports, _nodeModule, _owner, _opcodeCompiler, _runtime, _utils, _runloop, _reference, _metal, _debug, _runtime2, _util, _views, _browserEnvironment, _instrumentation, _polyfills, _service, _environment2, _string, _wireFormat, _container, _rsvp, _node, _routing, _deprecatedFeatures) {
   "use strict";
 
   _exports.template = template;
@@ -3316,8 +3330,18 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   });
   _exports.OutletView = _exports.DebugStack = _exports.INVOKE = _exports.UpdatableReference = _exports.AbstractComponentManager = _exports._experimentalMacros = _exports.InteractiveRenderer = _exports.InertRenderer = _exports.Renderer = _exports.SafeString = _exports.Environment = _exports.Helper = _exports.ROOT_REF = _exports.Component = _exports.LinkComponent = _exports.TextArea = _exports.TextField = _exports.Checkbox = _exports.RootTemplate = void 0;
 
-  function _templateObject9() {
+  function _templateObject10() {
     const data = _taggedTemplateLiteralLoose(["component:-default"]);
+
+    _templateObject10 = function () {
+      return data;
+    };
+
+    return data;
+  }
+
+  function _templateObject9() {
+    const data = _taggedTemplateLiteralLoose(["template-compiler:main"]);
 
     _templateObject9 = function () {
       return data;
@@ -3429,8 +3453,8 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   }
 
   var RootTemplate = template({
-    "id": "T+MWx6cw",
-    "block": "{\"symbols\":[],\"statements\":[[1,[29,\"component\",[[24,0,[]]],null],false]],\"hasEval\":false}",
+    "id": "hjhxUoru",
+    "block": "{\"symbols\":[],\"statements\":[[1,[28,\"component\",[[23,0,[]]],null],false]],\"hasEval\":false}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/root.hbs"
     }
@@ -3522,13 +3546,19 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
       @since 1.13.0
     */
     recompute() {
-      this[RECOMPUTE_TAG].inner.dirty();
+      (0, _runloop.join)(() => this[RECOMPUTE_TAG].inner.dirty());
     }
 
   });
 
   _exports.Helper = Helper;
   Helper.isHelperFactory = true;
+
+  if (true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ) {
+      (0, _runtime.setFrameworkClass)(Helper);
+    }
 
   class Wrapper {
     constructor(compute) {
@@ -3721,6 +3751,8 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
 
       if (true
       /* DEBUG */
+      && !false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
       ) {
           (0, _metal.watchKey)(parentValue, propertyKey);
         }
@@ -3738,26 +3770,19 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
           this.tag.inner.didCompute(parentValue);
         }
 
-      let parent = null;
-      let tracker = null;
+      let ret;
 
       if (false
       /* EMBER_METAL_TRACKED_PROPERTIES */
       ) {
-          parent = (0, _metal.getCurrentTracker)();
-          tracker = (0, _metal.setCurrentTracker)();
-        }
-
-      let ret = (0, _metal.get)(parentValue, propertyKey);
-
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          (0, _metal.setCurrentTracker)(parent);
-          let tag = tracker.combine();
-          if (parent) parent.add(tag);
+          let tag = (0, _metal.track)(() => {
+            ret = (0, _metal.get)(parentValue, propertyKey);
+          });
+          (0, _metal.consume)(tag);
           this.propertyTag.inner.update(tag);
-        }
+        } else {
+        ret = (0, _metal.get)(parentValue, propertyKey);
+      }
 
       return ret;
     }
@@ -3807,6 +3832,8 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
 
         if (true
         /* DEBUG */
+        && !false
+        /* EMBER_METAL_TRACKED_PROPERTIES */
         ) {
             (0, _metal.watchKey)(parentValue, propertyKey);
           }
@@ -3817,26 +3844,18 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
             this.tag.inner.didCompute(parentValue);
           }
 
-        let parent = null;
-        let tracker = null;
+        let ret;
 
         if (false
         /* EMBER_METAL_TRACKED_PROPERTIES */
         ) {
-            parent = (0, _metal.getCurrentTracker)();
-            tracker = (0, _metal.setCurrentTracker)();
-          }
-
-        let ret = (0, _metal.get)(parentValue, propertyKey);
-
-        if (false
-        /* EMBER_METAL_TRACKED_PROPERTIES */
-        ) {
-            (0, _metal.setCurrentTracker)(parent);
-            let tag = tracker.combine();
-            if (parent) parent.add(tag);
+            let tag = (0, _metal.track)(() => {
+              ret = (0, _metal.get)(parentValue, propertyKey);
+            });
+            (0, _metal.consume)(tag);
             propertyTag.inner.update(tag);
           } else {
+          ret = (0, _metal.get)(parentValue, propertyKey);
           propertyTag.inner.update((0, _metal.tagForProperty)(parentValue, propertyKey));
         }
 
@@ -4695,15 +4714,35 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   
     ## Handling Browser Events
   
-    Components can respond to user-initiated events in one of two ways: adding
-    event handler methods to the component's class, or adding actions to the
-    component's template.
+    Components can respond to user-initiated events in one of three ways: passing
+    actions with angle bracket invocation, adding event handler methods to the
+    component's class, or adding actions to the component's template.
+  
+    ### Passing Actions With Angle Bracket Invoation
+  
+    For one-off events specific to particular instance of a component, it is possible
+    to pass actions to the component's element using angle bracket invoation syntax.
+  
+    ```handlebars
+    <MyWidget {{action 'firstWidgetClicked'}} />
+  
+    <MyWidget {{action 'secondWidgetClicked'}} />
+    ```
+  
+    In this case, when the first component is clicked on, Ember will invoke the
+    `firstWidgetClicked` action. When the second component is clicked on, Ember
+    will invoke the `secondWidgetClicked` action instead.
+  
+    Besides `{{action}}`, it is also possible to pass any arbitrary element modifiers
+    using the angle bracket invocation syntax.
   
     ### Event Handler Methods
   
-    Components can respond to user-initiated events by implementing a method that
-    matches the event name. An event object will be passed as the argument to this
-    method.
+    Components can also respond to user-initiated events by implementing a method
+    that matches the event name. This approach is appropiate when the same event
+    should be handled by all instances of the same component.
+  
+    An event object will be passed as the argument to the event handler method.
   
     ```app/components/my-widget.js
     import Component from '@ember/component';
@@ -5081,6 +5120,13 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     isComponentFactory: true,
     positionalParams: []
   });
+
+  if (true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ) {
+      (0, _runtime.setFrameworkClass)(Component);
+    }
+
   var layout = template({
     "id": "hvtsz7RF",
     "block": "{\"symbols\":[],\"statements\":[],\"hasEval\":false}",
@@ -5538,8 +5584,8 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   TextArea.toString = () => '@ember/component/text-area';
 
   var layout$1 = template({
-    "id": "VKeIRbyr",
-    "block": "{\"symbols\":[\"&default\"],\"statements\":[[4,\"if\",[[26,1]],null,{\"statements\":[[15,1]],\"parameters\":[]},{\"statements\":[[1,[24,0,[\"linkTitle\"]],false]],\"parameters\":[]}]],\"hasEval\":false}",
+    "id": "giTNx+op",
+    "block": "{\"symbols\":[\"&default\"],\"statements\":[[4,\"if\",[[25,1]],null,{\"statements\":[[14,1]],\"parameters\":[]},{\"statements\":[[1,[23,0,[\"linkTitle\"]],false]],\"parameters\":[]}]],\"hasEval\":false}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/link-to.hbs"
     }
@@ -5947,7 +5993,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
         _currentRoute: (0, _metal.alias)('_routing.currentRouteName'),
         _currentRouterState: (0, _metal.alias)('_routing.currentState'),
         _targetRouterState: (0, _metal.alias)('_routing.targetState'),
-        _route: (0, _metal.computed)('route', '_currentRoute', function computeLinkToComponentRoute() {
+        _route: (0, _metal.computed)('route', '_currentRouterState', function computeLinkToComponentRoute() {
           let {
             route
           } = this;
@@ -7526,7 +7572,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
         return EMPTY_ITERATOR;
       }
 
-      if (Array.isArray(iterable) || (0, _runtime.isEmberArray)(iterable)) {
+      if (Array.isArray(iterable) || (0, _utils.isEmberArray)(iterable)) {
         return ObjectIterator.fromIndexable(iterable, this.keyFor(true));
       } else if (_utils.HAS_NATIVE_SYMBOL && isNativeIterable(iterable)) {
         return MapLikeNativeIterator.from(iterable, this.keyFor());
@@ -7600,7 +7646,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
 
       if (Array.isArray(iterable)) {
         return ArrayIterator.from(iterable, keyFor);
-      } else if ((0, _runtime.isEmberArray)(iterable)) {
+      } else if ((0, _utils.isEmberArray)(iterable)) {
         return EmberArrayIterator.from(iterable, keyFor);
       } else if (_utils.HAS_NATIVE_SYMBOL && isNativeIterable(iterable)) {
         return ArrayLikeNativeIterator.from(iterable, keyFor);
@@ -9923,9 +9969,18 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
 
   function capabilities(managerAPI, options = {}) {
     true && !(managerAPI === '3.4') && (0, _debug.assert)('Invalid component manager compatibility specified', managerAPI === '3.4');
+    let updateHook = true;
+
+    if (false
+    /* EMBER_CUSTOM_COMPONENT_ARG_PROXY */
+    ) {
+        updateHook = 'updateHook' in options ? Boolean(options.updateHook) : true;
+      }
+
     return {
       asyncLifeCycleCallbacks: Boolean(options.asyncLifecycleCallbacks),
-      destructor: Boolean(options.destructor)
+      destructor: Boolean(options.destructor),
+      updateHook
     };
   }
 
@@ -9969,16 +10024,78 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
         delegate
       } = definition;
       const capturedArgs = args.capture();
-      const component = delegate.createComponent(definition.ComponentClass.class, capturedArgs.value());
-      return new CustomComponentState(delegate, component, capturedArgs);
+      let value;
+      let namedArgsProxy = {};
+
+      if (false
+      /* EMBER_CUSTOM_COMPONENT_ARG_PROXY */
+      ) {
+          if (_utils.HAS_NATIVE_PROXY) {
+            let handler = {
+              get(_target, prop) {
+                true && !(typeof prop === 'string') && (0, _debug.assert)('args can only be strings', typeof prop === 'string');
+                let ref = capturedArgs.named.get(prop);
+                (0, _metal.consume)(ref.tag);
+                return ref.value();
+              }
+
+            };
+
+            if (true
+            /* DEBUG */
+            ) {
+                handler.set = function (_target, prop) {
+                  true && !false && (0, _debug.assert)("You attempted to set " + definition.ComponentClass.class + "#" + String(prop) + " on a components arguments. Component arguments are immutable and cannot be updated directly, they always represent the values that are passed to your component. If you want to set default values, you should use a getter instead");
+                  return false;
+                };
+              }
+
+            namedArgsProxy = new Proxy(namedArgsProxy, handler);
+          } else {
+            capturedArgs.named.names.forEach(name => {
+              Object.defineProperty(namedArgsProxy, name, {
+                get() {
+                  let ref = capturedArgs.named.get(name);
+                  (0, _metal.consume)(ref.tag);
+                  return ref.value();
+                }
+
+              });
+            });
+          }
+
+          value = {
+            named: namedArgsProxy,
+            positional: capturedArgs.positional.value()
+          };
+        } else {
+        value = capturedArgs.value();
+      }
+
+      const component = delegate.createComponent(definition.ComponentClass.class, value);
+      return new CustomComponentState(delegate, component, capturedArgs, namedArgsProxy);
     }
 
     update({
       delegate,
       component,
-      args
+      args,
+      namedArgsProxy
     }) {
-      delegate.updateComponent(component, args.value());
+      let value;
+
+      if (false
+      /* EMBER_CUSTOM_COMPONENT_ARG_PROXY */
+      ) {
+          value = {
+            named: namedArgsProxy,
+            positional: args.positional.value()
+          };
+        } else {
+        value = args.value();
+      }
+
+      delegate.updateComponent(component, value);
     }
 
     didCreate({
@@ -10021,8 +10138,12 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
       }
     }
 
-    getCapabilities() {
-      return CAPABILITIES$2;
+    getCapabilities({
+      delegate
+    }) {
+      return Object.assign({}, CAPABILITIES$2, {
+        updateHook: delegate.capabilities.updateHook
+      });
     }
 
     getTag({
@@ -10048,10 +10169,11 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
    */
 
   class CustomComponentState {
-    constructor(delegate, component, args) {
+    constructor(delegate, component, args, namedArgsProxy) {
       this.delegate = delegate;
       this.component = component;
       this.args = args;
+      this.namedArgsProxy = namedArgsProxy;
     }
 
     destroy() {
@@ -10711,6 +10833,139 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   function concat$1(_vm, args) {
     return new InternalHelperReference(concat, args.capture());
   }
+
+  function buildUntouchableThis(source) {
+    let context = null;
+
+    if (true
+    /* DEBUG */
+    && _utils.HAS_NATIVE_PROXY) {
+      let assertOnProperty = property => {
+        true && !false && (0, _debug.assert)("You accessed `this." + String(property) + "` from a function passed to the " + source + ", but the function itself was not bound to a valid `this` context. Consider updating to usage of `@action`.");
+      };
+
+      context = new Proxy({}, {
+        get(_target, property) {
+          assertOnProperty(property);
+        },
+
+        set(_target, property) {
+          assertOnProperty(property);
+          return false;
+        },
+
+        has(_target, property) {
+          assertOnProperty(property);
+          return false;
+        }
+
+      });
+    }
+
+    return context;
+  }
+
+  const context = buildUntouchableThis('`fn` helper');
+  /**
+  @module ember
+  */
+
+  /**
+    The `fn` helper allows you to ensure a function that you are passing off
+    to another component, helper, or modifier has access to arguments that are
+    available in the template.
+  
+    For example, if you have an `each` helper looping over a number of items, you
+    may need to pass a function that expects to receive the item as an argument
+    to a component invoked within the loop. Here's how you could use the `fn`
+    helper to pass both the function and its arguments together:
+  
+      ```app/templates/components/items-listing.hbs
+    {{#each @items as |item|}}
+      <DisplayItem @item=item @select={{fn this.handleSelected item}} />
+    {{/each}}
+    ```
+  
+    ```app/components/items-list.js
+    import Component from '@glimmer/component';
+    import { action } from '@ember/object';
+  
+    export default class ItemsList extends Component {
+      @action
+      handleSelected(item) {
+        // ...snip...
+      }
+    }
+    ```
+  
+    In this case the `display-item` component will receive a normal function
+    that it can invoke. When it invokes the function, the `handleSelected`
+    function will receive the `item` and any arguments passed, thanks to the
+    `fn` helper.
+  
+    Let's take look at what that means in a couple circumstances:
+  
+    - When invoked as `this.args.select()` the `handleSelected` function will
+      receive the `item` from the loop as its first and only argument.
+    - When invoked as `this.args.selected('foo')` the `handleSelected` function
+      will receive the `item` from the loop as its first argument and the
+      string `'foo'` as its second argument.
+  
+    In the example above, we used `@action` to ensure that `handleSelected` is
+    properly bound to the `items-list`, but let's explore what happens if we
+    left out `@action`:
+  
+    ```app/components/items-list.js
+    import Component from '@glimmer/component';
+  
+    export default class ItemsList extends Component {
+      handleSelected(item) {
+        // ...snip...
+      }
+    }
+    ```
+  
+    In this example, when `handleSelected` is invoked inside the `display-item`
+    component, it will **not** have access to the component instance. In other
+    words, it will have no `this` context, so please make sure your functions
+    are bound (via `@action` or other means) before passing into `fn`!
+  
+    See also [partial application](https://en.wikipedia.org/wiki/Partial_application).
+  
+    @method fn
+    @for Ember.Templates.helpers
+    @public
+    @since 3.11.0
+  */
+
+  function fnHelper({
+    positional
+  }) {
+    let callbackRef = positional.at(0);
+
+    if (true
+    /* DEBUG */
+    && typeof callbackRef[INVOKE] !== 'function') {
+      let callback = callbackRef.value();
+      true && !(typeof callback === 'function') && (0, _debug.assert)("You must pass a function as the `fn` helpers first argument, you passed " + callback, typeof callback === 'function');
+    }
+
+    return (...invocationArgs) => {
+      let [fn, ...args] = positional.value();
+
+      if (typeof callbackRef[INVOKE] === 'function') {
+        // references with the INVOKE symbol expect the function behind
+        // the symbol to be bound to the reference
+        return callbackRef[INVOKE](...args, ...invocationArgs);
+      } else {
+        return fn['call'](context, ...args, ...invocationArgs);
+      }
+    };
+  }
+
+  function fn(_vm, args) {
+    return new InternalHelperReference(fnHelper, args.capture());
+  }
   /**
   @module ember
   */
@@ -10738,16 +10993,16 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   
     ```handlebars
     {{get person factName}}
-    <button {{action (action (mut factName)) "height"}}>Show height</button>
-    <button {{action (action (mut factName)) "weight"}}>Show weight</button>
+    <button {{action (fn (mut factName)) "height"}}>Show height</button>
+    <button {{action (fn (mut factName)) "weight"}}>Show weight</button>
     ```
   
     The `{{get}}` helper can also respect mutable values itself. For example:
   
     ```handlebars
     {{input value=(mut (get person factName)) type="text"}}
-    <button {{action (action (mut factName)) "height"}}>Show height</button>
-    <button {{action (action (mut factName)) "weight"}}>Show weight</button>
+    <button {{action (fn (mut factName)) "height"}}>Show height</button>
+    <button {{action (fn (mut factName)) "weight"}}>Show weight</button>
     ```
   
     Would allow the user to swap what fact is being displayed, and also edit
@@ -11119,7 +11374,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     To specify that a parameter is mutable, when invoking the child `Component`:
   
     ```handlebars
-    <MyChild @childClickCount={{action (mut totalClicks)}} />
+    <MyChild @childClickCount={{fn (mut totalClicks)}} />
     ```
   
      or
@@ -11143,20 +11398,20 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     Note that for curly components (`{{my-component}}`) the bindings are already mutable,
     making the `mut` unnecessary.
   
-    Additionally, the `mut` helper can be combined with the `action` helper to
+    Additionally, the `mut` helper can be combined with the `fn` helper to
     mutate a value. For example:
   
     ```handlebars
-    <MyChild @childClickCount={{this.totalClicks}} @click-count-change={{action (mut totalClicks))}} />
+    <MyChild @childClickCount={{this.totalClicks}} @click-count-change={{fn (mut totalClicks))}} />
     ```
   
     or
   
     ```handlebars
-    {{my-child childClickCount=totalClicks click-count-change=(action (mut totalClicks))}}
+    {{my-child childClickCount=totalClicks click-count-change=(fn (mut totalClicks))}}
     ```
   
-    The child `Component` would invoke the action with the new click value:
+    The child `Component` would invoke the function with the new click value:
   
     ```javascript
     // my-child.js
@@ -11167,17 +11422,15 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     });
     ```
   
-    The `mut` helper changes the `totalClicks` value to what was provided as the action argument.
+    The `mut` helper changes the `totalClicks` value to what was provided as the `fn` argument.
   
-    The `mut` helper, when used with `action`, will return a function that
-    sets the value passed to `mut` to its first argument. This works like any other
-    closure action and interacts with the other features `action` provides.
-    As an example, we can create a button that increments a value passing the value
-    directly to the `action`:
+    The `mut` helper, when used with `fn`, will return a function that
+    sets the value passed to `mut` to its first argument. As an example, we can create a
+    button that increments a value passing the value directly to the `fn`:
   
     ```handlebars
     {{! inc helper is not provided by Ember }}
-    <button onclick={{action (mut count) (inc count)}}>
+    <button onclick={{fn (mut count) (inc count)}}>
       Increment count
     </button>
     ```
@@ -11185,7 +11438,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     You can also use the `value` option:
   
     ```handlebars
-    <input value={{name}} oninput={{action (mut name) value="target.value"}}>
+    <input value={{name}} oninput={{fn (mut name) value="target.value"}}>
     ```
   
     @method mut
@@ -11659,16 +11912,16 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   }
 
   class CustomModifierDefinition {
-    constructor(name, ModifierClass, delegate) {
+    constructor(name, ModifierClass, delegate, isInteractive) {
       this.name = name;
       this.ModifierClass = ModifierClass;
       this.delegate = delegate;
-      this.manager = CUSTOM_MODIFIER_MANAGER;
       this.state = {
         ModifierClass,
         name,
         delegate
       };
+      this.manager = isInteractive ? CUSTOM_INTERACTIVE_MODIFIER_MANAGER : CUSTOM_NON_INTERACTIVE_MODIFIER_MANAGER;
     }
 
   }
@@ -11698,12 +11951,15 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     implements a set of hooks that determine modifier behavior.
     To create a custom modifier manager, instantiate a new CustomModifierManager
     class and pass the delegate as the first argument:
+  
     ```js
     let manager = new CustomModifierManager({
       // ...delegate implementation...
     });
     ```
+  
     ## Delegate Hooks
+  
     Throughout the lifecycle of a modifier, the modifier manager will invoke
     delegate hooks that are responsible for surfacing those lifecycle changes to
     the end developer.
@@ -11714,7 +11970,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   */
 
 
-  class CustomModifierManager {
+  class InteractiveCustomModifierManager {
     create(element, definition, args) {
       const capturedArgs = args.capture();
       let instance = definition.delegate.createModifier(definition.ModifierClass, capturedArgs.value());
@@ -11752,7 +12008,394 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
 
   }
 
-  const CUSTOM_MODIFIER_MANAGER = new CustomModifierManager();
+  class NonInteractiveCustomModifierManager {
+    create() {
+      return null;
+    }
+
+    getTag() {
+      return _reference.CONSTANT_TAG;
+    }
+
+    install() {}
+
+    update() {}
+
+    getDestructor() {
+      return null;
+    }
+
+  }
+
+  const CUSTOM_INTERACTIVE_MODIFIER_MANAGER = new InteractiveCustomModifierManager();
+  const CUSTOM_NON_INTERACTIVE_MODIFIER_MANAGER = new NonInteractiveCustomModifierManager();
+  const untouchableContext = buildUntouchableThis('`on` modifier');
+  /**
+  @module ember
+  */
+
+  /*
+    Internet Explorer 11 does not support `once` and also does not support
+    passing `eventOptions`. In some situations it then throws a weird script
+    error, like:
+  
+    ```
+    Could not complete the operation due to error 80020101
+    ```
+  
+    This flag determines, whether `{ once: true }` and thus also event options in
+    general are supported.
+  */
+
+  const SUPPORTS_EVENT_OPTIONS = (() => {
+    try {
+      const div = document.createElement('div');
+      let counter = 0;
+      div.addEventListener('click', () => counter++, {
+        once: true
+      });
+      let event;
+
+      if (typeof Event === 'function') {
+        event = new Event('click');
+      } else {
+        event = document.createEvent('Event');
+        event.initEvent('click', true, true);
+      }
+
+      div.dispatchEvent(event);
+      div.dispatchEvent(event);
+      return counter === 1;
+    } catch (error) {
+      return false;
+    }
+  })();
+
+  class OnModifierState {
+    constructor(element, args) {
+      this.shouldUpdate = true;
+      this.element = element;
+      this.args = args;
+      this.tag = args.tag;
+    }
+
+    updateFromArgs() {
+      let {
+        args
+      } = this;
+      let {
+        once,
+        passive,
+        capture
+      } = args.named.value();
+
+      if (once !== this.once) {
+        this.once = once;
+        this.shouldUpdate = true;
+      }
+
+      if (passive !== this.passive) {
+        this.passive = passive;
+        this.shouldUpdate = true;
+      }
+
+      if (capture !== this.capture) {
+        this.capture = capture;
+        this.shouldUpdate = true;
+      }
+
+      let options;
+
+      if (once || passive || capture) {
+        options = this.options = {
+          once,
+          passive,
+          capture
+        };
+      } else {
+        this.options = undefined;
+      }
+
+      true && !(args.positional.at(0) !== undefined && typeof args.positional.at(0).value() === 'string') && (0, _debug.assert)('You must pass a valid DOM event name as the first argument to the `on` modifier', args.positional.at(0) !== undefined && typeof args.positional.at(0).value() === 'string');
+      let eventName = args.positional.at(0).value();
+
+      if (eventName !== this.eventName) {
+        this.eventName = eventName;
+        this.shouldUpdate = true;
+      }
+
+      true && !(args.positional.at(1) !== undefined && typeof args.positional.at(1).value() === 'function') && (0, _debug.assert)('You must pass a function as the second argument to the `on` modifier', args.positional.at(1) !== undefined && typeof args.positional.at(1).value() === 'function');
+      let userProvidedCallback = args.positional.at(1).value();
+
+      if (userProvidedCallback !== this.userProvidedCallback) {
+        this.userProvidedCallback = userProvidedCallback;
+        this.shouldUpdate = true;
+      }
+
+      true && !(args.positional.length === 2) && (0, _debug.assert)("You can only pass two positional arguments (event name and callback) to the `on` modifier, but you provided " + args.positional.length + ". Consider using the `fn` helper to provide additional arguments to the `on` callback.", args.positional.length === 2);
+      let needsCustomCallback = SUPPORTS_EVENT_OPTIONS === false && once ||
+      /* needs manual once implementation */
+      true
+      /* DEBUG */
+      && passive
+      /* needs passive enforcement */
+      ;
+
+      if (this.shouldUpdate) {
+        if (needsCustomCallback) {
+          let callback = this.callback = function (event) {
+            if (true
+            /* DEBUG */
+            && passive) {
+              event.preventDefault = () => {
+                true && !false && (0, _debug.assert)("You marked this listener as 'passive', meaning that you must not call 'event.preventDefault()': \n\n" + userProvidedCallback);
+              };
+            }
+
+            if (!SUPPORTS_EVENT_OPTIONS && once) {
+              removeEventListener(this, eventName, callback, options);
+            }
+
+            return userProvidedCallback.call(untouchableContext, event);
+          };
+        } else if (true
+        /* DEBUG */
+        ) {
+            // prevent the callback from being bound to the element
+            this.callback = userProvidedCallback.bind(untouchableContext);
+          } else {
+          this.callback = userProvidedCallback;
+        }
+      }
+    }
+
+    destroy() {
+      let {
+        element,
+        eventName,
+        callback,
+        options
+      } = this;
+      removeEventListener(element, eventName, callback, options);
+    }
+
+  }
+
+  let adds = 0;
+  let removes = 0;
+
+  function removeEventListener(element, eventName, callback, options) {
+    removes++;
+
+    if (SUPPORTS_EVENT_OPTIONS) {
+      // when options are supported, use them across the board
+      element.removeEventListener(eventName, callback, options);
+    } else if (options !== undefined && options.capture) {
+      // used only in the following case:
+      //
+      // `{ once: true | false, passive: true | false, capture: true }
+      //
+      // `once` is handled via a custom callback that removes after first
+      // invocation so we only care about capture here as a boolean
+      element.removeEventListener(eventName, callback, true);
+    } else {
+      // used only in the following cases:
+      //
+      // * where there is no options
+      // * `{ once: true | false, passive: true | false, capture: false }
+      element.removeEventListener(eventName, callback);
+    }
+  }
+
+  function addEventListener(element, eventName, callback, options) {
+    adds++;
+
+    if (SUPPORTS_EVENT_OPTIONS) {
+      // when options are supported, use them across the board
+      element.addEventListener(eventName, callback, options);
+    } else if (options !== undefined && options.capture) {
+      // used only in the following case:
+      //
+      // `{ once: true | false, passive: true | false, capture: true }
+      //
+      // `once` is handled via a custom callback that removes after first
+      // invocation so we only care about capture here as a boolean
+      element.addEventListener(eventName, callback, true);
+    } else {
+      // used only in the following cases:
+      //
+      // * where there is no options
+      // * `{ once: true | false, passive: true | false, capture: false }
+      element.addEventListener(eventName, callback);
+    }
+  }
+  /**
+    The `{{on}}` modifier lets you easily add event listeners (it uses
+    [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
+    internally).
+  
+    For example, if you'd like to run a function on your component when a `<button>`
+    in the components template is clicked you might do something like:
+  
+    ```app/templates/components/like-post.hbs
+    <button {{on 'click' this.saveLike}}>Like this post!</button>
+    ```
+  
+    ```app/components/like-post.js
+    import Component from '@glimmer/component';
+    import { action } from '@ember/object';
+  
+    export default class LikePostComponent extends Component {
+      @action
+      saveLike() {
+        // someone likes your post!
+        // better send a request off to your server...
+      }
+    }
+    ```
+  
+    ### Arguments
+  
+    `{{on}}` accepts two positional arguments, and a few named arguments.
+  
+    The positional arguments are:
+  
+    - `event` -- the name to use when calling `addEventListener`
+    - `callback` -- the function to be passed to `addEventListener`
+  
+    The named arguments are:
+  
+    - capture -- a `true` value indicates that events of this type will be dispatched
+      to the registered listener before being dispatched to any EventTarget beneath it
+      in the DOM tree.
+    - once -- indicates that the listener should be invoked at most once after being
+      added. If true, the listener would be automatically removed when invoked.
+    - passive -- if `true`, indicates that the function specified by listener will never
+      call preventDefault(). If a passive listener does call preventDefault(), the user
+      agent will do nothing other than generate a console warning. See
+      [Improving scrolling performance with passive listeners](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#Improving_scrolling_performance_with_passive_listeners)
+      to learn more.
+  
+    The callback function passed to `{{on}}` will receive any arguments that are passed
+    to the event handler. Most commonly this would be the `event` itself.
+  
+    If you would like to pass additional arguments to the function you should use
+    the `{{fn}}` helper.
+  
+    For example, in our example case above if you'd like to pass in the post that
+    was being liked when the button is clicked you could do something like:
+  
+    ```app/templates/components/like-post.js
+    <button {{on 'click' (fn this.saveLike @post)}}>Like this post!</button>
+    ```
+  
+    In this case, the `saveLike` function will receive two arguments: the click event
+    and the value of `@post`.
+  
+    ### Function Context
+  
+    In the example above, we used `@action` to ensure that `likePost` is
+    properly bound to the `items-list`, but let's explore what happens if we
+    left out `@action`:
+  
+    ```app/components/like-post.js
+    import Component from '@glimmer/component';
+  
+    export default class LikePostComponent extends Component {
+      saveLike() {
+        // ...snip...
+      }
+    }
+    ```
+  
+    In this example, when the button is clicked `saveLike` will be invoked,
+    it will **not** have access to the component instance. In other
+    words, it will have no `this` context, so please make sure your functions
+    are bound (via `@action` or other means) before passing into `on`!
+  
+    @method on
+    @for Ember.Templates.helpers
+    @public
+    @since 3.11.0
+  */
+
+
+  class OnModifierManager {
+    constructor(isInteractive) {
+      this.SUPPORTS_EVENT_OPTIONS = SUPPORTS_EVENT_OPTIONS;
+      this.isInteractive = isInteractive;
+    }
+
+    get counters() {
+      return {
+        adds,
+        removes
+      };
+    }
+
+    create(element, _state, args) {
+      if (!this.isInteractive) {
+        return null;
+      }
+
+      const capturedArgs = args.capture();
+      return new OnModifierState(element, capturedArgs);
+    }
+
+    getTag(state) {
+      if (state === null) {
+        return _reference.CONSTANT_TAG;
+      }
+
+      return state.tag;
+    }
+
+    install(state) {
+      if (state === null) {
+        return;
+      }
+
+      state.updateFromArgs();
+      let {
+        element,
+        eventName,
+        callback,
+        options
+      } = state;
+      addEventListener(element, eventName, callback, options);
+      state.shouldUpdate = false;
+    }
+
+    update(state) {
+      if (state === null) {
+        return;
+      } // stash prior state for el.removeEventListener
+
+
+      let {
+        element,
+        eventName,
+        callback,
+        options
+      } = state;
+      state.updateFromArgs();
+
+      if (!state.shouldUpdate) {
+        return;
+      } // use prior state values for removal
+
+
+      removeEventListener(element, eventName, callback, options); // read updated values from the state object
+
+      addEventListener(state.element, state.eventName, state.callback, state.options);
+      state.shouldUpdate = false;
+    }
+
+    getDestructor(state) {
+      return state;
+    }
+
+  }
 
   function hashToArgs(hash) {
     if (hash === null) return null;
@@ -12598,21 +13241,21 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     '-get-dynamic-var': _runtime2.getDynamicVar,
     '-mount': mountHelper,
     '-outlet': outletHelper,
-    '-assert-implicit-component-helper-argument': componentAssertionHelper
-  };
-  const BUILTIN_MODIFIERS = {
-    action: {
-      manager: new ActionModifierManager(),
-      state: null
-    }
+    '-assert-implicit-component-helper-argument': componentAssertionHelper,
+    fn: undefined
   };
 
+  if (true
+  /* EMBER_GLIMMER_FN_HELPER */
+  ) {
+      BUILTINS_HELPERS.fn = fn;
+    }
+
   class RuntimeResolver {
-    constructor() {
+    constructor(isInteractive) {
       this.handles = [undefined];
       this.objToHandle = new WeakMap();
-      this.builtInHelpers = BUILTINS_HELPERS;
-      this.builtInModifiers = BUILTIN_MODIFIERS; // supports directly imported late bound layouts on component.prototype.layout
+      this.builtInHelpers = BUILTINS_HELPERS; // supports directly imported late bound layouts on component.prototype.layout
 
       this.templateCache = new Map();
       this.componentDefinitionCache = new Map();
@@ -12624,6 +13267,22 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
       let macros = new _opcodeCompiler.Macros();
       populateMacros(macros);
       this.compiler = new _opcodeCompiler.LazyCompiler(new CompileTimeLookup(this), this, macros);
+      this.isInteractive = isInteractive;
+      this.builtInModifiers = {
+        action: {
+          manager: new ActionModifierManager(),
+          state: null
+        }
+      };
+
+      if (true
+      /* EMBER_GLIMMER_ON_MODIFIER */
+      ) {
+          this.builtInModifiers.on = {
+            manager: new OnModifierManager(isInteractive),
+            state: null
+          };
+        }
     }
     /***  IRuntimeResolver ***/
 
@@ -12823,7 +13482,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
         if (modifier !== undefined) {
           let managerFactory = getModifierManager(modifier.class);
           let manager = managerFactory(owner);
-          return new CustomModifierDefinition(name, modifier, manager);
+          return new CustomModifierDefinition(name, modifier, manager, this.isInteractive);
         }
       }
 
@@ -12933,28 +13592,30 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
 
 
   var TemplateCompiler = {
-    create() {
-      return new RuntimeResolver().compiler;
+    create({
+      environment
+    }) {
+      return new RuntimeResolver(environment.isInteractive).compiler;
     }
 
   };
   var ComponentTemplate = template({
-    "id": "TfnYOdXy",
-    "block": "{\"symbols\":[\"&default\"],\"statements\":[[15,1]],\"hasEval\":false}",
+    "id": "chfQcH83",
+    "block": "{\"symbols\":[\"&default\"],\"statements\":[[14,1]],\"hasEval\":false}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/component.hbs"
     }
   });
   var InputTemplate = template({
-    "id": "F5xmpEcE",
-    "block": "{\"symbols\":[\"Checkbox\",\"TextField\",\"@__ARGS__\",\"&attrs\"],\"statements\":[[4,\"let\",[[29,\"component\",[\"-checkbox\"],null],[29,\"component\",[\"-text-field\"],null]],null,{\"statements\":[[4,\"if\",[[24,0,[\"isCheckbox\"]]],null,{\"statements\":[[6,[24,1,[]],[[14,4]],[[\"@target\",\"@__ARGS__\"],[[24,0,[\"caller\"]],[24,3,[]]]]]],\"parameters\":[]},{\"statements\":[[6,[24,2,[]],[[14,4]],[[\"@target\",\"@__ARGS__\"],[[24,0,[\"caller\"]],[24,3,[]]]]]],\"parameters\":[]}]],\"parameters\":[1,2]},null]],\"hasEval\":false}",
+    "id": "NWZzLSII",
+    "block": "{\"symbols\":[\"Checkbox\",\"TextField\",\"@__ARGS__\",\"&attrs\"],\"statements\":[[4,\"let\",[[28,\"component\",[\"-checkbox\"],null],[28,\"component\",[\"-text-field\"],null]],null,{\"statements\":[[4,\"if\",[[23,0,[\"isCheckbox\"]]],null,{\"statements\":[[6,[23,1,[]],[[13,4]],[[\"@target\",\"@__ARGS__\"],[[23,0,[\"caller\"]],[23,3,[]]]]]],\"parameters\":[]},{\"statements\":[[6,[23,2,[]],[[13,4]],[[\"@target\",\"@__ARGS__\"],[[23,0,[\"caller\"]],[23,3,[]]]]]],\"parameters\":[]}]],\"parameters\":[1,2]},null]],\"hasEval\":false}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/input.hbs"
     }
   });
   var OutletTemplate = template({
-    "id": "tzvJXv5n",
-    "block": "{\"symbols\":[],\"statements\":[[1,[23,\"outlet\"],false]],\"hasEval\":false}",
+    "id": "ffAL6HDl",
+    "block": "{\"symbols\":[],\"statements\":[[1,[22,\"outlet\"],false]],\"hasEval\":false}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/outlet.hbs"
     }
@@ -13111,7 +13772,8 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     registry.register((0, _container.privatize)(_templateObject6()), ComponentTemplate);
     registry.register('service:-glimmer-environment', Environment$1);
     registry.register((0, _container.privatize)(_templateObject7()), TemplateCompiler);
-    registry.injection('template', 'compiler', (0, _container.privatize)(_templateObject8()));
+    registry.injection((0, _container.privatize)(_templateObject8()), 'environment', '-environment:main');
+    registry.injection('template', 'compiler', (0, _container.privatize)(_templateObject9()));
     registry.optionsForType('helper', {
       instantiate: false
     });
@@ -13131,7 +13793,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     }
 
     if (!_environment2.ENV._TEMPLATE_ONLY_GLIMMER_COMPONENTS) {
-      registry.register((0, _container.privatize)(_templateObject9()), Component);
+      registry.register((0, _container.privatize)(_templateObject10()), Component);
     }
   }
 
@@ -13316,6 +13978,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
         metaCalls: 0,
         metaInstantiated: 0,
         matchingListenersCalls: 0,
+        observerEventsCalls: 0,
         addToListenersCalls: 0,
         removeFromListenersCalls: 0,
         removeAllListenersCalls: 0,
@@ -13323,7 +13986,9 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
         listenersFlattened: 0,
         parentListenersUsed: 0,
         flattenedListenersCalls: 0,
-        reopensAfterFlatten: 0
+        reopensAfterFlatten: 0,
+        readableLazyChainsCalls: 0,
+        writableLazyChainsCalls: 0
       };
     }
   /**
@@ -13631,6 +14296,36 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       return this._tag;
     }
 
+    writableLazyChainsFor(key) {
+      if (true
+      /* DEBUG */
+      ) {
+          counters.writableLazyChainsCalls++;
+        }
+
+      let lazyChains = this._getOrCreateOwnMap('_lazyChains');
+
+      if (!(key in lazyChains)) {
+        lazyChains[key] = [];
+      }
+
+      return lazyChains[key];
+    }
+
+    readableLazyChainsFor(key) {
+      if (true
+      /* DEBUG */
+      ) {
+          counters.readableLazyChainsCalls++;
+        }
+
+      let lazyChains = this._lazyChains;
+
+      if (lazyChains !== undefined) {
+        return lazyChains[key];
+      }
+    }
+
     writableChainWatchers(create) {
       true && !!this.isMetaDestroyed() && (0, _debug.assert)(this.isMetaDestroyed() ? "Cannot create a new chain watcher for `" + (0, _utils.toString)(this.source) + "` after it has been destroyed." : '', !this.isMetaDestroyed());
       let ret = this._chainWatchers;
@@ -13785,47 +14480,6 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       );
     }
 
-    removeAllListeners(event) {
-      true && !false && (0, _debug.deprecate)('The remove all functionality of removeListener and removeObserver has been deprecated. Remove each listener/observer individually instead.', false, {
-        id: 'events.remove-all-listeners',
-        until: '3.9.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_events-remove-all-listeners'
-      });
-
-      if (true
-      /* DEBUG */
-      ) {
-          counters.removeAllListenersCalls++;
-        }
-
-      let listeners = this.writableListeners();
-      let inheritedEnd = this._inheritedEnd; // remove all listeners of event name
-      // adjusting the inheritedEnd if listener is below it
-
-      for (let i = listeners.length - 1; i >= 0; i--) {
-        let listener = listeners[i];
-
-        if (listener.event === event) {
-          listeners.splice(i, 1);
-
-          if (i < inheritedEnd) {
-            inheritedEnd--;
-          }
-        }
-      }
-
-      this._inheritedEnd = inheritedEnd; // we put remove alls at start because rare and easy to check there
-
-      listeners.splice(inheritedEnd, 0, {
-        event,
-        target: null,
-        method: null,
-        kind: 3
-        /* REMOVE_ALL */
-
-      });
-    }
-
     pushListener(event, target, method, kind) {
       let listeners = this.writableListeners();
       let i = indexOfListener(listeners, event, target, method); // remove if found listener was inherited
@@ -13840,18 +14494,10 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
 
 
       if (i === -1) {
-        true && !!(this.isPrototypeMeta(this.source) && typeof method === 'function') && (0, _debug.deprecate)('Adding function listeners to prototypes has been deprecated. Convert the listener to a string listener, or add it to the instance instead.', !(this.isPrototypeMeta(this.source) && typeof method === 'function'), {
-          id: 'events.inherited-function-listeners',
-          until: '3.9.0',
-          url: 'https://emberjs.com/deprecations/v3.x#toc_events-inherited-function-listeners'
-        });
+        true && !!(this.isPrototypeMeta(this.source) && typeof method === 'function') && (0, _debug.assert)('You cannot add function listeners to prototypes. Convert the listener to a string listener, or add it to the instance instead.', !(this.isPrototypeMeta(this.source) && typeof method === 'function'));
         true && !!(!this.isPrototypeMeta(this.source) && typeof method === 'function' && kind === 2
         /* REMOVE */
-        ) && (0, _debug.deprecate)('You attempted to remove a function listener which did not exist on the instance, which means it was an inherited prototype listener, or you attempted to remove it before it was added. Prototype function listeners have been deprecated, and attempting to remove a non-existent function listener this will error in the future.', !(!this.isPrototypeMeta(this.source) && typeof method === 'function' && kind === 2), {
-          id: 'events.inherited-function-listeners',
-          until: '3.9.0',
-          url: 'https://emberjs.com/deprecations/v3.x#toc_events-inherited-function-listeners'
-        });
+        ) && (0, _debug.assert)('You attempted to remove a function listener which did not exist on the instance, which means you may have attempted to remove it before it was added.', !(!this.isPrototypeMeta(this.source) && typeof method === 'function' && kind === 2));
         listeners.push({
           event,
           target,
@@ -13859,22 +14505,18 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
           kind
         });
       } else {
-        let listener = listeners[i]; // If the listener is our own function listener and we are trying to
-        // remove it, we want to splice it out entirely so we don't hold onto a
-        // reference.
+        let listener = listeners[i]; // If the listener is our own listener and we are trying to remove it, we
+        // want to splice it out entirely so we don't hold onto a reference.
 
         if (kind === 2
         /* REMOVE */
         && listener.kind !== 2
         /* REMOVE */
-        && typeof method === 'function') {
-          listeners.splice(i, 1);
-        } else {
+        ) {
+            listeners.splice(i, 1);
+          } else {
           // update own listener
-          listener.kind = kind; // TODO: Remove this when removing REMOVE_ALL, it won't be necessary
-
-          listener.target = target;
-          listener.method = method;
+          listener.kind = kind;
         }
       }
     }
@@ -13993,7 +14635,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
 
       if (listeners !== undefined) {
         for (let index = 0; index < listeners.length; index++) {
-          let listener = listeners[index]; // REMOVE and REMOVE_ALL listeners are placeholders that tell us not to
+          let listener = listeners[index]; // REMOVE listeners are placeholders that tell us not to
           // inherit, so they never match. Only ADD and ONCE can match.
 
           if (listener.event === eventName && (listener.kind === 0
@@ -14010,6 +14652,40 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
             result.push(listener.target, listener.method, listener.kind === 1
             /* ONCE */
             );
+          }
+        }
+      }
+
+      return result;
+    }
+
+    observerEvents() {
+      let listeners = this.flattenedListeners();
+      let result;
+
+      if (true
+      /* DEBUG */
+      ) {
+          counters.observerEventsCalls++;
+        }
+
+      if (listeners !== undefined) {
+        for (let index = 0; index < listeners.length; index++) {
+          let listener = listeners[index]; // REMOVE listeners are placeholders that tell us not to
+          // inherit, so they never match. Only ADD and ONCE can match.
+
+          if ((listener.kind === 0
+          /* ADD */
+          || listener.kind === 1
+          /* ONCE */
+          ) && listener.event.indexOf(':change') !== -1) {
+            if (result === undefined) {
+              // we create this array only after we've found a listener that
+              // matches to avoid allocations when no matches are found.
+              result = [];
+            }
+
+            result.push(listener.event);
           }
         }
       }
@@ -14217,9 +14893,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
     for (let i = listeners.length - 1; i >= 0; i--) {
       let listener = listeners[i];
 
-      if (listener.event === event && (listener.target === target && listener.method === method || listener.kind === 3
-      /* REMOVE_ALL */
-      )) {
+      if (listener.event === event && listener.target === target && listener.method === method) {
         return i;
       }
     }
@@ -14277,6 +14951,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   _exports.unwatchKey = unwatchKey;
   _exports.finishChains = finishChains;
   _exports.removeChainWatcher = removeChainWatcher;
+  _exports.getChainTagsForKey = getChainTagsForKey;
   _exports.watchPath = watchPath;
   _exports.unwatchPath = unwatchPath;
   _exports.isWatching = isWatching;
@@ -14287,7 +14962,9 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   _exports.setProperties = setProperties;
   _exports.expandProperties = expandProperties;
   _exports.addObserver = addObserver;
+  _exports.activateObserver = activateObserver;
   _exports.removeObserver = removeObserver;
+  _exports.flushInvalidActiveObservers = flushInvalidActiveObservers;
   _exports.mixin = mixin;
   _exports.observer = observer;
   _exports.applyMixin = applyMixin;
@@ -14295,9 +14972,9 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   _exports.tagForProperty = tagForProperty;
   _exports.tagFor = tagFor;
   _exports.markObjectAsDirty = markObjectAsDirty;
+  _exports.consume = consume;
   _exports.tracked = tracked;
-  _exports.getCurrentTracker = getCurrentTracker;
-  _exports.setCurrentTracker = setCurrentTracker;
+  _exports.track = track;
   _exports.addNamespace = addNamespace;
   _exports.classToString = classToString;
   _exports.findNamespace = findNamespace;
@@ -14307,7 +14984,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   _exports.removeNamespace = removeNamespace;
   _exports.isNamespaceSearchDisabled = isSearchDisabled;
   _exports.setNamespaceSearchDisabled = setSearchDisabled;
-  _exports.NAMESPACES_BY_ID = _exports.NAMESPACES = _exports.Tracker = _exports.assertNotRendered = _exports.didRender = _exports.runInTransaction = _exports.DEBUG_INJECTION_FUNCTIONS = _exports.aliasMethod = _exports.Mixin = _exports.Libraries = _exports.libraries = _exports.ChainNode = _exports.PROPERTY_DID_CHANGE = _exports.PROXY_CONTENT = _exports.ComputedProperty = _exports._globalsComputed = void 0;
+  _exports.NAMESPACES_BY_ID = _exports.NAMESPACES = _exports.Tracker = _exports.assertNotRendered = _exports.didRender = _exports.runInTransaction = _exports.UNKNOWN_PROPERTY_TAG = _exports.DEBUG_INJECTION_FUNCTIONS = _exports.aliasMethod = _exports.Mixin = _exports.Libraries = _exports.libraries = _exports.ChainNode = _exports.PROPERTY_DID_CHANGE = _exports.PROXY_CONTENT = _exports.ComputedProperty = _exports._globalsComputed = void 0;
   const COMPUTED_PROPERTY_CACHED_VALUES = new WeakMap();
   const COMPUTED_PROPERTY_LAST_REVISION = false
   /* EMBER_METAL_TRACKED_PROPERTIES */
@@ -14333,13 +15010,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
 
     if (cache === undefined) {
       cache = new Map();
-
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          COMPUTED_PROPERTY_LAST_REVISION.set(obj, new Map());
-        }
-
       COMPUTED_PROPERTY_CACHED_VALUES.set(obj, cache);
     }
 
@@ -14361,8 +15031,14 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   /* EMBER_METAL_TRACKED_PROPERTIES */
   ) {
       setLastRevisionFor = (obj, key, revision) => {
-        let lastRevision = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
-        lastRevision.set(key, revision);
+        let cache = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
+
+        if (cache === undefined) {
+          cache = new Map();
+          COMPUTED_PROPERTY_LAST_REVISION.set(obj, cache);
+        }
+
+        cache.set(key, revision);
       };
 
       getLastRevisionFor = (obj, key) => {
@@ -14438,6 +15114,122 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     return typeof path === 'string' && firstDotIndexCache.get(path) !== -1;
   }
 
+  const UNKNOWN_PROPERTY_TAG = (0, _utils.symbol)('UNKNOWN_PROPERTY_TAG');
+  _exports.UNKNOWN_PROPERTY_TAG = UNKNOWN_PROPERTY_TAG;
+
+  function makeTag() {
+    return _reference.DirtyableTag.create();
+  }
+
+  function tagForProperty(object, propertyKey, _meta) {
+    let objectType = typeof object;
+
+    if (objectType !== 'function' && (objectType !== 'object' || object === null)) {
+      return _reference.CONSTANT_TAG;
+    }
+
+    let meta$$1 = _meta === undefined ? (0, _meta2.meta)(object) : _meta;
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        if (!(propertyKey in object) && typeof object[UNKNOWN_PROPERTY_TAG] === 'function') {
+          return object[UNKNOWN_PROPERTY_TAG](propertyKey);
+        }
+      } else if ((0, _utils.isProxy)(object)) {
+      return tagFor(object, meta$$1);
+    }
+
+    let tags = meta$$1.writableTags();
+    let tag = tags[propertyKey];
+
+    if (tag) {
+      return tag;
+    }
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let pair = (0, _reference.combine)([makeTag(), _reference.UpdatableTag.create(_reference.CONSTANT_TAG)]);
+
+        if (true
+        /* DEBUG */
+        ) {
+            if (false
+            /* EMBER_METAL_TRACKED_PROPERTIES */
+            ) {
+                (0, _utils.setupMandatorySetter)(object, propertyKey);
+              }
+
+            pair._propertyKey = propertyKey;
+          }
+
+        return tags[propertyKey] = pair;
+      } else {
+      return tags[propertyKey] = makeTag();
+    }
+  }
+
+  function tagFor(object, _meta) {
+    if (typeof object === 'object' && object !== null) {
+      let meta$$1 = _meta === undefined ? (0, _meta2.meta)(object) : _meta;
+
+      if (!meta$$1.isMetaDestroyed()) {
+        return meta$$1.writableTag(makeTag);
+      }
+    }
+
+    return _reference.CONSTANT_TAG;
+  }
+
+  let dirty;
+  let update;
+
+  if (false
+  /* EMBER_METAL_TRACKED_PROPERTIES */
+  ) {
+      dirty = tag => {
+        tag.inner.first.inner.dirty();
+      };
+
+      update = (outer, inner) => {
+        outer.inner.lastChecked = 0;
+        outer.inner.second.inner.update(inner);
+      };
+    } else {
+    dirty = tag => {
+      tag.inner.dirty();
+    };
+  }
+
+  function markObjectAsDirty(obj, propertyKey, _meta) {
+    let meta$$1 = _meta === undefined ? (0, _meta2.meta)(obj) : _meta;
+    let objectTag = meta$$1.readableTag();
+
+    if (objectTag !== undefined) {
+      if ((0, _utils.isProxy)(obj)) {
+        objectTag.inner.first.inner.dirty();
+      } else {
+        objectTag.inner.dirty();
+      }
+    }
+
+    let tags = meta$$1.readableTags();
+    let propertyTag = tags !== undefined ? tags[propertyKey] : undefined;
+
+    if (propertyTag !== undefined) {
+      dirty(propertyTag);
+    }
+
+    if (objectTag !== undefined || propertyTag !== undefined) {
+      ensureRunloop();
+    }
+  }
+
+  function ensureRunloop() {
+    _runloop.backburner.ensureInstance();
+  }
+
   const AFTER_OBSERVERS = ':change';
 
   function changeEvent(keyName) {
@@ -14506,21 +15298,20 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   */
 
 
-  function removeListener(obj, eventName, target, method) {
-    true && !(Boolean(obj) && Boolean(eventName)) && (0, _debug.assert)('You must pass at least an object and event name to removeListener', Boolean(obj) && Boolean(eventName));
+  function removeListener(obj, eventName, targetOrFunction, functionOrName) {
+    true && !(Boolean(obj) && Boolean(eventName) && (typeof targetOrFunction === 'function' || typeof targetOrFunction === 'object' && Boolean(functionOrName))) && (0, _debug.assert)('You must pass at least an object, event name, and method or target and method/method name to removeListener', Boolean(obj) && Boolean(eventName) && (typeof targetOrFunction === 'function' || typeof targetOrFunction === 'object' && Boolean(functionOrName)));
+    let target, method;
 
-    if (!method && 'function' === typeof target) {
-      method = target;
+    if (typeof targetOrFunction === 'object') {
+      target = targetOrFunction;
+      method = functionOrName;
+    } else {
       target = null;
+      method = targetOrFunction;
     }
 
     let m = (0, _meta2.meta)(obj);
-
-    if (method === undefined) {
-      m.removeAllListeners(eventName);
-    } else {
-      m.removeFromListeners(eventName, target, method);
-    }
+    m.removeFromListeners(eventName, target, method);
   }
   /**
     Send an event. The execution of suspended listeners
@@ -14691,95 +15482,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       }
     }
 
-  }
-
-  function makeTag() {
-    return _reference.DirtyableTag.create();
-  }
-
-  function tagForProperty(object, propertyKey, _meta) {
-    let objectType = typeof object;
-
-    if (objectType !== 'function' && (objectType !== 'object' || object === null)) {
-      return _reference.CONSTANT_TAG;
-    }
-
-    let meta$$1 = _meta === undefined ? (0, _meta2.meta)(object) : _meta;
-
-    if ((0, _utils.isProxy)(object)) {
-      return tagFor(object, meta$$1);
-    }
-
-    let tags = meta$$1.writableTags();
-    let tag = tags[propertyKey];
-
-    if (tag) {
-      return tag;
-    }
-
-    if (false
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    ) {
-        let pair = (0, _reference.combine)([makeTag(), _reference.UpdatableTag.create(_reference.CONSTANT_TAG)]);
-        return tags[propertyKey] = pair;
-      } else {
-      return tags[propertyKey] = makeTag();
-    }
-  }
-
-  function tagFor(object, _meta) {
-    if (typeof object === 'object' && object !== null) {
-      let meta$$1 = _meta === undefined ? (0, _meta2.meta)(object) : _meta;
-      return meta$$1.writableTag(makeTag);
-    } else {
-      return _reference.CONSTANT_TAG;
-    }
-  }
-
-  let dirty;
-  let update;
-
-  if (false
-  /* EMBER_METAL_TRACKED_PROPERTIES */
-  ) {
-      dirty = tag => {
-        tag.inner.first.inner.dirty();
-      };
-
-      update = (outer, inner) => {
-        outer.inner.second.inner.update(inner);
-      };
-    } else {
-    dirty = tag => {
-      tag.inner.dirty();
-    };
-  }
-
-  function markObjectAsDirty(obj, propertyKey, meta$$1) {
-    let objectTag = meta$$1.readableTag();
-
-    if (objectTag !== undefined) {
-      if ((0, _utils.isProxy)(obj)) {
-        objectTag.inner.first.inner.dirty();
-      } else {
-        objectTag.inner.dirty();
-      }
-    }
-
-    let tags = meta$$1.readableTags();
-    let propertyTag = tags !== undefined ? tags[propertyKey] : undefined;
-
-    if (propertyTag !== undefined) {
-      dirty(propertyTag);
-    }
-
-    if (objectTag !== undefined || propertyTag !== undefined) {
-      ensureRunloop();
-    }
-  }
-
-  function ensureRunloop() {
-    _runloop.backburner.ensureInstance();
   }
 
   let runInTransaction;
@@ -15001,28 +15703,28 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       return;
     }
 
-    let possibleDesc = descriptorForProperty(obj, keyName, meta$$1);
+    if (!false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let possibleDesc = descriptorForProperty(obj, keyName, meta$$1);
 
-    if (possibleDesc !== undefined && typeof possibleDesc.didChange === 'function') {
-      possibleDesc.didChange(obj, keyName);
-    }
+        if (possibleDesc !== undefined && typeof possibleDesc.didChange === 'function') {
+          possibleDesc.didChange(obj, keyName);
+        }
 
-    if (meta$$1 !== null && meta$$1.peekWatching(keyName) > 0) {
-      dependentKeysDidChange(obj, keyName, meta$$1);
-      chainsDidChange(obj, keyName, meta$$1);
-      notifyObservers(obj, keyName, meta$$1);
+        if (meta$$1 !== null && meta$$1.peekWatching(keyName) > 0) {
+          dependentKeysDidChange(obj, keyName, meta$$1);
+          chainsDidChange(obj, keyName, meta$$1);
+          notifyObservers(obj, keyName, meta$$1);
+        }
+      }
+
+    if (meta$$1 !== null) {
+      markObjectAsDirty(obj, keyName, meta$$1);
     }
 
     if (PROPERTY_DID_CHANGE in obj) {
       obj[PROPERTY_DID_CHANGE](keyName);
-    }
-
-    if (meta$$1 !== null) {
-      if (meta$$1.isSourceDestroying()) {
-        return;
-      }
-
-      markObjectAsDirty(obj, keyName, meta$$1);
     }
 
     if (true
@@ -15324,7 +16026,15 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
           value
         });
       } else {
-        obj[keyName] = data;
+        if (false
+        /* EMBER_METAL_TRACKED_PROPERTIES */
+        && true
+        /* DEBUG */
+        ) {
+            (0, _utils.setWithMandatorySetter)(obj, keyName, data);
+          } else {
+          obj[keyName] = data;
+        }
       }
     } else {
       value = desc; // fallback to ES5
@@ -15360,9 +16070,13 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
         possibleDesc.willWatch(obj, keyName, meta$$1);
       }
 
-      if (typeof obj.willWatchProperty === 'function') {
-        obj.willWatchProperty(keyName);
-      }
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          if (typeof obj.willWatchProperty === 'function') {
+            obj.willWatchProperty(keyName);
+          }
+        }
 
       if (true
       /* DEBUG */
@@ -15510,7 +16224,12 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       }
     }
 
-    eachProxyArrayWillChange(array, startIdx, removeAmt, addAmt);
+    if (!false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        eachProxyArrayWillChange(array, startIdx, removeAmt, addAmt);
+      }
+
     sendEvent(array, '@array:before', [array, startIdx, removeAmt, addAmt]);
     return array;
   }
@@ -15537,7 +16256,13 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     }
 
     notifyPropertyChange(array, '[]', meta$$1);
-    eachProxyArrayDidChange(array, startIdx, removeAmt, addAmt);
+
+    if (!false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        eachProxyArrayDidChange(array, startIdx, removeAmt, addAmt);
+      }
+
     sendEvent(array, '@array:change', [array, startIdx, removeAmt, addAmt]);
     let cache = peekCacheFor(array);
 
@@ -15564,300 +16289,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     }
 
     return array;
-  } // For some reason TS can't infer that these two functions are compatible-ish,
-  // so we need to corece the type
-
-
-  let symbol$1 = _utils.HAS_NATIVE_SYMBOL ? Symbol : _utils.symbol;
-  /**
-    An object that that tracks @tracked properties that were consumed.
-  
-    @private
-  */
-
-  class Tracker {
-    constructor() {
-      this.tags = new Set();
-      this.last = null;
-    }
-
-    add(tag) {
-      this.tags.add(tag);
-      this.last = tag;
-    }
-
-    get size() {
-      return this.tags.size;
-    }
-
-    combine() {
-      if (this.tags.size === 0) {
-        return _reference.CONSTANT_TAG;
-      } else if (this.tags.size === 1) {
-        return this.last;
-      } else {
-        let tags = [];
-        this.tags.forEach(tag => tags.push(tag));
-        return (0, _reference.combine)(tags);
-      }
-    }
-
-  }
-
-  _exports.Tracker = Tracker;
-
-  function tracked(...args) {
-    true && !!(isElementDescriptor(args.slice(0, 3)) && args.length === 5 && args[4] === true) && (0, _debug.assert)("@tracked can only be used directly as a native decorator. If you're using tracked in classic classes, add parenthesis to call it like a function: tracked()", !(isElementDescriptor(args.slice(0, 3)) && args.length === 5 && args[4] === true));
-
-    if (!isElementDescriptor(args)) {
-      let propertyDesc = args[0];
-      true && !(args.length === 0 || typeof propertyDesc === 'object' && propertyDesc !== null) && (0, _debug.assert)("tracked() may only receive an options object containing 'value' or 'initializer', received " + propertyDesc, args.length === 0 || typeof propertyDesc === 'object' && propertyDesc !== null);
-
-      if (true
-      /* DEBUG */
-      && propertyDesc) {
-        let keys = Object.keys(propertyDesc);
-        true && !(keys.length <= 1 && (keys[0] === undefined || keys[0] === 'value' || keys[0] === 'undefined')) && (0, _debug.assert)("The options object passed to tracked() may only contain a 'value' or 'initializer' property, not both. Received: [" + keys + "]", keys.length <= 1 && (keys[0] === undefined || keys[0] === 'value' || keys[0] === 'undefined'));
-        true && !(!('initializer' in propertyDesc) || typeof propertyDesc.initializer === 'function') && (0, _debug.assert)("The initializer passed to tracked must be a function. Received " + propertyDesc.initializer, !('initializer' in propertyDesc) || typeof propertyDesc.initializer === 'function');
-      }
-
-      let initializer = propertyDesc ? propertyDesc.initializer : undefined;
-      let value = propertyDesc ? propertyDesc.value : undefined;
-
-      let decorator = function (target, key, _desc, _meta, isClassicDecorator$$1) {
-        true && !isClassicDecorator$$1 && (0, _debug.assert)("You attempted to set a default value for " + key + " with the @tracked({ value: 'default' }) syntax. You can only use this syntax with classic classes. For native classes, you can use class initializers: @tracked field = 'default';", isClassicDecorator$$1);
-        let fieldDesc = {
-          initializer: initializer || (() => value)
-        };
-        return descriptorForField([target, key, fieldDesc]);
-      };
-
-      setClassicDecorator(decorator);
-      return decorator;
-    }
-
-    true && !Boolean(true
-    /* EMBER_NATIVE_DECORATOR_SUPPORT */
-    ) && (0, _debug.assert)('Native decorators are not enabled without the EMBER_NATIVE_DECORATOR_SUPPORT flag', Boolean(true));
-    return descriptorForField(args);
-  }
-
-  if (true
-  /* DEBUG */
-  ) {
-      // Normally this isn't a classic decorator, but we want to throw a helpful
-      // error in development so we need it to treat it like one
-      setClassicDecorator(tracked);
-    }
-
-  function descriptorForField([_target, key, desc]) {
-    true && !(!desc || !desc.value && !desc.get && !desc.set) && (0, _debug.assert)("You attempted to use @tracked on " + key + ", but that element is not a class field. @tracked is only usable on class fields. Native getters and setters will autotrack add any tracked fields they encounter, so there is no need mark getters and setters with @tracked.", !desc || !desc.value && !desc.get && !desc.set);
-    let initializer = desc ? desc.initializer : undefined;
-    let secretKey = symbol$1(key);
-    return {
-      enumerable: true,
-      configurable: true,
-
-      get() {
-        if (CURRENT_TRACKER) CURRENT_TRACKER.add(tagForProperty(this, key)); // If the field has never been initialized, we should initialize it
-
-        if (!(secretKey in this)) {
-          this[secretKey] = typeof initializer === 'function' ? initializer.call(this) : undefined;
-        }
-
-        return this[secretKey];
-      },
-
-      set(newValue) {
-        tagFor(this).inner['dirty']();
-        dirty(tagForProperty(this, key));
-        this[secretKey] = newValue;
-        propertyDidChange();
-      }
-
-    };
-  }
-  /**
-    @private
-  
-    Whenever a tracked computed property is entered, the current tracker is
-    saved off and a new tracker is replaced.
-  
-    Any tracked properties consumed are added to the current tracker.
-  
-    When a tracked computed property is exited, the tracker's tags are
-    combined and added to the parent tracker.
-  
-    The consequence is that each tracked computed property has a tag
-    that corresponds to the tracked properties consumed inside of
-    itself, including child tracked computed properties.
-  */
-
-
-  let CURRENT_TRACKER = null;
-
-  function getCurrentTracker() {
-    return CURRENT_TRACKER;
-  }
-
-  function setCurrentTracker(tracker = new Tracker()) {
-    return CURRENT_TRACKER = tracker;
-  }
-
-  let propertyDidChange = ensureRunloop;
-  /**
-  @module @ember/object
-  */
-
-  const PROXY_CONTENT = (0, _utils.symbol)('PROXY_CONTENT');
-  _exports.PROXY_CONTENT = PROXY_CONTENT;
-  let getPossibleMandatoryProxyValue;
-
-  if (true
-  /* DEBUG */
-  && _utils.HAS_NATIVE_PROXY) {
-    getPossibleMandatoryProxyValue = function getPossibleMandatoryProxyValue(obj, keyName) {
-      let content = obj[PROXY_CONTENT];
-
-      if (content === undefined) {
-        return obj[keyName];
-      } else {
-        /* global Reflect */
-        return Reflect.get(content, keyName, obj);
-      }
-    };
-  } // ..........................................................
-  // GET AND SET
-  //
-  // If we are on a platform that supports accessors we can use those.
-  // Otherwise simulate accessors by looking up the property directly on the
-  // object.
-
-  /**
-    Gets the value of a property on an object. If the property is computed,
-    the function will be invoked. If the property is not defined but the
-    object implements the `unknownProperty` method then that will be invoked.
-  
-    ```javascript
-    import { get } from '@ember/object';
-    get(obj, "name");
-    ```
-  
-    If you plan to run on IE8 and older browsers then you should use this
-    method anytime you want to retrieve a property on an object that you don't
-    know for sure is private. (Properties beginning with an underscore '_'
-    are considered private.)
-  
-    On all newer browsers, you only need to use this method to retrieve
-    properties if the property might not be defined on the object and you want
-    to respect the `unknownProperty` handler. Otherwise you can ignore this
-    method.
-  
-    Note that if the object itself is `undefined`, this method will throw
-    an error.
-  
-    @method get
-    @for @ember/object
-    @static
-    @param {Object} obj The object to retrieve from.
-    @param {String} keyName The property key to retrieve
-    @return {Object} the property value or `null`.
-    @public
-  */
-
-
-  function get(obj, keyName) {
-    true && !(arguments.length === 2) && (0, _debug.assert)("Get must be called with two arguments; an object and a property key", arguments.length === 2);
-    true && !(obj !== undefined && obj !== null) && (0, _debug.assert)("Cannot call get with '" + keyName + "' on an undefined object.", obj !== undefined && obj !== null);
-    true && !(typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)) && (0, _debug.assert)("The key provided to get must be a string or number, you passed " + keyName, typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName));
-    true && !(typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0) && (0, _debug.assert)("'this' in paths is not supported", typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0);
-    let type = typeof obj;
-    let isObject = type === 'object';
-    let isFunction = type === 'function';
-    let isObjectLike = isObject || isFunction;
-
-    if (isPath(keyName)) {
-      return isObjectLike ? _getPath(obj, keyName) : undefined;
-    }
-
-    let value;
-
-    if (isObjectLike) {
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          let tracker = getCurrentTracker();
-          if (tracker) tracker.add(tagForProperty(obj, keyName));
-        }
-
-      let descriptor = descriptorForProperty(obj, keyName);
-
-      if (descriptor !== undefined) {
-        return descriptor.get(obj, keyName);
-      }
-
-      if (true
-      /* DEBUG */
-      && _utils.HAS_NATIVE_PROXY) {
-        value = getPossibleMandatoryProxyValue(obj, keyName);
-      } else {
-        value = obj[keyName];
-      }
-    } else {
-      value = obj[keyName];
-    }
-
-    if (value === undefined) {
-      if (isObject && !(keyName in obj) && typeof obj.unknownProperty === 'function') {
-        return obj.unknownProperty(keyName);
-      }
-    }
-
-    return value;
-  }
-
-  function _getPath(root, path) {
-    let obj = root;
-    let parts = typeof path === 'string' ? path.split('.') : path;
-
-    for (let i = 0; i < parts.length; i++) {
-      if (obj === undefined || obj === null || obj.isDestroyed) {
-        return undefined;
-      }
-
-      obj = get(obj, parts[i]);
-    }
-
-    return obj;
-  }
-  /**
-    Retrieves the value of a property from an Object, or a default value in the
-    case that the property returns `undefined`.
-  
-    ```javascript
-    import { getWithDefault } from '@ember/object';
-    getWithDefault(person, 'lastName', 'Doe');
-    ```
-  
-    @method getWithDefault
-    @for @ember/object
-    @static
-    @param {Object} obj The object to retrieve from.
-    @param {String} keyName The name of the property to retrieve
-    @param {Object} defaultValue The value to return if the property value is undefined
-    @return {Object} The property value or the defaultValue.
-    @public
-  */
-
-
-  function getWithDefault(root, key, defaultValue) {
-    let value = get(root, key);
-
-    if (value === undefined) {
-      return defaultValue;
-    }
-
-    return value;
   }
 
   const EMPTY_ARRAY = Object.freeze([]);
@@ -15919,6 +16350,8 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   function removeArrayObserver(array, target, opts) {
     return arrayObserversHelper(array, target, opts, removeListener, true);
   }
+
+  const ACTIVE_OBSERVERS = new Map();
   /**
   @module @ember/object
   */
@@ -15934,10 +16367,21 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     @public
   */
 
-
   function addObserver(obj, path, target, method) {
-    addListener(obj, changeEvent(path), target, method);
-    watch(obj, path);
+    let eventName = changeEvent(path);
+    addListener(obj, eventName, target, method);
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let meta$$1 = (0, _meta2.peekMeta)(obj);
+
+        if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
+          activateObserver(obj, eventName);
+        }
+      } else {
+      watch(obj, path);
+    }
   }
   /**
     @method removeObserver
@@ -15952,8 +16396,121 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
 
 
   function removeObserver(obj, path, target, method) {
-    unwatch(obj, path);
-    removeListener(obj, changeEvent(path), target, method);
+    let eventName = changeEvent(path);
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let meta$$1 = (0, _meta2.peekMeta)(obj);
+
+        if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
+          deactivateObserver(obj, eventName);
+        }
+      } else {
+      unwatch(obj, path);
+    }
+
+    removeListener(obj, eventName, target, method);
+  }
+
+  function getOrCreateActiveObserversFor(target) {
+    if (!ACTIVE_OBSERVERS.has(target)) {
+      ACTIVE_OBSERVERS.set(target, new Map());
+    }
+
+    return ACTIVE_OBSERVERS.get(target);
+  }
+
+  function activateObserver(target, eventName) {
+    let activeObservers = getOrCreateActiveObserversFor(target);
+
+    if (activeObservers.has(eventName)) {
+      activeObservers.get(eventName).count++;
+    } else {
+      let [path] = eventName.split(':');
+      let tag = getChainTagsForKey(target, path);
+      activeObservers.set(eventName, {
+        count: 1,
+        path,
+        tag,
+        lastRevision: tag.value()
+      });
+    }
+  }
+
+  function deactivateObserver(target, eventName) {
+    let activeObservers = ACTIVE_OBSERVERS.get(target);
+
+    if (activeObservers !== undefined) {
+      let observer = activeObservers.get(eventName);
+      observer.count--;
+
+      if (observer.count === 0) {
+        activeObservers.delete(eventName);
+
+        if (activeObservers.size === 0) {
+          ACTIVE_OBSERVERS.delete(target);
+        }
+      }
+    }
+  }
+  /**
+   * Primarily used for cases where we are redefining a class, e.g. mixins/reopen
+   * being applied later. Revalidates all the observers, resetting their tags.
+   *
+   * @private
+   * @param target
+   */
+
+
+  function revalidateObservers(target) {
+    if (!ACTIVE_OBSERVERS.has(target)) {
+      return;
+    }
+
+    ACTIVE_OBSERVERS.get(target).forEach(observer => {
+      observer.tag = getChainTagsForKey(target, observer.path);
+      observer.lastRevision = observer.tag.value();
+    });
+  }
+
+  let lastKnownRevision = 0;
+
+  function flushInvalidActiveObservers(shouldSchedule = true) {
+    if (lastKnownRevision === _reference.CURRENT_TAG.value()) {
+      return;
+    }
+
+    lastKnownRevision = _reference.CURRENT_TAG.value();
+    ACTIVE_OBSERVERS.forEach((activeObservers, target) => {
+      let meta$$1 = (0, _meta2.peekMeta)(target);
+
+      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
+        ACTIVE_OBSERVERS.delete(target);
+        return;
+      }
+
+      activeObservers.forEach((observer, eventName) => {
+        if (!observer.tag.validate(observer.lastRevision)) {
+          let sendObserver = () => {
+            try {
+              sendEvent(target, eventName, [target, observer.path]);
+            } finally {
+              observer.tag = getChainTagsForKey(target, observer.path);
+              observer.lastRevision = observer.tag.value();
+            }
+          };
+
+          if (shouldSchedule) {
+            (0, _runloop.schedule)('actions', sendObserver);
+          } else {
+            // TODO: we need to schedule eagerly in exactly one location (_internalReset),
+            // for query params. We should get rid of this ASAP
+            sendObserver();
+          }
+        }
+      });
+    });
   }
 
   function eachProxyFor(array) {
@@ -16633,6 +17190,12 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     };
   }
 
+  function DESCRIPTOR_SETTER_FUNCTION(name, descriptor) {
+    return function CPSETTER_FUNCTION(value) {
+      return descriptor.set(this, name, value);
+    };
+  }
+
   function makeComputedDecorator(desc, DecoratorClass) {
     let decorator = function COMPUTED_DECORATOR(target, key, propertyDesc, maybeMeta, isClassicDecorator$$1) {
       true && !(true
@@ -16641,16 +17204,452 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       true && !(isClassicDecorator$$1 || !propertyDesc || !propertyDesc.get || propertyDesc.get.toString().indexOf('CPGETTER_FUNCTION') === -1) && (0, _debug.assert)("Only one computed property decorator can be applied to a class field or accessor, but '" + key + "' was decorated twice. You may have added the decorator to both a getter and setter, which is unecessary.", isClassicDecorator$$1 || !propertyDesc || !propertyDesc.get || propertyDesc.get.toString().indexOf('CPGETTER_FUNCTION') === -1);
       let meta$$1 = arguments.length === 3 ? (0, _meta2.meta)(target) : maybeMeta;
       desc.setup(target, key, propertyDesc, meta$$1);
-      return {
+      let computedDesc = {
         enumerable: desc.enumerable,
         configurable: desc.configurable,
         get: DESCRIPTOR_GETTER_FUNCTION(key, desc)
       };
+
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          computedDesc.set = DESCRIPTOR_SETTER_FUNCTION(key, desc);
+        }
+
+      return computedDesc;
     };
 
     setClassicDecorator(decorator, desc);
     Object.setPrototypeOf(decorator, DecoratorClass.prototype);
     return decorator;
+  } // For some reason TS can't infer that these two functions are compatible-ish,
+  // so we need to corece the type
+
+
+  let symbol$1 = _utils.HAS_NATIVE_SYMBOL ? Symbol : _utils.symbol;
+  /**
+    An object that that tracks @tracked properties that were consumed.
+  
+    @private
+  */
+
+  class Tracker {
+    constructor() {
+      this.tags = new Set();
+      this.last = null;
+    }
+
+    add(tag) {
+      this.tags.add(tag);
+      this.last = tag;
+    }
+
+    get size() {
+      return this.tags.size;
+    }
+
+    combine() {
+      if (this.tags.size === 0) {
+        return _reference.CONSTANT_TAG;
+      } else if (this.tags.size === 1) {
+        return this.last;
+      } else {
+        let tags = [];
+        this.tags.forEach(tag => tags.push(tag));
+        return (0, _reference.combine)(tags);
+      }
+    }
+
+  }
+
+  _exports.Tracker = Tracker;
+
+  function tracked(...args) {
+    true && !!(isElementDescriptor(args.slice(0, 3)) && args.length === 5 && args[4] === true) && (0, _debug.assert)("@tracked can only be used directly as a native decorator. If you're using tracked in classic classes, add parenthesis to call it like a function: tracked()", !(isElementDescriptor(args.slice(0, 3)) && args.length === 5 && args[4] === true));
+
+    if (!isElementDescriptor(args)) {
+      let propertyDesc = args[0];
+      true && !(args.length === 0 || typeof propertyDesc === 'object' && propertyDesc !== null) && (0, _debug.assert)("tracked() may only receive an options object containing 'value' or 'initializer', received " + propertyDesc, args.length === 0 || typeof propertyDesc === 'object' && propertyDesc !== null);
+
+      if (true
+      /* DEBUG */
+      && propertyDesc) {
+        let keys = Object.keys(propertyDesc);
+        true && !(keys.length <= 1 && (keys[0] === undefined || keys[0] === 'value' || keys[0] === 'initializer')) && (0, _debug.assert)("The options object passed to tracked() may only contain a 'value' or 'initializer' property, not both. Received: [" + keys + "]", keys.length <= 1 && (keys[0] === undefined || keys[0] === 'value' || keys[0] === 'initializer'));
+        true && !(!('initializer' in propertyDesc) || typeof propertyDesc.initializer === 'function') && (0, _debug.assert)("The initializer passed to tracked must be a function. Received " + propertyDesc.initializer, !('initializer' in propertyDesc) || typeof propertyDesc.initializer === 'function');
+      }
+
+      let initializer = propertyDesc ? propertyDesc.initializer : undefined;
+      let value = propertyDesc ? propertyDesc.value : undefined;
+
+      let decorator = function (target, key, _desc, _meta, isClassicDecorator$$1) {
+        true && !isClassicDecorator$$1 && (0, _debug.assert)("You attempted to set a default value for " + key + " with the @tracked({ value: 'default' }) syntax. You can only use this syntax with classic classes. For native classes, you can use class initializers: @tracked field = 'default';", isClassicDecorator$$1);
+        let fieldDesc = {
+          initializer: initializer || (() => value)
+        };
+        return descriptorForField([target, key, fieldDesc]);
+      };
+
+      setClassicDecorator(decorator);
+      return decorator;
+    }
+
+    true && !Boolean(true
+    /* EMBER_NATIVE_DECORATOR_SUPPORT */
+    ) && (0, _debug.assert)('Native decorators are not enabled without the EMBER_NATIVE_DECORATOR_SUPPORT flag', Boolean(true));
+    return descriptorForField(args);
+  }
+
+  if (true
+  /* DEBUG */
+  ) {
+      // Normally this isn't a classic decorator, but we want to throw a helpful
+      // error in development so we need it to treat it like one
+      setClassicDecorator(tracked);
+    }
+
+  function descriptorForField([_target, key, desc]) {
+    true && !(!desc || !desc.value && !desc.get && !desc.set) && (0, _debug.assert)("You attempted to use @tracked on " + key + ", but that element is not a class field. @tracked is only usable on class fields. Native getters and setters will autotrack add any tracked fields they encounter, so there is no need mark getters and setters with @tracked.", !desc || !desc.value && !desc.get && !desc.set);
+    let initializer = desc ? desc.initializer : undefined;
+    let secretKey = symbol$1(key);
+    return {
+      enumerable: true,
+      configurable: true,
+
+      get() {
+        let propertyTag = tagForProperty(this, key);
+        if (CURRENT_TRACKER) CURRENT_TRACKER.add(propertyTag); // If the field has never been initialized, we should initialize it
+
+        if (!(secretKey in this)) {
+          this[secretKey] = typeof initializer === 'function' ? initializer.call(this) : undefined;
+        }
+
+        let value = this[secretKey]; // Add the tag of the returned value if it is an array, since arrays
+        // should always cause updates if they are consumed and then changed
+
+        if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
+          update(propertyTag, tagForProperty(value, '[]'));
+        }
+
+        return this[secretKey];
+      },
+
+      set(newValue) {
+        markObjectAsDirty(this, key);
+        this[secretKey] = newValue;
+
+        if (propertyDidChange !== null) {
+          propertyDidChange();
+        }
+      }
+
+    };
+  }
+  /**
+    @private
+  
+    Whenever a tracked computed property is entered, the current tracker is
+    saved off and a new tracker is replaced.
+  
+    Any tracked properties consumed are added to the current tracker.
+  
+    When a tracked computed property is exited, the tracker's tags are
+    combined and added to the parent tracker.
+  
+    The consequence is that each tracked computed property has a tag
+    that corresponds to the tracked properties consumed inside of
+    itself, including child tracked computed properties.
+  */
+
+
+  let CURRENT_TRACKER = null;
+
+  function track(callback) {
+    let parent = CURRENT_TRACKER;
+    let current = new Tracker();
+    CURRENT_TRACKER = current;
+
+    try {
+      callback();
+    } finally {
+      CURRENT_TRACKER = parent;
+    }
+
+    return current.combine();
+  }
+
+  function consume(tag) {
+    if (CURRENT_TRACKER !== null) {
+      CURRENT_TRACKER.add(tag);
+    }
+  }
+
+  function isTracking() {
+    return CURRENT_TRACKER !== null;
+  }
+
+  let propertyDidChange = null;
+  /**
+  @module @ember/object
+  */
+
+  const PROXY_CONTENT = (0, _utils.symbol)('PROXY_CONTENT');
+  _exports.PROXY_CONTENT = PROXY_CONTENT;
+  let getPossibleMandatoryProxyValue;
+
+  if (true
+  /* DEBUG */
+  && _utils.HAS_NATIVE_PROXY) {
+    getPossibleMandatoryProxyValue = function getPossibleMandatoryProxyValue(obj, keyName) {
+      let content = obj[PROXY_CONTENT];
+
+      if (content === undefined) {
+        return obj[keyName];
+      } else {
+        /* global Reflect */
+        return Reflect.get(content, keyName, obj);
+      }
+    };
+  } // ..........................................................
+  // GET AND SET
+  //
+  // If we are on a platform that supports accessors we can use those.
+  // Otherwise simulate accessors by looking up the property directly on the
+  // object.
+
+  /**
+    Gets the value of a property on an object. If the property is computed,
+    the function will be invoked. If the property is not defined but the
+    object implements the `unknownProperty` method then that will be invoked.
+  
+    ```javascript
+    import { get } from '@ember/object';
+    get(obj, "name");
+    ```
+  
+    If you plan to run on IE8 and older browsers then you should use this
+    method anytime you want to retrieve a property on an object that you don't
+    know for sure is private. (Properties beginning with an underscore '_'
+    are considered private.)
+  
+    On all newer browsers, you only need to use this method to retrieve
+    properties if the property might not be defined on the object and you want
+    to respect the `unknownProperty` handler. Otherwise you can ignore this
+    method.
+  
+    Note that if the object itself is `undefined`, this method will throw
+    an error.
+  
+    @method get
+    @for @ember/object
+    @static
+    @param {Object} obj The object to retrieve from.
+    @param {String} keyName The property key to retrieve
+    @return {Object} the property value or `null`.
+    @public
+  */
+
+
+  function get(obj, keyName) {
+    true && !(arguments.length === 2) && (0, _debug.assert)("Get must be called with two arguments; an object and a property key", arguments.length === 2);
+    true && !(obj !== undefined && obj !== null) && (0, _debug.assert)("Cannot call get with '" + keyName + "' on an undefined object.", obj !== undefined && obj !== null);
+    true && !(typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)) && (0, _debug.assert)("The key provided to get must be a string or number, you passed " + keyName, typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName));
+    true && !(typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0) && (0, _debug.assert)("'this' in paths is not supported", typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0);
+    let type = typeof obj;
+    let isObject = type === 'object';
+    let isFunction = type === 'function';
+    let isObjectLike = isObject || isFunction;
+
+    if (isPath(keyName)) {
+      return isObjectLike ? _getPath(obj, keyName) : undefined;
+    }
+
+    let value;
+
+    if (isObjectLike) {
+      let tracking = isTracking();
+
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          if (tracking) {
+            consume(tagForProperty(obj, keyName));
+          }
+        }
+
+      let descriptor = descriptorForProperty(obj, keyName);
+
+      if (descriptor !== undefined) {
+        return descriptor.get(obj, keyName);
+      }
+
+      if (true
+      /* DEBUG */
+      && _utils.HAS_NATIVE_PROXY) {
+        value = getPossibleMandatoryProxyValue(obj, keyName);
+      } else {
+        value = obj[keyName];
+      } // Add the tag of the returned value if it is an array, since arrays
+      // should always cause updates if they are consumed and then changed
+
+
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      && tracking && (Array.isArray(value) || (0, _utils.isEmberArray)(value))) {
+        consume(tagForProperty(value, '[]'));
+      }
+    } else {
+      value = obj[keyName];
+    }
+
+    if (value === undefined) {
+      if (isObject && !(keyName in obj) && typeof obj.unknownProperty === 'function') {
+        return obj.unknownProperty(keyName);
+      }
+    }
+
+    return value;
+  }
+
+  function _getPath(root, path) {
+    let obj = root;
+    let parts = typeof path === 'string' ? path.split('.') : path;
+
+    for (let i = 0; i < parts.length; i++) {
+      if (obj === undefined || obj === null || obj.isDestroyed) {
+        return undefined;
+      }
+
+      obj = get(obj, parts[i]);
+    }
+
+    return obj;
+  }
+  /**
+    Retrieves the value of a property from an Object, or a default value in the
+    case that the property returns `undefined`.
+  
+    ```javascript
+    import { getWithDefault } from '@ember/object';
+    getWithDefault(person, 'lastName', 'Doe');
+    ```
+  
+    @method getWithDefault
+    @for @ember/object
+    @static
+    @param {Object} obj The object to retrieve from.
+    @param {String} keyName The name of the property to retrieve
+    @param {Object} defaultValue The value to return if the property value is undefined
+    @return {Object} The property value or the defaultValue.
+    @public
+  */
+
+
+  function getWithDefault(root, key, defaultValue) {
+    let value = get(root, key);
+
+    if (value === undefined) {
+      return defaultValue;
+    }
+
+    return value;
+  }
+
+  function finishLazyChains(obj, key, value) {
+    let meta$$1 = (0, _meta2.peekMeta)(obj);
+    let lazyTags = meta$$1 !== null ? meta$$1.readableLazyChainsFor(key) : undefined;
+
+    if (lazyTags === undefined) {
+      return;
+    }
+
+    if (value === null || typeof value !== 'object' && typeof value !== 'function') {
+      lazyTags.clear();
+      return;
+    }
+
+    while (lazyTags.length > 0) {
+      let [path, tag] = lazyTags.pop();
+      tag.inner.update(getChainTagsForKey(value, path));
+    }
+  }
+
+  function getChainTagsForKeys(obj, keys) {
+    let chainTags = [];
+
+    for (let i = 0; i < keys.length; i++) {
+      chainTags.push(getChainTagsForKey(obj, keys[i]));
+    }
+
+    return (0, _reference.combine)(chainTags);
+  }
+
+  function getChainTagsForKey(obj, key) {
+    let chainTags = [];
+    let current = obj;
+    let segments = key.split('.'); // prevent closures
+
+    let segment, descriptor;
+
+    while (segments.length > 0) {
+      segment = segments.shift();
+
+      if (segment === '@each' && segments.length > 0) {
+        true && !(Array.isArray(current) || (0, _utils.isEmberArray)(current)) && (0, _debug.assert)("When using @each, the value you are attempting to watch must be an array, was: " + current.toString(), Array.isArray(current) || (0, _utils.isEmberArray)(current));
+        segment = segments.shift(); // Push the tags for each item's property
+
+        let tags = current.map(item => {
+          true && !(typeof item === 'object') && (0, _debug.assert)("When using @each to observe the array `" + current.toString() + "`, the items in the array must be objects", typeof item === 'object');
+          return tagForProperty(item, segment);
+        }); // Push the tag for the array length itself
+
+        chainTags.push(...tags, tagForProperty(current, '[]')); // There shouldn't be any more segments after an `@each`, so break
+
+        true && !(segments.length === 0) && (0, _debug.assert)("When using @each, you can only chain one property level deep", segments.length === 0);
+        break;
+      }
+
+      let propertyTag = tagForProperty(current, segment);
+      chainTags.push(propertyTag);
+      descriptor = descriptorForProperty(current, segment);
+
+      if (descriptor === undefined) {
+        // TODO: Assert that current[segment] isn't an undecorated, non-MANDATORY_SETTER getter
+        if (!(segment in current) && typeof current.unknownProperty === 'function') {
+          current = current.unknownProperty(segment);
+        } else {
+          current = current[segment];
+        }
+      } else {
+        let lastRevision = getLastRevisionFor(current, segment);
+
+        if (propertyTag.validate(lastRevision)) {
+          if (typeof descriptor.altKey === 'string') {
+            // it's an alias, so just get the altkey without tracking
+            track(() => {
+              current = get(obj, descriptor.altKey);
+            });
+          } else {
+            current = peekCacheFor(current).get(segment);
+          }
+        } else if (segments.length > 0) {
+          let placeholderTag = _reference.UpdatableTag.create(_reference.CONSTANT_TAG);
+
+          (0, _meta2.meta)(current).writableLazyChainsFor(segment).push([segments.join('.'), placeholderTag]);
+          chainTags.push(placeholderTag);
+          break;
+        }
+      }
+
+      let currentType = typeof current;
+
+      if (current === null || currentType !== 'object' && currentType !== 'function') {
+        // we've hit the end of the chain for now, break out
+        break;
+      }
+    }
+
+    return (0, _reference.combine)(chainTags);
   }
   /**
   @module @ember/object
@@ -16724,7 +17723,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     }
   }
 
-  let setWithMandatorySetter;
+  let setWithMandatorySetter$1;
   let makeEnumerable;
   /**
    @module @ember/object
@@ -16793,7 +17792,13 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       if (true
       /* DEBUG */
       ) {
-          setWithMandatorySetter(meta$$1, obj, keyName, value);
+          if (false
+          /* EMBER_METAL_TRACKED_PROPERTIES */
+          ) {
+              (0, _utils.setWithMandatorySetter)(obj, keyName, value);
+            } else {
+            setWithMandatorySetter$1(obj, keyName, value, meta$$1);
+          }
         } else {
         obj[keyName] = value;
       }
@@ -16809,7 +17814,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   if (true
   /* DEBUG */
   ) {
-      setWithMandatorySetter = (meta$$1, obj, keyName, value) => {
+      setWithMandatorySetter$1 = (obj, keyName, value, meta$$1) => {
         if (meta$$1 !== null && meta$$1.peekWatching(keyName) > 0) {
           makeEnumerable(obj, keyName);
           meta$$1.writeValue(obj, keyName, value);
@@ -17105,12 +18110,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       if (args.length > 0) {
         this._property(...args);
       }
-
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          this._auto = false;
-        }
     }
 
     setup(obj, keyName, propertyDesc, meta$$1) {
@@ -17310,12 +18309,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
           propertyTag = tagForProperty(obj, keyName);
 
           if (cache.has(keyName)) {
-            // special-case for computed with no dependent keys used to
-            // trigger cacheable behavior.
-            if (!this._auto && (!this._dependentKeys || this._dependentKeys.length === 0)) {
-              return cache.get(keyName);
-            }
-
             let lastRevision = getLastRevisionFor(obj, keyName);
 
             if (propertyTag.validate(lastRevision)) {
@@ -17328,37 +18321,57 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
         }
       }
 
-      let parent;
-      let tracker;
+      let ret;
 
       if (false
       /* EMBER_METAL_TRACKED_PROPERTIES */
       ) {
-          parent = getCurrentTracker();
-          tracker = setCurrentTracker();
-        }
+          true && !!(0, _meta2.meta)(obj).isMetaDestroyed() && (0, _debug.assert)("Attempted to access the computed " + obj + "." + keyName + " on a destroyed object, which is not allowed", !(0, _meta2.meta)(obj).isMetaDestroyed()); // Create a tracker that absorbs any trackable actions inside the CP
 
-      let ret = this._getter.call(obj, keyName);
+          let tag = track(() => {
+            ret = this._getter.call(obj, keyName);
+          });
+          finishLazyChains(obj, keyName, ret);
+          let upstreamTags = [];
 
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          setCurrentTracker(parent);
-          let tag = tracker.combine();
-          if (parent) parent.add(tag);
-          update(propertyTag, tag);
+          if (this._auto === true) {
+            upstreamTags.push(tag);
+          }
+
+          if (this._dependentKeys !== undefined) {
+            upstreamTags.push(getChainTagsForKeys(obj, this._dependentKeys));
+          }
+
+          if (upstreamTags.length > 0) {
+            update(propertyTag, (0, _reference.combine)(upstreamTags));
+          }
+
           setLastRevisionFor(obj, keyName, propertyTag.value());
-        }
+          consume(propertyTag); // Add the tag of the returned value if it is an array, since arrays
+          // should always cause updates if they are consumed and then changed
 
-      cache.set(keyName, ret);
-      let meta$$1 = (0, _meta2.meta)(obj);
-      let chainWatchers = meta$$1.readableChainWatchers();
-
-      if (chainWatchers !== undefined) {
-        chainWatchers.revalidate(keyName);
+          if (Array.isArray(ret) || (0, _utils.isEmberArray)(ret)) {
+            consume(tagForProperty(ret, '[]'));
+          }
+        } else {
+        ret = this._getter.call(obj, keyName);
       }
 
-      addDependentKeys(this, obj, keyName, meta$$1);
+      cache.set(keyName, ret);
+
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          let meta$$1 = (0, _meta2.meta)(obj);
+          let chainWatchers = meta$$1.readableChainWatchers();
+
+          if (chainWatchers !== undefined) {
+            chainWatchers.revalidate(keyName);
+          }
+
+          addDependentKeys(this, obj, keyName, meta$$1);
+        }
+
       return ret;
     }
 
@@ -17375,7 +18388,23 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
         return this.volatileSet(obj, keyName, value);
       }
 
-      return this.setWithSuspend(obj, keyName, value);
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          let ret = this._set(obj, keyName, value);
+
+          finishLazyChains(obj, keyName, ret);
+          let propertyTag = tagForProperty(obj, keyName);
+
+          if (this._dependentKeys !== undefined) {
+            update(propertyTag, getChainTagsForKeys(obj, this._dependentKeys));
+          }
+
+          setLastRevisionFor(obj, keyName, propertyTag.value());
+          return ret;
+        } else {
+        return this.setWithSuspend(obj, keyName, value);
+      }
     }
 
     _throwReadOnlyError(obj, keyName) {
@@ -17423,20 +18452,14 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
 
       let meta$$1 = (0, _meta2.meta)(obj);
 
-      if (!hadCachedValue) {
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      && !hadCachedValue) {
         addDependentKeys(this, obj, keyName, meta$$1);
       }
 
       cache.set(keyName, ret);
       notifyPropertyChange(obj, keyName, meta$$1);
-
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          let propertyTag = tagForProperty(obj, keyName);
-          setLastRevisionFor(obj, keyName, propertyTag.value());
-        }
-
       return ret;
     }
     /* called before property is overridden */
@@ -17463,7 +18486,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   ) {
       ComputedProperty.prototype.auto = function () {
         this._auto = true;
-        return this;
       };
     } // TODO: This class can be svelted once `meta` has been deprecated
 
@@ -17578,30 +18600,65 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     constructor(altKey) {
       super();
       this.altKey = altKey;
-      this._dependentKeys = [altKey];
+
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          this._dependentKeys = [altKey];
+        }
     }
 
     setup(obj, keyName, propertyDesc, meta$$1) {
       true && !(this.altKey !== keyName) && (0, _debug.assert)("Setting alias '" + keyName + "' on self", this.altKey !== keyName);
       super.setup(obj, keyName, propertyDesc, meta$$1);
 
-      if (meta$$1.peekWatching(keyName) > 0) {
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      && meta$$1.peekWatching(keyName) > 0) {
         this.consume(obj, keyName, meta$$1);
       }
     }
 
     teardown(obj, keyName, meta$$1) {
-      this.unconsume(obj, keyName, meta$$1);
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          this.unconsume(obj, keyName, meta$$1);
+        }
+
       super.teardown(obj, keyName, meta$$1);
     }
 
     willWatch(obj, keyName, meta$$1) {
-      this.consume(obj, keyName, meta$$1);
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          this.consume(obj, keyName, meta$$1);
+        }
     }
 
     get(obj, keyName) {
-      let ret = get(obj, this.altKey);
-      this.consume(obj, keyName, (0, _meta2.meta)(obj));
+      let ret;
+
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          let propertyTag = tagForProperty(obj, keyName); // We don't use the tag since CPs are not automatic, we just want to avoid
+          // anything tracking while we get the altKey
+
+          track(() => {
+            ret = get(obj, this.altKey);
+          });
+          let altPropertyTag = getChainTagsForKey(obj, this.altKey);
+          update(propertyTag, altPropertyTag);
+          consume(propertyTag);
+          finishLazyChains(obj, keyName, ret);
+          setLastRevisionFor(obj, keyName, propertyTag.value());
+        } else {
+        ret = get(obj, this.altKey);
+        this.consume(obj, keyName, (0, _meta2.meta)(obj));
+      }
+
       return ret;
     }
 
@@ -18625,6 +19682,14 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       defineProperty(obj, key, desc, value, meta$$1);
     }
 
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        if (!meta$$1.isPrototypeMeta(obj)) {
+          revalidateObservers(obj);
+        }
+      }
+
     return obj;
   }
   /**
@@ -19342,8 +20407,9 @@ enifed("@ember/-internals/routing/lib/ext/controller", ["exports", "@ember/-inte
       @private
     */
     _qpChanged(controller, _prop) {
-      let prop = _prop.substr(0, _prop.length - 3);
+      let dotIndex = _prop.indexOf('.[]');
 
+      let prop = dotIndex === -1 ? _prop : _prop.slice(0, dotIndex);
       let delegate = controller._qpDelegate;
       let value = (0, _metal.get)(controller, prop);
       delegate(prop, value);
@@ -20627,6 +21693,7 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
      Like any service, it can also be injected into helpers, routes, etc.
   
      @public
+     @extends Service
      @class RouterService
    */
 
@@ -20928,7 +21995,7 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
       The `rootURL` property represents the URL of the root of
       the application, '/' by default.
       This prefix is assumed on all routes defined on this app.
-         IF you change the `rootURL` in your environment configuration
+         If you change the `rootURL` in your environment configuration
       like so:
          ```config/environment.js
       'use strict';
@@ -20949,10 +22016,23 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
     rootURL: (0, _computed.readOnly)('_router.rootURL'),
 
     /**
-       A `RouteInfo` that represents the current leaf route.
-       It is guaranteed to change whenever a route transition
-       happens (even when that transition only changes parameters
-       and doesn't change the active route)
+      The `currentRoute` property contains metadata about the current leaf route.
+      It returns a `RouteInfo` object that has information like the route name,
+      params, query params and more.
+         See [RouteInfo](/ember/release/classes/RouteInfo) for more info.
+         This property is guaranteed to change whenever a route transition
+      happens (even when that transition only changes parameters
+      and doesn't change the active route).
+         Usage example:
+      ```app/components/header.js
+        import Component from '@ember/component';
+        import { inject as service } from '@ember/service';
+        import { computed } from '@ember/object';
+           export default Component.extend({
+          router: service(),
+             isChildRoute: computed.notEmpty('router.currentRoute.child')
+        });
+      ```
           @property currentRoute
        @type RouteInfo
        @public
@@ -21393,7 +22473,7 @@ enifed("@ember/-internals/routing/lib/system/generate_controller", ["exports", "
     });
     let fullName = "controller:" + controllerName;
     owner.register(fullName, Factory);
-    return Factory;
+    return owner.factoryFor(fullName);
   }
   /**
     Generates and instantiates a controller extending from `controller:basic`
@@ -21962,7 +23042,15 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
     _internalReset(isExiting, transition) {
       let controller = this.controller;
       controller._qpDelegate = (0, _metal.get)(this, '_qp.states.inactive');
-      this.resetController(controller, isExiting, transition);
+      this.resetController(controller, isExiting, transition); // TODO: Once tags are enabled by default, we should refactor QP changes to
+      // use autotracking. This will likely be a large refactor, and for now we
+      // just need to trigger observers eagerly.
+
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          (0, _metal.flushInvalidActiveObservers)(false);
+        }
     }
     /**
       @private
@@ -22461,7 +23549,16 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
 
       if (this._environment.options.shouldRender) {
         this.renderTemplate(controller, context);
-      }
+      } // TODO: Once tags are enabled by default, we should refactor QP changes to
+      // use autotracking. This will likely be a large refactor, and for now we
+      // just need to trigger observers eagerly.
+
+
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          (0, _metal.flushInvalidActiveObservers)(false);
+        }
     }
     /*
       Called when a query parameter for this route changes, regardless of whether the route
@@ -23951,6 +25048,12 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
         buildRouteInfoMetadata() {}
 
       });
+    }
+
+  if (true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ) {
+      (0, _runtime.setFrameworkClass)(Route);
     }
 
   var _default = Route;
@@ -26130,12 +27233,6 @@ enifed("@ember/-internals/runtime/index", ["exports", "@ember/-internals/runtime
       return _array.default;
     }
   });
-  Object.defineProperty(_exports, "isEmberArray", {
-    enumerable: true,
-    get: function () {
-      return _array.isEmberArray;
-    }
-  });
   Object.defineProperty(_exports, "NativeArray", {
     enumerable: true,
     get: function () {
@@ -26200,6 +27297,12 @@ enifed("@ember/-internals/runtime/index", ["exports", "@ember/-internals/runtime
     enumerable: true,
     get: function () {
       return _core_object.default;
+    }
+  });
+  Object.defineProperty(_exports, "setFrameworkClass", {
+    enumerable: true,
+    get: function () {
+      return _core_object.setFrameworkClass;
     }
   });
   Object.defineProperty(_exports, "ActionHandler", {
@@ -26553,13 +27656,13 @@ enifed("@ember/-internals/runtime/lib/copy", ["exports", "@ember/debug", "@ember
     return _copy(obj, deep, deep ? [] : null, deep ? [] : null);
   }
 });
-enifed("@ember/-internals/runtime/lib/ext/function", ["@ember/-internals/environment", "@ember/-internals/metal"], function (_environment, _metal) {
+enifed("@ember/-internals/runtime/lib/ext/function", ["@ember/-internals/environment", "@ember/-internals/metal", "@ember/debug", "@ember/deprecated-features"], function (_environment, _metal, _debug, _deprecatedFeatures) {
   "use strict";
 
   /**
   @module ember
   */
-  if (_environment.ENV.EXTEND_PROTOTYPES.Function) {
+  if (_deprecatedFeatures.FUNCTION_PROTOTYPE_EXTENSIONS && _environment.ENV.EXTEND_PROTOTYPES.Function) {
     Object.defineProperties(Function.prototype, {
       /**
         The `property` extension of Javascript's Function prototype is available
@@ -26616,6 +27719,11 @@ enifed("@ember/-internals/runtime/lib/ext/function", ["@ember/-internals/environ
         enumerable: false,
         writable: true,
         value: function () {
+          true && !false && (0, _debug.deprecate)("Function prototype extensions have been deprecated, please migrate from function(){}.property('bar') to computed('bar', function() {}).", false, {
+            id: 'function-prototype-extensions.property',
+            until: '4.0.0',
+            url: 'https://deprecations.emberjs.com/v3.x#toc_function-prototype-extensions-property'
+          });
           return (0, _metal.computed)(...arguments, this);
         }
       },
@@ -26646,6 +27754,11 @@ enifed("@ember/-internals/runtime/lib/ext/function", ["@ember/-internals/environ
         enumerable: false,
         writable: true,
         value: function () {
+          true && !false && (0, _debug.deprecate)("Function prototype extensions have been deprecated, please migrate from function(){}.observes('foo') to observer('foo', function() {}).", false, {
+            id: 'function-prototype-extensions.observes',
+            until: '4.0.0',
+            url: 'https://deprecations.emberjs.com/v3.x#toc_function-prototype-extensions-observes'
+          });
           return (0, _metal.observer)(...arguments, this);
         }
       },
@@ -26674,6 +27787,11 @@ enifed("@ember/-internals/runtime/lib/ext/function", ["@ember/-internals/environ
         enumerable: false,
         writable: true,
         value: function () {
+          true && !false && (0, _debug.deprecate)("Function prototype extensions have been deprecated, please migrate from function(){}.on('foo') to on('foo', function() {}).", false, {
+            id: 'function-prototype-extensions.on',
+            until: '4.0.0',
+            url: 'https://deprecations.emberjs.com/v3.x#toc_function-prototype-extensions-on'
+          });
           return (0, _metal.on)(...arguments, this);
         }
       }
@@ -26843,9 +27961,9 @@ enifed("@ember/-internals/runtime/lib/mixins/-proxy", ["exports", "@glimmer/refe
     /**
       The object whose properties will be forwarded.
        @property content
-      @type EmberObject
+      @type {unknown}
       @default null
-      @private
+      @public
     */
     content: null,
 
@@ -26868,13 +27986,21 @@ enifed("@ember/-internals/runtime/lib/mixins/-proxy", ["exports", "@glimmer/refe
     }),
 
     willWatchProperty(key) {
-      let contentKey = "content." + key;
-      (0, _metal.addObserver)(this, contentKey, null, '_contentPropertyDidChange');
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          let contentKey = "content." + key;
+          (0, _metal.addObserver)(this, contentKey, null, '_contentPropertyDidChange');
+        }
     },
 
     didUnwatchProperty(key) {
-      let contentKey = "content." + key;
-      (0, _metal.removeObserver)(this, contentKey, null, '_contentPropertyDidChange');
+      if (!false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          let contentKey = "content." + key;
+          (0, _metal.removeObserver)(this, contentKey, null, '_contentPropertyDidChange');
+        }
     },
 
     _contentPropertyDidChange(content, contentKey) {
@@ -26886,6 +28012,10 @@ enifed("@ember/-internals/runtime/lib/mixins/-proxy", ["exports", "@glimmer/refe
 
 
       (0, _metal.notifyPropertyChange)(this, key);
+    },
+
+    [_metal.UNKNOWN_PROPERTY_TAG](key) {
+      return (0, _metal.getChainTagsForKey)(this, "content." + key);
     },
 
     unknownProperty(key) {
@@ -27110,7 +28240,6 @@ enifed("@ember/-internals/runtime/lib/mixins/action_handler", ["exports", "@embe
 enifed("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-internals/metal", "@ember/-internals/utils", "@ember/debug", "@ember/-internals/runtime/lib/mixins/enumerable", "@ember/-internals/runtime/lib/compare", "@ember/-internals/environment", "@ember/-internals/runtime/lib/mixins/observable", "@ember/-internals/runtime/lib/mixins/mutable_enumerable", "@ember/-internals/runtime/lib/type-of"], function (_exports, _metal, _utils, _debug, _enumerable, _compare, _environment, _observable, _mutable_enumerable, _typeOf) {
   "use strict";
 
-  _exports.isEmberArray = isEmberArray;
   _exports.uniqBy = uniqBy;
   _exports.removeAt = removeAt;
   _exports.isArray = isArray;
@@ -27120,11 +28249,6 @@ enifed("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
   @module @ember/array
   */
   const EMPTY_ARRAY = Object.freeze([]);
-  const EMBER_ARRAY = (0, _utils.symbol)('EMBER_ARRAY');
-
-  function isEmberArray(obj) {
-    return obj && obj[EMBER_ARRAY];
-  }
 
   const identityFunction = item => item;
 
@@ -27326,7 +28450,7 @@ enifed("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
 
 
   const ArrayMixin = _metal.Mixin.create(_enumerable.default, {
-    [EMBER_ARRAY]: true,
+    [_utils.EMBER_ARRAY]: true,
 
     /**
       __Required.__ You must implement this method to apply this mixin.
@@ -27767,6 +28891,11 @@ enifed("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
       Returns an array with just the items with the matched property. You
       can pass an optional second argument with the target value. Otherwise
       this will match any property that evaluates to `true`.
+       Example Usage:
+       ```javascript
+      const things = Ember.A().addObjects([{food: 'apple'}, {food: 'beans'}]);
+      things.filterBy('food', 'beans'); // [{food: 'beans'}]
+      ```
        @method filterBy
       @param {String} key the property to test
       @param {*} [value] optional value to test against.
@@ -28556,20 +29685,12 @@ enifed("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
     NativeArray.apply(Array.prototype);
 
     _exports.A = A = function (arr) {
-      true && !!(this instanceof A) && (0, _debug.deprecate)('`new A()` has been deprecated, please update to calling A as a function: `A()`', !(this instanceof A), {
-        id: 'array.new-array-wrapper',
-        until: '3.9.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_array-new-array-wrapper'
-      });
+      true && !!(this instanceof A) && (0, _debug.assert)('You cannot create an Ember Array with `new A()`, please update to calling A as a function: `A()`', !(this instanceof A));
       return arr || [];
     };
   } else {
     _exports.A = A = function (arr) {
-      true && !!(this instanceof A) && (0, _debug.deprecate)('`new A()` has been deprecated, please update to calling A as a function: `A()`', !(this instanceof A), {
-        id: 'array.new-array-wrapper',
-        until: '3.9.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_array-new-array-wrapper'
-      });
+      true && !!(this instanceof A) && (0, _debug.assert)('You cannot create an Ember Array with `new A()`, please update to calling A as a function: `A()`', !(this instanceof A));
 
       if (!arr) {
         arr = [];
@@ -30081,6 +31202,14 @@ enifed("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       this._length = 0;
       this._arrangedContent = null;
 
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          this._arrangedContentIsUpdating = false;
+          this._arrangedContentTag = (0, _metal.getChainTagsForKey)(this, 'arrangedContent');
+          this._arrangedContentRevision = this._arrangedContentTag.value();
+        }
+
       this._addArrangedContentArrayObsever();
     }
 
@@ -30138,6 +31267,12 @@ enifed("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
 
 
     objectAt(idx) {
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          this._revalidate();
+        }
+
       if (this._objects === null) {
         this._objects = [];
       }
@@ -30163,6 +31298,12 @@ enifed("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
 
 
     get length() {
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          this._revalidate();
+        }
+
       if (this._lengthDirty) {
         let arrangedContent = (0, _metal.get)(this, 'arrangedContent');
         this._length = arrangedContent ? (0, _metal.get)(arrangedContent, 'length') : 0;
@@ -30194,29 +31335,39 @@ enifed("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
     }
 
     [_metal.PROPERTY_DID_CHANGE](key) {
-      if (key === 'arrangedContent') {
-        let oldLength = this._objects === null ? 0 : this._objects.length;
-        let arrangedContent = (0, _metal.get)(this, 'arrangedContent');
-        let newLength = arrangedContent ? (0, _metal.get)(arrangedContent, 'length') : 0;
-
-        this._removeArrangedContentArrayObsever();
-
-        this.arrayContentWillChange(0, oldLength, newLength);
-
-        this._invalidate();
-
-        this.arrayContentDidChange(0, oldLength, newLength);
-
-        this._addArrangedContentArrayObsever();
-      } else if (key === 'content') {
-        this._invalidate();
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          this._revalidate();
+        } else {
+        if (key === 'arrangedContent') {
+          this._updateArrangedContentArray();
+        } else if (key === 'content') {
+          this._invalidate();
+        }
       }
+    }
+
+    _updateArrangedContentArray() {
+      let oldLength = this._objects === null ? 0 : this._objects.length;
+      let arrangedContent = (0, _metal.get)(this, 'arrangedContent');
+      let newLength = arrangedContent ? (0, _metal.get)(arrangedContent, 'length') : 0;
+
+      this._removeArrangedContentArrayObsever();
+
+      this.arrayContentWillChange(0, oldLength, newLength);
+
+      this._invalidate();
+
+      this.arrayContentDidChange(0, oldLength, newLength);
+
+      this._addArrangedContentArrayObsever();
     }
 
     _addArrangedContentArrayObsever() {
       let arrangedContent = (0, _metal.get)(this, 'arrangedContent');
 
-      if (arrangedContent) {
+      if (arrangedContent && !arrangedContent.isDestroyed) {
         true && !(arrangedContent !== this) && (0, _debug.assert)("Can't set ArrayProxy's content to itself", arrangedContent !== this);
         true && !((0, _array.isArray)(arrangedContent) || arrangedContent.isDestroyed) && (0, _debug.assert)("ArrayProxy expects an Array or ArrayProxy, but you passed " + typeof arrangedContent, (0, _array.isArray)(arrangedContent) || arrangedContent.isDestroyed);
         (0, _metal.addArrayObserver)(arrangedContent, this, ARRAY_OBSERVER_MAPPING);
@@ -30257,6 +31408,25 @@ enifed("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
   }
 
   _exports.default = ArrayProxy;
+
+  let _revalidate;
+
+  if (false
+  /* EMBER_METAL_TRACKED_PROPERTIES */
+  ) {
+      _revalidate = function () {
+        if (!this._arrangedContentIsUpdating && !this._arrangedContentTag.validate(this._arrangedContentRevision)) {
+          this._arrangedContentIsUpdating = true;
+
+          this._updateArrangedContentArray();
+
+          this._arrangedContentIsUpdating = false;
+          this._arrangedContentTag = (0, _metal.getChainTagsForKey)(this, 'arrangedContent');
+          this._arrangedContentRevision = this._arrangedContentTag.value();
+        }
+      };
+    }
+
   ArrayProxy.reopen(_array.MutableArray, {
     /**
       The array that the proxy pretends to be. In the default `ArrayProxy`
@@ -30265,12 +31435,14 @@ enifed("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
        @property arrangedContent
       @public
     */
-    arrangedContent: (0, _metal.alias)('content')
+    arrangedContent: (0, _metal.alias)('content'),
+    _revalidate
   });
 });
-enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-internals/container", "@ember/polyfills", "@ember/-internals/utils", "@ember/runloop", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/-internals/runtime/lib/mixins/action_handler", "@ember/debug"], function (_exports, _container, _polyfills, _utils, _runloop, _meta, _metal, _action_handler, _debug) {
+enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-internals/container", "@ember/-internals/owner", "@ember/polyfills", "@ember/-internals/utils", "@ember/runloop", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/-internals/runtime/lib/mixins/action_handler", "@ember/debug"], function (_exports, _container, _owner, _polyfills, _utils, _runloop, _meta, _metal, _action_handler, _debug) {
   "use strict";
 
+  _exports.setFrameworkClass = setFrameworkClass;
   _exports.default = void 0;
 
   /**
@@ -30280,15 +31452,20 @@ enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
   const wasApplied = new _polyfills._WeakSet();
   const factoryMap = new WeakMap();
   const prototypeMixinMap = new WeakMap();
-  const DELAY_INIT = Object.freeze({});
-  let initCalled; // only used in debug builds to enable the proxy trap
-  // using DEBUG here to avoid the extraneous variable when not needed
-
-  if (true
+  const initCalled = true
   /* DEBUG */
-  ) {
-      initCalled = new _polyfills._WeakSet();
-    }
+  ? new _polyfills._WeakSet() : undefined; // only used in debug builds to enable the proxy trap
+
+  const PASSED_FROM_CREATE = true
+  /* DEBUG */
+  ? (0, _utils.symbol)('PASSED_FROM_CREATE') : undefined;
+  const FRAMEWORK_CLASSES = true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ? (0, _utils.symbol)('FRAMEWORK_CLASS') : undefined;
+
+  function setFrameworkClass(klass) {
+    klass[FRAMEWORK_CLASSES] = true;
+  }
 
   function initialize(obj, properties) {
     let m = (0, _meta.meta)(obj);
@@ -30350,10 +31527,24 @@ enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
         initCalled.add(obj);
       }
 
-    obj.init(properties); // re-enable chains
-
+    obj.init(properties);
     m.unsetInitializing();
-    (0, _metal.finishChains)(m);
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let observerEvents = m.observerEvents();
+
+        if (observerEvents !== undefined) {
+          for (let i = 0; i < observerEvents.length; i++) {
+            (0, _metal.activateObserver)(obj, observerEvents[i]);
+          }
+        }
+      } else {
+      // re-enable chains
+      (0, _metal.finishChains)(m);
+    }
+
     (0, _metal.sendEvent)(obj, 'init', undefined, undefined, undefined, m);
   }
   /**
@@ -30424,7 +31615,7 @@ enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
       factoryMap.set(this, factory);
     }
 
-    constructor(properties) {
+    constructor(passedFromCreate) {
       // pluck off factory
       let initFactory = factoryMap.get(this.constructor);
 
@@ -30471,16 +31662,45 @@ enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
       let m = (0, _meta.meta)(self);
       m.setInitializing();
+      true && !(() => {
+        if (passedFromCreate === PASSED_FROM_CREATE) {
+          return true;
+        }
 
-      if (properties !== DELAY_INIT) {
-        true && !false && (0, _debug.deprecate)('using `new` with EmberObject has been deprecated. Please use `create` instead, or consider using native classes without extending from EmberObject.', false, {
-          id: 'object.new-constructor',
-          until: '3.9.0',
-          url: 'https://emberjs.com/deprecations/v3.x#toc_object-new-constructor'
-        });
-        initialize(self, properties);
-      } // only return when in debug builds and `self` is the proxy created above
+        if (!true
+        /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+        ) {
+            return false;
+          }
 
+        if (initFactory === undefined) {
+          return false;
+        }
+
+        if (passedFromCreate === initFactory.owner) {
+          return true;
+        }
+
+        return false;
+      })() && (0, _debug.assert)("An EmberObject based class, " + this.constructor + ", was not instantiated correctly. You may have either used `new` instead of `.create()`, or not passed arguments to your call to super in the constructor: `super(...arguments)`. If you are trying to use `new`, consider using native classes without extending from EmberObject.", (() => {
+        if (passedFromCreate === PASSED_FROM_CREATE) {
+          return true;
+        }
+
+        if (!true) {
+          return false;
+        }
+
+        if (initFactory === undefined) {
+          return false;
+        }
+
+        if (passedFromCreate === initFactory.owner) {
+          return true;
+        }
+
+        return false;
+      })()); // only return when in debug builds and `self` is the proxy created above
 
       if (true
       /* DEBUG */
@@ -30881,7 +32101,33 @@ enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
     static create(props, extra) {
       let C = this;
-      let instance = new C(DELAY_INIT);
+      let instance;
+
+      if (true
+      /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+      && this[FRAMEWORK_CLASSES]) {
+        let initFactory = factoryMap.get(this);
+        let owner;
+
+        if (initFactory !== undefined) {
+          owner = initFactory.owner;
+        } else if (props !== undefined) {
+          owner = (0, _owner.getOwner)(props);
+        }
+
+        if (owner === undefined) {
+          // fallback to passing the special PASSED_FROM_CREATE symbol
+          // to avoid an error when folks call things like Controller.extend().create()
+          // we should do a subsequent deprecation pass to ensure this isn't allowed
+          owner = PASSED_FROM_CREATE;
+        }
+
+        instance = new C(owner);
+      } else {
+        instance = true
+        /* DEBUG */
+        ? new C(PASSED_FROM_CREATE) : new C();
+      }
 
       if (extra === undefined) {
         initialize(instance, props);
@@ -31332,15 +32578,37 @@ enifed("@ember/-internals/runtime/lib/system/object", ["exports", "@ember/-inter
 
   _observable.default.apply(EmberObject.prototype);
 
-  let FrameworkObject = EmberObject;
+  let FrameworkObject;
   _exports.FrameworkObject = FrameworkObject;
+
+  if (true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ) {
+      _exports.FrameworkObject = FrameworkObject = class FrameworkObject extends _core_object.default {
+        get _debugContainerKey() {
+          let factory = _container.FACTORY_FOR.get(this);
+
+          return factory !== undefined && factory.fullName;
+        }
+
+        constructor(owner) {
+          super();
+          (0, _owner.setOwner)(this, owner);
+        }
+
+      };
+
+      _observable.default.apply(FrameworkObject.prototype);
+    } else {
+    _exports.FrameworkObject = FrameworkObject = class FrameworkObject extends EmberObject {};
+  }
 
   if (true
   /* DEBUG */
   ) {
       let INIT_WAS_CALLED = (0, _utils.symbol)('INIT_WAS_CALLED');
       let ASSERT_INIT_WAS_CALLED = (0, _utils.symbol)('ASSERT_INIT_WAS_CALLED');
-      _exports.FrameworkObject = FrameworkObject = class FrameworkObject extends EmberObject {
+      _exports.FrameworkObject = FrameworkObject = class DebugFrameworkObject extends EmberObject {
         init() {
           super.init(...arguments);
           this[INIT_WAS_CALLED] = true;
@@ -31440,7 +32708,7 @@ enifed("@ember/-internals/runtime/lib/system/object_proxy", ["exports", "@ember/
   _exports.default = ObjectProxy;
   ObjectProxy.PrototypeMixin.reopen(_proxy.default);
 });
-enifed("@ember/-internals/runtime/lib/type-of", ["exports", "@ember/-internals/runtime/lib/system/object"], function (_exports, _object) {
+enifed("@ember/-internals/runtime/lib/type-of", ["exports", "@ember/-internals/runtime/lib/system/core_object"], function (_exports, _core_object) {
   "use strict";
 
   _exports.typeOf = typeOf;
@@ -31538,13 +32806,13 @@ enifed("@ember/-internals/runtime/lib/type-of", ["exports", "@ember/-internals/r
     let ret = TYPE_MAP[toString.call(item)] || 'object';
 
     if (ret === 'function') {
-      if (_object.default.detect(item)) {
+      if (_core_object.default.detect(item)) {
         ret = 'class';
       }
     } else if (ret === 'object') {
       if (item instanceof Error) {
         ret = 'error';
-      } else if (item instanceof _object.default) {
+      } else if (item instanceof _core_object.default) {
         ret = 'instance';
       } else if (item instanceof Date) {
         ret = 'date';
@@ -31554,7 +32822,7 @@ enifed("@ember/-internals/runtime/lib/type-of", ["exports", "@ember/-internals/r
     return ret;
   }
 });
-enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_exports, _polyfills) {
+enifed("@ember/-internals/utils", ["exports", "@ember/polyfills", "@ember/debug"], function (_exports, _polyfills, _debug) {
   "use strict";
 
   _exports.symbol = symbol;
@@ -31579,7 +32847,8 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
   _exports.toString = toString;
   _exports.isProxy = isProxy;
   _exports.setProxy = setProxy;
-  _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = _exports.NAME_KEY = void 0;
+  _exports.isEmberArray = isEmberArray;
+  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = _exports.NAME_KEY = void 0;
 
   /**
     Strongly hint runtimes to intern the provided string.
@@ -32278,6 +33547,125 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
     }
 
   }
+
+  _exports.Cache = Cache;
+  const EMBER_ARRAY = symbol('EMBER_ARRAY');
+  _exports.EMBER_ARRAY = EMBER_ARRAY;
+
+  function isEmberArray(obj) {
+    return obj && obj[EMBER_ARRAY];
+  }
+
+  let setupMandatorySetter;
+  _exports.setupMandatorySetter = setupMandatorySetter;
+  let teardownMandatorySetter;
+  _exports.teardownMandatorySetter = teardownMandatorySetter;
+  let setWithMandatorySetter;
+  _exports.setWithMandatorySetter = setWithMandatorySetter;
+
+  if (true
+  /* DEBUG */
+  && false
+  /* EMBER_METAL_TRACKED_PROPERTIES */
+  ) {
+      let MANDATORY_SETTERS = new WeakMap();
+
+      let getPropertyDescriptor = function (obj, keyName) {
+        let current = obj;
+
+        while (current !== null) {
+          let desc = Object.getOwnPropertyDescriptor(current, keyName);
+
+          if (desc !== undefined) {
+            return desc;
+          }
+
+          current = Object.getPrototypeOf(current);
+        }
+
+        return;
+      };
+
+      let propertyIsEnumerable = function (obj, key) {
+        return Object.prototype.propertyIsEnumerable.call(obj, key);
+      };
+
+      _exports.setupMandatorySetter = setupMandatorySetter = function (obj, keyName) {
+        let desc = getPropertyDescriptor(obj, keyName) || {};
+
+        if (desc.get || desc.set) {
+          // if it has a getter or setter, we can't install the mandatory setter.
+          // native setters are allowed, we have to assume that they will resolve
+          // to tracked properties.
+          return;
+        }
+
+        if (desc && (!desc.configurable || !desc.writable)) {
+          // if it isn't writable anyways, so we shouldn't provide the setter.
+          // if it isn't configurable, we can't overwrite it anyways.
+          return;
+        }
+
+        let setters = MANDATORY_SETTERS.get(obj);
+
+        if (setters === undefined) {
+          setters = {};
+          MANDATORY_SETTERS.set(obj, setters);
+        }
+
+        desc.hadOwnProperty = Object.hasOwnProperty.call(obj, keyName);
+        setters[keyName] = desc;
+        Object.defineProperty(obj, keyName, {
+          configurable: true,
+          enumerable: propertyIsEnumerable(obj, keyName),
+
+          get() {
+            if (desc.get) {
+              return desc.get.call(this);
+            } else {
+              return desc.value;
+            }
+          },
+
+          set(value) {
+            true && !false && (0, _debug.assert)("You attempted to update " + this + "." + String(keyName) + " to \"" + String(value) + "\", but it is being tracked by a tracking context, such as a template, computed property, or observer. In order to make sure the context updates properly, you must invalidate the property when updating it. You can mark the property as `@tracked`, or use `@ember/object#set` to do this.");
+          }
+
+        });
+      };
+
+      _exports.teardownMandatorySetter = teardownMandatorySetter = function (obj, keyName) {
+        let setters = MANDATORY_SETTERS.get(obj);
+
+        if (setters !== undefined && setters[keyName] !== undefined) {
+          Object.defineProperty(obj, keyName, setters[keyName]);
+          setters[keyName] = undefined;
+        }
+      };
+
+      _exports.setWithMandatorySetter = setWithMandatorySetter = function (obj, keyName, value) {
+        let setters = MANDATORY_SETTERS.get(obj);
+
+        if (setters !== undefined && setters[keyName] !== undefined) {
+          let setter = setters[keyName];
+
+          if (setter.set) {
+            setter.set.call(obj, value);
+          } else {
+            setter.value = value; // If the object didn't have own property before, it would have changed
+            // the enumerability after setting the value the first time.
+
+            if (!setter.hadOwnProperty) {
+              let desc = getPropertyDescriptor(obj, keyName);
+              desc.enumerable = true;
+              Object.defineProperty(obj, keyName, desc);
+            }
+          }
+        } else {
+          obj[keyName] = value;
+        }
+      };
+    }
   /*
    This package will be eagerly parsed and should have no dependencies on external
    packages.
@@ -32290,7 +33678,6 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills"], function (_ex
   */
 
 
-  _exports.Cache = Cache;
   const NAME_KEY = symbol('NAME_KEY');
   _exports.NAME_KEY = NAME_KEY;
 });
@@ -33868,7 +35255,7 @@ enifed("@ember/-internals/views/lib/system/event_dispatcher", ["exports", "@embe
                 } else if (event.cancelBubble === true) {
                   break;
                 }
-              } else if (target.hasAttribute('data-ember-action')) {
+              } else if (typeof target.hasAttribute === 'function' && target.hasAttribute('data-ember-action')) {
                 if (actionHandler(target, event) === false) {
                   break;
                 }
@@ -34588,7 +35975,7 @@ enifed("@ember/-internals/views/lib/views/states/has_element", ["exports", "@emb
 
   _exports.default = _default2;
 });
-enifed("@ember/-internals/views/lib/views/states/in_dom", ["exports", "@ember/polyfills", "@ember/-internals/metal", "@ember/error", "@ember/-internals/views/lib/views/states/has_element"], function (_exports, _polyfills, _metal, _error, _has_element) {
+enifed("@ember/-internals/views/lib/views/states/in_dom", ["exports", "@ember/-internals/utils", "@ember/polyfills", "@ember/error", "@ember/-internals/views/lib/views/states/has_element"], function (_exports, _utils, _polyfills, _error, _has_element) {
   "use strict";
 
   _exports.default = void 0;
@@ -34601,8 +35988,26 @@ enifed("@ember/-internals/views/lib/views/states/in_dom", ["exports", "@ember/po
       if (true
       /* DEBUG */
       ) {
-          (0, _metal.addObserver)(view, 'elementId', () => {
-            throw new _error.default("Changing a view's elementId after creation is not allowed");
+          let elementId = view.elementId;
+
+          if (false
+          /* EMBER_METAL_TRACKED_PROPERTIES */
+          ) {
+              (0, _utils.teardownMandatorySetter)(view, 'elementId');
+            }
+
+          Object.defineProperty(view, 'elementId', {
+            configurable: true,
+            enumerable: true,
+
+            get() {
+              return elementId;
+            },
+
+            set() {
+              throw new _error.default("Changing a view's elementId after creation is not allowed");
+            }
+
           });
         }
     },
@@ -36637,7 +38042,7 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   "use strict";
 
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = _exports.EMBER_GLIMMER_ON_MODIFIER = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_GLIMMER_FN_HELPER = _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -36654,10 +38059,15 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_IMPROVED_INSTRUMENTATION: false,
     EMBER_MODULE_UNIFICATION: false,
     EMBER_METAL_TRACKED_PROPERTIES: false,
+    EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES: true,
     EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS: true,
     EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP: true,
     EMBER_ROUTING_BUILD_ROUTEINFO_METADATA: true,
-    EMBER_NATIVE_DECORATOR_SUPPORT: true
+    EMBER_NATIVE_DECORATOR_SUPPORT: true,
+    EMBER_GLIMMER_FN_HELPER: true,
+    EMBER_CUSTOM_COMPONENT_ARG_PROXY: false,
+    EMBER_GLIMMER_ON_MODIFIER: true,
+    EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT: true
   };
   /**
     The hash of enabled Canary features. Add to this, any canary features
@@ -36719,12 +38129,22 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_METAL_TRACKED_PROPERTIES = EMBER_METAL_TRACKED_PROPERTIES;
   const EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP);
   _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP;
+  const EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = featureValue(FEATURES.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES);
+  _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES;
   const EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS);
   _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS;
   const EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = featureValue(FEATURES.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA);
   _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = EMBER_ROUTING_BUILD_ROUTEINFO_METADATA;
   const EMBER_NATIVE_DECORATOR_SUPPORT = featureValue(FEATURES.EMBER_NATIVE_DECORATOR_SUPPORT);
   _exports.EMBER_NATIVE_DECORATOR_SUPPORT = EMBER_NATIVE_DECORATOR_SUPPORT;
+  const EMBER_GLIMMER_FN_HELPER = featureValue(FEATURES.EMBER_GLIMMER_FN_HELPER);
+  _exports.EMBER_GLIMMER_FN_HELPER = EMBER_GLIMMER_FN_HELPER;
+  const EMBER_CUSTOM_COMPONENT_ARG_PROXY = featureValue(FEATURES.EMBER_CUSTOM_COMPONENT_ARG_PROXY);
+  _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = EMBER_CUSTOM_COMPONENT_ARG_PROXY;
+  const EMBER_GLIMMER_ON_MODIFIER = featureValue(FEATURES.EMBER_GLIMMER_ON_MODIFIER);
+  _exports.EMBER_GLIMMER_ON_MODIFIER = EMBER_GLIMMER_ON_MODIFIER;
+  const EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = featureValue(FEATURES.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT);
+  _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT;
 });
 enifed("@ember/controller/index", ["exports", "@ember/-internals/runtime", "@ember/-internals/metal", "@ember/controller/lib/controller_mixin"], function (_exports, _runtime, _metal, _controller_mixin) {
   "use strict";
@@ -36742,7 +38162,13 @@ enifed("@ember/controller/index", ["exports", "@ember/-internals/runtime", "@emb
     @uses Ember.ControllerMixin
     @public
   */
-  const Controller = _runtime.Object.extend(_controller_mixin.default);
+  const Controller = _runtime.FrameworkObject.extend(_controller_mixin.default);
+
+  if (true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ) {
+      (0, _runtime.setFrameworkClass)(Controller);
+    }
   /**
     Creates a property that lazily looks up another controller in the container.
     Can only be used when defining another controller.
@@ -37488,7 +38914,7 @@ enifed("@ember/debug/lib/warn", ["exports", "@ember/debug/index", "@ember/debug/
 enifed("@ember/deprecated-features/index", ["exports"], function (_exports) {
   "use strict";
 
-  _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.RUN_SYNC = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
+  _exports.FUNCTION_PROTOTYPE_EXTENSIONS = _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
 
   /* eslint-disable no-implicit-coercion */
   // These versions should be the version that the deprecation was _introduced_,
@@ -37497,8 +38923,6 @@ enifed("@ember/deprecated-features/index", ["exports"], function (_exports) {
   _exports.SEND_ACTION = SEND_ACTION;
   const EMBER_EXTEND_PROTOTYPES = !!'3.2.0-beta.5';
   _exports.EMBER_EXTEND_PROTOTYPES = EMBER_EXTEND_PROTOTYPES;
-  const RUN_SYNC = !!'3.0.0-beta.4';
-  _exports.RUN_SYNC = RUN_SYNC;
   const LOGGER = !!'3.2.0-beta.1';
   _exports.LOGGER = LOGGER;
   const MERGE = !!'3.6.0-beta.1';
@@ -37511,8 +38935,10 @@ enifed("@ember/deprecated-features/index", ["exports"], function (_exports) {
   _exports.JQUERY_INTEGRATION = JQUERY_INTEGRATION;
   const ALIAS_METHOD = !!'3.9.0';
   _exports.ALIAS_METHOD = ALIAS_METHOD;
-  const APP_CTRL_ROUTER_PROPS = !!'3.10.0';
+  const APP_CTRL_ROUTER_PROPS = !!'3.10.0-beta.1';
   _exports.APP_CTRL_ROUTER_PROPS = APP_CTRL_ROUTER_PROPS;
+  const FUNCTION_PROTOTYPE_EXTENSIONS = !!'3.11.0-beta.1';
+  _exports.FUNCTION_PROTOTYPE_EXTENSIONS = FUNCTION_PROTOTYPE_EXTENSIONS;
 });
 enifed("@ember/engine/index", ["exports", "@ember/engine/lib/engine-parent", "@ember/-internals/utils", "@ember/controller", "@ember/-internals/runtime", "@ember/-internals/container", "dag-map", "@ember/debug", "@ember/-internals/metal", "@ember/application/globals-resolver", "@ember/engine/instance", "@ember/-internals/routing", "@ember/-internals/extension-support", "@ember/-internals/views", "@ember/-internals/glimmer"], function (_exports, _engineParent, _utils, _controller, _runtime, _container, _dagMap, _debug, _metal, _globalsResolver, _instance, _routing, _extensionSupport, _views, _glimmer) {
   "use strict";
@@ -37562,6 +38988,10 @@ enifed("@ember/engine/index", ["exports", "@ember/engine/lib/engine-parent", "@e
 
     return properties;
   }
+  /**
+  @module @ember/engine
+  */
+
   /**
     The `Engine` class contains core functionality for both applications and
     engines.
@@ -41513,52 +42943,77 @@ enifed("@ember/object/lib/computed/reduce_computed_macros", ["exports", "@ember/
   function propertySort(itemsKey, sortPropertiesKey) {
     let activeObserversMap = new WeakMap();
     let sortPropertyDidChangeMap = new WeakMap();
-    return (0, _metal.computed)(sortPropertiesKey + ".[]", function (key) {
-      let sortProperties = (0, _metal.get)(this, sortPropertiesKey);
-      true && !((0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')) && (0, _debug.assert)("The sort definition for '" + key + "' on " + this + " must be a function or an array of strings", (0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')); // Add/remove property observers as required.
 
-      let activeObservers = activeObserversMap.get(this);
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let cp = (0, _metal.computed)(itemsKey + ".[]", sortPropertiesKey + ".[]", function (key) {
+          let sortProperties = (0, _metal.get)(this, sortPropertiesKey);
+          true && !((0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')) && (0, _debug.assert)("The sort definition for '" + key + "' on " + this + " must be a function or an array of strings", (0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string'));
+          let itemsKeyIsAtThis = itemsKey === '@this';
+          let normalizedSortProperties = normalizeSortProperties(sortProperties);
+          let items = itemsKeyIsAtThis ? this : (0, _metal.get)(this, itemsKey);
 
-      if (!sortPropertyDidChangeMap.has(this)) {
-        sortPropertyDidChangeMap.set(this, function () {
-          (0, _metal.notifyPropertyChange)(this, key);
-        });
-      }
+          if (!(0, _runtime.isArray)(items)) {
+            return (0, _runtime.A)();
+          }
 
-      let sortPropertyDidChange = sortPropertyDidChangeMap.get(this);
-
-      if (activeObservers !== undefined) {
-        activeObservers.forEach(path => (0, _metal.removeObserver)(this, path, sortPropertyDidChange));
-      }
-
-      let itemsKeyIsAtThis = itemsKey === '@this';
-      let normalizedSortProperties = normalizeSortProperties(sortProperties);
-
-      if (normalizedSortProperties.length === 0) {
-        let path = itemsKeyIsAtThis ? "[]" : itemsKey + ".[]";
-        (0, _metal.addObserver)(this, path, sortPropertyDidChange);
-        activeObservers = [path];
+          if (normalizedSortProperties.length === 0) {
+            return (0, _runtime.A)(items.slice());
+          } else {
+            return sortByNormalizedSortProperties(items, normalizedSortProperties);
+          }
+        }).readOnly();
+        (0, _metal.descriptorForDecorator)(cp).auto();
+        return cp;
       } else {
-        activeObservers = normalizedSortProperties.map(([prop]) => {
-          let path = itemsKeyIsAtThis ? "@each." + prop : itemsKey + ".@each." + prop;
+      return (0, _metal.computed)(sortPropertiesKey + ".[]", function (key) {
+        let sortProperties = (0, _metal.get)(this, sortPropertiesKey);
+        true && !((0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')) && (0, _debug.assert)("The sort definition for '" + key + "' on " + this + " must be a function or an array of strings", (0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')); // Add/remove property observers as required.
+
+        let activeObservers = activeObserversMap.get(this);
+
+        if (!sortPropertyDidChangeMap.has(this)) {
+          sortPropertyDidChangeMap.set(this, function () {
+            (0, _metal.notifyPropertyChange)(this, key);
+          });
+        }
+
+        let sortPropertyDidChange = sortPropertyDidChangeMap.get(this);
+
+        if (activeObservers !== undefined) {
+          activeObservers.forEach(path => (0, _metal.removeObserver)(this, path, sortPropertyDidChange));
+        }
+
+        let itemsKeyIsAtThis = itemsKey === '@this';
+        let normalizedSortProperties = normalizeSortProperties(sortProperties);
+
+        if (normalizedSortProperties.length === 0) {
+          let path = itemsKeyIsAtThis ? "[]" : itemsKey + ".[]";
           (0, _metal.addObserver)(this, path, sortPropertyDidChange);
-          return path;
-        });
-      }
+          activeObservers = [path];
+        } else {
+          activeObservers = normalizedSortProperties.map(([prop]) => {
+            let path = itemsKeyIsAtThis ? "@each." + prop : itemsKey + ".@each." + prop;
+            (0, _metal.addObserver)(this, path, sortPropertyDidChange);
+            return path;
+          });
+        }
 
-      activeObserversMap.set(this, activeObservers);
-      let items = itemsKeyIsAtThis ? this : (0, _metal.get)(this, itemsKey);
+        activeObserversMap.set(this, activeObservers);
+        let items = itemsKeyIsAtThis ? this : (0, _metal.get)(this, itemsKey);
 
-      if (!(0, _runtime.isArray)(items)) {
-        return (0, _runtime.A)();
-      }
+        if (!(0, _runtime.isArray)(items)) {
+          return (0, _runtime.A)();
+        }
 
-      if (normalizedSortProperties.length === 0) {
-        return (0, _runtime.A)(items.slice());
-      } else {
-        return sortByNormalizedSortProperties(items, normalizedSortProperties);
-      }
-    }).readOnly();
+        if (normalizedSortProperties.length === 0) {
+          return (0, _runtime.A)(items.slice());
+        } else {
+          return sortByNormalizedSortProperties(items, normalizedSortProperties);
+        }
+      }).readOnly();
+    }
   }
 
   function normalizeSortProperties(sortProperties) {
@@ -41749,7 +43204,7 @@ enifed("@ember/polyfills/lib/weak_set", ["exports"], function (_exports) {
 
   _exports.default = _default;
 });
-enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/error-handling", "@ember/-internals/metal", "backburner", "@ember/deprecated-features"], function (_exports, _debug, _errorHandling, _metal, _backburner, _deprecatedFeatures) {
+enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/error-handling", "@ember/-internals/metal", "backburner"], function (_exports, _debug, _errorHandling, _metal, _backburner) {
   "use strict";
 
   _exports.getCurrentRunLoop = getCurrentRunLoop;
@@ -41780,7 +43235,27 @@ enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
 
   function onEnd(current, next) {
     currentRunLoop = next;
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        (0, _metal.flushInvalidActiveObservers)();
+      }
   }
+
+  let flush;
+
+  if (false
+  /* EMBER_METAL_TRACKED_PROPERTIES */
+  ) {
+      flush = function (queueName, next) {
+        if (queueName === 'render' || queueName === _rsvpErrorQueue) {
+          (0, _metal.flushInvalidActiveObservers)();
+        }
+
+        next();
+      };
+    }
 
   const _rsvpErrorQueue = ("" + Math.random() + Date.now()).replace('.', '');
   /**
@@ -41803,23 +43278,14 @@ enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
   // position to avoid breaking anything rendered in the other sections
   _rsvpErrorQueue];
   _exports.queues = queues;
-  let backburnerOptions = {
+  const backburner = new _backburner.default(queues, {
     defaultQueue: 'actions',
     onBegin,
     onEnd,
     onErrorTarget: _errorHandling.onErrorTarget,
-    onErrorMethod: 'onerror'
-  };
-
-  if (_deprecatedFeatures.RUN_SYNC) {
-    queues.unshift('sync');
-    backburnerOptions.sync = {
-      before: _metal.beginPropertyChanges,
-      after: _metal.endPropertyChanges
-    };
-  }
-
-  const backburner = new _backburner.default(queues, backburnerOptions);
+    onErrorMethod: 'onerror',
+    flush
+  });
   /**
    @module @ember/runloop
   */
@@ -42073,15 +43539,20 @@ enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
     ```javascript
     import { schedule } from '@ember/runloop';
   
+    schedule('afterRender', this, function() {
+      // this will be executed in the 'afterRender' queue
+      console.log('scheduled on afterRender queue');
+    });
+  
     schedule('actions', this, function() {
-      // this will be executed in the 'actions' queue, after bindings have synced.
+      // this will be executed in the 'actions' queue
       console.log('scheduled on actions queue');
     });
   
     // Note the functions will be run in order based on the run queues order.
     // Output would be:
-    //   scheduled on sync queue
     //   scheduled on actions queue
+    //   scheduled on afterRender queue
     ```
   
     @method schedule
@@ -42098,13 +43569,9 @@ enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
   */
 
 
-  function schedule(queue
-  /*, target, method */
-  ) {
-    true && !(queue !== 'sync') && (0, _debug.deprecate)("Scheduling into the '" + queue + "' run loop queue is deprecated.", queue !== 'sync', {
-      id: 'ember-metal.run.sync',
-      until: '3.5.0'
-    });
+  function schedule()
+  /* queue, target, method */
+  {
     return backburner.schedule(...arguments);
   } // Used by global test teardown
 
@@ -42249,13 +43716,9 @@ enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
   */
 
 
-  function scheduleOnce(queue
-  /*, target, method*/
-  ) {
-    true && !(queue !== 'sync') && (0, _debug.deprecate)("Scheduling into the '" + queue + "' run loop queue is deprecated.", queue !== 'sync', {
-      id: 'ember-metal.run.sync',
-      until: '3.5.0'
-    });
+  function scheduleOnce()
+  /* queue, target, method*/
+  {
     return backburner.scheduleOnce(...arguments);
   }
   /**
@@ -42603,11 +44066,18 @@ enifed("@ember/service/index", ["exports", "@ember/-internals/runtime", "@ember/
   */
 
 
-  const Service = _runtime.Object.extend();
+  const Service = _runtime.FrameworkObject.extend();
 
   Service.reopenClass({
     isServiceFactory: true
   });
+
+  if (true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ) {
+      (0, _runtime.setFrameworkClass)(Service);
+    }
+
   var _default = Service;
   _exports.default = _default;
 });
@@ -43317,7 +44787,7 @@ enifed("@glimmer/node", ["exports", "@glimmer/runtime"], function (_exports, _ru
         super.closeElement();
       }
 
-      super.closeElement();
+      return super.closeElement();
     }
 
     openElement(tag) {
@@ -43329,7 +44799,7 @@ enifed("@glimmer/node", ["exports", "@glimmer/runtime"], function (_exports, _ru
           // really in the template.
 
           this.constructing['needsExtraClose'] = true;
-          this.flushElement();
+          this.flushElement(null);
         }
       }
 
@@ -43447,11 +44917,13 @@ enifed("@glimmer/opcode-compiler", ["exports", "@glimmer/util", "@glimmer/vm", "
       componentAttr(sexp, true, builder);
     });
     STATEMENTS.add(Ops$2.OpenElement, (sexp, builder) => {
-      builder.openPrimitiveElement(sexp[1]);
-    });
-    STATEMENTS.add(Ops$2.OpenSplattedElement, (sexp, builder) => {
-      builder.putComponentOperations();
-      builder.openPrimitiveElement(sexp[1]);
+      let [, tag, simple] = sexp;
+
+      if (!simple) {
+        builder.putComponentOperations();
+      }
+
+      builder.openPrimitiveElement(tag);
     });
     STATEMENTS.add(Ops$2.DynamicComponent, (sexp, builder) => {
       let [, definition, attrs, args, template] = sexp;
@@ -48348,18 +49820,30 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   /* FlushElement */
   , vm => {
     let operations = vm.fetchValue(_vm2.Register.t0);
+    let modifiers = null;
 
     if (operations) {
-      operations.flush(vm);
+      modifiers = operations.flush(vm);
       vm.loadValue(_vm2.Register.t0, null);
     }
 
-    vm.elements().flushElement();
+    vm.elements().flushElement(modifiers);
   });
   APPEND_OPCODES.add(39
   /* CloseElement */
   , vm => {
-    vm.elements().closeElement();
+    let modifiers = vm.elements().closeElement();
+
+    if (modifiers) {
+      modifiers.forEach(([manager, modifier]) => {
+        vm.env.scheduleInstallModifier(modifier, manager);
+        let destructor = manager.getDestructor(modifier);
+
+        if (destructor) {
+          vm.newDestroyable(destructor);
+        }
+      });
+    }
   });
   APPEND_OPCODES.add(40
   /* Modifier */
@@ -48373,18 +49857,13 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     let stack = vm.stack;
     let args = stack.pop();
     let {
-      element,
+      constructing,
       updateOperations
     } = vm.elements();
     let dynamicScope = vm.dynamicScope();
-    let modifier = manager.create(element, state, args, dynamicScope, updateOperations);
-    vm.env.scheduleInstallModifier(modifier, manager);
-    let destructor = manager.getDestructor(modifier);
-
-    if (destructor) {
-      vm.newDestroyable(destructor);
-    }
-
+    let modifier = manager.create(constructing, state, args, dynamicScope, updateOperations);
+    let operations = vm.fetchValue(_vm2.Register.t0);
+    operations.addModifier(manager, modifier);
     let tag = manager.getTag(modifier);
 
     if (!(0, _reference.isConstTag)(tag)) {
@@ -48903,6 +50382,7 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     constructor() {
       this.attributes = (0, _util.dict)();
       this.classes = [];
+      this.modifiers = [];
     }
 
     setAttribute(name, value, trusting, namespace) {
@@ -48917,6 +50397,10 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       }
 
       this.attributes[name] = deferred;
+    }
+
+    addModifier(manager, modifier) {
+      this.modifiers.push([manager, modifier]);
     }
 
     flush(vm) {
@@ -48956,6 +50440,8 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
           vm.updateWith(new UpdateDynamicAttributeOpcode(reference, attribute));
         }
       }
+
+      return this.modifiers;
     }
 
   }
@@ -50338,13 +51824,13 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     scheduleInstallModifier(modifier, manager) {
-      this.scheduledInstallManagers.push(manager);
       this.scheduledInstallModifiers.push(modifier);
+      this.scheduledInstallManagers.push(manager);
     }
 
     scheduleUpdateModifier(modifier, manager) {
-      this.scheduledUpdateModifierManagers.push(manager);
       this.scheduledUpdateModifiers.push(modifier);
+      this.scheduledUpdateModifierManagers.push(manager);
     }
 
     didDestroy(d) {
@@ -50388,8 +51874,8 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       } = this;
 
       for (let i = 0; i < scheduledInstallManagers.length; i++) {
-        let manager = scheduledInstallManagers[i];
         let modifier = scheduledInstallModifiers[i];
+        let manager = scheduledInstallManagers[i];
         manager.install(modifier);
       }
 
@@ -50399,8 +51885,8 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       } = this;
 
       for (let i = 0; i < scheduledUpdateModifierManagers.length; i++) {
-        let manager = scheduledUpdateModifierManagers[i];
         let modifier = scheduledUpdateModifiers[i];
+        let manager = scheduledUpdateModifierManagers[i];
         manager.update(modifier);
       }
     }
@@ -50665,6 +52151,7 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.constructing = null;
       this.operations = null;
       this.cursorStack = new _util.Stack();
+      this.modifierStack = new _util.Stack();
       this.blockStack = new _util.Stack();
       this.pushElement(parentNode, nextSibling);
       this.env = env;
@@ -50760,7 +52247,7 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return this.dom.createElement(tag, this.element);
     }
 
-    flushElement() {
+    flushElement(modifiers) {
       let parent = this.element;
       let element = this.constructing;
 
@@ -50768,6 +52255,7 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
       this.constructing = null;
       this.operations = null;
+      this.pushModifiers(modifiers);
       this.pushElement(element, null);
       this.didOpenElement(element);
     }
@@ -50779,6 +52267,7 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     closeElement() {
       this.willCloseElement();
       this.popElement();
+      return this.popModifiers();
     }
 
     pushRemoteElement(element, guid, nextSibling = null) {
@@ -50798,6 +52287,14 @@ enifed("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
     pushElement(element, nextSibling) {
       this.cursorStack.push(new Cursor(element, nextSibling));
+    }
+
+    pushModifiers(modifiers) {
+      this.modifierStack.push(modifiers);
+    }
+
+    popModifiers() {
+      return this.modifierStack.pop();
     }
 
     didAddDestroyable(d) {
@@ -53538,7 +55035,7 @@ enifed("@glimmer/wire-format", ["exports"], function (_exports) {
   _exports.is = is;
   _exports.isAttribute = isAttribute;
   _exports.isArgument = isArgument;
-  _exports.Ops = _exports.isMaybeLocal = _exports.isGet = _exports.isFlushElement = void 0;
+  _exports.isMaybeLocal = _exports.isGet = _exports.isFlushElement = _exports.Ops = void 0;
   var Opcodes;
   _exports.Ops = Opcodes;
 
@@ -53552,31 +55049,30 @@ enifed("@glimmer/wire-format", ["exports"], function (_exports) {
     Opcodes[Opcodes["Component"] = 5] = "Component";
     Opcodes[Opcodes["DynamicComponent"] = 6] = "DynamicComponent";
     Opcodes[Opcodes["OpenElement"] = 7] = "OpenElement";
-    Opcodes[Opcodes["OpenSplattedElement"] = 8] = "OpenSplattedElement";
-    Opcodes[Opcodes["FlushElement"] = 9] = "FlushElement";
-    Opcodes[Opcodes["CloseElement"] = 10] = "CloseElement";
-    Opcodes[Opcodes["StaticAttr"] = 11] = "StaticAttr";
-    Opcodes[Opcodes["DynamicAttr"] = 12] = "DynamicAttr";
-    Opcodes[Opcodes["ComponentAttr"] = 13] = "ComponentAttr";
-    Opcodes[Opcodes["AttrSplat"] = 14] = "AttrSplat";
-    Opcodes[Opcodes["Yield"] = 15] = "Yield";
-    Opcodes[Opcodes["Partial"] = 16] = "Partial";
-    Opcodes[Opcodes["DynamicArg"] = 17] = "DynamicArg";
-    Opcodes[Opcodes["StaticArg"] = 18] = "StaticArg";
-    Opcodes[Opcodes["TrustingAttr"] = 19] = "TrustingAttr";
-    Opcodes[Opcodes["TrustingComponentAttr"] = 20] = "TrustingComponentAttr";
-    Opcodes[Opcodes["Debugger"] = 21] = "Debugger";
-    Opcodes[Opcodes["ClientSideStatement"] = 22] = "ClientSideStatement"; // Expressions
+    Opcodes[Opcodes["FlushElement"] = 8] = "FlushElement";
+    Opcodes[Opcodes["CloseElement"] = 9] = "CloseElement";
+    Opcodes[Opcodes["StaticAttr"] = 10] = "StaticAttr";
+    Opcodes[Opcodes["DynamicAttr"] = 11] = "DynamicAttr";
+    Opcodes[Opcodes["ComponentAttr"] = 12] = "ComponentAttr";
+    Opcodes[Opcodes["AttrSplat"] = 13] = "AttrSplat";
+    Opcodes[Opcodes["Yield"] = 14] = "Yield";
+    Opcodes[Opcodes["Partial"] = 15] = "Partial";
+    Opcodes[Opcodes["DynamicArg"] = 16] = "DynamicArg";
+    Opcodes[Opcodes["StaticArg"] = 17] = "StaticArg";
+    Opcodes[Opcodes["TrustingAttr"] = 18] = "TrustingAttr";
+    Opcodes[Opcodes["TrustingComponentAttr"] = 19] = "TrustingComponentAttr";
+    Opcodes[Opcodes["Debugger"] = 20] = "Debugger";
+    Opcodes[Opcodes["ClientSideStatement"] = 21] = "ClientSideStatement"; // Expressions
 
-    Opcodes[Opcodes["Unknown"] = 23] = "Unknown";
-    Opcodes[Opcodes["Get"] = 24] = "Get";
-    Opcodes[Opcodes["MaybeLocal"] = 25] = "MaybeLocal";
-    Opcodes[Opcodes["HasBlock"] = 26] = "HasBlock";
-    Opcodes[Opcodes["HasBlockParams"] = 27] = "HasBlockParams";
-    Opcodes[Opcodes["Undefined"] = 28] = "Undefined";
-    Opcodes[Opcodes["Helper"] = 29] = "Helper";
-    Opcodes[Opcodes["Concat"] = 30] = "Concat";
-    Opcodes[Opcodes["ClientSideExpression"] = 31] = "ClientSideExpression";
+    Opcodes[Opcodes["Unknown"] = 22] = "Unknown";
+    Opcodes[Opcodes["Get"] = 23] = "Get";
+    Opcodes[Opcodes["MaybeLocal"] = 24] = "MaybeLocal";
+    Opcodes[Opcodes["HasBlock"] = 25] = "HasBlock";
+    Opcodes[Opcodes["HasBlockParams"] = 26] = "HasBlockParams";
+    Opcodes[Opcodes["Undefined"] = 27] = "Undefined";
+    Opcodes[Opcodes["Helper"] = 28] = "Helper";
+    Opcodes[Opcodes["Concat"] = 29] = "Concat";
+    Opcodes[Opcodes["ClientSideExpression"] = 30] = "ClientSideExpression";
   })(Opcodes || (_exports.Ops = Opcodes = {}));
 
   function is(variant) {
@@ -53590,7 +55086,7 @@ enifed("@glimmer/wire-format", ["exports"], function (_exports) {
   _exports.isFlushElement = isFlushElement;
 
   function isAttribute(val) {
-    return val[0] === Opcodes.StaticAttr || val[0] === Opcodes.DynamicAttr || val[0] === Opcodes.ComponentAttr || val[0] === Opcodes.TrustingAttr || val[0] === Opcodes.TrustingComponentAttr || val[0] === Opcodes.AttrSplat;
+    return val[0] === Opcodes.StaticAttr || val[0] === Opcodes.DynamicAttr || val[0] === Opcodes.ComponentAttr || val[0] === Opcodes.TrustingAttr || val[0] === Opcodes.TrustingComponentAttr || val[0] === Opcodes.AttrSplat || val[0] === Opcodes.Modifier;
   }
 
   function isArgument(val) {
@@ -57186,6 +58682,12 @@ enifed("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.compare = _runtime.compare;
   Ember.copy = _runtime.copy;
   Ember.isEqual = _runtime.isEqual;
+
+  if (true
+  /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
+  ) {
+      Ember._setFrameworkClass = _runtime.setFrameworkClass;
+    }
   /**
   @module ember
   */
@@ -57198,6 +58700,7 @@ enifed("ember/index", ["exports", "require", "@ember/-internals/environment", "n
     @static
     @public
   */
+
 
   Ember.inject = function inject() {
     true && !false && (0, EmberDebug.assert)("Injected properties must be created through helpers, see '" + Object.keys(inject).map(k => "'inject." + k + "'").join(' or ') + "'");
@@ -57451,7 +58954,7 @@ enifed("ember/version", ["exports"], function (_exports) {
   "use strict";
 
   _exports.default = void 0;
-  var _default = "3.10.0";
+  var _default = "3.11.1";
   _exports.default = _default;
 });
 /*global enifed, module */
@@ -58944,7 +60447,7 @@ enifed("router_js", ["exports", "rsvp", "route-recognizer"], function (_exports,
         },
 
         get metadata() {
-          return buildRouteInfoMetadata(route);
+          return buildRouteInfoMetadata(info.route);
         },
 
         get parent() {
@@ -59627,6 +61130,7 @@ enifed("router_js", ["exports", "rsvp", "route-recognizer"], function (_exports,
       let params = {}; // Soak up all the provided string/numbers
 
       let numNames = names.length;
+      let missingParams = [];
 
       while (numNames--) {
         // Only use old params if the names match with the new handler
@@ -59643,9 +61147,13 @@ enifed("router_js", ["exports", "rsvp", "route-recognizer"], function (_exports,
           if (oldParams.hasOwnProperty(paramName)) {
             params[paramName] = oldParams[paramName];
           } else {
-            throw new Error("You didn't provide enough string/numeric parameters to satisfy all of the dynamic segments for route " + name);
+            missingParams.push(paramName);
           }
         }
+      }
+
+      if (missingParams.length > 0) {
+        throw new Error("You didn't provide enough string/numeric parameters to satisfy all of the dynamic segments for route " + name + "." + (" Missing params: " + missingParams));
       }
 
       return new UnresolvedRouteInfoByParam(this.router, name, names, params);
@@ -63336,6 +64844,8 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember
       return _system.Inflector;
     }
 
+  }, {
+    configurable: true
   });
   Object.defineProperty(Ember.String, 'singularize', {
     get() {
@@ -63346,6 +64856,8 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember
       return _system.singularize;
     }
 
+  }, {
+    configurable: true
   });
   Object.defineProperty(Ember.String, 'pluralize', {
     get() {
@@ -63356,6 +64868,8 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember
       return _system.pluralize;
     }
 
+  }, {
+    configurable: true
   });
   var _default = _system.Inflector;
   _exports.default = _default;
@@ -63412,6 +64926,8 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
         };
       }
 
+    }, {
+      configurable: true
     });
     /**
       See {{#crossLink "Ember.String/singularize"}}{{/crossLink}}
@@ -63430,6 +64946,8 @@ define("ember-inflector/lib/ext/string", ["ember-inflector/lib/system/string"], 
         };
       }
 
+    }, {
+      configurable: true
     });
   }
 });

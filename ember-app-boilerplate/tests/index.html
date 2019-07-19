@@ -20,8 +20,8 @@
 
     <script src="/assets/vendor.js"></script>
     <script type="text/javascript">
-      $(document).on('keydown', function(event) {
-        event.keyCode === 80 ? $('#qunit-abort-tests-button').click() : null;
+      document.addEventListener('keydown', function(event) {
+        event.keyCode === 80 ? document.querySelector('#qunit-abort-tests-button').click() : null;
       });
     </script>
     <script src="/assets/test-support.js"></script>

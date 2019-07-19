@@ -18,7 +18,7 @@
     "test": "mber test"
   },
   "engines": {
-    "node": "^10.*"
+    "node": "^12.*"
   },
   "devDependencies": {
     "mber": "{{mberVersion}}",
@@ -40,5 +40,8 @@
     "mber-head": "^0.1.0",
     "memserver": "^1.2.7",
     "node-fetch": "2.6.0"
+  },
+  "volta": {
+    "node": "12.4.0"
   }
 }
