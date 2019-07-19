@@ -544,6 +544,304 @@
           'use strict';
 
           (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g._memserver__model = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function (process){
+'use strict';
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var isObject = function isObject(val) {
+  return val !== null && _typeof(val) === 'object' && !Array.isArray(val);
+};
+
+var identity = function identity(val) {
+  return val;
+};
+/* eslint-disable no-control-regex */
+// this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
+
+
+var ANSI_REGEX = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g;
+
+var create = function create() {
+  var colors = {
+    enabled: true,
+    visible: true,
+    styles: {},
+    keys: {}
+  };
+
+  if ('FORCE_COLOR' in process.env) {
+    colors.enabled = process.env.FORCE_COLOR !== '0';
+  }
+
+  var ansi = function ansi(style) {
+    var open = style.open = "\x1B[".concat(style.codes[0], "m");
+    var close = style.close = "\x1B[".concat(style.codes[1], "m");
+    var regex = style.regex = new RegExp("\\u001b\\[".concat(style.codes[1], "m"), 'g');
+
+    style.wrap = function (input, newline) {
+      if (input.includes(close)) input = input.replace(regex, close + open);
+      var output = open + input + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
+      // chalk contributors for this fix. However, we've confirmed that
+      // this issue is also present in Windows terminals
+
+      return newline ? output.replace(/\r*\n/g, "".concat(close, "$&").concat(open)) : output;
+    };
+
+    return style;
+  };
+
+  var wrap = function wrap(style, input, newline) {
+    return typeof style === 'function' ? style(input) : style.wrap(input, newline);
+  };
+
+  var style = function style(input, stack) {
+    if (input === '' || input == null) return '';
+    if (colors.enabled === false) return input;
+    if (colors.visible === false) return '';
+    var str = '' + input;
+    var nl = str.includes('\n');
+    var n = stack.length;
+
+    if (n > 0 && stack.includes('unstyle')) {
+      stack = _toConsumableArray(new Set(['unstyle'].concat(_toConsumableArray(stack)))).reverse();
+    }
+
+    while (n-- > 0) {
+      str = wrap(colors.styles[stack[n]], str, nl);
+    }
+
+    return str;
+  };
+
+  var define = function define(name, codes, type) {
+    colors.styles[name] = ansi({
+      name: name,
+      codes: codes
+    });
+    var keys = colors.keys[type] || (colors.keys[type] = []);
+    keys.push(name);
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+      set: function set(value) {
+        colors.alias(name, value);
+      },
+      get: function get() {
+        var color = function color(input) {
+          return style(input, color.stack);
+        };
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(name) : [name];
+        return color;
+      }
+    });
+  };
+
+  define('reset', [0, 0], 'modifier');
+  define('bold', [1, 22], 'modifier');
+  define('dim', [2, 22], 'modifier');
+  define('italic', [3, 23], 'modifier');
+  define('underline', [4, 24], 'modifier');
+  define('inverse', [7, 27], 'modifier');
+  define('hidden', [8, 28], 'modifier');
+  define('strikethrough', [9, 29], 'modifier');
+  define('black', [30, 39], 'color');
+  define('red', [31, 39], 'color');
+  define('green', [32, 39], 'color');
+  define('yellow', [33, 39], 'color');
+  define('blue', [34, 39], 'color');
+  define('magenta', [35, 39], 'color');
+  define('cyan', [36, 39], 'color');
+  define('white', [37, 39], 'color');
+  define('gray', [90, 39], 'color');
+  define('grey', [90, 39], 'color');
+  define('bgBlack', [40, 49], 'bg');
+  define('bgRed', [41, 49], 'bg');
+  define('bgGreen', [42, 49], 'bg');
+  define('bgYellow', [43, 49], 'bg');
+  define('bgBlue', [44, 49], 'bg');
+  define('bgMagenta', [45, 49], 'bg');
+  define('bgCyan', [46, 49], 'bg');
+  define('bgWhite', [47, 49], 'bg');
+  define('blackBright', [90, 39], 'bright');
+  define('redBright', [91, 39], 'bright');
+  define('greenBright', [92, 39], 'bright');
+  define('yellowBright', [93, 39], 'bright');
+  define('blueBright', [94, 39], 'bright');
+  define('magentaBright', [95, 39], 'bright');
+  define('cyanBright', [96, 39], 'bright');
+  define('whiteBright', [97, 39], 'bright');
+  define('bgBlackBright', [100, 49], 'bgBright');
+  define('bgRedBright', [101, 49], 'bgBright');
+  define('bgGreenBright', [102, 49], 'bgBright');
+  define('bgYellowBright', [103, 49], 'bgBright');
+  define('bgBlueBright', [104, 49], 'bgBright');
+  define('bgMagentaBright', [105, 49], 'bgBright');
+  define('bgCyanBright', [106, 49], 'bgBright');
+  define('bgWhiteBright', [107, 49], 'bgBright');
+  colors.ansiRegex = ANSI_REGEX;
+
+  colors.hasColor = colors.hasAnsi = function (str) {
+    colors.ansiRegex.lastIndex = 0;
+    return typeof str === 'string' && str !== '' && colors.ansiRegex.test(str);
+  };
+
+  colors.alias = function (name, color) {
+    var fn = typeof color === 'string' ? colors[color] : color;
+
+    if (typeof fn !== 'function') {
+      throw new TypeError('Expected alias to be the name of an existing color (string) or a function');
+    }
+
+    if (!fn.stack) {
+      Reflect.defineProperty(fn, 'name', {
+        value: name
+      });
+      colors.styles[name] = fn;
+      fn.stack = [name];
+    }
+
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+      set: function set(value) {
+        colors.alias(name, value);
+      },
+      get: function get() {
+        var color = function color(input) {
+          return style(input, color.stack);
+        };
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(fn.stack) : fn.stack;
+        return color;
+      }
+    });
+  };
+
+  colors.theme = function (custom) {
+    if (!isObject(custom)) throw new TypeError('Expected theme to be an object');
+
+    for (var _i = 0, _Object$keys = Object.keys(custom); _i < _Object$keys.length; _i++) {
+      var name = _Object$keys[_i];
+      colors.alias(name, custom[name]);
+    }
+
+    return colors;
+  };
+
+  colors.alias('unstyle', function (str) {
+    if (typeof str === 'string' && str !== '') {
+      colors.ansiRegex.lastIndex = 0;
+      return str.replace(colors.ansiRegex, '');
+    }
+
+    return '';
+  });
+  colors.alias('noop', function (str) {
+    return str;
+  });
+  colors.none = colors.clear = colors.noop;
+  colors.stripColor = colors.unstyle;
+  colors.symbols = require('./symbols');
+  colors.define = define;
+  return colors;
+};
+
+module.exports = create();
+module.exports.create = create;
+
+}).call(this,require('_process'))
+},{"./symbols":2,"_process":11}],2:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var isHyper = process.env.TERM_PROGRAM === 'Hyper';
+var isWindows = process.platform === 'win32';
+var isLinux = process.platform === 'linux';
+var common = {
+  ballotDisabled: '☒',
+  ballotOff: '☐',
+  ballotOn: '☑',
+  bullet: '•',
+  bulletWhite: '◦',
+  fullBlock: '█',
+  heart: '❤',
+  identicalTo: '≡',
+  line: '─',
+  mark: '※',
+  middot: '·',
+  minus: '－',
+  multiplication: '×',
+  obelus: '÷',
+  pencilDownRight: '✎',
+  pencilRight: '✏',
+  pencilUpRight: '✐',
+  percent: '%',
+  pilcrow2: '❡',
+  pilcrow: '¶',
+  plusMinus: '±',
+  section: '§',
+  starsOff: '☆',
+  starsOn: '★',
+  upDownArrow: '↕'
+};
+var windows = Object.assign({}, common, {
+  check: '√',
+  cross: '×',
+  ellipsisLarge: '...',
+  ellipsis: '...',
+  info: 'i',
+  question: '?',
+  questionSmall: '?',
+  pointer: '>',
+  pointerSmall: '»',
+  radioOff: '( )',
+  radioOn: '(*)',
+  warning: '‼'
+});
+var other = Object.assign({}, common, {
+  ballotCross: '✘',
+  check: '✔',
+  cross: '✖',
+  ellipsisLarge: '⋯',
+  ellipsis: '…',
+  info: 'ℹ',
+  question: '?',
+  questionFull: '？',
+  questionSmall: '﹖',
+  pointer: isLinux ? '▸' : '❯',
+  pointerSmall: isLinux ? '‣' : '›',
+  radioOff: '◯',
+  radioOn: '◉',
+  warning: '⚠'
+});
+module.exports = isWindows && !isHyper ? windows : other;
+Reflect.defineProperty(module.exports, 'common', {
+  enumerable: false,
+  value: common
+});
+Reflect.defineProperty(module.exports, 'windows', {
+  enumerable: false,
+  value: windows
+});
+Reflect.defineProperty(module.exports, 'other', {
+  enumerable: false,
+  value: other
+});
+
+}).call(this,require('_process'))
+},{"_process":11}],3:[function(require,module,exports){
 'use strict';
 
 var STRING_DASHERIZE_REGEXP = /[ _]/g;
@@ -700,7 +998,7 @@ module.exports = {
   capitalize: capitalize
 };
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 // Default inflections
@@ -768,7 +1066,7 @@ module.exports = function (inflect) {
   inflect.uncountable(['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'sushi']);
 };
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 // Requiring modules
@@ -782,7 +1080,7 @@ module.exports = function (attach) {
   return methods;
 };
 
-},{"./methods":5,"./native":6}],4:[function(require,module,exports){
+},{"./methods":7,"./native":8}],6:[function(require,module,exports){
 "use strict";
 
 // A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
@@ -915,7 +1213,7 @@ Inflections.prototype["default"] = function () {
 
 module.exports = new Inflections();
 
-},{"./defaults":2,"./util":7}],5:[function(require,module,exports){
+},{"./defaults":4,"./util":9}],7:[function(require,module,exports){
 "use strict";
 
 // The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -1161,7 +1459,7 @@ inflect.classify = function (table_name) {
   return inflect.camelize(inflect.singularize(util.string.gsub(table_name, /.*\./, '')));
 };
 
-},{"./inflections":4,"./util":7}],6:[function(require,module,exports){
+},{"./inflections":6,"./util":9}],8:[function(require,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -1183,7 +1481,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 // Some utility functions in js
@@ -1331,7 +1629,7 @@ var u = module.exports = {
   }
 };
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -1639,178 +1937,7 @@ function comparison(model, options, keys) {
 module.exports = model;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"ansi-colors":9,"ember-cli-string-utils":1,"i":3,"util":14}],9:[function(require,module,exports){
-(function (process){
-'use strict';
-
-const colors = { enabled: true, visible: true, styles: {}, keys: {} };
-
-if ('FORCE_COLOR' in process.env) {
-  colors.enabled = process.env.FORCE_COLOR !== '0';
-}
-
-const ansi = style => {
-  style.open = `\u001b[${style.codes[0]}m`;
-  style.close = `\u001b[${style.codes[1]}m`;
-  style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
-  return style;
-};
-
-const wrap = (style, str, nl) => {
-  let { open, close, regex } = style;
-  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close;
-  // see https://github.com/chalk/chalk/pull/92, thanks to the
-  // chalk contributors for this fix. However, we've confirmed that
-  // this issue is also present in Windows terminals
-  return nl ? str.replace(/\r?\n/g, `${close}$&${open}`) : str;
-};
-
-const style = (input, stack) => {
-  if (input === '' || input == null) return '';
-  if (colors.enabled === false) return input;
-  if (colors.visible === false) return '';
-  let str = '' + input;
-  let nl = str.includes('\n');
-  let n = stack.length;
-  while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
-  return str;
-};
-
-const define = (name, codes, type) => {
-  colors.styles[name] = ansi({ name, codes });
-  let t = colors.keys[type] || (colors.keys[type] = []);
-  t.push(name);
-
-  Reflect.defineProperty(colors, name, {
-    get() {
-      let color = input => style(input, color.stack);
-      Reflect.setPrototypeOf(color, colors);
-      color.stack = this.stack ? this.stack.concat(name) : [name];
-      return color;
-    }
-  });
-};
-
-define('reset', [0, 0], 'modifier');
-define('bold', [1, 22], 'modifier');
-define('dim', [2, 22], 'modifier');
-define('italic', [3, 23], 'modifier');
-define('underline', [4, 24], 'modifier');
-define('inverse', [7, 27], 'modifier');
-define('hidden', [8, 28], 'modifier');
-define('strikethrough', [9, 29], 'modifier');
-
-define('black', [30, 39], 'color');
-define('red', [31, 39], 'color');
-define('green', [32, 39], 'color');
-define('yellow', [33, 39], 'color');
-define('blue', [34, 39], 'color');
-define('magenta', [35, 39], 'color');
-define('cyan', [36, 39], 'color');
-define('white', [37, 39], 'color');
-define('gray', [90, 39], 'color');
-define('grey', [90, 39], 'color');
-
-define('bgBlack', [40, 49], 'bg');
-define('bgRed', [41, 49], 'bg');
-define('bgGreen', [42, 49], 'bg');
-define('bgYellow', [43, 49], 'bg');
-define('bgBlue', [44, 49], 'bg');
-define('bgMagenta', [45, 49], 'bg');
-define('bgCyan', [46, 49], 'bg');
-define('bgWhite', [47, 49], 'bg');
-
-define('blackBright', [90, 39], 'bright');
-define('redBright', [91, 39], 'bright');
-define('greenBright', [92, 39], 'bright');
-define('yellowBright', [93, 39], 'bright');
-define('blueBright', [94, 39], 'bright');
-define('magentaBright', [95, 39], 'bright');
-define('cyanBright', [96, 39], 'bright');
-define('whiteBright', [97, 39], 'bright');
-
-define('bgBlackBright', [100, 49], 'bgBright');
-define('bgRedBright', [101, 49], 'bgBright');
-define('bgGreenBright', [102, 49], 'bgBright');
-define('bgYellowBright', [103, 49], 'bgBright');
-define('bgBlueBright', [104, 49], 'bgBright');
-define('bgMagentaBright', [105, 49], 'bgBright');
-define('bgCyanBright', [106, 49], 'bgBright');
-define('bgWhiteBright', [107, 49], 'bgBright');
-
-/* eslint-disable no-control-regex */
-// this is a modified, optimized version of
-// https://github.com/chalk/ansi-regex (MIT License)
-const re = colors.ansiRegex = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g;
-
-colors.hasColor = colors.hasAnsi = str => {
-  re.lastIndex = 0;
-  return !!str && typeof str === 'string' && re.test(str);
-};
-
-colors.unstyle = str => {
-  re.lastIndex = 0;
-  return typeof str === 'string' ? str.replace(re, '') : str;
-};
-
-colors.none = colors.clear = colors.noop = str => str; // no-op, for programmatic usage
-colors.stripColor = colors.unstyle;
-colors.symbols = require('./symbols');
-colors.define = define;
-module.exports = colors;
-
-}).call(this,require('_process'))
-},{"./symbols":10,"_process":11}],10:[function(require,module,exports){
-(function (process){
-'use strict';
-
-const isWindows = process.platform === 'win32';
-const isLinux = process.platform === 'linux';
-
-const windows = {
-  bullet: '•',
-  check: '√',
-  cross: '×',
-  ellipsis: '...',
-  heart: '❤',
-  info: 'i',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionSmall: '﹖',
-  pointer: '>',
-  pointerSmall: '»',
-  warning: '‼'
-};
-
-const other = {
-  ballotCross: '✘',
-  bullet: '•',
-  check: '✔',
-  cross: '✖',
-  ellipsis: '…',
-  heart: '❤',
-  info: 'ℹ',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionFull: '？',
-  questionSmall: '﹖',
-  pointer: isLinux ? '▸' : '❯',
-  pointerSmall: isLinux ? '‣' : '›',
-  warning: '⚠'
-};
-
-module.exports = isWindows ? windows : other;
-Reflect.defineProperty(module.exports, 'windows', { enumerable: false, value: windows });
-Reflect.defineProperty(module.exports, 'other', { enumerable: false, value: other });
-
-}).call(this,require('_process'))
-},{"_process":11}],11:[function(require,module,exports){
+},{"ansi-colors":1,"ember-cli-string-utils":3,"i":5,"util":14}],11:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2620,7 +2747,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":13,"_process":11,"inherits":12}]},{},[8])(8)
+},{"./support/isBuffer":13,"_process":11,"inherits":12}]},{},[10])(10)
 });
 
 
@@ -2654,6 +2781,304 @@ function hasOwnProperty(obj, prop) {
           'use strict';
 
           (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g._memserver = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+(function (process){
+'use strict';
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+var isObject = function isObject(val) {
+  return val !== null && _typeof(val) === 'object' && !Array.isArray(val);
+};
+
+var identity = function identity(val) {
+  return val;
+};
+/* eslint-disable no-control-regex */
+// this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
+
+
+var ANSI_REGEX = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g;
+
+var create = function create() {
+  var colors = {
+    enabled: true,
+    visible: true,
+    styles: {},
+    keys: {}
+  };
+
+  if ('FORCE_COLOR' in process.env) {
+    colors.enabled = process.env.FORCE_COLOR !== '0';
+  }
+
+  var ansi = function ansi(style) {
+    var open = style.open = "\x1B[".concat(style.codes[0], "m");
+    var close = style.close = "\x1B[".concat(style.codes[1], "m");
+    var regex = style.regex = new RegExp("\\u001b\\[".concat(style.codes[1], "m"), 'g');
+
+    style.wrap = function (input, newline) {
+      if (input.includes(close)) input = input.replace(regex, close + open);
+      var output = open + input + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
+      // chalk contributors for this fix. However, we've confirmed that
+      // this issue is also present in Windows terminals
+
+      return newline ? output.replace(/\r*\n/g, "".concat(close, "$&").concat(open)) : output;
+    };
+
+    return style;
+  };
+
+  var wrap = function wrap(style, input, newline) {
+    return typeof style === 'function' ? style(input) : style.wrap(input, newline);
+  };
+
+  var style = function style(input, stack) {
+    if (input === '' || input == null) return '';
+    if (colors.enabled === false) return input;
+    if (colors.visible === false) return '';
+    var str = '' + input;
+    var nl = str.includes('\n');
+    var n = stack.length;
+
+    if (n > 0 && stack.includes('unstyle')) {
+      stack = _toConsumableArray(new Set(['unstyle'].concat(_toConsumableArray(stack)))).reverse();
+    }
+
+    while (n-- > 0) {
+      str = wrap(colors.styles[stack[n]], str, nl);
+    }
+
+    return str;
+  };
+
+  var define = function define(name, codes, type) {
+    colors.styles[name] = ansi({
+      name: name,
+      codes: codes
+    });
+    var keys = colors.keys[type] || (colors.keys[type] = []);
+    keys.push(name);
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+      set: function set(value) {
+        colors.alias(name, value);
+      },
+      get: function get() {
+        var color = function color(input) {
+          return style(input, color.stack);
+        };
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(name) : [name];
+        return color;
+      }
+    });
+  };
+
+  define('reset', [0, 0], 'modifier');
+  define('bold', [1, 22], 'modifier');
+  define('dim', [2, 22], 'modifier');
+  define('italic', [3, 23], 'modifier');
+  define('underline', [4, 24], 'modifier');
+  define('inverse', [7, 27], 'modifier');
+  define('hidden', [8, 28], 'modifier');
+  define('strikethrough', [9, 29], 'modifier');
+  define('black', [30, 39], 'color');
+  define('red', [31, 39], 'color');
+  define('green', [32, 39], 'color');
+  define('yellow', [33, 39], 'color');
+  define('blue', [34, 39], 'color');
+  define('magenta', [35, 39], 'color');
+  define('cyan', [36, 39], 'color');
+  define('white', [37, 39], 'color');
+  define('gray', [90, 39], 'color');
+  define('grey', [90, 39], 'color');
+  define('bgBlack', [40, 49], 'bg');
+  define('bgRed', [41, 49], 'bg');
+  define('bgGreen', [42, 49], 'bg');
+  define('bgYellow', [43, 49], 'bg');
+  define('bgBlue', [44, 49], 'bg');
+  define('bgMagenta', [45, 49], 'bg');
+  define('bgCyan', [46, 49], 'bg');
+  define('bgWhite', [47, 49], 'bg');
+  define('blackBright', [90, 39], 'bright');
+  define('redBright', [91, 39], 'bright');
+  define('greenBright', [92, 39], 'bright');
+  define('yellowBright', [93, 39], 'bright');
+  define('blueBright', [94, 39], 'bright');
+  define('magentaBright', [95, 39], 'bright');
+  define('cyanBright', [96, 39], 'bright');
+  define('whiteBright', [97, 39], 'bright');
+  define('bgBlackBright', [100, 49], 'bgBright');
+  define('bgRedBright', [101, 49], 'bgBright');
+  define('bgGreenBright', [102, 49], 'bgBright');
+  define('bgYellowBright', [103, 49], 'bgBright');
+  define('bgBlueBright', [104, 49], 'bgBright');
+  define('bgMagentaBright', [105, 49], 'bgBright');
+  define('bgCyanBright', [106, 49], 'bgBright');
+  define('bgWhiteBright', [107, 49], 'bgBright');
+  colors.ansiRegex = ANSI_REGEX;
+
+  colors.hasColor = colors.hasAnsi = function (str) {
+    colors.ansiRegex.lastIndex = 0;
+    return typeof str === 'string' && str !== '' && colors.ansiRegex.test(str);
+  };
+
+  colors.alias = function (name, color) {
+    var fn = typeof color === 'string' ? colors[color] : color;
+
+    if (typeof fn !== 'function') {
+      throw new TypeError('Expected alias to be the name of an existing color (string) or a function');
+    }
+
+    if (!fn.stack) {
+      Reflect.defineProperty(fn, 'name', {
+        value: name
+      });
+      colors.styles[name] = fn;
+      fn.stack = [name];
+    }
+
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+      set: function set(value) {
+        colors.alias(name, value);
+      },
+      get: function get() {
+        var color = function color(input) {
+          return style(input, color.stack);
+        };
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(fn.stack) : fn.stack;
+        return color;
+      }
+    });
+  };
+
+  colors.theme = function (custom) {
+    if (!isObject(custom)) throw new TypeError('Expected theme to be an object');
+
+    for (var _i = 0, _Object$keys = Object.keys(custom); _i < _Object$keys.length; _i++) {
+      var name = _Object$keys[_i];
+      colors.alias(name, custom[name]);
+    }
+
+    return colors;
+  };
+
+  colors.alias('unstyle', function (str) {
+    if (typeof str === 'string' && str !== '') {
+      colors.ansiRegex.lastIndex = 0;
+      return str.replace(colors.ansiRegex, '');
+    }
+
+    return '';
+  });
+  colors.alias('noop', function (str) {
+    return str;
+  });
+  colors.none = colors.clear = colors.noop;
+  colors.stripColor = colors.unstyle;
+  colors.symbols = require('./symbols');
+  colors.define = define;
+  return colors;
+};
+
+module.exports = create();
+module.exports.create = create;
+
+}).call(this,require('_process'))
+},{"./symbols":2,"_process":13}],2:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var isHyper = process.env.TERM_PROGRAM === 'Hyper';
+var isWindows = process.platform === 'win32';
+var isLinux = process.platform === 'linux';
+var common = {
+  ballotDisabled: '☒',
+  ballotOff: '☐',
+  ballotOn: '☑',
+  bullet: '•',
+  bulletWhite: '◦',
+  fullBlock: '█',
+  heart: '❤',
+  identicalTo: '≡',
+  line: '─',
+  mark: '※',
+  middot: '·',
+  minus: '－',
+  multiplication: '×',
+  obelus: '÷',
+  pencilDownRight: '✎',
+  pencilRight: '✏',
+  pencilUpRight: '✐',
+  percent: '%',
+  pilcrow2: '❡',
+  pilcrow: '¶',
+  plusMinus: '±',
+  section: '§',
+  starsOff: '☆',
+  starsOn: '★',
+  upDownArrow: '↕'
+};
+var windows = Object.assign({}, common, {
+  check: '√',
+  cross: '×',
+  ellipsisLarge: '...',
+  ellipsis: '...',
+  info: 'i',
+  question: '?',
+  questionSmall: '?',
+  pointer: '>',
+  pointerSmall: '»',
+  radioOff: '( )',
+  radioOn: '(*)',
+  warning: '‼'
+});
+var other = Object.assign({}, common, {
+  ballotCross: '✘',
+  check: '✔',
+  cross: '✖',
+  ellipsisLarge: '⋯',
+  ellipsis: '…',
+  info: 'ℹ',
+  question: '?',
+  questionFull: '？',
+  questionSmall: '﹖',
+  pointer: isLinux ? '▸' : '❯',
+  pointerSmall: isLinux ? '‣' : '›',
+  radioOff: '◯',
+  radioOn: '◉',
+  warning: '⚠'
+});
+module.exports = isWindows && !isHyper ? windows : other;
+Reflect.defineProperty(module.exports, 'common', {
+  enumerable: false,
+  value: common
+});
+Reflect.defineProperty(module.exports, 'windows', {
+  enumerable: false,
+  value: windows
+});
+Reflect.defineProperty(module.exports, 'other', {
+  enumerable: false,
+  value: other
+});
+
+}).call(this,require('_process'))
+},{"_process":13}],3:[function(require,module,exports){
 'use strict';
 
 var STRING_DASHERIZE_REGEXP = /[ _]/g;
@@ -2810,7 +3235,7 @@ module.exports = {
   capitalize: capitalize
 };
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -3327,7 +3752,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
   return fake_xml_http_request;
 });
 
-},{}],3:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 // Default inflections
@@ -3395,7 +3820,7 @@ module.exports = function (inflect) {
   inflect.uncountable(['equipment', 'information', 'rice', 'money', 'species', 'series', 'fish', 'sheep', 'jeans', 'sushi']);
 };
 
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 // Requiring modules
@@ -3409,7 +3834,7 @@ module.exports = function (attach) {
   return methods;
 };
 
-},{"./methods":6,"./native":7}],5:[function(require,module,exports){
+},{"./methods":8,"./native":9}],7:[function(require,module,exports){
 "use strict";
 
 // A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
@@ -3542,7 +3967,7 @@ Inflections.prototype["default"] = function () {
 
 module.exports = new Inflections();
 
-},{"./defaults":3,"./util":8}],6:[function(require,module,exports){
+},{"./defaults":5,"./util":10}],8:[function(require,module,exports){
 "use strict";
 
 // The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
@@ -3788,7 +4213,7 @@ inflect.classify = function (table_name) {
   return inflect.camelize(inflect.singularize(util.string.gsub(table_name, /.*\./, '')));
 };
 
-},{"./inflections":5,"./util":8}],7:[function(require,module,exports){
+},{"./inflections":7,"./util":10}],9:[function(require,module,exports){
 "use strict";
 
 module.exports = function (obj) {
@@ -3810,7 +4235,7 @@ module.exports = function (obj) {
   });
 };
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 // Some utility functions in js
@@ -3958,7 +4383,7 @@ var u = module.exports = {
   }
 };
 
-},{}],9:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -4378,178 +4803,7 @@ function getModelPrimaryKey(model, existingPrimaryKeyType, modelName) {
 module.exports = memServer;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"ansi-colors":10,"ember-cli-string-utils":1,"fake-xml-http-request":2,"i":4,"pretender":12,"qs":15,"route-recognizer":19}],10:[function(require,module,exports){
-(function (process){
-'use strict';
-
-const colors = { enabled: true, visible: true, styles: {}, keys: {} };
-
-if ('FORCE_COLOR' in process.env) {
-  colors.enabled = process.env.FORCE_COLOR !== '0';
-}
-
-const ansi = style => {
-  style.open = `\u001b[${style.codes[0]}m`;
-  style.close = `\u001b[${style.codes[1]}m`;
-  style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
-  return style;
-};
-
-const wrap = (style, str, nl) => {
-  let { open, close, regex } = style;
-  str = open + (str.includes(close) ? str.replace(regex, close + open) : str) + close;
-  // see https://github.com/chalk/chalk/pull/92, thanks to the
-  // chalk contributors for this fix. However, we've confirmed that
-  // this issue is also present in Windows terminals
-  return nl ? str.replace(/\r?\n/g, `${close}$&${open}`) : str;
-};
-
-const style = (input, stack) => {
-  if (input === '' || input == null) return '';
-  if (colors.enabled === false) return input;
-  if (colors.visible === false) return '';
-  let str = '' + input;
-  let nl = str.includes('\n');
-  let n = stack.length;
-  while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
-  return str;
-};
-
-const define = (name, codes, type) => {
-  colors.styles[name] = ansi({ name, codes });
-  let t = colors.keys[type] || (colors.keys[type] = []);
-  t.push(name);
-
-  Reflect.defineProperty(colors, name, {
-    get() {
-      let color = input => style(input, color.stack);
-      Reflect.setPrototypeOf(color, colors);
-      color.stack = this.stack ? this.stack.concat(name) : [name];
-      return color;
-    }
-  });
-};
-
-define('reset', [0, 0], 'modifier');
-define('bold', [1, 22], 'modifier');
-define('dim', [2, 22], 'modifier');
-define('italic', [3, 23], 'modifier');
-define('underline', [4, 24], 'modifier');
-define('inverse', [7, 27], 'modifier');
-define('hidden', [8, 28], 'modifier');
-define('strikethrough', [9, 29], 'modifier');
-
-define('black', [30, 39], 'color');
-define('red', [31, 39], 'color');
-define('green', [32, 39], 'color');
-define('yellow', [33, 39], 'color');
-define('blue', [34, 39], 'color');
-define('magenta', [35, 39], 'color');
-define('cyan', [36, 39], 'color');
-define('white', [37, 39], 'color');
-define('gray', [90, 39], 'color');
-define('grey', [90, 39], 'color');
-
-define('bgBlack', [40, 49], 'bg');
-define('bgRed', [41, 49], 'bg');
-define('bgGreen', [42, 49], 'bg');
-define('bgYellow', [43, 49], 'bg');
-define('bgBlue', [44, 49], 'bg');
-define('bgMagenta', [45, 49], 'bg');
-define('bgCyan', [46, 49], 'bg');
-define('bgWhite', [47, 49], 'bg');
-
-define('blackBright', [90, 39], 'bright');
-define('redBright', [91, 39], 'bright');
-define('greenBright', [92, 39], 'bright');
-define('yellowBright', [93, 39], 'bright');
-define('blueBright', [94, 39], 'bright');
-define('magentaBright', [95, 39], 'bright');
-define('cyanBright', [96, 39], 'bright');
-define('whiteBright', [97, 39], 'bright');
-
-define('bgBlackBright', [100, 49], 'bgBright');
-define('bgRedBright', [101, 49], 'bgBright');
-define('bgGreenBright', [102, 49], 'bgBright');
-define('bgYellowBright', [103, 49], 'bgBright');
-define('bgBlueBright', [104, 49], 'bgBright');
-define('bgMagentaBright', [105, 49], 'bgBright');
-define('bgCyanBright', [106, 49], 'bgBright');
-define('bgWhiteBright', [107, 49], 'bgBright');
-
-/* eslint-disable no-control-regex */
-// this is a modified, optimized version of
-// https://github.com/chalk/ansi-regex (MIT License)
-const re = colors.ansiRegex = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g;
-
-colors.hasColor = colors.hasAnsi = str => {
-  re.lastIndex = 0;
-  return !!str && typeof str === 'string' && re.test(str);
-};
-
-colors.unstyle = str => {
-  re.lastIndex = 0;
-  return typeof str === 'string' ? str.replace(re, '') : str;
-};
-
-colors.none = colors.clear = colors.noop = str => str; // no-op, for programmatic usage
-colors.stripColor = colors.unstyle;
-colors.symbols = require('./symbols');
-colors.define = define;
-module.exports = colors;
-
-}).call(this,require('_process'))
-},{"./symbols":11,"_process":13}],11:[function(require,module,exports){
-(function (process){
-'use strict';
-
-const isWindows = process.platform === 'win32';
-const isLinux = process.platform === 'linux';
-
-const windows = {
-  bullet: '•',
-  check: '√',
-  cross: '×',
-  ellipsis: '...',
-  heart: '❤',
-  info: 'i',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionSmall: '﹖',
-  pointer: '>',
-  pointerSmall: '»',
-  warning: '‼'
-};
-
-const other = {
-  ballotCross: '✘',
-  bullet: '•',
-  check: '✔',
-  cross: '✖',
-  ellipsis: '…',
-  heart: '❤',
-  info: 'ℹ',
-  line: '─',
-  middot: '·',
-  minus: '－',
-  plus: '＋',
-  question: '?',
-  questionFull: '？',
-  questionSmall: '﹖',
-  pointer: isLinux ? '▸' : '❯',
-  pointerSmall: isLinux ? '‣' : '›',
-  warning: '⚠'
-};
-
-module.exports = isWindows ? windows : other;
-Reflect.defineProperty(module.exports, 'windows', { enumerable: false, value: windows });
-Reflect.defineProperty(module.exports, 'other', { enumerable: false, value: other });
-
-}).call(this,require('_process'))
-},{"_process":13}],12:[function(require,module,exports){
+},{"ansi-colors":1,"ember-cli-string-utils":3,"fake-xml-http-request":4,"i":6,"pretender":12,"qs":15,"route-recognizer":19}],12:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -4566,11 +4820,11 @@ var Pretender = function (self) {
 
   var FakeFetch = appearsBrowserified ? getModuleDefault(require('whatwg-fetch')) : self.WHATWGFetch;
 
-  var Pretender = function (RouteRecognizer, FakeXMLHttpRequest, FakeFetch) {
+  var Pretender = function (FakeXMLHttpRequest, FakeFetch, RouteRecognizer) {
     'use strict';
 
-    RouteRecognizer = RouteRecognizer && RouteRecognizer.hasOwnProperty('default') ? RouteRecognizer['default'] : RouteRecognizer;
     FakeXMLHttpRequest = FakeXMLHttpRequest && FakeXMLHttpRequest.hasOwnProperty('default') ? FakeXMLHttpRequest['default'] : FakeXMLHttpRequest;
+    RouteRecognizer = RouteRecognizer && RouteRecognizer.hasOwnProperty('default') ? RouteRecognizer['default'] : RouteRecognizer;
     /**
      * parseURL - decompose a URL into its parts
      * @param  {String} url a URL
@@ -4595,6 +4849,7 @@ var Pretender = function (self) {
       anchor.href = url;
 
       if (!anchor.host) {
+        // eslint-disable-next-line no-self-assign
         anchor.href = anchor.href; // IE: load the host and protocol
       }
 
@@ -4627,21 +4882,27 @@ var Pretender = function (self) {
      */
 
 
-    function Registry()
-    /* host */
-    {
-      // Herein we keep track of RouteRecognizer instances
-      // keyed by HTTP method. Feel free to add more as needed.
-      this.verbs = {
-        GET: new RouteRecognizer(),
-        PUT: new RouteRecognizer(),
-        POST: new RouteRecognizer(),
-        DELETE: new RouteRecognizer(),
-        PATCH: new RouteRecognizer(),
-        HEAD: new RouteRecognizer(),
-        OPTIONS: new RouteRecognizer()
-      };
-    }
+    var Registry =
+    /** @class */
+    function () {
+      function Registry()
+      /* host */
+      {
+        // Herein we keep track of RouteRecognizer instances
+        // keyed by HTTP method. Feel free to add more as needed.
+        this.verbs = {
+          GET: new RouteRecognizer(),
+          PUT: new RouteRecognizer(),
+          POST: new RouteRecognizer(),
+          DELETE: new RouteRecognizer(),
+          PATCH: new RouteRecognizer(),
+          HEAD: new RouteRecognizer(),
+          OPTIONS: new RouteRecognizer()
+        };
+      }
+
+      return Registry;
+    }();
     /**
      * Hosts
      *
@@ -4752,7 +5013,7 @@ var Pretender = function (self) {
 
         var uploadEvents = []; // properties to copy from the native xhr to fake xhr
 
-        var lifecycleProps = ['readyState', 'responseText', 'responseXML', 'status', 'statusText'];
+        var lifecycleProps = ['readyState', 'responseText', 'responseXML', 'responseURL', 'status', 'statusText'];
         var xhr = fakeXHR._passthroughRequest = new ctx.pretender._nativeXMLHttpRequest();
         xhr.open(fakeXHR.method, fakeXHR.url, fakeXHR.async, fakeXHR.username, fakeXHR.password);
 
@@ -4854,6 +5115,7 @@ var Pretender = function (self) {
       };
 
       if (ctx.pretender._nativeXMLHttpRequest.prototype._passthroughCheck) {
+        // eslint-disable-next-line no-console
         console.warn('You created a second Pretender instance while there was already one running. ' + 'Running two Pretender servers at once will lead to unexpected results and will ' + 'be removed entirely in a future major version.' + 'Please call .shutdown() on your instances when you no longer need them to respond.');
       }
 
@@ -4944,9 +5206,9 @@ var Pretender = function (self) {
               throw new Error('Nothing returned by handler for ' + path + '. ' + note);
             }
 
-            var status = statusHeadersAndBody[0],
-                headers = pretender.prepareHeaders(statusHeadersAndBody[1]),
-                body = pretender.prepareBody(statusHeadersAndBody[2], headers);
+            var status = statusHeadersAndBody[0];
+            var headers = pretender.prepareHeaders(statusHeadersAndBody[1]);
+            var body = pretender.prepareBody(statusHeadersAndBody[2], headers);
             pretender.handleResponse(request, async, function () {
               request.respond(status, headers, body);
               pretender.handledRequest(verb, path, request);
@@ -5066,7 +5328,7 @@ var Pretender = function (self) {
     Pretender.Hosts = Hosts;
     Pretender.Registry = Registry;
     return Pretender;
-  }(RouteRecognizer, FakeXMLHttpRequest, FakeFetch);
+  }(FakeXMLHttpRequest, FakeFetch, RouteRecognizer);
 
   if ((typeof module === "undefined" ? "undefined" : _typeof(module)) === 'object') {
     module.exports = Pretender;
@@ -5081,7 +5343,7 @@ var Pretender = function (self) {
 }(self);
 
 }).call(this,require('_process'))
-},{"_process":13,"fake-xml-http-request":2,"route-recognizer":19,"whatwg-fetch":20}],13:[function(require,module,exports){
+},{"_process":13,"fake-xml-http-request":4,"route-recognizer":19,"whatwg-fetch":20}],13:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -7470,7 +7732,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
   });
 });
 
-},{}]},{},[9])(9)
+},{}]},{},[11])(11)
 });
 
 
