@@ -1,12 +1,12 @@
 (function() {
 /*!
  * @overview  Ember - JavaScript Application Framework
- * @copyright Copyright 2011-2018 Tilde Inc. and contributors
+ * @copyright Copyright 2011-2019 Tilde Inc. and contributors
  *            Portions Copyright 2006-2011 Strobe Inc.
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.11.1
+ * @version   3.12.0
  */
 
 /*globals process */
@@ -289,6 +289,18 @@ enifed("@ember/-internals/environment", ["exports", "@ember/deprecated-features"
     _JQUERY_INTEGRATION: true,
 
     /**
+      Whether the app defaults to using async observers.
+         This is not intended to be set directly, as the implementation may change in
+      the future. Use `@ember/optional-features` instead.
+         @property _DEFAULT_ASYNC_OBSERVERS
+      @for EmberENV
+      @type Boolean
+      @default false
+      @private
+    */
+    _DEFAULT_ASYNC_OBSERVERS: false,
+
+    /**
       Controls the maximum number of scheduled rerenders without "settling". In general,
       applications should not need to modify this environment variable, but please
       open an issue so that we can determine if a better default value is needed.
@@ -402,7 +414,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills", "@ember/debug"
   _exports.isProxy = isProxy;
   _exports.setProxy = setProxy;
   _exports.isEmberArray = isEmberArray;
-  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = _exports.NAME_KEY = void 0;
+  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = void 0;
 
   /**
     Strongly hint runtimes to intern the provided string.
@@ -689,9 +701,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills", "@ember/debug"
   const OBSERVERS_MAP = new WeakMap();
 
   function setObservers(func, observers) {
-    if (observers) {
-      OBSERVERS_MAP.set(func, observers);
-    }
+    OBSERVERS_MAP.set(func, observers);
   }
 
   function getObservers(func) {
@@ -1231,15 +1241,12 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills", "@ember/debug"
    elsewhere (so they can be lazily evaluated / parsed).
   */
 
-
-  const NAME_KEY = symbol('NAME_KEY');
-  _exports.NAME_KEY = NAME_KEY;
 });
 enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environment", "@ember/polyfills"], function (_exports, _environment, _polyfills) {
   "use strict";
 
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = _exports.EMBER_GLIMMER_ON_MODIFIER = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_GLIMMER_FN_HELPER = _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = _exports.EMBER_GLIMMER_ON_MODIFIER = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_GLIMMER_FN_HELPER = _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -1258,8 +1265,6 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_METAL_TRACKED_PROPERTIES: false,
     EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES: true,
     EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS: true,
-    EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP: true,
-    EMBER_ROUTING_BUILD_ROUTEINFO_METADATA: true,
     EMBER_NATIVE_DECORATOR_SUPPORT: true,
     EMBER_GLIMMER_FN_HELPER: true,
     EMBER_CUSTOM_COMPONENT_ARG_PROXY: false,
@@ -1324,14 +1329,10 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_MODULE_UNIFICATION = EMBER_MODULE_UNIFICATION;
   const EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
   _exports.EMBER_METAL_TRACKED_PROPERTIES = EMBER_METAL_TRACKED_PROPERTIES;
-  const EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP);
-  _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP;
   const EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = featureValue(FEATURES.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES);
   _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES;
   const EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS);
   _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS;
-  const EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = featureValue(FEATURES.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA);
-  _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = EMBER_ROUTING_BUILD_ROUTEINFO_METADATA;
   const EMBER_NATIVE_DECORATOR_SUPPORT = featureValue(FEATURES.EMBER_NATIVE_DECORATOR_SUPPORT);
   _exports.EMBER_NATIVE_DECORATOR_SUPPORT = EMBER_NATIVE_DECORATOR_SUPPORT;
   const EMBER_GLIMMER_FN_HELPER = featureValue(FEATURES.EMBER_GLIMMER_FN_HELPER);
@@ -1548,7 +1549,7 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         /* eslint-disable-line no-console */
       });
       /**
-       @module @ember/application
+       @module @ember/debug
        @public
       */
 
@@ -1560,12 +1561,12 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         freely added for documentation and debugging purposes without worries of
         incuring any performance penalty.
            ```javascript
-        import { deprecateFunc } from '@ember/application/deprecations';
+        import { deprecateFunc } from '@ember/debug';
            Ember.oldMethod = deprecateFunc('Please use the new, updated method', options, Ember.newMethod);
         ```
            @method deprecateFunc
         @static
-        @for @ember/application/deprecations
+        @for @ember/debug
         @param {String} message A description of the deprecation.
         @param {Object} [options] The options object for `deprecate`.
         @param {Function} func The new function called to replace its deprecated counterpart.
@@ -1672,7 +1673,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
   /**
     Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/application/deprecations/deprecate](https://emberjs.com/api/ember/release/classes/@ember%2Fapplication%2Fdeprecations/methods/deprecate?anchor=deprecate).
+    Deprecations are invoked by calls to [@ember/debug/deprecate](https://emberjs.com/api/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
     The following example demonstrates its usage by registering a handler that throws an error if the
     message contains the word "should", otherwise defers to the default handler.
   
@@ -1796,7 +1797,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
       _exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
       _exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
       /**
-       @module @ember/application
+       @module @ember/debug
        @public
        */
 
@@ -1806,7 +1807,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
            * In a production build, this method is defined as an empty function (NOP).
         Uses of this method in Ember itself are stripped from the ember.prod.js build.
            @method deprecate
-        @for @ember/application/deprecations
+        @for @ember/debug
         @param {String} message A description of the deprecation.
         @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
         @param {Object} options
@@ -7790,13 +7791,7 @@ enifed("ember-template-compiler/lib/system/dasherize-component-name", ["exports"
 
   var _default = new _utils.Cache(1000, key => key.replace(SIMPLE_DASHERIZE_REGEXP, (char, index) => {
     if (char === '::') {
-      if (true
-      /* EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP */
-      ) {
-          return '/';
-        } else {
-        return char;
-      }
+      return '/';
     }
 
     if (index === 0 || !ALPHA.test(key[index - 1])) {
@@ -9192,17 +9187,9 @@ enifed("ember-template-compiler/tests/system/dasherize-component-name-test", ["e
       assert.equal(_dasherizeComponentName.default.get('X-Blah'), 'x-blah');
       assert.equal(_dasherizeComponentName.default.get('Foo@BarBaz'), 'foo@bar-baz');
       assert.equal(_dasherizeComponentName.default.get('Foo@Bar-Baz'), 'foo@bar-baz');
-
-      if (true
-      /* EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP */
-      ) {
-          assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz'), 'foo/bar-baz');
-          assert.equal(_dasherizeComponentName.default.get('Foo::Bar-Baz'), 'foo/bar-baz');
-          assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz::Bang'), 'foo/bar-baz/bang');
-        } else {
-        assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz'), 'foo::bar-baz');
-        assert.equal(_dasherizeComponentName.default.get('Foo::Bar-Baz'), 'foo::bar-baz');
-      }
+      assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz'), 'foo/bar-baz');
+      assert.equal(_dasherizeComponentName.default.get('Foo::Bar-Baz'), 'foo/bar-baz');
+      assert.equal(_dasherizeComponentName.default.get('Foo::BarBaz::Bang'), 'foo/bar-baz/bang');
     }
 
   });
@@ -9282,7 +9269,7 @@ enifed("ember/version", ["exports"], function (_exports) {
   "use strict";
 
   _exports.default = void 0;
-  var _default = "3.11.1";
+  var _default = "3.12.0";
   _exports.default = _default;
 });
 enifed("handlebars", ["exports"], function (_exports) {

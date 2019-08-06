@@ -101,6 +101,7 @@ async function buildEmberData(projectPath, environment) {
   return [
     importAddonFolderToAMD('ember-data', 'ember-data/addon', null, options),
     importAddonFolderToAMD('@ember-data/adapter', '@ember-data/adapter/addon', null),
+    importAddonFolderToAMD('@ember-data/canary-features', '@ember-data/canary-features/addon', null),
     importAddonFolderToAMD('@ember-data/model', '@ember-data/model/addon', null),
     importAddonFolderToAMD('@ember-data/serializer', '@ember-data/serializer/addon', null),
     importAddonFolderToAMD('@ember-data/store', '@ember-data/store/addon', null),
