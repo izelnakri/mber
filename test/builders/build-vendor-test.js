@@ -196,7 +196,7 @@ test.serial('buildVendor(production) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[627\.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[638\.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -260,7 +260,7 @@ test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[619.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[630.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSSize = vendorJSBuffer.length;
@@ -455,7 +455,7 @@ test.serial('buildVendor(demo) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[627.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[638.\d+ kB\] Environment: demo/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();

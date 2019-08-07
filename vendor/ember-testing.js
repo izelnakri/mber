@@ -1,12 +1,12 @@
 (function() {
 /*!
  * @overview  Ember - JavaScript Application Framework
- * @copyright Copyright 2011-2018 Tilde Inc. and contributors
+ * @copyright Copyright 2011-2019 Tilde Inc. and contributors
  *            Portions Copyright 2006-2011 Strobe Inc.
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.11.1
+ * @version   3.12.0
  */
 
 /*globals process */
@@ -324,7 +324,7 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         /* eslint-disable-line no-console */
       });
       /**
-       @module @ember/application
+       @module @ember/debug
        @public
       */
 
@@ -336,12 +336,12 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         freely added for documentation and debugging purposes without worries of
         incuring any performance penalty.
            ```javascript
-        import { deprecateFunc } from '@ember/application/deprecations';
+        import { deprecateFunc } from '@ember/debug';
            Ember.oldMethod = deprecateFunc('Please use the new, updated method', options, Ember.newMethod);
         ```
            @method deprecateFunc
         @static
-        @for @ember/application/deprecations
+        @for @ember/debug
         @param {String} message A description of the deprecation.
         @param {Object} [options] The options object for `deprecate`.
         @param {Function} func The new function called to replace its deprecated counterpart.
@@ -448,7 +448,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
   /**
     Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/application/deprecations/deprecate](https://emberjs.com/api/ember/release/classes/@ember%2Fapplication%2Fdeprecations/methods/deprecate?anchor=deprecate).
+    Deprecations are invoked by calls to [@ember/debug/deprecate](https://emberjs.com/api/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
     The following example demonstrates its usage by registering a handler that throws an error if the
     message contains the word "should", otherwise defers to the default handler.
   
@@ -572,7 +572,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
       _exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
       _exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
       /**
-       @module @ember/application
+       @module @ember/debug
        @public
        */
 
@@ -582,7 +582,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
            * In a production build, this method is defined as an empty function (NOP).
         Uses of this method in Ember itself are stripped from the ember.prod.js build.
            @method deprecate
-        @for @ember/application/deprecations
+        @for @ember/debug
         @param {String} message A description of the deprecation.
         @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
         @param {Object} options

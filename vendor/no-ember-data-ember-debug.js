@@ -868,12 +868,12 @@ Object.defineProperty(exports, '__esModule', { value: true });
 (function() {
 /*!
  * @overview  Ember - JavaScript Application Framework
- * @copyright Copyright 2011-2018 Tilde Inc. and contributors
+ * @copyright Copyright 2011-2019 Tilde Inc. and contributors
  *            Portions Copyright 2006-2011 Strobe Inc.
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.11.1
+ * @version   3.12.0
  */
 
 /*globals process */
@@ -2564,6 +2564,18 @@ enifed("@ember/-internals/environment", ["exports", "@ember/deprecated-features"
       @private
     */
     _JQUERY_INTEGRATION: true,
+
+    /**
+      Whether the app defaults to using async observers.
+         This is not intended to be set directly, as the implementation may change in
+      the future. Use `@ember/optional-features` instead.
+         @property _DEFAULT_ASYNC_OBSERVERS
+      @for EmberENV
+      @type Boolean
+      @default false
+      @private
+    */
+    _DEFAULT_ASYNC_OBSERVERS: false,
 
     /**
       Controls the maximum number of scheduled rerenders without "settling". In general,
@@ -4513,7 +4525,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     will be removed.
   
     Both `classNames` and `classNameBindings` are concatenated properties. See
-    [EmberObject](/api/ember/release/classes/EmberObject) documentation for more
+    [EmberObject](/ember/release/classes/EmberObject) documentation for more
     information about concatenated properties.
   
     ### Other HTML Attributes
@@ -4655,7 +4667,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     update of the  HTML attribute in the component's HTML output.
   
     `attributeBindings` is a concatenated property. See
-    [EmberObject](/api/ember/release/classes/EmberObject) documentation for more
+    [EmberObject](/ember/release/classes/EmberObject) documentation for more
     information about concatenated properties.
   
     ## Layouts
@@ -5142,7 +5154,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     The internal class used to create text inputs when the `{{input}}`
     helper is used with `type` of `checkbox`.
   
-    See [Ember.Templates.helpers.input](/api/ember/release/classes/Ember.Templates.helpers/methods/input?anchor=input)  for usage details.
+    See [Ember.Templates.helpers.input](/ember/release/classes/Ember.Templates.helpers/methods/input?anchor=input)  for usage details.
   
     ## Direct manipulation of `checked`
   
@@ -5296,7 +5308,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   /**
     The internal class used to create text inputs when the `Input` component is used with `type` of `text`.
   
-    See [Ember.Templates.components.Input](/api/ember/release/classes/Ember.Templates.components/methods/Input?anchor=Input) for usage details.
+    See [Ember.Templates.components.Input](/ember/release/classes/Ember.Templates.components/methods/Input?anchor=Input) for usage details.
   
     ## Layout and LayoutName properties
   
@@ -6551,7 +6563,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
         Uh-mazing!
       {{/link-to}}
       ```
-         See [LinkComponent](/api/ember/release/classes/LinkComponent) for a
+         See [LinkComponent](/ember/release/classes/LinkComponent) for a
       complete list of overrideable properties. Be sure to also
       check out inherited properties of `LinkComponent`.
          ### Overriding Application-wide Defaults
@@ -9766,7 +9778,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
   ) {
       /**
-        See [Ember.Templates.components.Input](/api/ember/release/classes/Ember.Templates.components/methods/Input?anchor=Input).
+        See [Ember.Templates.components.Input](/ember/release/classes/Ember.Templates.components/methods/Input?anchor=Input).
            @method input
         @for Ember.Templates.helpers
         @param {Hash} options
@@ -9821,7 +9833,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
            Internally, `<Input @type="text" />` creates an instance of `TextField`, passing arguments from
         the helper to `TextField`'s `create` method. Subclassing `TextField` is supported but not
         recommended.
-           See [TextField](/api/ember/release/classes/TextField)
+           See [TextField](/ember/release/classes/TextField)
            ### Checkbox
            To create an `<input type="checkbox">`:
            ```handlebars
@@ -9862,7 +9874,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   */
 
   /**
-    Calls [loc](/api/classes/Ember.String.html#method_loc) with the
+    Calls [String.loc](/ember/release/classes/String/methods/loc?anchor=loc) with the
     provided string. This is a convenient way to localize text within a template.
     For example:
   
@@ -9884,7 +9896,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     </div>
     ```
   
-    See [String.loc](/api/ember/release/classes/String/methods/loc?anchor=loc) for how to
+    See [String.loc](/ember/release/classes/String/methods/loc?anchor=loc) for how to
     set up localized string references.
   
     @method loc
@@ -10440,7 +10452,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   
     Closure actions curry both their scope and any arguments. When invoked, any
     additional arguments are added to the already curried list.
-    Actions should be invoked using the [sendAction](/api/ember/release/classes/Component/methods/sendAction?anchor=sendAction)
+    Actions should be invoked using the [sendAction](/ember/release/classes/Component/methods/sendAction?anchor=sendAction)
     method. The first argument to `sendAction` is the action to be called, and
     additional arguments are passed to the action function. This has interesting
     properties combined with currying of arguments. For example:
@@ -10561,7 +10573,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   
     If you need the default handler to trigger you should either register your
     own event handler, or use event methods on your view class. See
-    ["Responding to Browser Events"](/api/ember/release/classes/Component)
+    ["Responding to Browser Events"](/ember/release/classes/Component)
     in the documentation for `Component` for more information.
   
     ### Specifying DOM event type
@@ -10576,7 +10588,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     </div>
     ```
   
-    See ["Event Names"](/api/ember/release/classes/Component) for a list of
+    See ["Event Names"](/ember/release/classes/Component) for a list of
     acceptable DOM event names.
   
     ### Specifying whitelisted modifier keys
@@ -10907,7 +10919,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
   
     - When invoked as `this.args.select()` the `handleSelected` function will
       receive the `item` from the loop as its first and only argument.
-    - When invoked as `this.args.selected('foo')` the `handleSelected` function
+    - When invoked as `this.args.select('foo')` the `handleSelected` function
       will receive the `item` from the loop as its first argument and the
       string `'foo'` as its second argument.
   
@@ -12419,7 +12431,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     /**
       The `{{input}}` helper lets you create an HTML `<input />` component.
       It causes a `TextField` component to be rendered.  For more info,
-      see the [TextField](/api/ember/release/classes/TextField) docs and
+      see the [TextField](/ember/release/classes/TextField) docs and
       the [templates guide](https://guides.emberjs.com/release/templates/input-helpers/).
          ```handlebars
       {{input value="987"}}
@@ -12473,7 +12485,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
          ```handlebars
       {{input focus-out="alertMessage"}}
       ```
-      See more about [Text Support Actions](/api/ember/release/classes/TextField)
+      See more about [Text Support Actions](/ember/release/classes/TextField)
          ### Extending `TextField`
          Internally, `{{input type="text"}}` creates an instance of `TextField`, passing
       arguments from the helper to `TextField`'s `create` method. You can extend the
@@ -12489,7 +12501,7 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
          Keep in mind when writing `TextField` subclasses that `TextField`
       itself extends `Component`. Expect isolated component semantics, not
       legacy 1.x view semantics (like `controller` being present).
-      See more about [Ember components](/api/ember/release/classes/Component)
+      See more about [Ember components](/ember/release/classes/Component)
          ### Checkbox
          Checkboxes are special forms of the `{{input}}` helper.  To create a `<checkbox />`:
          ```handlebars
@@ -13895,14 +13907,16 @@ enifed("@ember/-internals/glimmer", ["exports", "node-module", "@ember/-internal
     )}}></span>
     ```
   
-    Ember's built-in helpers are described under the [Ember.Templates.helpers](/api/ember/release/classes/Ember.Templates.helpers)
+    Ember's built-in helpers are described under the [Ember.Templates.helpers](/ember/release/classes/Ember.Templates.helpers)
     namespace. Documentation on creating custom helpers can be found under
-    [Helper](/api/classes/Ember.Helper.html).
+    [helper](/ember/release/functions/@ember%2Fcomponent%2Fhelper/helper) (or
+    under [Helper](/ember/release/classes/Helper) if a helper requires access to
+    dependency injection).
   
     ### Invoking a Component
   
     Ember components represent state to the UI of an application. Further
-    reading on components can be found under [Component](/api/ember/release/classes/Component).
+    reading on components can be found under [Component](/ember/release/classes/Component).
   
     @module @ember/component
     @main @ember/component
@@ -14454,7 +14468,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       }
     }
 
-    addToListeners(eventName, target, method, once) {
+    addToListeners(eventName, target, method, once, sync) {
       if (true
       /* DEBUG */
       ) {
@@ -14465,7 +14479,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       /* ONCE */
       : 0
       /* ADD */
-      );
+      , sync);
     }
 
     removeFromListeners(eventName, target, method) {
@@ -14480,7 +14494,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       );
     }
 
-    pushListener(event, target, method, kind) {
+    pushListener(event, target, method, kind, sync = false) {
       let listeners = this.writableListeners();
       let i = indexOfListener(listeners, event, target, method); // remove if found listener was inherited
 
@@ -14502,7 +14516,8 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
           event,
           target,
           method,
-          kind
+          kind,
+          sync
         });
       } else {
         let listener = listeners[i]; // If the listener is our own listener and we are trying to remove it, we
@@ -14515,8 +14530,14 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
         ) {
             listeners.splice(i, 1);
           } else {
-          // update own listener
+          true && !!(listener.kind === 0
+          /* ADD */
+          && kind === 0
+          /* ADD */
+          && listener.sync !== sync) && (0, _debug.assert)("You attempted to add an observer for the same method on '" + event.split(':')[0] + "' twice to " + target + " as both sync and async. Observers must be either sync or async, they cannot be both. This is likely a mistake, you should either remove the code that added the observer a second time, or update it to always be sync or async. The method was " + method + ".", !(listener.kind === 0 && kind === 0 && listener.sync !== sync)); // update own listener
+
           listener.kind = kind;
+          listener.sync = sync;
         }
       }
     }
@@ -14685,7 +14706,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
               result = [];
             }
 
-            result.push(listener.event);
+            result.push(listener);
           }
         }
       }
@@ -14705,36 +14726,21 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
 
         let map = this._getOrCreateOwnMap('_values');
 
-        map[subkey] = value;
+        map[subkey] = value === undefined ? UNDEFINED : value;
       };
 
-      Meta.prototype.peekValues = function (subkey) {
-        return this._findInherited2('_values', subkey);
+      Meta.prototype.peekValues = function (key) {
+        let val = this._findInherited2('_values', key);
+
+        return val === UNDEFINED ? undefined : val;
       };
 
-      Meta.prototype.deleteFromValues = function (subkey) {
-        delete this._getOrCreateOwnMap('_values')[subkey];
+      Meta.prototype.deleteFromValues = function (key) {
+        delete this._getOrCreateOwnMap('_values')[key];
       };
 
-      Meta.prototype.readInheritedValue = function (key, subkey) {
-        let internalKey = "_" + key;
-        let pointer = this;
-
-        while (pointer !== null) {
-          let map = pointer[internalKey];
-
-          if (map !== undefined) {
-            let value = map[subkey];
-
-            if (value !== undefined || subkey in map) {
-              return value;
-            }
-          }
-
-          pointer = pointer.parent;
-        }
-
-        return UNDEFINED;
+      Meta.prototype.readInheritedValue = function (key) {
+        return this._findInherited2('_values', key);
       };
 
       Meta.prototype.writeValue = function (obj, key, value) {
@@ -14901,7 +14907,7 @@ enifed("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
     return -1;
   }
 });
-enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/debug", "@ember/-internals/utils", "@ember/runloop", "@glimmer/reference", "@ember/error", "ember/version", "@ember/-internals/environment", "@ember/deprecated-features", "@ember/polyfills", "@ember/-internals/owner"], function (_exports, _meta2, _debug, _utils, _runloop, _reference, _error, _version, _environment, _deprecatedFeatures, _polyfills, _owner) {
+enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/debug", "@ember/-internals/utils", "@ember/runloop", "@glimmer/reference", "@ember/-internals/environment", "@ember/error", "ember/version", "@ember/deprecated-features", "@ember/polyfills", "@ember/-internals/owner"], function (_exports, _meta2, _debug, _utils, _runloop, _reference, _environment, _error, _version, _deprecatedFeatures, _polyfills, _owner) {
   "use strict";
 
   _exports.computed = computed;
@@ -14964,7 +14970,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   _exports.addObserver = addObserver;
   _exports.activateObserver = activateObserver;
   _exports.removeObserver = removeObserver;
-  _exports.flushInvalidActiveObservers = flushInvalidActiveObservers;
+  _exports.flushAsyncObservers = flushAsyncObservers;
   _exports.mixin = mixin;
   _exports.observer = observer;
   _exports.applyMixin = applyMixin;
@@ -14984,7 +14990,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   _exports.removeNamespace = removeNamespace;
   _exports.isNamespaceSearchDisabled = isSearchDisabled;
   _exports.setNamespaceSearchDisabled = setSearchDisabled;
-  _exports.NAMESPACES_BY_ID = _exports.NAMESPACES = _exports.Tracker = _exports.assertNotRendered = _exports.didRender = _exports.runInTransaction = _exports.UNKNOWN_PROPERTY_TAG = _exports.DEBUG_INJECTION_FUNCTIONS = _exports.aliasMethod = _exports.Mixin = _exports.Libraries = _exports.libraries = _exports.ChainNode = _exports.PROPERTY_DID_CHANGE = _exports.PROXY_CONTENT = _exports.ComputedProperty = _exports._globalsComputed = void 0;
+  _exports.NAMESPACES_BY_ID = _exports.NAMESPACES = _exports.Tracker = _exports.assertNotRendered = _exports.didRender = _exports.runInTransaction = _exports.update = _exports.UNKNOWN_PROPERTY_TAG = _exports.DEBUG_INJECTION_FUNCTIONS = _exports.aliasMethod = _exports.Mixin = _exports.Libraries = _exports.libraries = _exports.ChainNode = _exports.PROPERTY_DID_CHANGE = _exports.PROXY_CONTENT = _exports.ComputedProperty = _exports._globalsComputed = void 0;
   const COMPUTED_PROPERTY_CACHED_VALUES = new WeakMap();
   const COMPUTED_PROPERTY_LAST_REVISION = false
   /* EMBER_METAL_TRACKED_PROPERTIES */
@@ -15184,6 +15190,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
 
   let dirty;
   let update;
+  _exports.update = update;
 
   if (false
   /* EMBER_METAL_TRACKED_PROPERTIES */
@@ -15192,7 +15199,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
         tag.inner.first.inner.dirty();
       };
 
-      update = (outer, inner) => {
+      _exports.update = update = (outer, inner) => {
         outer.inner.lastChecked = 0;
         outer.inner.second.inner.update(inner);
       };
@@ -15272,7 +15279,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   */
 
 
-  function addListener(obj, eventName, target, method, once) {
+  function addListener(obj, eventName, target, method, once, sync = true) {
     true && !(Boolean(obj) && Boolean(eventName)) && (0, _debug.assert)('You must pass at least an object and event name to addListener', Boolean(obj) && Boolean(eventName));
 
     if (!method && 'function' === typeof target) {
@@ -15280,7 +15287,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       target = null;
     }
 
-    (0, _meta2.meta)(obj).addToListeners(eventName, target, method, once === true);
+    (0, _meta2.meta)(obj).addToListeners(eventName, target, method, once === true, sync);
   }
   /**
     Remove an event listener
@@ -15425,6 +15432,212 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     true && !(events.length > 0 && events.every(p => typeof p === 'string' && p.length > 0)) && (0, _debug.assert)('on called without valid event names', events.length > 0 && events.every(p => typeof p === 'string' && p.length > 0));
     (0, _utils.setListeners)(func, events);
     return func;
+  }
+
+  const SYNC_DEFAULT = !_environment.ENV._DEFAULT_ASYNC_OBSERVERS;
+  const SYNC_OBSERVERS = new Map();
+  const ASYNC_OBSERVERS = new Map();
+  /**
+  @module @ember/object
+  */
+
+  /**
+    @method addObserver
+    @static
+    @for @ember/object/observers
+    @param obj
+    @param {String} path
+    @param {Object|Function} target
+    @param {Function|String} [method]
+    @public
+  */
+
+  function addObserver(obj, path, target, method, sync = SYNC_DEFAULT) {
+    let eventName = changeEvent(path);
+    addListener(obj, eventName, target, method, false, sync);
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let meta$$1 = (0, _meta2.peekMeta)(obj);
+
+        if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
+          activateObserver(obj, eventName, sync);
+        }
+      } else {
+      watch(obj, path);
+    }
+  }
+  /**
+    @method removeObserver
+    @static
+    @for @ember/object/observers
+    @param obj
+    @param {String} path
+    @param {Object|Function} target
+    @param {Function|String} [method]
+    @public
+  */
+
+
+  function removeObserver(obj, path, target, method, sync = SYNC_DEFAULT) {
+    let eventName = changeEvent(path);
+
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) {
+        let meta$$1 = (0, _meta2.peekMeta)(obj);
+
+        if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
+          deactivateObserver(obj, eventName, sync);
+        }
+      } else {
+      unwatch(obj, path);
+    }
+
+    removeListener(obj, eventName, target, method);
+  }
+
+  function getOrCreateActiveObserversFor(target, sync) {
+    let observerMap = sync === true ? SYNC_OBSERVERS : ASYNC_OBSERVERS;
+
+    if (!observerMap.has(target)) {
+      observerMap.set(target, new Map());
+    }
+
+    return observerMap.get(target);
+  }
+
+  function activateObserver(target, eventName, sync = false) {
+    let activeObservers = getOrCreateActiveObserversFor(target, sync);
+
+    if (activeObservers.has(eventName)) {
+      activeObservers.get(eventName).count++;
+    } else {
+      let [path] = eventName.split(':');
+      let tag = getChainTagsForKey(target, path);
+      activeObservers.set(eventName, {
+        count: 1,
+        path,
+        tag,
+        lastRevision: tag.value(),
+        suspended: false
+      });
+    }
+  }
+
+  function deactivateObserver(target, eventName, sync = false) {
+    let observerMap = sync === true ? SYNC_OBSERVERS : ASYNC_OBSERVERS;
+    let activeObservers = observerMap.get(target);
+
+    if (activeObservers !== undefined) {
+      let observer = activeObservers.get(eventName);
+      observer.count--;
+
+      if (observer.count === 0) {
+        activeObservers.delete(eventName);
+
+        if (activeObservers.size === 0) {
+          observerMap.delete(target);
+        }
+      }
+    }
+  }
+  /**
+   * Primarily used for cases where we are redefining a class, e.g. mixins/reopen
+   * being applied later. Revalidates all the observers, resetting their tags.
+   *
+   * @private
+   * @param target
+   */
+
+
+  function revalidateObservers(target) {
+    if (ASYNC_OBSERVERS.has(target)) {
+      ASYNC_OBSERVERS.get(target).forEach(observer => {
+        observer.tag = getChainTagsForKey(target, observer.path);
+        observer.lastRevision = observer.tag.value();
+      });
+    }
+
+    if (SYNC_OBSERVERS.has(target)) {
+      SYNC_OBSERVERS.get(target).forEach(observer => {
+        observer.tag = getChainTagsForKey(target, observer.path);
+        observer.lastRevision = observer.tag.value();
+      });
+    }
+  }
+
+  let lastKnownRevision = 0;
+
+  function flushAsyncObservers() {
+    if (lastKnownRevision === _reference.CURRENT_TAG.value()) {
+      return;
+    }
+
+    lastKnownRevision = _reference.CURRENT_TAG.value();
+    ASYNC_OBSERVERS.forEach((activeObservers, target) => {
+      let meta$$1 = (0, _meta2.peekMeta)(target);
+
+      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
+        ASYNC_OBSERVERS.delete(target);
+        return;
+      }
+
+      activeObservers.forEach((observer, eventName) => {
+        if (!observer.tag.validate(observer.lastRevision)) {
+          (0, _runloop.schedule)('actions', () => {
+            try {
+              sendEvent(target, eventName, [target, observer.path]);
+            } finally {
+              observer.tag = getChainTagsForKey(target, observer.path);
+              observer.lastRevision = observer.tag.value();
+            }
+          });
+        }
+      });
+    });
+  }
+
+  function flushSyncObservers() {
+    // When flushing synchronous observers, we know that something has changed (we
+    // only do this during a notifyPropertyChange), so there's no reason to check
+    // a global revision.
+    SYNC_OBSERVERS.forEach((activeObservers, target) => {
+      let meta$$1 = (0, _meta2.peekMeta)(target);
+
+      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
+        SYNC_OBSERVERS.delete(target);
+        return;
+      }
+
+      activeObservers.forEach((observer, eventName) => {
+        if (!observer.suspended && !observer.tag.validate(observer.lastRevision)) {
+          try {
+            observer.suspended = true;
+            sendEvent(target, eventName, [target, observer.path]);
+          } finally {
+            observer.suspended = false;
+            observer.tag = getChainTagsForKey(target, observer.path);
+            observer.lastRevision = observer.tag.value();
+          }
+        }
+      });
+    });
+  }
+
+  function setObserverSuspended(target, property, suspended) {
+    let activeObservers = SYNC_OBSERVERS.get(target);
+
+    if (!activeObservers) {
+      return;
+    }
+
+    let observer = activeObservers.get(changeEvent(property));
+
+    if (observer) {
+      observer.suspended = suspended;
+    }
   }
   /**
     ObserverSet is a data structure used to keep track of observers
@@ -15723,6 +15936,12 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       markObjectAsDirty(obj, keyName, meta$$1);
     }
 
+    if (false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    && deferred <= 0) {
+      flushSyncObservers();
+    }
+
     if (PROPERTY_DID_CHANGE in obj) {
       obj[PROPERTY_DID_CHANGE](keyName);
     }
@@ -15816,7 +16035,13 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     deferred--;
 
     if (deferred <= 0) {
-      observerSet.flush();
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          flushSyncObservers();
+        } else {
+        observerSet.flush();
+      }
     }
   }
   /**
@@ -15899,11 +16124,13 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       let val;
 
       if (meta$$1 !== null) {
-        val = meta$$1.readInheritedValue('values', name);
+        val = meta$$1.readInheritedValue(name);
 
-        if (val === _meta2.UNDEFINED) {
+        if (val === undefined) {
           let proto = Object.getPrototypeOf(this);
-          return proto === null ? undefined : proto[name];
+          val = proto === null ? undefined : proto[name];
+        } else {
+          val = val === _meta2.UNDEFINED ? undefined : val;
         }
       }
 
@@ -16168,9 +16395,9 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
 
             if (maybeMandatoryDescriptor && maybeMandatoryDescriptor.set && maybeMandatoryDescriptor.set.isMandatorySetter) {
               if (maybeMandatoryDescriptor.get && maybeMandatoryDescriptor.get.isInheritingGetter) {
-                let possibleValue = meta$$1.readInheritedValue('values', keyName);
+                let possibleValue = meta$$1.readInheritedValue(keyName);
 
-                if (possibleValue === _meta2.UNDEFINED) {
+                if (possibleValue === undefined) {
                   delete obj[keyName];
                   return;
                 }
@@ -16349,168 +16576,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
 
   function removeArrayObserver(array, target, opts) {
     return arrayObserversHelper(array, target, opts, removeListener, true);
-  }
-
-  const ACTIVE_OBSERVERS = new Map();
-  /**
-  @module @ember/object
-  */
-
-  /**
-    @method addObserver
-    @static
-    @for @ember/object/observers
-    @param obj
-    @param {String} path
-    @param {Object|Function} target
-    @param {Function|String} [method]
-    @public
-  */
-
-  function addObserver(obj, path, target, method) {
-    let eventName = changeEvent(path);
-    addListener(obj, eventName, target, method);
-
-    if (false
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    ) {
-        let meta$$1 = (0, _meta2.peekMeta)(obj);
-
-        if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
-          activateObserver(obj, eventName);
-        }
-      } else {
-      watch(obj, path);
-    }
-  }
-  /**
-    @method removeObserver
-    @static
-    @for @ember/object/observers
-    @param obj
-    @param {String} path
-    @param {Object|Function} target
-    @param {Function|String} [method]
-    @public
-  */
-
-
-  function removeObserver(obj, path, target, method) {
-    let eventName = changeEvent(path);
-
-    if (false
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    ) {
-        let meta$$1 = (0, _meta2.peekMeta)(obj);
-
-        if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
-          deactivateObserver(obj, eventName);
-        }
-      } else {
-      unwatch(obj, path);
-    }
-
-    removeListener(obj, eventName, target, method);
-  }
-
-  function getOrCreateActiveObserversFor(target) {
-    if (!ACTIVE_OBSERVERS.has(target)) {
-      ACTIVE_OBSERVERS.set(target, new Map());
-    }
-
-    return ACTIVE_OBSERVERS.get(target);
-  }
-
-  function activateObserver(target, eventName) {
-    let activeObservers = getOrCreateActiveObserversFor(target);
-
-    if (activeObservers.has(eventName)) {
-      activeObservers.get(eventName).count++;
-    } else {
-      let [path] = eventName.split(':');
-      let tag = getChainTagsForKey(target, path);
-      activeObservers.set(eventName, {
-        count: 1,
-        path,
-        tag,
-        lastRevision: tag.value()
-      });
-    }
-  }
-
-  function deactivateObserver(target, eventName) {
-    let activeObservers = ACTIVE_OBSERVERS.get(target);
-
-    if (activeObservers !== undefined) {
-      let observer = activeObservers.get(eventName);
-      observer.count--;
-
-      if (observer.count === 0) {
-        activeObservers.delete(eventName);
-
-        if (activeObservers.size === 0) {
-          ACTIVE_OBSERVERS.delete(target);
-        }
-      }
-    }
-  }
-  /**
-   * Primarily used for cases where we are redefining a class, e.g. mixins/reopen
-   * being applied later. Revalidates all the observers, resetting their tags.
-   *
-   * @private
-   * @param target
-   */
-
-
-  function revalidateObservers(target) {
-    if (!ACTIVE_OBSERVERS.has(target)) {
-      return;
-    }
-
-    ACTIVE_OBSERVERS.get(target).forEach(observer => {
-      observer.tag = getChainTagsForKey(target, observer.path);
-      observer.lastRevision = observer.tag.value();
-    });
-  }
-
-  let lastKnownRevision = 0;
-
-  function flushInvalidActiveObservers(shouldSchedule = true) {
-    if (lastKnownRevision === _reference.CURRENT_TAG.value()) {
-      return;
-    }
-
-    lastKnownRevision = _reference.CURRENT_TAG.value();
-    ACTIVE_OBSERVERS.forEach((activeObservers, target) => {
-      let meta$$1 = (0, _meta2.peekMeta)(target);
-
-      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
-        ACTIVE_OBSERVERS.delete(target);
-        return;
-      }
-
-      activeObservers.forEach((observer, eventName) => {
-        if (!observer.tag.validate(observer.lastRevision)) {
-          let sendObserver = () => {
-            try {
-              sendEvent(target, eventName, [target, observer.path]);
-            } finally {
-              observer.tag = getChainTagsForKey(target, observer.path);
-              observer.lastRevision = observer.tag.value();
-            }
-          };
-
-          if (shouldSchedule) {
-            (0, _runloop.schedule)('actions', sendObserver);
-          } else {
-            // TODO: we need to schedule eagerly in exactly one location (_internalReset),
-            // for query params. We should get rid of this ASAP
-            sendObserver();
-          }
-        }
-      });
-    });
   }
 
   function eachProxyFor(array) {
@@ -17222,16 +17287,13 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     setClassicDecorator(decorator, desc);
     Object.setPrototypeOf(decorator, DecoratorClass.prototype);
     return decorator;
-  } // For some reason TS can't infer that these two functions are compatible-ish,
-  // so we need to corece the type
-
-
-  let symbol$1 = _utils.HAS_NATIVE_SYMBOL ? Symbol : _utils.symbol;
+  }
   /**
     An object that that tracks @tracked properties that were consumed.
   
     @private
   */
+
 
   class Tracker {
     constructor() {
@@ -17311,32 +17373,36 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   function descriptorForField([_target, key, desc]) {
     true && !(!desc || !desc.value && !desc.get && !desc.set) && (0, _debug.assert)("You attempted to use @tracked on " + key + ", but that element is not a class field. @tracked is only usable on class fields. Native getters and setters will autotrack add any tracked fields they encounter, so there is no need mark getters and setters with @tracked.", !desc || !desc.value && !desc.get && !desc.set);
     let initializer = desc ? desc.initializer : undefined;
-    let secretKey = symbol$1(key);
+    let values = new WeakMap();
+    let hasInitializer = typeof initializer === 'function';
     return {
       enumerable: true,
       configurable: true,
 
       get() {
         let propertyTag = tagForProperty(this, key);
-        if (CURRENT_TRACKER) CURRENT_TRACKER.add(propertyTag); // If the field has never been initialized, we should initialize it
+        if (CURRENT_TRACKER) CURRENT_TRACKER.add(propertyTag);
+        let value; // If the field has never been initialized, we should initialize it
 
-        if (!(secretKey in this)) {
-          this[secretKey] = typeof initializer === 'function' ? initializer.call(this) : undefined;
-        }
-
-        let value = this[secretKey]; // Add the tag of the returned value if it is an array, since arrays
+        if (hasInitializer && !values.has(this)) {
+          value = initializer.call(this);
+          values.set(this, value);
+        } else {
+          value = values.get(this);
+        } // Add the tag of the returned value if it is an array, since arrays
         // should always cause updates if they are consumed and then changed
+
 
         if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
           update(propertyTag, tagForProperty(value, '[]'));
         }
 
-        return this[secretKey];
+        return value;
       },
 
       set(newValue) {
         markObjectAsDirty(this, key);
-        this[secretKey] = newValue;
+        values.set(this, newValue);
 
         if (propertyDidChange !== null) {
           propertyDidChange();
@@ -17564,7 +17630,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     }
 
     if (value === null || typeof value !== 'object' && typeof value !== 'function') {
-      lazyTags.clear();
+      lazyTags.length = 0;
       return;
     }
 
@@ -17627,7 +17693,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
           if (typeof descriptor.altKey === 'string') {
             // it's an alias, so just get the altkey without tracking
             track(() => {
-              current = get(obj, descriptor.altKey);
+              current = get(current, descriptor.altKey);
             });
           } else {
             current = peekCacheFor(current).get(segment);
@@ -17977,7 +18043,7 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     import { computed, set } from '@ember/object';
   
     function fullNameMacro(firstNameKey, lastNameKey) {
-      @computed(firstNameKey, lastNameKey, {
+      return computed(firstNameKey, lastNameKey, {
         get() {
           return `${this[firstNameKey]} ${this[lastNameKey]}`;
         }
@@ -18442,8 +18508,21 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       let cache = getCacheFor(obj);
       let hadCachedValue = cache.has(keyName);
       let cachedValue = cache.get(keyName);
+      let ret;
 
-      let ret = this._setter.call(obj, keyName, value, cachedValue); // allows setter to return the same value that is cached already
+      if (false
+      /* EMBER_METAL_TRACKED_PROPERTIES */
+      ) {
+          setObserverSuspended(obj, keyName, true);
+
+          try {
+            ret = this._setter.call(obj, keyName, value, cachedValue);
+          } finally {
+            setObserverSuspended(obj, keyName, false);
+          }
+        } else {
+        ret = this._setter.call(obj, keyName, value, cachedValue);
+      } // allows setter to return the same value that is cached already
 
 
       if (hadCachedValue && cachedValue === ret) {
@@ -19615,23 +19694,34 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
     };
   }
 
-  function updateObserversAndListeners(obj, key, paths, updateMethod) {
-    if (paths) {
-      for (let i = 0; i < paths.length; i++) {
-        updateMethod(obj, paths[i], null, key);
+  function updateObserversAndListeners(obj, key, fn, add) {
+    let observers = (0, _utils.getObservers)(fn);
+    let listeners = (0, _utils.getListeners)(fn);
+
+    if (observers !== undefined) {
+      let updateObserver = add ? addObserver : removeObserver;
+
+      for (let i = 0; i < observers.paths.length; i++) {
+        updateObserver(obj, observers.paths[i], null, key, observers.sync);
+      }
+    }
+
+    if (listeners !== undefined) {
+      let updateListener = add ? addListener : removeListener;
+
+      for (let i = 0; i < listeners.length; i++) {
+        updateListener(obj, listeners[i], null, key);
       }
     }
   }
 
   function replaceObserversAndListeners(obj, key, prev, next) {
     if (typeof prev === 'function') {
-      updateObserversAndListeners(obj, key, (0, _utils.getObservers)(prev), removeObserver);
-      updateObserversAndListeners(obj, key, (0, _utils.getListeners)(prev), removeListener);
+      updateObserversAndListeners(obj, key, prev, false);
     }
 
     if (typeof next === 'function') {
-      updateObserversAndListeners(obj, key, (0, _utils.getObservers)(next), addObserver);
-      updateObserversAndListeners(obj, key, (0, _utils.getListeners)(next), addListener);
+      updateObserversAndListeners(obj, key, next, true);
     }
   }
 
@@ -19799,14 +19889,12 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       if (true
       /* DEBUG */
       ) {
-          this[_utils.NAME_KEY] = undefined;
           /*
             In debug builds, we seal mixins to help avoid performance pitfalls.
                    In IE11 there is a quirk that prevents sealed objects from being added
             to a WeakMap. Unfortunately, the mixin system currently relies on
             weak maps in `guidFor`, so we need to prime the guid cache weak map.
           */
-
           (0, _utils.guidFor)(this);
           Object.seal(this);
         }
@@ -19954,7 +20042,6 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
   if (true
   /* DEBUG */
   ) {
-      Mixin.prototype[_utils.NAME_KEY] = undefined;
       Object.seal(Mixin.prototype);
     }
 
@@ -20052,51 +20139,38 @@ enifed("@ember/-internals/metal", ["exports", "@ember/-internals/meta", "@ember/
       });
       return new AliasImpl(methodName);
     };
-  } // ..........................................................
-  // OBSERVER HELPER
-  //
-
-  /**
-    Specify a method that observes property changes.
-  
-    ```javascript
-    import EmberObject from '@ember/object';
-    import { observer } from '@ember/object';
-  
-    export default EmberObject.extend({
-      valueObserver: observer('value', function() {
-        // Executes whenever the "value" property changes
-      })
-    });
-    ```
-  
-    Also available as `Function.prototype.observes` if prototype extensions are
-    enabled.
-  
-    @method observer
-    @for @ember/object
-    @param {String} propertyNames*
-    @param {Function} func
-    @return func
-    @public
-    @static
-  */
-
+  }
 
   function observer(...args) {
-    let func = args.pop();
-    let _paths = args;
+    let funcOrDef = args.pop();
+    true && !(typeof funcOrDef === 'function' || typeof funcOrDef === 'object' && funcOrDef !== null) && (0, _debug.assert)('observer must be provided a function or an observer definition', typeof funcOrDef === 'function' || typeof funcOrDef === 'object' && funcOrDef !== null);
+    let func, dependentKeys, sync;
+
+    if (typeof funcOrDef === 'function') {
+      func = funcOrDef;
+      dependentKeys = args;
+      sync = !_environment.ENV._DEFAULT_ASYNC_OBSERVERS;
+    } else {
+      func = funcOrDef.fn;
+      dependentKeys = funcOrDef.dependentKeys;
+      sync = funcOrDef.sync;
+    }
+
     true && !(typeof func === 'function') && (0, _debug.assert)('observer called without a function', typeof func === 'function');
-    true && !(_paths.length > 0 && _paths.every(p => typeof p === 'string' && Boolean(p.length))) && (0, _debug.assert)('observer called without valid path', _paths.length > 0 && _paths.every(p => typeof p === 'string' && Boolean(p.length)));
+    true && !(Array.isArray(dependentKeys) && dependentKeys.length > 0 && dependentKeys.every(p => typeof p === 'string' && Boolean(p.length))) && (0, _debug.assert)('observer called without valid path', Array.isArray(dependentKeys) && dependentKeys.length > 0 && dependentKeys.every(p => typeof p === 'string' && Boolean(p.length)));
+    true && !(typeof sync === 'boolean') && (0, _debug.assert)('observer called without sync', typeof sync === 'boolean');
     let paths = [];
 
     let addWatchedProperty = path => paths.push(path);
 
-    for (let i = 0; i < _paths.length; ++i) {
-      expandProperties(_paths[i], addWatchedProperty);
+    for (let i = 0; i < dependentKeys.length; ++i) {
+      expandProperties(dependentKeys[i], addWatchedProperty);
     }
 
-    (0, _utils.setObservers)(func, paths);
+    (0, _utils.setObservers)(func, {
+      paths,
+      sync
+    });
     return func;
   }
 
@@ -20463,7 +20537,7 @@ enifed("@ember/-internals/routing/lib/ext/controller", ["exports", "@ember/-inte
          // if you just want to transition the query parameters without changing the route
       aController.transitionToRoute({ queryParams: { sort: 'date' } });
       ```
-         See also [replaceRoute](/api/ember/release/classes/Ember.ControllerMixin/methods/replaceRoute?anchor=replaceRoute).
+         See also [replaceRoute](/ember/release/classes/Ember.ControllerMixin/methods/replaceRoute?anchor=replaceRoute).
          @param {String} name the name of the route or a URL
       @param {...Object} models the model(s) or identifier(s) to be used
         while transitioning to the route.
@@ -20538,7 +20612,7 @@ enifed("@ember/-internals/routing/lib/ext/controller", ["exports", "@ember/-inte
   var _default = _controller_mixin.default;
   _exports.default = _default;
 });
-enifed("@ember/-internals/routing/lib/location/api", ["exports", "@ember/-internals/browser-environment", "@ember/debug"], function (_exports, _browserEnvironment, _debug) {
+enifed("@ember/-internals/routing/lib/location/api", ["exports", "@ember/debug"], function (_exports, _debug) {
   "use strict";
 
   _exports.default = void 0;
@@ -20556,10 +20630,10 @@ enifed("@ember/-internals/routing/lib/location/api", ["exports", "@ember/-intern
     You can pass an implementation name (`hash`, `history`, `none`, `auto`) to force a
     particular implementation to be used in your application.
   
-    See [HashLocation](/api/ember/release/classes/HashLocation).
-    See [HistoryLocation](/api/ember/release/classes/HistoryLocation).
-    See [NoneLocation](/api/ember/release/classes/NoneLocation).
-    See [AutoLocation](/api/ember/release/classes/AutoLocation).
+    See [HashLocation](/ember/release/classes/HashLocation).
+    See [HistoryLocation](/ember/release/classes/HistoryLocation).
+    See [NoneLocation](/ember/release/classes/NoneLocation).
+    See [AutoLocation](/ember/release/classes/AutoLocation).
   
     ## Location API
   
@@ -20630,8 +20704,7 @@ enifed("@ember/-internals/routing/lib/location/api", ["exports", "@ember/-intern
       return implementationClass.create(...arguments);
     },
 
-    implementations: {},
-    _location: _browserEnvironment.location
+    implementations: {}
   };
   _exports.default = _default;
 });
@@ -20726,7 +20799,9 @@ enifed("@ember/-internals/routing/lib/location/auto_location", ["exports", "@emb
     }
 
     willDestroy() {
-      let concreteImplementation = (0, _metal.get)(this, 'concreteImplementation');
+      let {
+        concreteImplementation
+      } = this;
 
       if (concreteImplementation) {
         concreteImplementation.destroy();
@@ -20803,7 +20878,9 @@ enifed("@ember/-internals/routing/lib/location/auto_location", ["exports", "@emb
 
   function delegateToConcreteImplementation(methodName) {
     return function (...args) {
-      let concreteImplementation = (0, _metal.get)(this, 'concreteImplementation');
+      let {
+        concreteImplementation
+      } = this;
       true && !Boolean(concreteImplementation) && (0, _debug.assert)("AutoLocation's detect() method should be called before calling any other hooks.", Boolean(concreteImplementation));
       return (0, _utils.tryInvoke)(concreteImplementation, methodName, args);
     };
@@ -20926,7 +21003,7 @@ enifed("@ember/-internals/routing/lib/location/auto_location", ["exports", "@emb
     return path;
   }
 });
-enifed("@ember/-internals/routing/lib/location/hash_location", ["exports", "@ember/-internals/metal", "@ember/runloop", "@ember/-internals/runtime", "@ember/-internals/routing/lib/location/util"], function (_exports, _metal, _runloop, _runtime, _util) {
+enifed("@ember/-internals/routing/lib/location/hash_location", ["exports", "@ember/-internals/metal", "@ember/-internals/runtime", "@ember/runloop", "@ember/-internals/routing/lib/location/util"], function (_exports, _metal, _runtime, _runloop, _util) {
   "use strict";
 
   _exports.default = void 0;
@@ -20970,7 +21047,7 @@ enifed("@ember/-internals/routing/lib/location/hash_location", ["exports", "@emb
     }
 
     init() {
-      (0, _metal.set)(this, 'location', (0, _metal.get)(this, '_location') || window.location);
+      (0, _metal.set)(this, 'location', this._location || window.location);
       this._hashchangeHandler = undefined;
     }
     /**
@@ -20982,7 +21059,7 @@ enifed("@ember/-internals/routing/lib/location/hash_location", ["exports", "@emb
 
 
     getHash() {
-      return (0, _util.getHash)((0, _metal.get)(this, 'location'));
+      return (0, _util.getHash)(this.location);
     }
     /**
       Returns the normalized URL, constructed from `location.hash`.
@@ -21022,7 +21099,7 @@ enifed("@ember/-internals/routing/lib/location/hash_location", ["exports", "@emb
 
 
     setURL(path) {
-      (0, _metal.get)(this, 'location').hash = path;
+      this.location.hash = path;
       (0, _metal.set)(this, 'lastSetURL', path);
     }
     /**
@@ -21035,7 +21112,7 @@ enifed("@ember/-internals/routing/lib/location/hash_location", ["exports", "@emb
 
 
     replaceURL(path) {
-      (0, _metal.get)(this, 'location').replace("#" + path);
+      this.location.replace("#" + path);
       (0, _metal.set)(this, 'lastSetURL', path);
     }
     /**
@@ -21054,7 +21131,7 @@ enifed("@ember/-internals/routing/lib/location/hash_location", ["exports", "@emb
       this._hashchangeHandler = (0, _runloop.bind)(this, function () {
         let path = this.getURL();
 
-        if ((0, _metal.get)(this, 'lastSetURL') === path) {
+        if (this.lastSetURL === path) {
           return;
         }
 
@@ -21169,7 +21246,7 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
 
 
     getHash() {
-      return (0, _util.getHash)((0, _metal.get)(this, 'location'));
+      return (0, _util.getHash)(this.location);
     }
 
     init() {
@@ -21183,7 +21260,7 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
       }
 
       (0, _metal.set)(this, 'baseURL', baseURL);
-      (0, _metal.set)(this, 'location', (0, _metal.get)(this, 'location') || window.location);
+      (0, _metal.set)(this, 'location', this.location || window.location);
       this._popstateHandler = undefined;
     }
     /**
@@ -21194,7 +21271,7 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
 
 
     initState() {
-      let history = (0, _metal.get)(this, 'history') || window.history;
+      let history = this.history || window.history;
       (0, _metal.set)(this, 'history', history);
 
       if (history && 'state' in history) {
@@ -21221,15 +21298,17 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
 
 
     getURL() {
-      let location = (0, _metal.get)(this, 'location');
-      let path = location.pathname;
-      let rootURL = (0, _metal.get)(this, 'rootURL');
-      let baseURL = (0, _metal.get)(this, 'baseURL'); // remove trailing slashes if they exists
+      let {
+        location,
+        rootURL,
+        baseURL
+      } = this;
+      let path = location.pathname; // remove trailing slashes if they exists
 
       rootURL = rootURL.replace(/\/$/, '');
       baseURL = baseURL.replace(/\/$/, ''); // remove baseURL and rootURL from start of path
 
-      let url = path.replace(new RegExp("^" + baseURL + "(?=/|$)"), '').replace(new RegExp("^" + rootURL + "(?=/|$)"), '').replace(/\/\/$/g, '/'); // remove extra slashes
+      let url = path.replace(new RegExp("^" + baseURL + "(?=/|$)"), '').replace(new RegExp("^" + rootURL + "(?=/|$)"), '').replace(/\/\//g, '/'); // remove extra slashes
 
       let search = location.search || '';
       url += search + this.getHash();
@@ -21284,7 +21363,7 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
 
     getState() {
       if (this.supportsHistory) {
-        return (0, _metal.get)(this, 'history').state;
+        return this.history.state;
       }
 
       return this._historyState;
@@ -21302,7 +21381,7 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
         path,
         uuid: _uuid()
       };
-      (0, _metal.get)(this, 'history').pushState(state, null, path);
+      this.history.pushState(state, null, path);
       this._historyState = state; // used for webkit workaround
 
       this._previousURL = this.getURL();
@@ -21320,7 +21399,7 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
         path,
         uuid: _uuid()
       };
-      (0, _metal.get)(this, 'history').replaceState(state, null, path);
+      this.history.replaceState(state, null, path);
       this._historyState = state; // used for webkit workaround
 
       this._previousURL = this.getURL();
@@ -21362,8 +21441,10 @@ enifed("@ember/-internals/routing/lib/location/history_location", ["exports", "@
 
 
     formatURL(url) {
-      let rootURL = (0, _metal.get)(this, 'rootURL');
-      let baseURL = (0, _metal.get)(this, 'baseURL');
+      let {
+        rootURL,
+        baseURL
+      } = this;
 
       if (url !== '') {
         // remove trailing slashes if they exists
@@ -21428,7 +21509,9 @@ enifed("@ember/-internals/routing/lib/location/none_location", ["exports", "@emb
     }
 
     detect() {
-      let rootURL = this.rootURL;
+      let {
+        rootURL
+      } = this;
       true && !(rootURL.charAt(rootURL.length - 1) === '/') && (0, _debug.assert)('rootURL must end with a trailing forward slash e.g. "/app/"', rootURL.charAt(rootURL.length - 1) === '/');
     }
     /**
@@ -21440,8 +21523,10 @@ enifed("@ember/-internals/routing/lib/location/none_location", ["exports", "@emb
 
 
     getURL() {
-      let path = (0, _metal.get)(this, 'path');
-      let rootURL = (0, _metal.get)(this, 'rootURL'); // remove trailing slashes if they exists
+      let {
+        path,
+        rootURL
+      } = this; // remove trailing slashes if they exists
 
       rootURL = rootURL.replace(/\/$/, ''); // remove rootURL from url
 
@@ -21497,7 +21582,9 @@ enifed("@ember/-internals/routing/lib/location/none_location", ["exports", "@emb
 
 
     formatURL(url) {
-      let rootURL = (0, _metal.get)(this, 'rootURL');
+      let {
+        rootURL
+      } = this;
 
       if (url !== '') {
         // remove trailing slashes if they exists
@@ -21684,7 +21771,7 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
   
        actions: {
          next() {
-           this.get('router').transitionTo('other.route');
+           this.router.transitionTo('other.route');
          }
        }
      });
@@ -21725,7 +21812,7 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
     /**
        Transition the application into another route. The route may
        be either a single route or route path:
-          See [transitionTo](/api/ember/release/classes/Route/methods/transitionTo?anchor=transitionTo) for more info.
+          See [transitionTo](/ember/release/classes/Route/methods/transitionTo?anchor=transitionTo) for more info.
           Calling `transitionTo` from the Router service will cause default query parameter values to be included in the URL.
        This behavior is different from calling `transitionTo` on a route or `transitionToRoute` on a controller.
        See the [Router Service RFC](https://github.com/emberjs/rfcs/blob/master/text/0095-router-service.md#query-parameter-semantics) for more info.
@@ -21760,7 +21847,7 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
     /**
        Transition into another route while replacing the current URL, if possible.
        The route may be either a single route or route path:
-          See [replaceWith](/api/ember/release/classes/Route/methods/replaceWith?anchor=replaceWith) for more info.
+          See [replaceWith](/ember/release/classes/Route/methods/replaceWith?anchor=replaceWith) for more info.
           Calling `replaceWith` from the Router service will cause default query parameter values to be included in the URL.
        This behavior is different from calling `replaceWith` on a route.
        See the [Router Service RFC](https://github.com/emberjs/rfcs/blob/master/text/0095-router-service.md#query-parameter-semantics) for more info.
@@ -21962,16 +22049,12 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
     currentURL: (0, _computed.readOnly)('_router.currentURL'),
 
     /**
-      The `location` property determines the type of URLs your
-      application will use.
-         The following location types are currently available:
-      * `auto`
-      * `hash`
-      * `history`
-      * `none`
-         You can pass a location type to force a particular `location` API
-      implementation to be used in your application. For example, to set
-      the `history` type:
+      The `location` property returns what implementation of the `location` API
+      your application is using, which determines what type of URL is being used.
+         See [Location](/ember/release/classes/Location) for more information.
+         To force a particular `location` API implementation to be used in your
+      application you can set a location type on your `config/environment`.
+      For example, to set the `history` type:
          ```config/environment.js
       'use strict';
          module.exports = function(environment) {
@@ -21984,6 +22067,12 @@ enifed("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
         }
       }
       ```
+         The following location types are available by default:
+      `auto`, `hash`, `history`, `none`.
+         See [HashLocation](/ember/release/classes/HashLocation).
+      See [HistoryLocation](/ember/release/classes/HistoryLocation).
+      See [NoneLocation](/ember/release/classes/NoneLocation).
+      See [AutoLocation](/ember/release/classes/AutoLocation).
          @property location
       @default 'hash'
       @see {Location}
@@ -22585,7 +22674,6 @@ enifed("@ember/-internals/routing/lib/system/route-info", [], function () {
     Will contain the result `Route#buildRouteInfoMetadata`
     for the corresponding Route.
     @property {Any} metadata
-    @category EMBER_ROUTING_BUILD_ROUTEINFO_METADATA
     @public
   */
 
@@ -22745,7 +22833,9 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
 
   _exports.defaultSerialize = defaultSerialize;
   _exports.hasDefaultSerialize = hasDefaultSerialize;
-  _exports.default = _exports.ROUTER_EVENT_DEPRECATIONS = void 0;
+  _exports.default = _exports.ROUTER_EVENT_DEPRECATIONS = _exports.ROUTE_CONNECTIONS = void 0;
+  const ROUTE_CONNECTIONS = new WeakMap();
+  _exports.ROUTE_CONNECTIONS = ROUTE_CONNECTIONS;
 
   function defaultSerialize(model, params) {
     if (params.length < 1 || !model) {
@@ -23042,15 +23132,7 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
     _internalReset(isExiting, transition) {
       let controller = this.controller;
       controller._qpDelegate = (0, _metal.get)(this, '_qp.states.inactive');
-      this.resetController(controller, isExiting, transition); // TODO: Once tags are enabled by default, we should refactor QP changes to
-      // use autotracking. This will likely be a large refactor, and for now we
-      // just need to trigger observers eagerly.
-
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          (0, _metal.flushInvalidActiveObservers)(false);
-        }
+      this.resetController(controller, isExiting, transition);
     }
     /**
       @private
@@ -23059,7 +23141,7 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
 
 
     enter() {
-      this.connections = [];
+      ROUTE_CONNECTIONS.set(this, []);
       this.activate();
       this.trigger('activate');
     }
@@ -23549,16 +23631,7 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
 
       if (this._environment.options.shouldRender) {
         this.renderTemplate(controller, context);
-      } // TODO: Once tags are enabled by default, we should refactor QP changes to
-      // use autotracking. This will likely be a large refactor, and for now we
-      // just need to trigger observers eagerly.
-
-
-      if (false
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          (0, _metal.flushInvalidActiveObservers)(false);
-        }
+      }
     }
     /*
       Called when a query parameter for this route changes, regardless of whether the route
@@ -24132,7 +24205,7 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
       }
 
       let renderOptions = buildRenderOptions(this, isDefaultRender, name, options);
-      this.connections.push(renderOptions);
+      ROUTE_CONNECTIONS.get(this).push(renderOptions);
       (0, _runloop.once)(this._router, '_setOutlets');
     }
     /**
@@ -24219,8 +24292,10 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
         parentView = undefined;
       }
 
-      for (let i = 0; i < this.connections.length; i++) {
-        let connection = this.connections[i];
+      let connections = ROUTE_CONNECTIONS.get(this);
+
+      for (let i = 0; i < connections.length; i++) {
+        let connection = connections[i];
 
         if (connection.outlet === outletName && connection.into === parentView) {
           // This neuters the disconnected outlet such that it doesn't
@@ -24229,7 +24304,7 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
           // don't suddenly blow up. They will still stick themselves
           // into its outlets, which won't render anywhere. All of this
           // statefulness should get the machete in 2.0.
-          this.connections[i] = {
+          connections[i] = {
             owner: connection.owner,
             into: connection.into,
             outlet: connection.outlet,
@@ -24240,6 +24315,8 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
           (0, _runloop.once)(this._router, '_setOutlets');
         }
       }
+
+      ROUTE_CONNECTIONS.set(this, connections);
     }
 
     willDestroy() {
@@ -24252,11 +24329,45 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
 
 
     teardownViews() {
-      if (this.connections && this.connections.length > 0) {
-        this.connections = [];
+      let connections = ROUTE_CONNECTIONS.get(this);
+
+      if (connections !== undefined && connections.length > 0) {
+        ROUTE_CONNECTIONS.set(this, []);
         (0, _runloop.once)(this._router, '_setOutlets');
       }
     }
+    /**
+      Allows you to produce custom metadata for the route.
+      The return value of this method will be attatched to
+      its corresponding RouteInfoWithAttributes obejct.
+         Example
+         ```app/routes/posts/index.js
+      import Route from '@ember/routing/route';
+         export default Route.extend({
+        buildRouteInfoMetadata() {
+          return { title: 'Posts Page' }
+        }
+      });
+      ```
+      ```app/routes/application.js
+      import Route from '@ember/routing/route';
+      import { inject as service } from '@ember/service';
+         export default Route.extend({
+        router: service('router'),
+        init() {
+          this._super(...arguments);
+          this.router.on('routeDidChange', transition => {
+            document.title = transition.to.metadata.title;
+            // would update document's title to "Posts Page"
+          });
+        }
+      });
+      ```
+         @return any
+     */
+
+
+    buildRouteInfoMetadata() {}
 
   }
 
@@ -25012,45 +25123,6 @@ enifed("@ember/-internals/routing/lib/system/route", ["exports", "@ember/-intern
   }
 
   if (true
-  /* EMBER_ROUTING_BUILD_ROUTEINFO_METADATA */
-  ) {
-      Route.reopen({
-        /**
-          Allows you to produce custom metadata for the route.
-          The return value of this method will be attatched to
-          its corresponding RouteInfoWithAttributes obejct.
-               Example
-               ```app/routes/posts/index.js
-          import Route from '@ember/routing/route';
-               export default Route.extend({
-            buildRouteInfoMetadata() {
-              return { title: 'Posts Page' }
-            }
-          });
-          ```
-          ```app/routes/application.js
-          import Route from '@ember/routing/route';
-          import { inject as service } from '@ember/service';
-               export default Route.extend({
-            router: service('router'),
-            init() {
-              this._super(...arguments);
-              this.router.on('routeDidChange', transition => {
-                document.title = transition.to.metadata.title;
-                // would update document's title to "Posts Page"
-              });
-            }
-          });
-          ```
-               @return any
-          @category EMBER_ROUTING_BUILD_ROUTEINFO_METADATA
-         */
-        buildRouteInfoMetadata() {}
-
-      });
-    }
-
-  if (true
   /* EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT */
   ) {
       (0, _runtime.setFrameworkClass)(Route);
@@ -25427,7 +25499,9 @@ enifed("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
 
       for (let i = 0; i < routeInfos.length; i++) {
         route = routeInfos[i].route;
-        let connections = route.connections;
+
+        let connections = _route.ROUTE_CONNECTIONS.get(route);
+
         let ownState;
 
         for (let j = 0; j < connections.length; j++) {
@@ -25485,7 +25559,7 @@ enifed("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
     /**
       Transition the application into another route. The route may
       be either a single route or route path:
-         See [transitionTo](/api/ember/release/classes/Route/methods/transitionTo?anchor=transitionTo) for more info.
+         See [transitionTo](/ember/release/classes/Route/methods/transitionTo?anchor=transitionTo) for more info.
          @method transitionTo
       @param {String} name the name of the route or a URL
       @param {...Object} models the model(s) or identifier(s) to be used while
@@ -27709,7 +27783,7 @@ enifed("@ember/-internals/runtime/lib/ext/function", ["@ember/-internals/environ
         will not immediately trigger an update of the computed property, but
         will instead clear the cache so that it is updated when the next `get`
         is called on the property.
-         See [ComputedProperty](/api/ember/release/classes/ComputedProperty), [@ember/object/computed](/api/ember/release/classes/@ember%2Fobject%2Fcomputed).
+         See [ComputedProperty](/ember/release/classes/ComputedProperty), [@ember/object/computed](/ember/release/classes/@ember%2Fobject%2Fcomputed).
          @method property
         @for Function
         @public
@@ -31537,7 +31611,7 @@ enifed("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
         if (observerEvents !== undefined) {
           for (let i = 0; i < observerEvents.length; i++) {
-            (0, _metal.activateObserver)(obj, observerEvents[i]);
+            (0, _metal.activateObserver)(obj, observerEvents[i].event, observerEvents[i].sync);
           }
         }
       } else {
@@ -32848,7 +32922,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills", "@ember/debug"
   _exports.isProxy = isProxy;
   _exports.setProxy = setProxy;
   _exports.isEmberArray = isEmberArray;
-  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = _exports.NAME_KEY = void 0;
+  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = void 0;
 
   /**
     Strongly hint runtimes to intern the provided string.
@@ -33135,9 +33209,7 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills", "@ember/debug"
   const OBSERVERS_MAP = new WeakMap();
 
   function setObservers(func, observers) {
-    if (observers) {
-      OBSERVERS_MAP.set(func, observers);
-    }
+    OBSERVERS_MAP.set(func, observers);
   }
 
   function getObservers(func) {
@@ -33677,9 +33749,6 @@ enifed("@ember/-internals/utils", ["exports", "@ember/polyfills", "@ember/debug"
    elsewhere (so they can be lazily evaluated / parsed).
   */
 
-
-  const NAME_KEY = symbol('NAME_KEY');
-  _exports.NAME_KEY = NAME_KEY;
 });
 enifed("@ember/-internals/views/index", ["exports", "@ember/-internals/views/lib/system/jquery", "@ember/-internals/views/lib/system/utils", "@ember/-internals/views/lib/system/event_dispatcher", "@ember/-internals/views/lib/component_lookup", "@ember/-internals/views/lib/mixins/text_support", "@ember/-internals/views/lib/views/core_view", "@ember/-internals/views/lib/mixins/class_names_support", "@ember/-internals/views/lib/mixins/child_views_support", "@ember/-internals/views/lib/mixins/view_state_support", "@ember/-internals/views/lib/mixins/view_support", "@ember/-internals/views/lib/mixins/action_support", "@ember/-internals/views/lib/compat/attrs", "@ember/-internals/views/lib/system/lookup_partial", "@ember/-internals/views/lib/utils/lookup-component", "@ember/-internals/views/lib/system/action_manager"], function (_exports, _jquery, _utils, _event_dispatcher, _component_lookup, _text_support, _core_view, _class_names_support, _child_views_support, _view_state_support, _view_support, _action_support, _attrs, _lookup_partial, _lookupComponent, _action_manager) {
   "use strict";
@@ -38042,7 +38111,7 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   "use strict";
 
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = _exports.EMBER_GLIMMER_ON_MODIFIER = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_GLIMMER_FN_HELPER = _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = _exports.EMBER_GLIMMER_ON_MODIFIER = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_GLIMMER_FN_HELPER = _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -38061,8 +38130,6 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_METAL_TRACKED_PROPERTIES: false,
     EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES: true,
     EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS: true,
-    EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP: true,
-    EMBER_ROUTING_BUILD_ROUTEINFO_METADATA: true,
     EMBER_NATIVE_DECORATOR_SUPPORT: true,
     EMBER_GLIMMER_FN_HELPER: true,
     EMBER_CUSTOM_COMPONENT_ARG_PROXY: false,
@@ -38127,14 +38194,10 @@ enifed("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_MODULE_UNIFICATION = EMBER_MODULE_UNIFICATION;
   const EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
   _exports.EMBER_METAL_TRACKED_PROPERTIES = EMBER_METAL_TRACKED_PROPERTIES;
-  const EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP);
-  _exports.EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP = EMBER_GLIMMER_ANGLE_BRACKET_NESTED_LOOKUP;
   const EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = featureValue(FEATURES.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES);
   _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES;
   const EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS);
   _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS;
-  const EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = featureValue(FEATURES.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA);
-  _exports.EMBER_ROUTING_BUILD_ROUTEINFO_METADATA = EMBER_ROUTING_BUILD_ROUTEINFO_METADATA;
   const EMBER_NATIVE_DECORATOR_SUPPORT = featureValue(FEATURES.EMBER_NATIVE_DECORATOR_SUPPORT);
   _exports.EMBER_NATIVE_DECORATOR_SUPPORT = EMBER_NATIVE_DECORATOR_SUPPORT;
   const EMBER_GLIMMER_FN_HELPER = featureValue(FEATURES.EMBER_GLIMMER_FN_HELPER);
@@ -38260,7 +38323,9 @@ enifed("@ember/controller/lib/controller_mixin", ["exports", "@ember/-internals/
        @property model
       @public
     */
-    model: null
+    model: false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ? (0, _metal.tracked)() : null
   });
 
   _exports.default = _default;
@@ -38470,7 +38535,7 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         /* eslint-disable-line no-console */
       });
       /**
-       @module @ember/application
+       @module @ember/debug
        @public
       */
 
@@ -38482,12 +38547,12 @@ enifed("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         freely added for documentation and debugging purposes without worries of
         incuring any performance penalty.
            ```javascript
-        import { deprecateFunc } from '@ember/application/deprecations';
+        import { deprecateFunc } from '@ember/debug';
            Ember.oldMethod = deprecateFunc('Please use the new, updated method', options, Ember.newMethod);
         ```
            @method deprecateFunc
         @static
-        @for @ember/application/deprecations
+        @for @ember/debug
         @param {String} message A description of the deprecation.
         @param {Object} [options] The options object for `deprecate`.
         @param {Function} func The new function called to replace its deprecated counterpart.
@@ -38594,7 +38659,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
   /**
     Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/application/deprecations/deprecate](https://emberjs.com/api/ember/release/classes/@ember%2Fapplication%2Fdeprecations/methods/deprecate?anchor=deprecate).
+    Deprecations are invoked by calls to [@ember/debug/deprecate](https://emberjs.com/api/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
     The following example demonstrates its usage by registering a handler that throws an error if the
     message contains the word "should", otherwise defers to the default handler.
   
@@ -38718,7 +38783,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
       _exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
       _exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
       /**
-       @module @ember/application
+       @module @ember/debug
        @public
        */
 
@@ -38728,7 +38793,7 @@ enifed("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
            * In a production build, this method is defined as an empty function (NOP).
         Uses of this method in Ember itself are stripped from the ember.prod.js build.
            @method deprecate
-        @for @ember/application/deprecations
+        @for @ember/debug
         @param {String} message A description of the deprecation.
         @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
         @param {Object} options
@@ -39991,6 +40056,56 @@ enifed("@ember/modifier/index", ["exports", "@ember/-internals/glimmer"], functi
     }
   });
 });
+enifed("@ember/object/compat", ["exports", "@ember/-internals/metal", "@ember/debug"], function (_exports, _metal, _debug) {
+  "use strict";
+
+  _exports.dependentKeyCompat = dependentKeyCompat;
+
+  let wrapGetterSetter = function (_target, key, desc) {
+    let {
+      get: originalGet
+    } = desc;
+
+    if (originalGet !== undefined) {
+      desc.get = function () {
+        let propertyTag = (0, _metal.tagForProperty)(this, key);
+        let ret;
+        let tag = (0, _metal.track)(() => {
+          ret = originalGet.call(this);
+        });
+        (0, _metal.update)(propertyTag, tag);
+        (0, _metal.consume)(tag);
+        return ret;
+      };
+    }
+
+    return desc;
+  };
+
+  function dependentKeyCompat(target, key, desc) {
+    true && !Boolean(false
+    /* EMBER_METAL_TRACKED_PROPERTIES */
+    ) && (0, _debug.assert)('The dependentKeyCompat decorator can only be used if the tracked properties feature is enabled', Boolean(false));
+
+    if (!(0, _metal.isElementDescriptor)([target, key, desc])) {
+      desc = target;
+
+      let decorator = function (target, key, _desc, _meta, isClassicDecorator) {
+        true && !isClassicDecorator && (0, _debug.assert)('The @dependentKeyCompat decorator may only be passed a method when used in classic classes. You should decorate getters/setters directly in native classes', isClassicDecorator);
+        true && !(desc !== null && typeof desc === 'object' && (typeof desc.get === 'function' || typeof desc.set === 'function')) && (0, _debug.assert)('The dependentKeyCompat() decorator must be passed a getter or setter when used in classic classes', desc !== null && typeof desc === 'object' && (typeof desc.get === 'function' || typeof desc.set === 'function'));
+        return wrapGetterSetter(target, key, desc);
+      };
+
+      (0, _metal.setClassicDecorator)(decorator);
+      return decorator;
+    }
+
+    true && !(desc !== null && typeof desc.get === 'function' || typeof desc.set === 'function') && (0, _debug.assert)('The @dependentKeyCompat decorator must be applied to getters/setters when used in native classes', desc !== null && typeof desc.get === 'function' || typeof desc.set === 'function');
+    return wrapGetterSetter(target, key, desc);
+  }
+
+  (0, _metal.setClassicDecorator)(dependentKeyCompat);
+});
 enifed("@ember/object/computed", ["exports", "@ember/object/lib/computed/computed_macros", "@ember/object/lib/computed/reduce_computed_macros"], function (_exports, _computed_macros, _reduce_computed_macros) {
   "use strict";
 
@@ -41201,10 +41316,10 @@ enifed("@ember/object/lib/computed/computed_macros", ["exports", "@ember/-intern
     import { set } from '@ember/object';
     import { or } from '@ember/object/computed';
   
-    let Hamster = EmberObject.extend({
+    class Hamster {
       @or('hasJacket', 'hasUmbrella') readyForRain;
       @or('hasSunscreen', 'hasUmbrella') readyForBeach;
-    });
+    }
   
     let tomster = new Hamster();
   
@@ -43239,7 +43354,7 @@ enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
     if (false
     /* EMBER_METAL_TRACKED_PROPERTIES */
     ) {
-        (0, _metal.flushInvalidActiveObservers)();
+        (0, _metal.flushAsyncObservers)();
       }
   }
 
@@ -43250,7 +43365,7 @@ enifed("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
   ) {
       flush = function (queueName, next) {
         if (queueName === 'render' || queueName === _rsvpErrorQueue) {
-          (0, _metal.flushInvalidActiveObservers)();
+          (0, _metal.flushAsyncObservers)();
         }
 
         next();
@@ -44367,7 +44482,7 @@ enifed("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
   if (_environment.ENV.EXTEND_PROTOTYPES.String) {
     Object.defineProperties(String.prototype, {
       /**
-        See [String.w](/api/ember/release/classes/String/methods/w?anchor=w).
+        See [String.w](/ember/release/classes/String/methods/w?anchor=w).
              @method w
         @for @ember/string
         @static
@@ -44385,7 +44500,7 @@ enifed("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
       },
 
       /**
-        See [String.loc](/api/ember/release/classes/String/methods/loc?anchor=loc).
+        See [String.loc](/ember/release/classes/String/methods/loc?anchor=loc).
              @method loc
         @for @ember/string
         @static
@@ -44403,7 +44518,7 @@ enifed("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
       },
 
       /**
-        See [String.camelize](/api/ember/release/classes/String/methods/camelize?anchor=camelize).
+        See [String.camelize](/ember/release/classes/String/methods/camelize?anchor=camelize).
              @method camelize
         @for @ember/string
         @static
@@ -44421,7 +44536,7 @@ enifed("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
       },
 
       /**
-        See [String.decamelize](/api/ember/release/classes/String/methods/decamelize?anchor=decamelize).
+        See [String.decamelize](/ember/release/classes/String/methods/decamelize?anchor=decamelize).
              @method decamelize
         @for @ember/string
         @static
@@ -44439,7 +44554,7 @@ enifed("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
       },
 
       /**
-        See [String.dasherize](/api/ember/release/classes/String/methods/dasherize?anchor=dasherize).
+        See [String.dasherize](/ember/release/classes/String/methods/dasherize?anchor=dasherize).
              @method dasherize
         @for @ember/string
         @static
@@ -44475,7 +44590,7 @@ enifed("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
       },
 
       /**
-        See [String.classify](/api/ember/release/classes/String/methods/classify?anchor=classify).
+        See [String.classify](/ember/release/classes/String/methods/classify?anchor=classify).
              @method classify
         @for @ember/string
         @static
@@ -44493,7 +44608,7 @@ enifed("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
       },
 
       /**
-        See [String.capitalize](/api/ember/release/classes/String/methods/capitalize?anchor=capitalize).
+        See [String.capitalize](/ember/release/classes/String/methods/capitalize?anchor=capitalize).
              @method capitalize
         @for @ember/string
         @static
@@ -58427,7 +58542,7 @@ enifed("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
     return -1;
   }
 });
-enifed("ember/index", ["exports", "require", "@ember/-internals/environment", "node-module", "@ember/-internals/utils", "@ember/-internals/container", "@ember/instrumentation", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/canary-features", "@ember/debug", "backburner", "@ember/-internals/console", "@ember/controller", "@ember/controller/lib/controller_mixin", "@ember/string", "@ember/service", "@ember/object", "@ember/object/computed", "@ember/-internals/runtime", "@ember/-internals/glimmer", "ember/version", "@ember/-internals/views", "@ember/-internals/routing", "@ember/-internals/extension-support", "@ember/error", "@ember/runloop", "@ember/-internals/error-handling", "@ember/-internals/owner", "@ember/application", "@ember/application/globals-resolver", "@ember/application/instance", "@ember/engine", "@ember/engine/instance", "@ember/polyfills", "@ember/deprecated-features"], function (_exports, _require, _environment, _nodeModule, utils, _container, instrumentation, _meta, metal, _canaryFeatures, EmberDebug, _backburner, _console, _controller, _controller_mixin, _string, _service, _object, _computed, _runtime, _glimmer, _version, views, routing, extensionSupport, _error, runloop, _errorHandling, _owner, _application, _globalsResolver, _instance, _engine, _instance2, _polyfills, _deprecatedFeatures) {
+enifed("ember/index", ["exports", "require", "@ember/-internals/environment", "node-module", "@ember/-internals/utils", "@ember/-internals/container", "@ember/instrumentation", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/canary-features", "@ember/debug", "backburner", "@ember/-internals/console", "@ember/controller", "@ember/controller/lib/controller_mixin", "@ember/string", "@ember/service", "@ember/object", "@ember/object/compat", "@ember/object/computed", "@ember/-internals/runtime", "@ember/-internals/glimmer", "ember/version", "@ember/-internals/views", "@ember/-internals/routing", "@ember/-internals/extension-support", "@ember/error", "@ember/runloop", "@ember/-internals/error-handling", "@ember/-internals/owner", "@ember/application", "@ember/application/globals-resolver", "@ember/application/instance", "@ember/engine", "@ember/engine/instance", "@ember/polyfills", "@ember/deprecated-features"], function (_exports, _require, _environment, _nodeModule, utils, _container, instrumentation, _meta, metal, _canaryFeatures, EmberDebug, _backburner, _console, _controller, _controller_mixin, _string, _service, _object, _compat, _computed, _runtime, _glimmer, _version, views, routing, extensionSupport, _error, runloop, _errorHandling, _owner, _application, _globalsResolver, _instance, _engine, _instance2, _polyfills, _deprecatedFeatures) {
   "use strict";
 
   _exports.default = void 0;
@@ -58486,19 +58601,7 @@ enifed("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.canInvoke = utils.canInvoke;
   Ember.tryInvoke = utils.tryInvoke;
   Ember.wrap = utils.wrap;
-  Ember.uuid = utils.uuid;
-  Object.defineProperty(Ember, 'NAME_KEY', {
-    enumerable: false,
-
-    get() {
-      true && !false && (0, EmberDebug.deprecate)('Using `Ember.NAME_KEY` is deprecated, override `.toString` instead', false, {
-        id: 'ember-name-key-usage',
-        until: '3.9.0'
-      });
-      return utils.NAME_KEY;
-    }
-
-  }); // ****@ember/-internals/container****
+  Ember.uuid = utils.uuid; // ****@ember/-internals/container****
 
   Ember.Container = _container.Container;
   Ember.Registry = _container.Registry; // ****@ember/debug****
@@ -58735,6 +58838,7 @@ enifed("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.RSVP = _runtime.RSVP;
   Ember.Namespace = _runtime.Namespace;
   Ember._action = _object.action;
+  Ember._dependentKeyCompat = _compat.dependentKeyCompat;
   computed.empty = _computed.empty;
   computed.notEmpty = _computed.notEmpty;
   computed.none = _computed.none;
@@ -58954,7 +59058,7 @@ enifed("ember/version", ["exports"], function (_exports) {
   "use strict";
 
   _exports.default = void 0;
-  var _default = "3.11.1";
+  var _default = "3.12.0";
   _exports.default = _default;
 });
 /*global enifed, module */
@@ -62264,7 +62368,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
       @for rsvp
       @private
       @param {String} eventName event to stop listening to
-      @param {Function} callback optional argument. If given, only the function
+      @param {Function} [callback] optional argument. If given, only the function
       given will be removed from the event's callback queue. If no `callback`
       argument is given, all callbacks will be removed from the event's callback
       queue.
@@ -62307,7 +62411,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
       @for rsvp
       @private
       @param {String} eventName name of the event to be triggered
-      @param {*} options optional value to be passed to any event handlers for
+      @param {*} [options] optional value to be passed to any event handlers for
       the given `eventName`
     */
     trigger(eventName, options, label) {
@@ -62410,7 +62514,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @for Promise
     @static
     @param {*} object value that the returned promise will be resolved with
-    @param {String} label optional string for identifying the returned promise.
+    @param {String} [label] optional string for identifying the returned promise.
     Useful for tooling.
     @return {Promise} a promise that will become fulfilled with the given
     `value`
@@ -62444,41 +62548,19 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
   const PENDING = void 0;
   const FULFILLED = 1;
   const REJECTED = 2;
-  const TRY_CATCH_ERROR = {
-    error: null
-  };
 
-  function getThen(promise) {
+  function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
     try {
-      return promise.then;
-    } catch (error) {
-      TRY_CATCH_ERROR.error = error;
-      return TRY_CATCH_ERROR;
-    }
-  }
-
-  let tryCatchCallback;
-
-  function tryCatcher() {
-    try {
-      let target = tryCatchCallback;
-      tryCatchCallback = null;
-      return target.apply(this, arguments);
+      then$$1.call(value, fulfillmentHandler, rejectionHandler);
     } catch (e) {
-      TRY_CATCH_ERROR.error = e;
-      return TRY_CATCH_ERROR;
+      return e;
     }
-  }
-
-  function tryCatch(fn) {
-    tryCatchCallback = fn;
-    return tryCatcher;
   }
 
   function handleForeignThenable(promise, thenable, then$$1) {
     config.async(promise => {
       let sealed = false;
-      let result = tryCatch(then$$1).call(thenable, value => {
+      let error = tryThen(then$$1, thenable, value => {
         if (sealed) {
           return;
         }
@@ -62499,10 +62581,8 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
         reject(promise, reason);
       }, 'Settle: ' + (promise._label || ' unknown promise'));
 
-      if (!sealed && result === TRY_CATCH_ERROR) {
+      if (!sealed && error) {
         sealed = true;
-        let error = TRY_CATCH_ERROR.error;
-        TRY_CATCH_ERROR.error = null;
         reject(promise, error);
       }
     }, promise);
@@ -62530,10 +62610,6 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
 
     if (isOwnThenable) {
       handleOwnThenable(promise, maybeThenable);
-    } else if (then$$1 === TRY_CATCH_ERROR) {
-      let error = TRY_CATCH_ERROR.error;
-      TRY_CATCH_ERROR.error = null;
-      reject(promise, error);
     } else if (typeof then$$1 === 'function') {
       handleForeignThenable(promise, maybeThenable, then$$1);
     } else {
@@ -62545,7 +62621,16 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     if (promise === value) {
       fulfill(promise, value);
     } else if (objectOrFunction(value)) {
-      handleMaybeThenable(promise, value, getThen(value));
+      let then$$1;
+
+      try {
+        then$$1 = value.then;
+      } catch (error) {
+        reject(promise, error);
+        return;
+      }
+
+      handleMaybeThenable(promise, value, then$$1);
     } else {
       fulfill(promise, value);
     }
@@ -62631,10 +62716,17 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
 
   function invokeCallback(state, promise, callback, result) {
     let hasCallback = typeof callback === 'function';
-    let value;
+    let value,
+        succeeded = true,
+        error;
 
     if (hasCallback) {
-      value = tryCatch(callback)(result);
+      try {
+        value = callback(result);
+      } catch (e) {
+        succeeded = false;
+        error = e;
+      }
     } else {
       value = result;
     }
@@ -62642,10 +62734,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     if (promise._state !== PENDING) {// noop
     } else if (value === promise) {
       reject(promise, withOwnPromise());
-    } else if (value === TRY_CATCH_ERROR) {
-      let error = TRY_CATCH_ERROR.error;
-      TRY_CATCH_ERROR.error = null; // release
-
+    } else if (succeeded === false) {
       reject(promise, error);
     } else if (hasCallback) {
       resolve$1(promise, value);
@@ -62747,7 +62836,16 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
       let c = this._instanceConstructor;
 
       if (this._isUsingOwnResolve) {
-        let then$$1 = getThen(entry);
+        let then$$1,
+            error,
+            succeeded = true;
+
+        try {
+          then$$1 = entry.then;
+        } catch (e) {
+          succeeded = false;
+          error = e;
+        }
 
         if (then$$1 === then && entry._state !== PENDING) {
           entry._onError = null;
@@ -62757,9 +62855,14 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
           this._settledAt(FULFILLED, i, entry, firstPass);
         } else if (this._isUsingOwnPromise) {
           let promise = new c(noop);
-          handleMaybeThenable(promise, entry, then$$1);
 
-          this._willSettleAt(promise, i, firstPass);
+          if (succeeded === false) {
+            reject(promise, error);
+          } else {
+            handleMaybeThenable(promise, entry, then$$1);
+
+            this._willSettleAt(promise, i, firstPass);
+          }
         } else {
           this._willSettleAt(new c(resolve => resolve(entry)), i, firstPass);
         }
@@ -62861,7 +62964,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @method all
     @for Promise
     @param {Array} entries array of promises
-    @param {String} label optional string for labeling the promise.
+    @param {String} [label] optional string for labeling the promise.
     Useful for tooling.
     @return {Promise} promise that is fulfilled when all `promises` have been
     fulfilled, or rejected if any of them become rejected.
@@ -62946,7 +63049,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @for Promise
     @static
     @param {Array} entries array of promises to observe
-    @param {String} label optional string for describing the promise returned.
+    @param {String} [label] optional string for describing the promise returned.
     Useful for tooling.
     @return {Promise} a promise which settles in the same way as the first passed
     promise to settle.
@@ -63005,7 +63108,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @for Promise
     @static
     @param {*} reason value that the returned promise will be rejected with.
-    @param {String} label optional string for identifying the returned promise.
+    @param {String} [label] optional string for identifying the returned promise.
     Useful for tooling.
     @return {Promise} a promise rejected with the given `reason`.
   */
@@ -63130,7 +63233,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @class Promise
     @public
     @param {function} resolver
-    @param {String} label optional string for labeling the promise.
+    @param {String} [label] optional string for labeling the promise.
     Useful for tooling.
     @constructor
   */
@@ -63182,7 +63285,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     
       @method catch
       @param {Function} onRejection
-      @param {String} label optional string for labeling the promise.
+      @param {String} [label] optional string for labeling the promise.
       Useful for tooling.
       @return {Promise}
     */
@@ -63227,7 +63330,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     
       @method finally
       @param {Function} callback
-      @param {String} label optional string for labeling the promise.
+      @param {String} [label] optional string for labeling the promise.
       Useful for tooling.
       @return {Promise}
     */
@@ -63446,7 +63549,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @method then
     @param {Function} onFulfillment
     @param {Function} onRejection
-    @param {String} label optional string for labeling the promise.
+    @param {String} [label] optional string for labeling the promise.
     Useful for tooling.
     @return {Promise}
   */
@@ -63625,19 +63728,26 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
       let promiseInput = false;
 
       for (let i = 0; i < l; ++i) {
-        let arg = arguments[i];
+        let arg = arguments[i]; // TODO: this code really needs to be cleaned up
 
         if (!promiseInput) {
-          // TODO: clean this up
-          promiseInput = needsPromiseInput(arg);
+          if (arg !== null && typeof arg === 'object') {
+            if (arg.constructor === Promise) {
+              promiseInput = true;
+            } else {
+              try {
+                promiseInput = arg.then;
+              } catch (error) {
+                let p = new Promise(noop);
+                reject(p, error);
+                return p;
+              }
+            }
+          } else {
+            promiseInput = false;
+          }
 
-          if (promiseInput === TRY_CATCH_ERROR) {
-            let error = TRY_CATCH_ERROR.error;
-            TRY_CATCH_ERROR.error = null;
-            let p = new Promise(noop);
-            reject(p, error);
-            return p;
-          } else if (promiseInput && promiseInput !== true) {
+          if (promiseInput && promiseInput !== true) {
             arg = wrapThenable(promiseInput, arg);
           }
         }
@@ -63673,11 +63783,9 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
   }
 
   function handleValueInput(promise, args, nodeFunc, self) {
-    let result = tryCatch(nodeFunc).apply(self, args);
-
-    if (result === TRY_CATCH_ERROR) {
-      let error = TRY_CATCH_ERROR.error;
-      TRY_CATCH_ERROR.error = null;
+    try {
+      nodeFunc.apply(self, args);
+    } catch (error) {
       reject(promise, error);
     }
 
@@ -63687,18 +63795,6 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
   function handlePromiseInput(promise, args, nodeFunc, self) {
     return Promise.all(args).then(args => handleValueInput(promise, args, nodeFunc, self));
   }
-
-  function needsPromiseInput(arg) {
-    if (arg !== null && typeof arg === 'object') {
-      if (arg.constructor === Promise) {
-        return true;
-      } else {
-        return getThen(arg);
-      }
-    } else {
-      return false;
-    }
-  }
   /**
     This is a convenient alias for `Promise.all`.
   
@@ -63707,7 +63803,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @static
     @for rsvp
     @param {Array} array Array of promises.
-    @param {String} label An optional label. This is useful
+    @param {String} [label] An optional label. This is useful
     for tooling.
   */
 
@@ -63771,7 +63867,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
   @static
   @for rsvp
   @param {Array} entries
-  @param {String} label - optional string that describes the promise.
+  @param {String} [label] - optional string that describes the promise.
   Useful for tooling.
   @return {Promise} promise that is fulfilled with an array of the settled
   states of the constituent promises.
@@ -63792,7 +63888,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @static
     @for rsvp
     @param {Array} array Array of promises.
-    @param {String} label An optional label. This is useful
+    @param {String} [label] An optional label. This is useful
     for tooling.
    */
 
@@ -63915,7 +64011,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @static
     @for rsvp
     @param {Object} object
-    @param {String} label optional string that describes the promise.
+    @param {String} [label] optional string that describes the promise.
     Useful for tooling.
     @return {Promise} promise that is fulfilled when all properties of `promises`
     have been fulfilled, or rejected if any of them become rejected.
@@ -64042,7 +64138,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @public
     @for rsvp
     @param {Object} object
-    @param {String} label optional string that describes the promise.
+    @param {String} [label] optional string that describes the promise.
     Useful for tooling.
     @return {Promise} promise that is fulfilled when when all properties of `promises`
     have been settled.
@@ -64138,7 +64234,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @public
     @static
     @for rsvp
-    @param {String} label optional string for labeling the promise.
+    @param {String} [label] optional string for labeling the promise.
     Useful for tooling.
     @return {Object}
    */
@@ -64173,12 +64269,10 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
 
     _setResultAt(state, i, value, firstPass) {
       if (firstPass) {
-        let val = tryCatch(this._mapFn)(value, i);
-
-        if (val === TRY_CATCH_ERROR) {
-          this._settledAt(REJECTED, i, val.error, false);
-        } else {
-          this._eachEntry(val, i, false);
+        try {
+          this._eachEntry(this._mapFn(value, i), i, false);
+        } catch (error) {
+          this._settledAt(REJECTED, i, error, false);
         }
       } else {
         this._remaining--;
@@ -64262,7 +64356,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @for rsvp
     @param {Array} promises
     @param {Function} mapFn function to be called on each fulfilled promise.
-    @param {String} label optional string for labeling the promise.
+    @param {String} [label] optional string for labeling the promise.
     Useful for tooling.
     @return {Promise} promise that is fulfilled with the result of calling
     `mapFn` on each fulfilled promise or value when they become fulfilled.
@@ -64291,7 +64385,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @static
     @for rsvp
     @param {*} value value that the returned promise will be resolved with
-    @param {String} label optional string for identifying the returned promise.
+    @param {String} [label] optional string for identifying the returned promise.
     Useful for tooling.
     @return {Promise} a promise that will become fulfilled with the given
     `value`
@@ -64309,7 +64403,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @static
     @for rsvp
     @param {*} reason value that the returned promise will be rejected with.
-    @param {String} label optional string for identifying the returned promise.
+    @param {String} [label] optional string for identifying the returned promise.
     Useful for tooling.
     @return {Promise} a promise rejected with the given `reason`.
   */
@@ -64334,11 +64428,18 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     _setResultAt(state, i, value, firstPass) {
       if (firstPass) {
         this._result[i] = value;
-        let val = tryCatch(this._mapFn)(value, i);
+        let val,
+            succeeded = true;
 
-        if (val === TRY_CATCH_ERROR) {
-          this._settledAt(REJECTED, i, val.error, false);
-        } else {
+        try {
+          val = this._mapFn(value, i);
+        } catch (error) {
+          succeeded = false;
+
+          this._settledAt(REJECTED, i, error, false);
+        }
+
+        if (succeeded) {
           this._eachEntry(val, i, false);
         }
       } else {
@@ -64437,7 +64538,7 @@ enifed("rsvp", ["exports", "node-module"], function (_exports, _nodeModule) {
     @param {Array} promises
     @param {Function} filterFn - function to be called on each resolved value to
     filter the final results.
-    @param {String} label optional string describing the promise. Useful for
+    @param {String} [label] optional string describing the promise. Useful for
     tooling.
     @return {Promise}
   */
@@ -65806,7 +65907,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
 
     _normalize(fullName) {
       // A) Convert underscores to dashes
-      // B) Convert camelCase to dash-case, except for helpers where we want to avoid shadowing camelCase expressions
+      // B) Convert camelCase to dash-case, except for components and helpers where we want to avoid shadowing camelCase expressions
       // C) replace `.` with `/` in order to make nested controllers work in the following cases
       //      1. `needs: ['posts/post']`
       //      2. `{{render "posts/post"}}`
@@ -65814,7 +65915,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       let split = fullName.split(':');
 
       if (split.length > 1) {
-        if (split[0] === 'helper') {
+        if (split[0] === 'component' || split[0] === 'helper') {
           return split[0] + ':' + split[1].replace(/_/g, '-');
         } else {
           return split[0] + ':' + Ember.String.dasherize(split[1].replace(/\./g, '/'));
