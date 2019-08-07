@@ -12798,7 +12798,12 @@ define("ember-qunit/index", ["exports", "ember-qunit/legacy-2-x/module-for", "em
 
         this.pauseTest = function QUnit_pauseTest() {
           assert.timeout(-1); // prevent the test from timing out
+          // This is a temporary work around for
+          // https://github.com/emberjs/ember-qunit/issues/496 this clears the
+          // timeout that would fail the test when it hits the global testTimeout
+          // value.
 
+          clearTimeout(_qunit.default.config.timeout);
           return originalPauseTest.call(this);
         };
       });
@@ -12928,11 +12933,11 @@ define("ember-qunit/index", ["exports", "ember-qunit/legacy-2-x/module-for", "em
     _qunit.default.testDone(_testHelpers.resetOnerror);
   }
 
-  function setupTestIsolationValidation() {
+  function setupTestIsolationValidation(delay) {
     waitForSettled = false;
     Ember.run.backburner.DEBUG = true;
 
-    _qunit.default.on('testStart', _testIsolationValidation.installTestNotIsolatedHook);
+    _qunit.default.on('testStart', () => (0, _testIsolationValidation.installTestNotIsolatedHook)(delay));
   }
   /**
      @method start
@@ -12951,6 +12956,10 @@ define("ember-qunit/index", ["exports", "ember-qunit/legacy-2-x/module-for", "em
      of `Ember.onerror` will be disabled.
      @param {Boolean} [options.setupTestIsolationValidation] If `false` test isolation validation
      will be disabled.
+     @param {Number} [options.testIsolationValidationDelay] When using
+     setupTestIsolationValidation this number represents the maximum amount of
+     time in milliseconds that is allowed _after_ the test is completed for all
+     async to have been completed. The default value is 50.
    */
 
 
@@ -12976,7 +12985,7 @@ define("ember-qunit/index", ["exports", "ember-qunit/legacy-2-x/module-for", "em
     }
 
     if (typeof options.setupTestIsolationValidation !== 'undefined' && options.setupTestIsolationValidation !== false) {
-      setupTestIsolationValidation();
+      setupTestIsolationValidation(options.testIsolationValidationDelay);
     }
 
     if (options.startTests !== false) {
@@ -13022,7 +13031,7 @@ define("ember-qunit/test-isolation-validation", ["exports", "qunit", "@ember/tes
       test.expected++;
       test.assert.pushResult({
         result: false,
-        message: "".concat(message, " ").concat(debugInfo.message)
+        message: "".concat(message, " \nMore information has been printed to the console. Please use that information to help in debugging.\n\n")
       });
     }
   }
@@ -13032,10 +13041,11 @@ define("ember-qunit/test-isolation-validation", ["exports", "qunit", "@ember/tes
    * which allows us to be very precise as to when the detection occurs.
    *
    * @function installTestNotIsolatedHook
+   * @param {number} delay the delay delay to use when checking for isolation validation
    */
 
 
-  function installTestNotIsolatedHook() {
+  function installTestNotIsolatedHook(delay = 50) {
     if (!(0, _testHelpers.getDebugInfo)()) {
       return;
     }
@@ -13070,21 +13080,20 @@ define("ember-qunit/test-isolation-validation", ["exports", "qunit", "@ember/tes
     test.finish = function () {
       let doFinish = () => finish.apply(this, arguments);
 
-      detectIfTestNotIsolated(this, 'Test is not isolated (async execution is extending beyond the duration of the test).');
-
       if ((0, _testHelpers.isSettled)()) {
         return doFinish();
       } else {
         return (0, _testHelpers.waitUntil)(_testHelpers.isSettled, {
-          timeout: 100
+          timeout: delay
         }).catch(() => {// we consider that when waitUntil times out, you're in a state of
           // test isolation violation. The nature of the error is irrelevant
           // in this case, and we want to allow the error to fall through
           // to the finally, where cleanup occurs.
         }).finally(() => {
-          // canceling timers here isn't perfect, but is as good as we can do
+          detectIfTestNotIsolated(this, 'Test is not isolated (async execution is extending beyond the duration of the test).'); // canceling timers here isn't perfect, but is as good as we can do
           // to attempt to prevent future tests from failing due to this test's
           // leakage
+
           Ember.run.cancelTimers();
           return doFinish();
         });
@@ -13168,6 +13177,11 @@ define("ember-qunit/legacy-2-x/module-for-component", ["exports", "ember-qunit/l
 
   function moduleForComponent(name, description, callbacks) {
     (0, _qunitModule.createModule)(_emberTestHelpers.TestModuleForComponent, name, description, callbacks);
+    Ember.deprecate("The usage \"moduleForComponent\" is deprecated. Please migrate the \"".concat(name, "\" module to use \"setupRenderingTest\"."), false, {
+      id: 'ember-qunit.deprecate-legacy-apis',
+      until: '5.0.0',
+      url: 'https://github.com/emberjs/ember-qunit/blob/master/docs/migration.md'
+    });
   }
 });
 define("ember-qunit/legacy-2-x/module-for-model", ["exports", "ember-qunit/legacy-2-x/qunit-module", "ember-test-helpers"], function (_exports, _qunitModule, _emberTestHelpers) {
@@ -13179,6 +13193,11 @@ define("ember-qunit/legacy-2-x/module-for-model", ["exports", "ember-qunit/legac
   _exports.default = moduleForModel;
 
   function moduleForModel(name, description, callbacks) {
+    Ember.deprecate("The usage \"moduleForModel\" is deprecated. Please migrate the \"".concat(name, "\" module to the new test APIs."), false, {
+      id: 'ember-qunit.deprecate-legacy-apis',
+      until: '5.0.0',
+      url: 'https://github.com/emberjs/ember-qunit/blob/master/docs/migration.md'
+    });
     (0, _qunitModule.createModule)(_emberTestHelpers.TestModuleForModel, name, description, callbacks);
   }
 });
@@ -13191,6 +13210,11 @@ define("ember-qunit/legacy-2-x/module-for", ["exports", "ember-qunit/legacy-2-x/
   _exports.default = moduleFor;
 
   function moduleFor(name, description, callbacks) {
+    Ember.deprecate("The usage \"moduleFor\" is deprecated. Please migrate the \"".concat(name, "\" module to use \"module\""), false, {
+      id: 'ember-qunit.deprecate-legacy-apis',
+      until: '5.0.0',
+      url: 'https://github.com/emberjs/ember-qunit/blob/master/docs/migration.md'
+    });
     (0, _qunitModule.createModule)(_emberTestHelpers.TestModule, name, description, callbacks);
   }
 });

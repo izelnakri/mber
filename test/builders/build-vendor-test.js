@@ -485,7 +485,7 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[461.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[462.\d+ kB\] Environment: demo/g.test(message));
 
   const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
   const vendorJSCode = vendorJSBuffer.toString();
