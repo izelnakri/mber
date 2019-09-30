@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: docker:dind
+      - image: docker:stable-git
     working_directory: /code
     steps:
       - checkout

@@ -65488,17 +65488,16 @@ define("ember-inflector/lib/utils/make-helper", ["exports"], function (_exports)
     return Ember.Handlebars.makeBoundHelper(helperFunction);
   }
 });
-define("ember-load-initializers/index", ["exports"], function (_exports) {
+define("ember-load-initializers/index", ["exports", "require"], function (_exports, _require) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.default = _default;
+  _exports.default = loadInitializers;
 
-  /* global requirejs:false, require:false */
   function resolveInitializer(moduleName) {
-    var module = require(moduleName, null, null, true);
+    var module = (0, _require.default)(moduleName, null, null, true);
 
     if (!module) {
       throw new Error(moduleName + ' must export an initializer.');
@@ -65528,15 +65527,19 @@ define("ember-load-initializers/index", ["exports"], function (_exports) {
   function _endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
+  /**
+   * Configure your application as it boots
+   */
 
-  function _default(app, prefix) {
+
+  function loadInitializers(app, prefix) {
     var initializerPrefix = prefix + '/initializers/';
     var instanceInitializerPrefix = prefix + '/instance-initializers/';
     var initializers = [];
     var instanceInitializers = []; // this is 2 pass because generally the first pass is the problem
     // and is reduced, and resolveInitializer has potential to deopt
 
-    var moduleNames = Object.keys(requirejs._eak_seen);
+    var moduleNames = Object.keys(self.requirejs._eak_seen);
 
     for (var i = 0; i < moduleNames.length; i++) {
       var moduleName = moduleNames[i];
@@ -65999,6 +66002,12 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       return parsedName.prefix + '/' + this.pluralize(parsedName.type) + '/' + parsedName.fullNameWithoutType;
     },
 
+    nestedColocationComponentModuleName(parsedName) {
+      if (parsedName.type === 'component') {
+        return parsedName.prefix + '/' + this.pluralize(parsedName.type) + '/' + parsedName.fullNameWithoutType + '/index';
+      }
+    },
+
     prefix(parsedName) {
       let tmpPrefix = this.namespace.modulePrefix;
 
@@ -66017,7 +66026,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
      @returns {Ember.Array}
      */
     moduleNameLookupPatterns: Ember.computed(function () {
-      return [this.podBasedModuleName, this.podBasedComponentsInSubdir, this.mainModuleName, this.defaultModuleName];
+      return [this.podBasedModuleName, this.podBasedComponentsInSubdir, this.mainModuleName, this.defaultModuleName, this.nestedColocationComponentModuleName];
     }).readOnly(),
 
     findModuleName(parsedName, loggingDisabled) {

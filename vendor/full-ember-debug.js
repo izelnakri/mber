@@ -69475,7 +69475,9 @@ define("@ember-data/canary-features/default-features", ["exports"], function (_e
   var _default = {
     SAMPLE_FEATURE_FLAG: null,
     RECORD_DATA_ERRORS: null,
-    RECORD_DATA_STATE: null
+    RECORD_DATA_STATE: null,
+    IDENTIFIERS: null,
+    REQUEST_SERVICE: null
   };
   _exports.default = _default;
 });
@@ -69485,7 +69487,7 @@ define("@ember-data/canary-features/index", ["exports", "@ember-data/canary-feat
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.RECORD_DATA_STATE = _exports.RECORD_DATA_ERRORS = _exports.SAMPLE_FEATURE_FLAG = _exports.FEATURES = void 0;
+  _exports.IDENTIFIERS = _exports.REQUEST_SERVICE = _exports.RECORD_DATA_STATE = _exports.RECORD_DATA_ERRORS = _exports.SAMPLE_FEATURE_FLAG = _exports.FEATURES = void 0;
   const ENV = typeof EmberDataENV === 'object' && EmberDataENV !== null ? EmberDataENV : {};
 
   function featureValue(value) {
@@ -69504,6 +69506,10 @@ define("@ember-data/canary-features/index", ["exports", "@ember-data/canary-feat
   _exports.RECORD_DATA_ERRORS = RECORD_DATA_ERRORS;
   const RECORD_DATA_STATE = featureValue(FEATURES.RECORD_DATA_STATE);
   _exports.RECORD_DATA_STATE = RECORD_DATA_STATE;
+  const REQUEST_SERVICE = featureValue(FEATURES.REQUEST_SERVICE);
+  _exports.REQUEST_SERVICE = REQUEST_SERVICE;
+  const IDENTIFIERS = featureValue(FEATURES.IDENTIFIERS);
+  _exports.IDENTIFIERS = IDENTIFIERS;
 });
 define("@ember-data/model/index", ["exports", "@ember-data/model/-private", "@ember-data/store/-private"], function (_exports, _private, _private2) {
   "use strict";
@@ -88401,17 +88407,16 @@ define("@ember-data/store/-private/system/relationships/state/relationship", ["e
         exports.default = '3.12.0';
       });
     
-define("ember-load-initializers/index", ["exports"], function (_exports) {
+define("ember-load-initializers/index", ["exports", "require"], function (_exports, _require) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.default = _default;
+  _exports.default = loadInitializers;
 
-  /* global requirejs:false, require:false */
   function resolveInitializer(moduleName) {
-    var module = require(moduleName, null, null, true);
+    var module = (0, _require.default)(moduleName, null, null, true);
 
     if (!module) {
       throw new Error(moduleName + ' must export an initializer.');
@@ -88441,15 +88446,19 @@ define("ember-load-initializers/index", ["exports"], function (_exports) {
   function _endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
   }
+  /**
+   * Configure your application as it boots
+   */
 
-  function _default(app, prefix) {
+
+  function loadInitializers(app, prefix) {
     var initializerPrefix = prefix + '/initializers/';
     var instanceInitializerPrefix = prefix + '/instance-initializers/';
     var initializers = [];
     var instanceInitializers = []; // this is 2 pass because generally the first pass is the problem
     // and is reduced, and resolveInitializer has potential to deopt
 
-    var moduleNames = Object.keys(requirejs._eak_seen);
+    var moduleNames = Object.keys(self.requirejs._eak_seen);
 
     for (var i = 0; i < moduleNames.length; i++) {
       var moduleName = moduleNames[i];
@@ -88912,6 +88921,12 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       return parsedName.prefix + '/' + this.pluralize(parsedName.type) + '/' + parsedName.fullNameWithoutType;
     },
 
+    nestedColocationComponentModuleName(parsedName) {
+      if (parsedName.type === 'component') {
+        return parsedName.prefix + '/' + this.pluralize(parsedName.type) + '/' + parsedName.fullNameWithoutType + '/index';
+      }
+    },
+
     prefix(parsedName) {
       let tmpPrefix = this.namespace.modulePrefix;
 
@@ -88930,7 +88945,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
      @returns {Ember.Array}
      */
     moduleNameLookupPatterns: Ember.computed(function () {
-      return [this.podBasedModuleName, this.podBasedComponentsInSubdir, this.mainModuleName, this.defaultModuleName];
+      return [this.podBasedModuleName, this.podBasedComponentsInSubdir, this.mainModuleName, this.defaultModuleName, this.nestedColocationComponentModuleName];
     }).readOnly(),
 
     findModuleName(parsedName, loggingDisabled) {

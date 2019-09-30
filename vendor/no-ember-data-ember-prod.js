@@ -3714,12 +3714,12 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.pluralize=function(){return t
 Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e){if(Ember.Helper)return Ember.Helper.helper(e)
 if(Ember.HTMLBars)return Ember.HTMLBars.makeBoundHelper(e)
 return Ember.Handlebars.makeBoundHelper(e)}})
-define("ember-load-initializers/index",["exports"],function(e){"use strict"
-function t(e){var t=require(e,null,null,!0)
-if(!t)throw new Error(e+" must export an initializer.")
-var r=t.default
-return r.name||(r.name=e.slice(e.lastIndexOf("/")+1)),r}function r(e,t){return-1!==e.indexOf(t,e.length-t.length)}Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e,n){for(var i=n+"/initializers/",s=n+"/instance-initializers/",o=[],a=[],l=Object.keys(requirejs._eak_seen),u=0;u<l.length;u++){var c=l[u]
-0===c.lastIndexOf(i,0)?r(c,"-test")||o.push(c):0===c.lastIndexOf(s,0)&&(r(c,"-test")||a.push(c))}(function(e,r){for(var n=0;n<r.length;n++)e.initializer(t(r[n]))})(e,o),function(e,r){for(var n=0;n<r.length;n++)e.instanceInitializer(t(r[n]))}(e,a)}}),define("ember-resolver/features",[],function(){"use strict"}),define("ember-resolver/index",["exports","ember-resolver/resolvers/classic"],function(e,t){"use strict"
+define("ember-load-initializers/index",["exports","require"],function(e,t){"use strict"
+function r(e){var r=(0,t.default)(e,null,null,!0)
+if(!r)throw new Error(e+" must export an initializer.")
+var n=r.default
+return n.name||(n.name=e.slice(e.lastIndexOf("/")+1)),n}function n(e,t){return-1!==e.indexOf(t,e.length-t.length)}Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e,t){for(var i=t+"/initializers/",s=t+"/instance-initializers/",o=[],a=[],l=Object.keys(self.requirejs._eak_seen),u=0;u<l.length;u++){var c=l[u]
+0===c.lastIndexOf(i,0)?n(c,"-test")||o.push(c):0===c.lastIndexOf(s,0)&&(n(c,"-test")||a.push(c))}(function(e,t){for(var n=0;n<t.length;n++)e.initializer(r(t[n]))})(e,o),function(e,t){for(var n=0;n<t.length;n++)e.instanceInitializer(r(t[n]))}(e,a)}}),define("ember-resolver/features",[],function(){"use strict"}),define("ember-resolver/index",["exports","ember-resolver/resolvers/classic"],function(e,t){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t.default}})}),define("ember-resolver/resolver",["exports","ember-resolver/resolvers/classic"],function(e,t){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),Object.defineProperty(e,"default",{enumerable:!0,get:function(){return t.default}})}),define("ember-resolver/utils/class-factory",["exports"],function(e){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e){return{create:t=>"function"==typeof e.extend?e.extend(t):e}}}),define("ember-resolver/utils/make-dictionary",["exports"],function(e){"use strict"
@@ -3754,8 +3754,8 @@ if(t+="/components","component"===e.type||/^components/.test(e.fullNameWithoutTy
 if(this._moduleRegistry.has(t))return this._extractDefaultExport(t)},resolveRouteMap(e){let t=e.fullNameWithoutType,r=t+"/routes"
 if(this._moduleRegistry.has(r)){let e=this._extractDefaultExport(r)
 return e}},resolveTemplate(e){let t=this.resolveOther(e)
-return null==t&&(t=Ember.TEMPLATES[e.fullNameWithoutType]),t},mainModuleName(e){if("main"===e.fullNameWithoutType)return e.prefix+"/"+e.type},defaultModuleName(e){return e.prefix+"/"+this.pluralize(e.type)+"/"+e.fullNameWithoutType},prefix(e){let t=this.namespace.modulePrefix
-return this.namespace[e.type+"Prefix"]&&(t=this.namespace[e.type+"Prefix"]),t},moduleNameLookupPatterns:Ember.computed(function(){return[this.podBasedModuleName,this.podBasedComponentsInSubdir,this.mainModuleName,this.defaultModuleName]}).readOnly(),findModuleName(e,t){let r,n=this.get("moduleNameLookupPatterns")
+return null==t&&(t=Ember.TEMPLATES[e.fullNameWithoutType]),t},mainModuleName(e){if("main"===e.fullNameWithoutType)return e.prefix+"/"+e.type},defaultModuleName(e){return e.prefix+"/"+this.pluralize(e.type)+"/"+e.fullNameWithoutType},nestedColocationComponentModuleName(e){if("component"===e.type)return e.prefix+"/"+this.pluralize(e.type)+"/"+e.fullNameWithoutType+"/index"},prefix(e){let t=this.namespace.modulePrefix
+return this.namespace[e.type+"Prefix"]&&(t=this.namespace[e.type+"Prefix"]),t},moduleNameLookupPatterns:Ember.computed(function(){return[this.podBasedModuleName,this.podBasedComponentsInSubdir,this.mainModuleName,this.defaultModuleName,this.nestedColocationComponentModuleName]}).readOnly(),findModuleName(e,t){let r,n=this.get("moduleNameLookupPatterns")
 for(let i=0,s=n.length;i<s;i++){let s=n[i].call(this,e)
 if(s&&(s=this.chooseModuleName(s,e)),s&&this._moduleRegistry.has(s)&&(r=s),t||this._logLookup(r,e,s),r)return r}},chooseModuleName(e,t){let r=Ember.String.underscore(e)
 if(e!==r&&this._moduleRegistry.has(e)&&this._moduleRegistry.has(r))throw new TypeError("Ambiguous module names: '".concat(e,"' and '").concat(r,"'"))
