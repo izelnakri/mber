@@ -19,7 +19,11 @@ function build(environment, options={ excludeEmberData: false }) {
     const OUTPUT_PATH = `${PROJECT_PATH}/vendor/${FILENAME}.js`;
 
     return Promise.all(await readBuildFiles(PROJECT_PATH, environment, options))
-      .then((fileContents) => writeVendorJS(OUTPUT_PATH, fileContents.join('\n'), environment))
+      .then((fileContents) => {
+        const targetContents = fileContents.join('\n').replace(`(0, _emberCompatibilityHelpers.gte)('3.10.0')`, 'true');
+
+        return writeVendorJS(OUTPUT_PATH, targetContents, environment);
+      })
       .then(() => {
         const timePassed = timer.stop();
 
@@ -49,9 +53,19 @@ async function readBuildFiles(projectPath, environment, options={ excludeEmberDa
 
   let baseBuilds = [
     fs.readFile(`${MODULE_PATH}/loader.js/dist/loader/loader.js`),
+    `
+      define("ember-compatibility-helpers", ["exports"], function (_exports) {
+        "use strict";
+
+        Object.defineProperty(_exports, "__esModule", {
+          value: true
+        });
+        _exports.default = void 0;
+      });
+    `,
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/modules/es2017'),
     fs.readFile(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
-    injectEmberJS(MODULE_PATH, environment),
+    fs.readFile(`${MODULE_PATH}/ember-source/dist/ember.debug.js`),
     transpileEmberOrderedSet(MODULE_PATH),
     importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon'),
   ];
@@ -65,14 +79,6 @@ async function readBuildFiles(projectPath, environment, options={ excludeEmberDa
     importAddonFolderToAMD('ember-resolver', 'ember-resolver/addon'),
     importAddonFolderToAMD('ember-resolver', 'ember-resolver/mu-trees/addon')
   ]);
-}
-
-function injectEmberJS(modulePath, environment) {
-  const emberDist = `${modulePath}/ember-source/dist`;
-  const targetEmberBuild = environment === 'production' ? `${emberDist}/ember.prod.js` :
-    `${emberDist}/ember.debug.js`; // TODO: should this move to ember-min?
-
-  return fs.readFile(targetEmberBuild);
 }
 
 function transpileEmberOrderedSet(modulePath) {
