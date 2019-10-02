@@ -88404,7 +88404,7 @@ define("@ember-data/store/-private/system/relationships/state/relationship", ["e
 });
 
       define('ember-data/version', ['exports'], function (exports) {
-        exports.default = '3.12.0';
+        exports.default = '3.13.1';
       });
     
 define("ember-load-initializers/index", ["exports", "require"], function (_exports, _require) {
