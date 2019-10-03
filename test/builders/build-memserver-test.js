@@ -52,7 +52,7 @@ test.serial('buildMemserver() works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[247.\d+ kB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[249.\d+ kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -81,7 +81,7 @@ test.serial('buildMemserver(development) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[247.\d+ kB\] Environment: development/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[249.\d+ kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -91,9 +91,12 @@ test.serial('buildMemserver(production) works', async (t) => {
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildMemserver({
-    ENV: { environment: 'production', memserver: { enabled: true, minify: true } }
-  }, false);
+  const { message, stats } = await buildMemserver(
+    {
+      ENV: { environment: 'production', memserver: { enabled: true, minify: true } }
+    },
+    false
+  );
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPRESSED_BUILD_THRESHOLD);
 
@@ -122,9 +125,12 @@ test.serial('buildMemserver(test) works', async (t) => {
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildMemserver({
-    ENV: { environment: 'test', memserver: { enabled: true } }
-  }, false);
+  const { message, stats } = await buildMemserver(
+    {
+      ENV: { environment: 'test', memserver: { enabled: true } }
+    },
+    false
+  );
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_BUILD_TIME_THRESHOLD);
 
@@ -143,7 +149,7 @@ test.serial('buildMemserver(test) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[247.\d+ kB\] Environment: test/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[249.\d+ kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -153,9 +159,12 @@ test.serial('buildMemserver(demo) works', async (t) => {
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildMemserver({
-    ENV: { environment: 'demo', memserver: { enabled: true, minify: true } }
-  }, false);
+  const { message, stats } = await buildMemserver(
+    {
+      ENV: { environment: 'demo', memserver: { enabled: true, minify: true } }
+    },
+    false
+  );
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_COMPRESSED_BUILD_THRESHOLD);
 
@@ -184,9 +193,12 @@ test.serial('buildMemserver(custom) works', async (t) => {
   t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildMemserver({
-    ENV: { environment: 'custom', memserver: { enabled: true }, modulePrefix: 'my-app' }
-  }, false);
+  const { message, stats } = await buildMemserver(
+    {
+      ENV: { environment: 'custom', memserver: { enabled: true }, modulePrefix: 'my-app' }
+    },
+    false
+  );
 
   t.true(getTimeTakenForBuild(message) < MEMSERVER_JS_BUILD_TIME_THRESHOLD);
 
@@ -205,14 +217,16 @@ test.serial('buildMemserver(custom) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'my-app/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[247.\d+ kB\] Environment: custom/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[249.\d+ kB\] Environment: custom/g.test(message));
 
   mock.removeMock();
 });
 
-
 function getTimeTakenForBuild(message) {
-  return Number(message.match(/memserver\.js in \d+ms/g)[0]
-    .replace('memserver.js in ', '')
-    .replace('ms', ''));
+  return Number(
+    message
+      .match(/memserver\.js in \d+ms/g)[0]
+      .replace('memserver.js in ', '')
+      .replace('ms', '')
+  );
 }

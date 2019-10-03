@@ -28,7 +28,8 @@ test.serial('buildTests() works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests();
-  const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
+  const timeTakenForBuild = message
+    .match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
     .replace('ms', '');
 
@@ -40,11 +41,13 @@ test.serial('buildTests() works', async (t) => {
   t.true(testsJSBuffer.length >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(stats.size >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
-  t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.19 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.23 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -55,9 +58,10 @@ test.serial('buildTests(development) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests({ ENV: { environment: 'development' } }, false);
-  const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
+  const timeTakenForBuild = message
+    .match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
-    .replace('ms', '')
+    .replace('ms', '');
 
   t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
@@ -67,11 +71,13 @@ test.serial('buildTests(development) works', async (t) => {
   t.true(testsJSBuffer.length >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(stats.size >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
-  t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.19 kB\] Environment: development/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.23 kB\] Environment: development/g.test(message));
 
   mock.removeMock();
 });
@@ -82,9 +88,10 @@ test.serial('buildTests(test) works', async (t) => {
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests({ ENV: { environment: 'test' } }, false);
-  const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
+  const timeTakenForBuild = message
+    .match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
-    .replace('ms', '')
+    .replace('ms', '');
 
   t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
@@ -94,11 +101,13 @@ test.serial('buildTests(test) works', async (t) => {
   t.true(testsJSBuffer.length >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(stats.size >= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE - 1000);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
-  t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.19 kB\] Environment: test/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.23 kB\] Environment: test/g.test(message));
 
   mock.removeMock();
 });
@@ -108,12 +117,16 @@ test.serial('buildTests(custom) works', async (t) => {
   t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({
-    ENV: { environment: 'test-backend', modulePrefix: 'coolapp' }
-  }, false);
-  const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
+  const { message, stats } = await buildTests(
+    {
+      ENV: { environment: 'test-backend', modulePrefix: 'coolapp' }
+    },
+    false
+  );
+  const timeTakenForBuild = message
+    .match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
-    .replace('ms', '')
+    .replace('ms', '');
 
   t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
@@ -123,11 +136,13 @@ test.serial('buildTests(custom) works', async (t) => {
   t.true(testsJSBuffer.length < TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(stats.size < TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/test-helper'));
-  t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('coolapp/tests/test-helper')"));
-  t.true(/BUILT: tests\.js in \d+ms \[3.18 kB\] Environment: test-backend/g.test(message));
+  t.true(/BUILT: tests\.js in \d+ms \[3.22 kB\] Environment: test-backend/g.test(message));
 
   mock.removeMock();
 });
@@ -139,13 +154,17 @@ test.serial('buildTests(development, { testPrepends }) work', async (t) => {
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({
-    ENV: { environment: 'development' },
-    buildCache: { testPrepends: CODE_TO_PREPEND }
-  }, false);
-  const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
+  const { message, stats } = await buildTests(
+    {
+      ENV: { environment: 'development' },
+      buildCache: { testPrepends: CODE_TO_PREPEND }
+    },
+    false
+  );
+  const timeTakenForBuild = message
+    .match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
-    .replace('ms', '')
+    .replace('ms', '');
 
   t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
@@ -157,7 +176,9 @@ test.serial('buildTests(development, { testPrepends }) work', async (t) => {
   t.true(testsJSBuffer.length > TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(stats.size > TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
-  t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
@@ -172,13 +193,17 @@ test.serial('buildVendor(development, { testAppends }) work', async (t) => {
 
   const CODE_TO_APPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({
-    ENV: { environment: 'development' },
-    buildCache: { testAppends: CODE_TO_APPEND }
-  }, false);
-  const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
+  const { message, stats } = await buildTests(
+    {
+      ENV: { environment: 'development' },
+      buildCache: { testAppends: CODE_TO_APPEND }
+    },
+    false
+  );
+  const timeTakenForBuild = message
+    .match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
-    .replace('ms', '')
+    .replace('ms', '');
 
   t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
@@ -190,7 +215,9 @@ test.serial('buildVendor(development, { testAppends }) work', async (t) => {
   t.true(testsJSBuffer.length > TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(stats.size > TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
-  t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));
@@ -206,13 +233,17 @@ test.serial('buildVendor(memserver, { testPrepends, testAppends }) work', async 
   const CODE_TO_PREPEND = '(function(){console.log("this is prepending code")})()';
   const CODE_TO_APPEND = '(function(){console.log("this is appending code")})()';
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
-  const { message, stats } = await buildTests({
-    ENV: { environment: 'development' },
-    buildCache: { testPrepends: CODE_TO_PREPEND, testAppends: CODE_TO_APPEND }
-  }, false);
-  const timeTakenForBuild = message.match(/tests\.js in \d+ms/g)[0]
+  const { message, stats } = await buildTests(
+    {
+      ENV: { environment: 'development' },
+      buildCache: { testPrepends: CODE_TO_PREPEND, testAppends: CODE_TO_APPEND }
+    },
+    false
+  );
+  const timeTakenForBuild = message
+    .match(/tests\.js in \d+ms/g)[0]
     .replace('tests.js in ', '')
-    .replace('ms', '')
+    .replace('ms', '');
 
   t.true(Number(timeTakenForBuild) < TESTS_JS_BUILD_TIME_THRESHOLD);
 
@@ -225,7 +256,9 @@ test.serial('buildVendor(memserver, { testPrepends, testAppends }) work', async 
   t.true(testsJSBuffer.length > TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(stats.size > TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/test-helper'));
-  t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/src/ui/routes/index/unit-test'));
   t.true(codeIncludesAMDModule(testsJSCode, 'frontend/tests/unit/models/dummy-test'));
   t.true(testsJSCode.includes("window.require('frontend/tests/test-helper')"));

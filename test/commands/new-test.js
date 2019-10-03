@@ -15,7 +15,7 @@ test.afterEach.always(async () => {
 });
 
 test.serial('$ mber new -> throws error if applicationName not provided', async (t) => {
-  const { stdout } = await shell(`node ${CWD}/cli.js new`);
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js new`);
 
   t.true(stdout.includes('You forgot to include an application name! Example: mber init example-app'));
 });
@@ -23,7 +23,7 @@ test.serial('$ mber new -> throws error if applicationName not provided', async 
 test.serial('$ mber new -> throws error if applicationName folder already exists', async (t) => {
   await fs.mkdirp('existingapp');
 
-  const { stdout } = await shell(`node ${CWD}/cli.js new existingapp`);
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js new existingapp`);
 
   t.true(stdout.includes('ember existingapp already exists!'));
 
@@ -31,7 +31,7 @@ test.serial('$ mber new -> throws error if applicationName folder already exists
 });
 
 test.serial('$ mber new -> creates', async (t) => {
-  const { stdout } = await shell(`node ${CWD}/cli.js new anotherapp`);
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js new anotherapp`);
 
   t.true(stdout.includes('ember creating anotherapp application'));
   [

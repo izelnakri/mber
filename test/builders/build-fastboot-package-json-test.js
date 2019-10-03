@@ -45,7 +45,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
     APP: Object.assign(EXAMPLE_ENV.APP, {
       autoboot: false,
       name: EXAMPLE_ENV.modulePrefix,
-      version: "0.0.0+578db4ce"
+      version: "0.0.0+b5f80b0d"
     })
   }));
   t.deepEqual(packageJSON.fastboot.manifest, {
@@ -77,7 +77,7 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
     APP: Object.assign(SECOND_EXAMPLE_ENV.APP, {
       autoboot: false,
       name: SECOND_EXAMPLE_ENV.modulePrefix,
-      version: "0.0.0+578db4ce"
+      version: "0.0.0+b5f80b0d"
     })
   }));
   t.deepEqual(packageJSON.fastboot.manifest, {
@@ -110,7 +110,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
     APP: Object.assign(targetENV.APP, {
       autoboot: false,
       name: targetENV.modulePrefix,
-      version: "0.0.0+578db4ce"
+      version: "0.0.0+b5f80b0d"
     })
   }));
   t.deepEqual(packageJSON.fastboot.manifest, {
