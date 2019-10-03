@@ -23,7 +23,8 @@
   "devDependencies": {
     "mber": "{{mberVersion}}",
     "eslint": "^6.1.0",
-    "eslint-plugin-ember": "^6.7.1"
+    "eslint-plugin-ember": "^6.7.1",
+    "qunit-dom": "0.9.0"
   },
   "fastbootDependencies": [
     "node-fetch",

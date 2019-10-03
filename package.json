@@ -30,7 +30,7 @@
     "@glimmer/resolver": "^0.4.3",
     "ava": "^1.4.1",
     "cors": "^2.8.5",
-    "ember-cli-fastboot": "2.1.3",
+    "ember-cli-fastboot": "2.2.1",
     "ember-cli-test-loader": "^2.2.0",
     "ember-data": "3.13.1",
     "ember-devtools": "^6.0.0",
@@ -78,7 +78,7 @@
     "compression": "^1.7.3",
     "esm": "^3.2.25",
     "express": "^4.17.1",
-    "fastboot": "^2.0.2",
+    "fastboot": "^2.0.3",
     "fs-extra": "^8.1.0",
     "jquery": "^3.4.1",
     "jsdom": "^15.1.1",
@@ -89,8 +89,8 @@
     "puppeteer": "1.19.0",
     "sass": "1.23.0",
     "say": "^0.16.0",
+    "terser": "4.3.4",
     "through2": "^3.0.0",
-    "uglify-es": "^3.3.9",
     "ws": "^7.1.1"
   },
   "ava": {
