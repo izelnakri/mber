@@ -94,7 +94,7 @@
     "ws": "^7.1.1"
   },
   "ava": {
-    "files": ["test/**/*"],
+    "files": ["test/**/*", " !test/helpers"],
     "babel": {
       "testOptions": {
         "inputSourceMap": false,
