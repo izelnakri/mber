@@ -28,7 +28,7 @@
   "devDependencies": {
     "@ember/test-helpers": "1.5.0",
     "@glimmer/resolver": "^0.4.3",
-    "ava": "^1.4.1",
+    "ava": "^2.4.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.1",
     "ember-cli-test-loader": "^2.2.0",
@@ -94,6 +94,13 @@
     "ws": "^7.1.1"
   },
   "ava": {
+    "files": ["test/**/*"],
+    "babel": {
+      "testOptions": {
+        "inputSourceMap": false,
+        "sourceMaps": false
+      }
+    },
     "require": [
       "esm",
       "./disable-colors"
