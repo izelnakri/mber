@@ -78,7 +78,7 @@ test.serial('buildVendor(development) works', async (t) => {
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: development/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
   const vendorJSCode = vendorJSBuffer.toString();
 
@@ -115,7 +115,9 @@ test.serial('buildVendor(development) works without ember data', async (t) => {
   t.true(stats.size >= NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE - 1000);
 
   await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: true, fastboot: true, excludeEmberData: true
+    hasSocketWatching: true,
+    fastboot: true,
+    excludeEmberData: true
   });
 
   t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
@@ -131,14 +133,14 @@ test.serial('buildVendor(development, { fastboot: false }) works', async (t) => 
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
-    ENV: { environment: 'development', modulePrefix: 'frontend'},
+    ENV: { environment: 'development', modulePrefix: 'frontend' },
     cliArguments: { fastboot: false, socketPort: 65511 }
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: development/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
   const vendorJSCode = vendorJSBuffer.toString();
 
@@ -175,7 +177,9 @@ test.serial('buildVendor(development, { fastboot: false }) works without ember d
   t.true(stats.size >= NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE - 1000);
 
   await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: true, fastboot: false, excludeEmberData: true
+    hasSocketWatching: true,
+    fastboot: false,
+    excludeEmberData: true
   });
 
   t.deepEqual(getWindowENV(window.EmberENV), DEFAULT_BROWSER_EMBER_ENV);
@@ -196,7 +200,7 @@ test.serial('buildVendor(production) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[638\.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[775\.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -207,9 +211,12 @@ test.serial('buildVendor(production) works', async (t) => {
 
   await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: false, fastboot: true });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'production'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'production'
+    })
+  );
   t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -227,7 +234,7 @@ test.serial('buildVendor(production) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[462.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[573.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -237,12 +244,17 @@ test.serial('buildVendor(production) works without ember data', async (t) => {
   t.true(stats.size >= NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE - 1000);
 
   await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: false, fastboot: true, excludeEmberData: true
+    hasSocketWatching: false,
+    fastboot: true,
+    excludeEmberData: true
   });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'production'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'production'
+    })
+  );
   t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -260,9 +272,9 @@ test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[631.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[767.\d+ kB\] Environment: production/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
   const vendorJSCode = vendorJSBuffer.toString();
 
@@ -271,9 +283,12 @@ test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
 
   await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: false, fastboot: false });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'production'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'production'
+    })
+  );
   t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -291,7 +306,7 @@ test.serial('buildVendor(production, { fastboot: false }) works without ember da
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[454.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[566.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -301,12 +316,17 @@ test.serial('buildVendor(production, { fastboot: false }) works without ember da
   t.true(stats.size >= NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE - 1000);
 
   await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: false, fastboot: false, excludeEmberData: true
+    hasSocketWatching: false,
+    fastboot: false,
+    excludeEmberData: true
   });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'production'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'production'
+    })
+  );
   t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -326,7 +346,7 @@ test.serial('buildVendor(test) works', async (t) => {
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: test/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
 
   t.true(vendorJSBuffer.length > FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 1000);
@@ -334,9 +354,12 @@ test.serial('buildVendor(test) works', async (t) => {
 
   await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'test'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'test'
+    })
+  );
   // t.true(window.runningTests);
 
   mock.removeMock();
@@ -363,12 +386,17 @@ test.serial('buildVendor(test) works without ember data', async (t) => {
   t.true(stats.size > NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE - 1000);
 
   await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: true, fastboot: true, excludeEmberData: true
+    hasSocketWatching: true,
+    fastboot: true,
+    excludeEmberData: true
   });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'test'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'test'
+    })
+  );
   // t.true(window.runningTests);
 
   mock.removeMock();
@@ -383,8 +411,10 @@ test.serial('buildVendor(memserver) works', async (t) => {
   const { message, stats } = await buildVendor({
     applicationName: 'izelnakri',
     ENV: {
-      environment: 'memserver', modulePrefix: 'izelnakri',
-      _APPLICATION_TEMPLATE_WRAPPER: false, _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
+      environment: 'memserver',
+      modulePrefix: 'izelnakri',
+      _APPLICATION_TEMPLATE_WRAPPER: false,
+      _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
     },
     cliArguments: { fastboot: true, socketPort: 65511 }
   });
@@ -392,19 +422,27 @@ test.serial('buildVendor(memserver) works', async (t) => {
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: memserver/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
 
   t.true(vendorJSBuffer.length >= FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 1091);
   t.true(stats.size >= FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 1091);
 
-  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true }, 'izelnakri');
+  await testJavaScriptContents(
+    t,
+    vendorJSCode,
+    { hasSocketWatching: true, fastboot: true },
+    'izelnakri'
+  );
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'memserver',
-    _APPLICATION_TEMPLATE_WRAPPER: false,
-    _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'memserver',
+      _APPLICATION_TEMPLATE_WRAPPER: false,
+      _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -431,13 +469,23 @@ test.serial('buildVendor(memserver) works without ember data', async (t) => {
   t.true(vendorJSBuffer.length > NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE - 2000);
   t.true(stats.size > NO_EMBER_DATA_VENDOR_JS_TARGET_BYTE_SIZE - 2000);
 
-  await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: true, fastboot: true, excludeEmberData: true
-  }, 'my-app');
+  await testJavaScriptContents(
+    t,
+    vendorJSCode,
+    {
+      hasSocketWatching: true,
+      fastboot: true,
+      excludeEmberData: true
+    },
+    'my-app'
+  );
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'memserver'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'memserver'
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -455,9 +503,9 @@ test.serial('buildVendor(demo) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[638.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[775.\d+ kB\] Environment: demo/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
 
   t.true(vendorJSBuffer.length >= FASTBOOT_DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE - 1006);
@@ -465,9 +513,12 @@ test.serial('buildVendor(demo) works', async (t) => {
 
   await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: false, fastboot: true });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'demo'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'demo'
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -485,21 +536,26 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[462.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[573.\d+ kB\] Environment: demo/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
 
   t.true(vendorJSBuffer.length <= NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
   t.true(stats.size <= NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE);
 
   await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: false, fastboot: true, excludeEmberData: true
+    hasSocketWatching: false,
+    fastboot: true,
+    excludeEmberData: true
   });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'demo'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'demo'
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -519,17 +575,20 @@ test.serial('buildVendor(custom) works', async (t) => {
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
   t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: custom/g.test(message));
 
-  const vendorJSBuffer = (await fs.readFile(VENDOR_JS_OUTPUT_PATH));
+  const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
 
-  t.true(vendorJSBuffer.length >= FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 1005)
+  t.true(vendorJSBuffer.length >= FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 1005);
   t.true(stats.size >= FASTBOOT_DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE - 1005);
 
-  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true })
+  await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'custom'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'custom'
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -556,12 +615,17 @@ test.serial('buildVendor(custom) works without ember data', async (t) => {
   t.true(stats.size >= NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE - 1005);
 
   await testJavaScriptContents(t, vendorJSCode, {
-    hasSocketWatching: true, fastboot: true, excludeEmberData: true
-  })
+    hasSocketWatching: true,
+    fastboot: true,
+    excludeEmberData: true
+  });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'custom'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'custom'
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -618,9 +682,12 @@ test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
 
   await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'custom'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'custom'
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
@@ -650,18 +717,24 @@ test.serial('buildVendor(memserver, { vendorPrepends, vendorAppends }) work', as
 
   await testJavaScriptContents(t, vendorJSCode, { hasSocketWatching: true, fastboot: true });
 
-  t.deepEqual(getWindowENV(window.EmberENV), Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-    environment: 'memserver'
-  }));
+  t.deepEqual(
+    getWindowENV(window.EmberENV),
+    Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
+      environment: 'memserver'
+    })
+  );
   // t.true(window.runningTests === false);
 
   mock.removeMock();
 });
 
 function getTimeTakenForBuild(message) {
-  return Number(message.match(/vendor\.js in \d+ms/g)[0]
-    .replace('vendor.js in ', '')
-    .replace('ms', ''));
+  return Number(
+    message
+      .match(/vendor\.js in \d+ms/g)[0]
+      .replace('vendor.js in ', '')
+      .replace('ms', '')
+  );
 }
 
 Object.filter = (object, keys) => {
@@ -676,12 +749,16 @@ Object.filter = (object, keys) => {
 
     return result;
   }, {});
-}
+};
 
 function getWindowENV(ENV) {
   return Object.filter(ENV, [
-    'LOG_STACKTRACE_ON_DEPRECATION', 'LOG_VERSION', 'RAISE_ON_DEPRECATION',
-    '_APPLICATION_TEMPLATE_WRAPPER', '_TEMPLATE_ONLY_GLIMMER_COMPONENTS', 'environment'
+    'LOG_STACKTRACE_ON_DEPRECATION',
+    'LOG_VERSION',
+    'RAISE_ON_DEPRECATION',
+    '_APPLICATION_TEMPLATE_WRAPPER',
+    '_TEMPLATE_ONLY_GLIMMER_COMPONENTS',
+    'environment'
   ]);
 }
 
@@ -691,9 +768,16 @@ async function injectToBrowser(javaScriptCode) {
   global.window.eval(javaScriptCode);
 }
 
-async function testJavaScriptContents(t, code, options={
-  hasSocketWatching: true, excludeEmberData: false, fastboot: true
-}, modulePrefix='frontend') {
+async function testJavaScriptContents(
+  t,
+  code,
+  options = {
+    hasSocketWatching: true,
+    excludeEmberData: false,
+    fastboot: true
+  },
+  modulePrefix = 'frontend'
+) {
   t.true(codeIncludesAMDModule(code, '@glimmer/resolver/index'));
   t.true(codeIncludesAMDModule(code, '@glimmer/di'));
   t.true(codeIncludesAMDModule(code, 'ember-inflector/index'));
@@ -713,7 +797,9 @@ async function testJavaScriptContents(t, code, options={
   }
 
   if (options.fastboot) {
-    t.true(codeIncludesAMDModule(code, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
+    t.true(
+      codeIncludesAMDModule(code, 'ember-cli-fastboot/instance-initializers/clear-double-boot')
+    );
     t.true(codeIncludesAMDModule(code, 'ember-cli-fastboot/locations/none'));
     t.true(codeIncludesAMDModule(code, 'ember-cli-fastboot/services/fastboot'));
     t.true(codeIncludesAMDModule(code, `${modulePrefix}/initializers/ajax`));
@@ -722,7 +808,9 @@ async function testJavaScriptContents(t, code, options={
     t.true(codeIncludesAMDModule(code, `${modulePrefix}/locations/none`));
     t.true(codeIncludesAMDModule(code, `${modulePrefix}/services/fastboot`));
   } else {
-    t.true(!codeIncludesAMDModule(code, 'ember-cli-fastboot/instance-initializers/clear-double-boot'));
+    t.true(
+      !codeIncludesAMDModule(code, 'ember-cli-fastboot/instance-initializers/clear-double-boot')
+    );
     t.true(!codeIncludesAMDModule(code, 'ember-cli-fastboot/locations/none'));
     t.true(!codeIncludesAMDModule(code, 'ember-cli-fastboot/services/fastboot'));
     t.true(!codeIncludesAMDModule(code, `${modulePrefix}/initializers/ajax`));
@@ -738,8 +826,11 @@ async function testJavaScriptContents(t, code, options={
   await injectToBrowser(code);
 
   [
-    window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define,
+    window.Ember,
+    window.Ember.Object,
+    window.requirejs,
+    window.require,
+    window.define,
     options.hasSocketWatching ? window.socket : !window.socket
   ].forEach((object) => t.truthy(object));
 }
