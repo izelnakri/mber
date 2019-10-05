@@ -95,8 +95,8 @@
   },
   "ava": {
     "files": [
-      "test/utils/*", "test/builders/*", "test/commands/*",
-      "test/runners/*", "test/transpilers/*"
+      "test/commands/*", "test/runners/*","test/utils/*",
+      "test/builders/*", "test/transpilers/*"
     ],
     "helpers": ["test/helpers/*"],
     "babel": {
