@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.8.14",
+  "version": "0.8.17",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -38,8 +38,7 @@
     "ember-qunit": "^4.5.1",
     "ember-resolver": "^5.2.1",
     "ember-source": "3.13.2",
-    "eslint": "^6.1.0",
-    "eslint-plugin-ember": "^7.1.0",
+    "esm": "^3.2.25",
     "intercept-stdout": "^0.1.2",
     "loader.js": "^4.7.0",
     "mber-head": "^0.1.0",
@@ -76,7 +75,8 @@
     "cheerio": "^1.0.0-rc.3",
     "chokidar": "^3.0.2",
     "compression": "^1.7.3",
-    "esm": "^3.2.25",
+    "eslint": "^6.1.0",
+    "eslint-plugin-ember": "^7.1.0",
     "express": "^4.17.1",
     "fastboot": "^2.0.3",
     "fs-extra": "^8.1.0",
@@ -95,10 +95,15 @@
   },
   "ava": {
     "files": [
-      "test/commands/*", "test/runners/*","test/utils/*",
-      "test/builders/*", "test/transpilers/*"
+      "test/commands/*",
+      "test/runners/*",
+      "test/utils/*",
+      "test/builders/*",
+      "test/transpilers/*"
     ],
-    "helpers": ["test/helpers/*"],
+    "helpers": [
+      "test/helpers/*"
+    ],
     "babel": {
       "testOptions": {
         "inputSourceMap": false,

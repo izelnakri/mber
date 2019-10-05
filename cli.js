@@ -1,4 +1,4 @@
-#! /usr/bin/env node --experimental-modules
+#! /usr/bin/env -S node --experimental-modules
 
 import chalk from 'ansi-colors';
 import Console from './lib/utils/console.js';
@@ -27,7 +27,7 @@ const CLI = {
   command(commandName, commandHandler) {
     const commandMatchesArray = Array.isArray(commandName) && commandName.includes(process.argv[2]);
 
-    if (commandMatchesArray || (commandName === process.argv[2])) {
+    if (commandMatchesArray || commandName === process.argv[2]) {
       shouldRunCommand = true;
 
       return commandHandler();
@@ -37,14 +37,16 @@ const CLI = {
 
 CLI.default(() => printCommand());
 CLI.command(['serve', 'server', 's'], () => serveCommand()); // TODO: add proxy
-CLI.command(['test', 't'], () => testCommand())// TODO: add --proxy
+CLI.command(['test', 't'], () => testCommand()); // TODO: add --proxy
 CLI.command(['build', 'b'], () => buildCommand()); // TODO: add --proxy
 CLI.command(['console', 'c'], () => consoleCommand());
 
 CLI.command(['help', 'h', 'print', 'p'], () => printCommand());
 CLI.command(['init', 'new'], () => newCommand());
 CLI.command(['generate', 'g', 'create'], () => generateCommand(process.argv[3], process.argv[4]));
-CLI.command(['delete', 'd', 'destroy', 'remove'], () => deleteCommand(process.argv[3], process.argv[4]));
+CLI.command(['delete', 'd', 'destroy', 'remove'], () =>
+  deleteCommand(process.argv[3], process.argv[4])
+);
 
 if (!shouldRunCommand) {
   Console.log(chalk.red('unknown command. Available options are:'));
