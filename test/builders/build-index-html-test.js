@@ -5,7 +5,7 @@ import mockProcessCWD from '../helpers/mock-process-cwd';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
-const DEFAULT_ENDPOINT = `${PROJECT_ROOT}/index.html`
+const DEFAULT_ENDPOINT = `${PROJECT_ROOT}/index.html`;
 const OUTPUT_HTML_PATH = `${PROJECT_ROOT}/tmp/index.html`;
 const OUTPUT_TESTS_PATH = `${PROJECT_ROOT}/tmp/tests.html`;
 
@@ -59,31 +59,34 @@ test.serial('buildIndexHTML() works for different endpoint', async (t) => {
   mock.removeMock();
 });
 
-test.serial('buildIndexHTML() works for different application, indexHTMLInjections and with memserver', async (t) => {
-  t.plan(12);
+test.serial(
+  'buildIndexHTML() works for different application, indexHTMLInjections and with memserver',
+  async (t) => {
+    t.plan(12);
 
-  const GOOGLE_ANALYTICS_INJECTION = "<script>console.log('googleAnalytics comes here')</scritp>";
-  const mock = mockProcessCWD(PROJECT_ROOT);
-  const result = await buildIndexHTML(DEFAULT_ENDPOINT, {
-    ENV: { modulePrefix: 'izelapp', memserver: { enabled: true } },
-    indexHTMLInjections: { googleAnalytics: GOOGLE_ANALYTICS_INJECTION }
-  });
+    const GOOGLE_ANALYTICS_INJECTION = "<script>console.log('googleAnalytics comes here')</script>";
+    const mock = mockProcessCWD(PROJECT_ROOT);
+    const result = await buildIndexHTML(DEFAULT_ENDPOINT, {
+      ENV: { modulePrefix: 'izelapp', memserver: { enabled: true } },
+      indexHTMLInjections: { googleAnalytics: GOOGLE_ANALYTICS_INJECTION }
+    });
 
-  t.true(result);
+    t.true(result);
 
-  const html = (await fs.readFile(OUTPUT_HTML_PATH)).toString();
+    const html = (await fs.readFile(OUTPUT_HTML_PATH)).toString();
 
-  t.true(html.includes('assets/application.css'));
-  t.true(html.includes('assets/application.js'));
-  t.true(html.includes('assets/vendor.js'));
-  t.true(!html.includes('assets/test-support.css'));
-  t.true(!html.includes('assets/test-support.js'));
-  t.true(!html.includes('assets/tests.js'));
-  t.true(html.includes('assets/memserver.js'));
-  t.true(html.includes('<!-- EMBER_CLI_FASTBOOT_TITLE -->'));
-  t.true(html.includes('<!-- EMBER_CLI_FASTBOOT_HEAD -->'));
-  t.true(html.includes('<!-- EMBER_CLI_FASTBOOT_BODY -->'));
-  t.true(html.includes(GOOGLE_ANALYTICS_INJECTION));
+    t.true(html.includes('assets/application.css'));
+    t.true(html.includes('assets/application.js'));
+    t.true(html.includes('assets/vendor.js'));
+    t.true(!html.includes('assets/test-support.css'));
+    t.true(!html.includes('assets/test-support.js'));
+    t.true(!html.includes('assets/tests.js'));
+    t.true(html.includes('assets/memserver.js'));
+    t.true(html.includes('<!-- EMBER_CLI_FASTBOOT_TITLE -->'));
+    t.true(html.includes('<!-- EMBER_CLI_FASTBOOT_HEAD -->'));
+    t.true(html.includes('<!-- EMBER_CLI_FASTBOOT_BODY -->'));
+    t.true(html.includes(GOOGLE_ANALYTICS_INJECTION));
 
-  mock.removeMock();
-});
+    mock.removeMock();
+  }
+);
