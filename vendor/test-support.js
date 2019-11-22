@@ -2658,14 +2658,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 })();
 
 /*!
- * QUnit 2.9.3
+ * QUnit 2.9.2
  * https://qunitjs.com/
  *
  * Copyright jQuery Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2019-10-08T15:49Z
+ * Date: 2019-02-21T22:49Z
  */
 (function (global$1) {
   'use strict';
@@ -4184,12 +4184,23 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   var FULFILLED = 1;
   var REJECTED = 2;
 
+  var TRY_CATCH_ERROR = { error: null };
+
   function selfFulfillment() {
     return new TypeError("You cannot resolve a promise with itself");
   }
 
   function cannotReturnOwn() {
     return new TypeError('A promises callback cannot return that same promise.');
+  }
+
+  function getThen(promise) {
+    try {
+      return promise.then;
+    } catch (error) {
+      TRY_CATCH_ERROR.error = error;
+      return TRY_CATCH_ERROR;
+    }
   }
 
   function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
@@ -4247,7 +4258,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
     if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
       handleOwnThenable(promise, maybeThenable);
     } else {
-      if (then$$1 === undefined) {
+      if (then$$1 === TRY_CATCH_ERROR) {
+        reject(promise, TRY_CATCH_ERROR.error);
+        TRY_CATCH_ERROR.error = null;
+      } else if (then$$1 === undefined) {
         fulfill(promise, maybeThenable);
       } else if (isFunction(then$$1)) {
         handleForeignThenable(promise, maybeThenable, then$$1);
@@ -4261,14 +4275,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
     if (promise === value) {
       reject(promise, selfFulfillment());
     } else if (objectOrFunction(value)) {
-      var then$$1 = void 0;
-      try {
-        then$$1 = value.then;
-      } catch (error) {
-        reject(promise, error);
-        return;
-      }
-      handleMaybeThenable(promise, value, then$$1);
+      handleMaybeThenable(promise, value, getThen(value));
     } else {
       fulfill(promise, value);
     }
@@ -4347,18 +4354,31 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
     promise._subscribers.length = 0;
   }
 
+  function tryCatch(callback, detail) {
+    try {
+      return callback(detail);
+    } catch (e) {
+      TRY_CATCH_ERROR.error = e;
+      return TRY_CATCH_ERROR;
+    }
+  }
+
   function invokeCallback(settled, promise, callback, detail) {
     var hasCallback = isFunction(callback),
         value = void 0,
         error = void 0,
-        succeeded = true;
+        succeeded = void 0,
+        failed = void 0;
 
     if (hasCallback) {
-      try {
-        value = callback(detail);
-      } catch (e) {
-        succeeded = false;
-        error = e;
+      value = tryCatch(callback, detail);
+
+      if (value === TRY_CATCH_ERROR) {
+        failed = true;
+        error = value.error;
+        value.error = null;
+      } else {
+        succeeded = true;
       }
 
       if (promise === value) {
@@ -4367,13 +4387,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
       }
     } else {
       value = detail;
+      succeeded = true;
     }
 
     if (promise._state !== PENDING) {
       // noop
     } else if (hasCallback && succeeded) {
       resolve(promise, value);
-    } else if (succeeded === false) {
+    } else if (failed) {
       reject(promise, error);
     } else if (settled === FULFILLED) {
       fulfill(promise, value);
@@ -4456,15 +4477,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 
         if (resolve$$1 === resolve$1) {
-          var _then = void 0;
-          var error = void 0;
-          var didError = false;
-          try {
-            _then = entry.then;
-          } catch (e) {
-            didError = true;
-            error = e;
-          }
+          var _then = getThen(entry);
 
           if (_then === then && entry._state !== PENDING) {
             this._settledAt(entry._state, i, entry._result);
@@ -4473,11 +4486,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
             this._result[i] = entry;
           } else if (c === Promise$2) {
             var promise = new c(noop);
-            if (didError) {
-              reject(promise, error);
-            } else {
-              handleMaybeThenable(promise, entry, _then);
-            }
+            handleMaybeThenable(promise, entry, _then);
             this._willSettleAt(promise, i);
           } else {
             this._willSettleAt(new c(function (resolve$$1) {
@@ -5548,9 +5557,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   	this.assertions = [];
   	this.semaphore = 0;
   	this.module = config.currentModule;
+  	this.stack = sourceFromStacktrace(3);
   	this.steps = [];
   	this.timeout = undefined;
-  	this.errorForStack = new Error();
 
   	// If a module is skipped, all its tests and the tests of the child suites
   	// should be treated as skipped even if they are defined as `only` or `todo`.
@@ -5626,12 +5635,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   }
 
   Test.prototype = {
-
-  	// generating a stack trace can be expensive, so using a getter defers this until we need it
-  	get stack() {
-  		return extractStacktrace(this.errorForStack, 2);
-  	},
-
   	before: function before() {
   		var _this = this;
 
@@ -5833,7 +5836,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   		// avoid leaking it. It is not used by the legacy testDone callbacks.
   		emit("testEnd", this.testReport.end(true));
   		this.testReport.slimAssertions();
-  		var test = this;
 
   		return runLoggingCallbacks("testDone", {
   			name: testName,
@@ -5850,10 +5852,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   			testId: this.testId,
 
   			// Source of Test
-  			// generating stack trace is expensive, so using a getter will help defer this until we need it
-  			get source() {
-  				return test.stack;
-  			}
+  			source: this.stack
   		}).then(function () {
   			if (module.testsRun === numberOfTests(module)) {
   				var completedModules = [module];
@@ -6221,12 +6220,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   	newTest.queue();
   }
 
-  // Resets config.timeout with a new timeout duration.
-  function resetTestTimeout(timeoutDuration) {
-  	clearTimeout(config.timeout);
-  	config.timeout = setTimeout$1(config.timeoutHandler(timeoutDuration), timeoutDuration);
-  }
-
   // Put a hold on processing and return a function that will release it.
   function internalStop(test) {
   	var released = false;
@@ -6245,14 +6238,11 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
   		if (typeof timeoutDuration === "number" && timeoutDuration > 0) {
   			clearTimeout(config.timeout);
-  			config.timeoutHandler = function (timeout) {
-  				return function () {
-  					pushFailure("Test took longer than " + timeout + "ms; test timed out.", sourceFromStacktrace(2));
-  					released = true;
-  					internalRecover(test);
-  				};
-  			};
-  			config.timeout = setTimeout$1(config.timeoutHandler(timeoutDuration), timeoutDuration);
+  			config.timeout = setTimeout$1(function () {
+  				pushFailure("Test took longer than " + timeoutDuration + "ms; test timed out.", sourceFromStacktrace(2));
+  				released = true;
+  				internalRecover(test);
+  			}, timeoutDuration);
   		}
   	}
 
@@ -6372,15 +6362,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   			}
 
   			this.test.timeout = duration;
-
-  			// If a timeout has been set, clear it and reset with the new duration
-  			if (config.timeout) {
-  				clearTimeout(config.timeout);
-
-  				if (config.timeoutHandler && this.test.timeout > 0) {
-  					resetTestTimeout(this.test.timeout);
-  				}
-  			}
   		}
 
   		// Documents a "step", which is a string value, in a test as a passing assertion
@@ -6935,7 +6916,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   QUnit.isLocal = !(defined.document && window$1.location.protocol !== "file:");
 
   // Expose the current QUnit version
-  QUnit.version = "2.9.3";
+  QUnit.version = "2.9.2";
 
   extend(QUnit, {
   	on: on,
@@ -7270,7 +7251,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   	    hiddenTests = [],
   	    document = window$1.document,
   	    collapseNext = false,
-  	    hasOwn$$1 = Object.prototype.hasOwnProperty,
+  	    hasOwn = Object.prototype.hasOwnProperty,
   	    unfilteredUrl = setUrl({ filter: undefined, module: undefined,
   		moduleId: undefined, testId: undefined }),
   	    modulesList = [];
@@ -7380,7 +7361,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   					}
   				} else {
   					for (j in val.value) {
-  						if (hasOwn$$1.call(val.value, j)) {
+  						if (hasOwn.call(val.value, j)) {
   							urlConfigHtml += "<option value='" + escapeText(j) + "'" + (config[val.id] === j ? (selection = true) && " selected='selected'" : "") + ">" + escapeText(val.value[j]) + "</option>";
   						}
   					}
@@ -7426,10 +7407,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
   				if (field.checked) {
   					for (var i = 0; i < length; i++) {
-  						var test$$1 = children[i];
+  						var test = children[i];
 
-  						if (test$$1 && test$$1.className.indexOf("pass") > -1) {
-  							hiddenTests.push(test$$1);
+  						if (test && test.className.indexOf("pass") > -1) {
+  							hiddenTests.push(test);
   						}
   					}
 
@@ -7458,8 +7439,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   						}
   					}
   				} else {
-  					while ((test$$1 = hiddenTests.pop()) != null) {
-  						tests.appendChild(test$$1);
+  					while ((test = hiddenTests.pop()) != null) {
+  						tests.appendChild(test);
   					}
   				}
   			}
@@ -7481,7 +7462,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   		for (key in params) {
 
   			// Skip inherited or undefined properties
-  			if (hasOwn$$1.call(params, key) && params[key] !== undefined) {
+  			if (hasOwn.call(params, key) && params[key] !== undefined) {
 
   				// Output a parameter for each value of this key
   				// (but usually just one)
@@ -7872,19 +7853,19 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   		    abortButton = id("qunit-abort-tests-button"),
   		    totalTests = stats.passedTests + stats.skippedTests + stats.todoTests + stats.failedTests,
   		    html = [totalTests, " tests completed in ", details.runtime, " milliseconds, with ", stats.failedTests, " failed, ", stats.skippedTests, " skipped, and ", stats.todoTests, " todo.<br />", "<span class='passed'>", details.passed, "</span> assertions of <span class='total'>", details.total, "</span> passed, <span class='failed'>", details.failed, "</span> failed."].join(""),
-  		    test$$1,
+  		    test,
   		    assertLi,
   		    assertList;
 
-  		// Update remaining tests to aborted
+  		// Update remaing tests to aborted
   		if (abortButton && abortButton.disabled) {
   			html = "Tests aborted after " + details.runtime + " milliseconds.";
 
   			for (var i = 0; i < tests.children.length; i++) {
-  				test$$1 = tests.children[i];
-  				if (test$$1.className === "" || test$$1.className === "running") {
-  					test$$1.className = "aborted";
-  					assertList = test$$1.getElementsByTagName("ol")[0];
+  				test = tests.children[i];
+  				if (test.className === "" || test.className === "running") {
+  					test.className = "aborted";
+  					assertList = test.getElementsByTagName("ol")[0];
   					assertLi = document.createElement("li");
   					assertLi.className = "fail";
   					assertLi.innerHTML = "Test aborted.";
@@ -7931,12 +7912,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   		return nameHtml;
   	}
 
-  	function getProgressHtml(runtime, stats, total) {
-  		var completed = stats.passedTests + stats.skippedTests + stats.todoTests + stats.failedTests;
-
-  		return ["<br />", completed, " / ", total, " tests completed in ", runtime, " milliseconds, with ", stats.failedTests, " failed, ", stats.skippedTests, " skipped, and ", stats.todoTests, " todo."].join("");
-  	}
-
   	QUnit.testStart(function (details) {
   		var running, bad;
 
@@ -7949,7 +7924,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
   			bad = QUnit.config.reorder && details.previousFailure;
 
-  			running.innerHTML = [bad ? "Rerunning previously failed test: <br />" : "Running: <br />", getNameHtml(details.name, details.module), getProgressHtml(now() - config.started, stats, Test.count)].join("");
+  			running.innerHTML = [bad ? "Rerunning previously failed test: <br />" : "Running: <br />", getNameHtml(details.name, details.module)].join("");
   		}
   	});
 
@@ -7965,7 +7940,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   		    message,
   		    expected,
   		    actual,
-  		    diff$$1,
+  		    diff,
   		    showDiff = false,
   		    testItem = id("qunit-test-output-" + details.testId);
 
@@ -7980,7 +7955,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   		// The pushFailure doesn't provide details.expected
   		// when it calls, it's implicit to also not show expected and diff stuff
   		// Also, we need to check details.expected existence, as it can exist and be undefined
-  		if (!details.result && hasOwn$$1.call(details, "expected")) {
+  		if (!details.result && hasOwn.call(details, "expected")) {
   			if (details.negative) {
   				expected = "NOT " + QUnit.dump.parse(details.expected);
   			} else {
@@ -7997,18 +7972,18 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   				if (typeof details.actual === "number" && typeof details.expected === "number") {
   					if (!isNaN(details.actual) && !isNaN(details.expected)) {
   						showDiff = true;
-  						diff$$1 = details.actual - details.expected;
-  						diff$$1 = (diff$$1 > 0 ? "+" : "") + diff$$1;
+  						diff = details.actual - details.expected;
+  						diff = (diff > 0 ? "+" : "") + diff;
   					}
   				} else if (typeof details.actual !== "boolean" && typeof details.expected !== "boolean") {
-  					diff$$1 = QUnit.diff(expected, actual);
+  					diff = QUnit.diff(expected, actual);
 
   					// don't show diff if there is zero overlap
-  					showDiff = stripHtml(diff$$1).length !== stripHtml(expected).length + stripHtml(actual).length;
+  					showDiff = stripHtml(diff).length !== stripHtml(expected).length + stripHtml(actual).length;
   				}
 
   				if (showDiff) {
-  					message += "<tr class='test-diff'><th>Diff: </th><td><pre>" + diff$$1 + "</pre></td></tr>";
+  					message += "<tr class='test-diff'><th>Diff: </th><td><pre>" + diff + "</pre></td></tr>";
   				}
   			} else if (expected.indexOf("[object Array]") !== -1 || expected.indexOf("[object Object]") !== -1) {
   				message += "<tr class='test-message'><th>Message: </th><td>" + "Diff suppressed as the depth of object is more than current max depth (" + QUnit.config.maxDepth + ").<p>Hint: Use <code>QUnit.dump.maxDepth</code> to " + " run with a higher max depth or <a href='" + escapeText(setUrl({ maxDepth: -1 })) + "'>" + "Rerun</a> without max depth.</p></td></tr>";
