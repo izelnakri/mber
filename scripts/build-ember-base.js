@@ -111,7 +111,7 @@ function transpileEmberOrderedSet(modulePath) {
 }
 
 async function buildEmberData(projectPath, environment) {
-  const emberDataVersion = (await import(`${projectPath}/package.json`)).default.devDependencies[
+  const emberDataVersion = JSON.parse(await fs.readFile(`${projectPath}/package.json`)).devDependencies[
     'ember-data'
   ]; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
   const options =
