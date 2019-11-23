@@ -6,16 +6,19 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.13.2
+ * @version   3.14.2
  */
 
 /*globals process */
-var define, require, Ember;
+let define, require, Ember;
 
 // Used in @ember/-internals/environment/lib/global.js
 mainContext = this; // eslint-disable-line no-undef
 
 (function() {
+  let registry;
+  let seen;
+
   function missingModule(name, referrerName) {
     if (referrerName) {
       throw new Error('Could not find module ' + name + ' required by: ' + referrerName);
@@ -25,15 +28,15 @@ mainContext = this; // eslint-disable-line no-undef
   }
 
   function internalRequire(_name, referrerName) {
-    var name = _name;
-    var mod = registry[name];
+    let name = _name;
+    let mod = registry[name];
 
     if (!mod) {
       name = name + '/index';
       mod = registry[name];
     }
 
-    var exports = seen[name];
+    let exports = seen[name];
 
     if (exports !== undefined) {
       return exports;
@@ -45,11 +48,11 @@ mainContext = this; // eslint-disable-line no-undef
       missingModule(_name, referrerName);
     }
 
-    var deps = mod.deps;
-    var callback = mod.callback;
-    var reified = new Array(deps.length);
+    let deps = mod.deps;
+    let callback = mod.callback;
+    let reified = new Array(deps.length);
 
-    for (var i = 0; i < deps.length; i++) {
+    for (let i = 0; i < deps.length; i++) {
       if (deps[i] === 'exports') {
         reified[i] = exports;
       } else if (deps[i] === 'require') {
@@ -64,7 +67,7 @@ mainContext = this; // eslint-disable-line no-undef
     return exports;
   }
 
-  var isNode =
+  let isNode =
     typeof window === 'undefined' &&
     typeof process !== 'undefined' &&
     {}.toString.call(process) === '[object process]';
@@ -78,11 +81,11 @@ mainContext = this; // eslint-disable-line no-undef
   }
 
   if (typeof Ember.__loader === 'undefined') {
-    var registry = Object.create(null);
-    var seen = Object.create(null);
+    registry = Object.create(null);
+    seen = Object.create(null);
 
     define = function(name, deps, callback) {
-      var value = {};
+      let value = {};
 
       if (!callback) {
         value.deps = [];
@@ -119,7 +122,7 @@ mainContext = this; // eslint-disable-line no-undef
   }
 })();
 
-define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2) {
+define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn", "@ember/debug/lib/capture-render-tree"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2, _captureRenderTree) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -147,6 +150,12 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     enumerable: true,
     get: function () {
       return _warn2.registerHandler;
+    }
+  });
+  Object.defineProperty(_exports, "captureRenderTree", {
+    enumerable: true,
+    get: function () {
+      return _captureRenderTree.default;
     }
   });
   _exports._warnIfUsingStrippedFeatureFlags = _exports.getDebugFunction = _exports.setDebugFunction = _exports.deprecateFunc = _exports.runInDebug = _exports.debugFreeze = _exports.debugSeal = _exports.deprecate = _exports.debug = _exports.warn = _exports.info = _exports.assert = void 0;
@@ -284,7 +293,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     */
     setDebugFunction('assert', function assert(desc, test) {
       if (!test) {
-        throw new _error.default(`Assertion Failed: ${desc}`);
+        throw new _error.default("Assertion Failed: " + desc);
       }
     });
     /**
@@ -306,9 +315,9 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     setDebugFunction('debug', function debug(message) {
       /* eslint-disable no-console */
       if (console.debug) {
-        console.debug(`DEBUG: ${message}`);
+        console.debug("DEBUG: " + message);
       } else {
-        console.log(`DEBUG: ${message}`);
+        console.log("DEBUG: " + message);
       }
       /* eslint-ensable no-console */
 
@@ -433,10 +442,40 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
             downloadURL = 'https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/';
           }
 
-          debug(`For more advanced debugging, install the Ember Inspector from ${downloadURL}`);
+          debug("For more advanced debugging, install the Ember Inspector from " + downloadURL);
         }
       }, false);
     }
+  }
+});
+define("@ember/debug/lib/capture-render-tree", ["exports", "@glimmer/util"], function (_exports, _util) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = captureRenderTree;
+
+  /**
+    @module @ember/debug
+  */
+
+  /**
+    Ember Inspector calls this function to capture the current render tree.
+  
+    In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
+    before loading Ember.
+  
+    @private
+    @static
+    @method captureRenderTree
+    @for @ember/debug
+    @param app {ApplicationInstance} An `ApplicationInstance`.
+    @since 3.14.0
+  */
+  function captureRenderTree(app) {
+    var env = (0, _util.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
+    return env.debugRenderTree.capture();
   }
 });
 define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment", "@ember/debug/index", "@ember/debug/lib/handlers"], function (_exports, _environment, _index, _handlers) {
@@ -513,11 +552,11 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
       var message = _message;
 
       if (options && options.id) {
-        message = message + ` [deprecation id: ${options.id}]`;
+        message = message + (" [deprecation id: " + options.id + "]");
       }
 
       if (options && options.url) {
-        message += ` See ${options.url} for more details.`;
+        message += " See " + options.url + " for more details.";
       }
 
       return message;
@@ -525,7 +564,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
     registerHandler(function logDeprecationToConsole(message, options) {
       var updatedMessage = formatMessage(message, options);
-      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+      console.warn("DEPRECATION: " + updatedMessage); // eslint-disable-line no-console
     });
     var captureErrorForStack;
 
@@ -557,11 +596,11 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
             stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
           }
 
-          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+          stackStr = "\n    " + stack.slice(2).join('\n    ');
         }
 
         var updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+        console.warn("DEPRECATION: " + updatedMessage + stackStr); // eslint-disable-line no-console
       } else {
         next(message, options);
       }
@@ -734,7 +773,7 @@ define("@ember/debug/lib/warn", ["exports", "@ember/debug/index", "@ember/debug/
 
     registerHandler(function logWarning(message) {
       /* eslint-disable no-console */
-      console.warn(`WARNING: ${message}`);
+      console.warn("WARNING: " + message);
       /* eslint-enable no-console */
     });
     _exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -2405,7 +2444,7 @@ define("ember-testing/lib/test/promise", ["exports", "@ember/-internals/runtime"
   _exports.default = TestPromise;
 
   function promise(resolver, label) {
-    var fullLabel = `Ember.Test.promise: ${label || '<Unknown Promise>'}`;
+    var fullLabel = "Ember.Test.promise: " + (label || '<Unknown Promise>');
     return new TestPromise(resolver, fullLabel);
   }
   /**
