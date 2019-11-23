@@ -6,16 +6,19 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.13.2
+ * @version   3.14.2
  */
 
 /*globals process */
-var define, require, Ember;
+let define, require, Ember;
 
 // Used in @ember/-internals/environment/lib/global.js
 mainContext = this; // eslint-disable-line no-undef
 
 (function() {
+  let registry;
+  let seen;
+
   function missingModule(name, referrerName) {
     if (referrerName) {
       throw new Error('Could not find module ' + name + ' required by: ' + referrerName);
@@ -25,15 +28,15 @@ mainContext = this; // eslint-disable-line no-undef
   }
 
   function internalRequire(_name, referrerName) {
-    var name = _name;
-    var mod = registry[name];
+    let name = _name;
+    let mod = registry[name];
 
     if (!mod) {
       name = name + '/index';
       mod = registry[name];
     }
 
-    var exports = seen[name];
+    let exports = seen[name];
 
     if (exports !== undefined) {
       return exports;
@@ -45,11 +48,11 @@ mainContext = this; // eslint-disable-line no-undef
       missingModule(_name, referrerName);
     }
 
-    var deps = mod.deps;
-    var callback = mod.callback;
-    var reified = new Array(deps.length);
+    let deps = mod.deps;
+    let callback = mod.callback;
+    let reified = new Array(deps.length);
 
-    for (var i = 0; i < deps.length; i++) {
+    for (let i = 0; i < deps.length; i++) {
       if (deps[i] === 'exports') {
         reified[i] = exports;
       } else if (deps[i] === 'require') {
@@ -64,7 +67,7 @@ mainContext = this; // eslint-disable-line no-undef
     return exports;
   }
 
-  var isNode =
+  let isNode =
     typeof window === 'undefined' &&
     typeof process !== 'undefined' &&
     {}.toString.call(process) === '[object process]';
@@ -78,11 +81,11 @@ mainContext = this; // eslint-disable-line no-undef
   }
 
   if (typeof Ember.__loader === 'undefined') {
-    var registry = Object.create(null);
-    var seen = Object.create(null);
+    registry = Object.create(null);
+    seen = Object.create(null);
 
     define = function(name, deps, callback) {
-      var value = {};
+      let value = {};
 
       if (!callback) {
         value.deps = [];
@@ -282,6 +285,34 @@ define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-fea
     _TEMPLATE_ONLY_GLIMMER_COMPONENTS: false,
 
     /**
+      Whether to perform extra bookkeeping needed to make the `captureRenderTree`
+      API work.
+         This has to be set before the ember JavaScript code is evaluated. This is
+      usually done by setting `window.EmberENV = { _DEBUG_RENDER_TREE: true };`
+      or `window.ENV = { _DEBUG_RENDER_TREE: true };` before the "vendor"
+      `<script>` tag in `index.html`.
+         Setting the flag after Ember is already loaded will not work correctly. It
+      may appear to work somewhat, but fundamentally broken.
+         This is not intended to be set directly. Ember Inspector will enable the
+      flag on behalf of the user as needed.
+         This flag is always on in development mode.
+         The flag is off by default in production mode, due to the cost associated
+      with the the bookkeeping work.
+         The expected flow is that Ember Inspector will ask the user to refresh the
+      page after enabling the feature. It could also offer a feature where the
+      user add some domains to the "always on" list. In either case, Ember
+      Inspector will inject the code on the page to set the flag if needed.
+         @property _DEBUG_RENDER_TREE
+      @for EmberENV
+      @type Boolean
+      @default false
+      @private
+    */
+    _DEBUG_RENDER_TREE: true
+    /* DEBUG */
+    ,
+
+    /**
       Whether the app is using jQuery. See RFC #294.
          This is not intended to be set directly, as the implementation may change in
       the future. Use `@ember/optional-features` instead.
@@ -382,6 +413,12 @@ define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-fea
         if (!FEATURES.hasOwnProperty(feature)) continue;
         ENV.FEATURES[feature] = FEATURES[feature] === true;
       }
+    }
+
+    if (true
+    /* DEBUG */
+    ) {
+      ENV._DEBUG_RENDER_TREE = true;
     }
   })(global$1.EmberENV || global$1.ENV);
 
@@ -1229,7 +1266,7 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     value: true
   });
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_GLIMMER_FN_HELPER = _exports.EMBER_NATIVE_DECORATOR_SUPPORT = _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -1246,13 +1283,9 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_IMPROVED_INSTRUMENTATION: false,
     EMBER_MODULE_UNIFICATION: false,
     EMBER_METAL_TRACKED_PROPERTIES: true,
-    EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES: true,
-    EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS: true,
-    EMBER_NATIVE_DECORATOR_SUPPORT: true,
-    EMBER_GLIMMER_FN_HELPER: true,
     EMBER_CUSTOM_COMPONENT_ARG_PROXY: true,
-    EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT: true,
-    EMBER_GLIMMER_SET_COMPONENT_TEMPLATE: true
+    EMBER_GLIMMER_SET_COMPONENT_TEMPLATE: true,
+    EMBER_ROUTING_MODEL_ARG: true
   };
   /**
     The hash of enabled Canary features. Add to this, any canary features
@@ -1312,22 +1345,14 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_MODULE_UNIFICATION = EMBER_MODULE_UNIFICATION;
   var EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
   _exports.EMBER_METAL_TRACKED_PROPERTIES = EMBER_METAL_TRACKED_PROPERTIES;
-  var EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = featureValue(FEATURES.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES);
-  _exports.EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES = EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES;
-  var EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = featureValue(FEATURES.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS);
-  _exports.EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS = EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS;
-  var EMBER_NATIVE_DECORATOR_SUPPORT = featureValue(FEATURES.EMBER_NATIVE_DECORATOR_SUPPORT);
-  _exports.EMBER_NATIVE_DECORATOR_SUPPORT = EMBER_NATIVE_DECORATOR_SUPPORT;
-  var EMBER_GLIMMER_FN_HELPER = featureValue(FEATURES.EMBER_GLIMMER_FN_HELPER);
-  _exports.EMBER_GLIMMER_FN_HELPER = EMBER_GLIMMER_FN_HELPER;
   var EMBER_CUSTOM_COMPONENT_ARG_PROXY = featureValue(FEATURES.EMBER_CUSTOM_COMPONENT_ARG_PROXY);
   _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = EMBER_CUSTOM_COMPONENT_ARG_PROXY;
-  var EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = featureValue(FEATURES.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT);
-  _exports.EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT = EMBER_FRAMEWORK_OBJECT_OWNER_ARGUMENT;
   var EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = featureValue(FEATURES.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE);
   _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = EMBER_GLIMMER_SET_COMPONENT_TEMPLATE;
+  var EMBER_ROUTING_MODEL_ARG = featureValue(FEATURES.EMBER_ROUTING_MODEL_ARG);
+  _exports.EMBER_ROUTING_MODEL_ARG = EMBER_ROUTING_MODEL_ARG;
 });
-define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2) {
+define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn", "@ember/debug/lib/capture-render-tree"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2, _captureRenderTree) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -1355,6 +1380,12 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     enumerable: true,
     get: function get() {
       return _warn2.registerHandler;
+    }
+  });
+  Object.defineProperty(_exports, "captureRenderTree", {
+    enumerable: true,
+    get: function get() {
+      return _captureRenderTree.default;
     }
   });
   _exports._warnIfUsingStrippedFeatureFlags = _exports.getDebugFunction = _exports.setDebugFunction = _exports.deprecateFunc = _exports.runInDebug = _exports.debugFreeze = _exports.debugSeal = _exports.deprecate = _exports.debug = _exports.warn = _exports.info = _exports.assert = void 0;
@@ -1660,6 +1691,36 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
         }
       }, false);
     }
+  }
+});
+define("@ember/debug/lib/capture-render-tree", ["exports", "@glimmer/util"], function (_exports, _util) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = captureRenderTree;
+
+  /**
+    @module @ember/debug
+  */
+
+  /**
+    Ember Inspector calls this function to capture the current render tree.
+  
+    In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
+    before loading Ember.
+  
+    @private
+    @static
+    @method captureRenderTree
+    @for @ember/debug
+    @param app {ApplicationInstance} An `ApplicationInstance`.
+    @since 3.14.0
+  */
+  function captureRenderTree(app) {
+    var env = (0, _util.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
+    return env.debugRenderTree.capture();
   }
 });
 define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment", "@ember/debug/index", "@ember/debug/lib/handlers"], function (_exports, _environment, _index, _handlers) {
@@ -6586,58 +6647,6 @@ define("ember-template-compiler/lib/plugins/assert-local-variable-shadowing-help
     return node.params.length > 0 || node.hash.pairs.length > 0;
   }
 });
-define("ember-template-compiler/lib/plugins/assert-modifiers-not-in-components", ["exports", "@ember/debug", "ember-template-compiler/lib/system/calculate-location-display"], function (_exports, _debug, _calculateLocationDisplay) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = assertModifiersNotInComponents;
-
-  function assertModifiersNotInComponents(env) {
-    var moduleName = env.meta.moduleName;
-    var scopes = [];
-
-    function isComponentInvocation(node) {
-      return node.tag[0] === '@' || node.tag[0].toUpperCase() === node.tag[0] || node.tag.indexOf('.') > -1 || scopes.some(function (params) {
-        return params.some(function (p) {
-          return p === node.tag;
-        });
-      });
-    }
-
-    return {
-      name: 'assert-modifiers-not-in-components',
-      visitor: {
-        Program: {
-          enter: function enter(node) {
-            scopes.push(node.blockParams);
-          },
-          exit: function exit() {
-            scopes.pop();
-          }
-        },
-        ElementNode: {
-          keys: {
-            children: {
-              enter: function enter(node) {
-                scopes.push(node.blockParams);
-              },
-              exit: function exit() {
-                scopes.pop();
-              }
-            }
-          },
-          enter: function enter(node) {
-            if (node.modifiers.length > 0 && isComponentInvocation(node)) {
-              (true && !(false) && (0, _debug.assert)("Passing modifiers to components require the \"ember-glimmer-forward-modifiers-with-splattributes\" canary feature, which has not been stabilized yet. See RFC #435 for details. " + (0, _calculateLocationDisplay.default)(moduleName, node.loc)));
-            }
-          }
-        }
-      }
-    };
-  }
-});
 define("ember-template-compiler/lib/plugins/assert-reserved-named-arguments", ["exports", "@ember/debug", "ember-template-compiler/lib/system/calculate-location-display"], function (_exports, _debug, _calculateLocationDisplay) {
   "use strict";
 
@@ -6738,9 +6747,7 @@ define("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
       var deprecationMessage = function deprecationMessage(node, eventName, actionName) {
         var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
 
-        if (true
-        /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
-        && node.type === 'ElementNode') {
+        if (node.type === 'ElementNode') {
           return "Passing actions to components as strings (like `<Input @" + eventName + "=\"" + actionName + "\" />`) is deprecated. Please use closure actions instead (`<Input @" + eventName + "={{action \"" + actionName + "\"}} />`). " + sourceInformation;
         } else {
           return "Passing actions to components as strings (like `{{input " + eventName + "=\"" + actionName + "\"}}`) is deprecated. Please use closure actions instead (`{{input " + eventName + "=(action \"" + actionName + "\")}}`). " + sourceInformation;
@@ -6751,9 +6758,7 @@ define("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
         name: 'deprecate-send-action',
         visitor: {
           ElementNode: function ElementNode(node) {
-            if (!true
-            /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
-            || node.tag !== 'Input') {
+            if (node.tag !== 'Input') {
               return;
             }
 
@@ -6804,7 +6809,7 @@ define("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
     return;
   }
 });
-define("ember-template-compiler/lib/plugins/index", ["exports", "ember-template-compiler/lib/plugins/assert-if-helper-without-arguments", "ember-template-compiler/lib/plugins/assert-input-helper-without-block", "ember-template-compiler/lib/plugins/assert-local-variable-shadowing-helper-invocation", "ember-template-compiler/lib/plugins/assert-modifiers-not-in-components", "ember-template-compiler/lib/plugins/assert-reserved-named-arguments", "ember-template-compiler/lib/plugins/assert-splattribute-expression", "ember-template-compiler/lib/plugins/deprecate-send-action", "ember-template-compiler/lib/plugins/transform-action-syntax", "ember-template-compiler/lib/plugins/transform-attrs-into-args", "ember-template-compiler/lib/plugins/transform-component-invocation", "ember-template-compiler/lib/plugins/transform-each-in-into-each", "ember-template-compiler/lib/plugins/transform-has-block-syntax", "ember-template-compiler/lib/plugins/transform-in-element", "ember-template-compiler/lib/plugins/transform-input-type-syntax", "ember-template-compiler/lib/plugins/transform-link-to", "ember-template-compiler/lib/plugins/transform-old-class-binding-syntax", "ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings", "@ember/deprecated-features"], function (_exports, _assertIfHelperWithoutArguments, _assertInputHelperWithoutBlock, _assertLocalVariableShadowingHelperInvocation, _assertModifiersNotInComponents, _assertReservedNamedArguments, _assertSplattributeExpression, _deprecateSendAction, _transformActionSyntax, _transformAttrsIntoArgs, _transformComponentInvocation, _transformEachInIntoEach, _transformHasBlockSyntax, _transformInElement, _transformInputTypeSyntax, _transformLinkTo, _transformOldClassBindingSyntax, _transformQuotedBindingsIntoJustBindings, _deprecatedFeatures) {
+define("ember-template-compiler/lib/plugins/index", ["exports", "ember-template-compiler/lib/plugins/assert-if-helper-without-arguments", "ember-template-compiler/lib/plugins/assert-input-helper-without-block", "ember-template-compiler/lib/plugins/assert-local-variable-shadowing-helper-invocation", "ember-template-compiler/lib/plugins/assert-reserved-named-arguments", "ember-template-compiler/lib/plugins/assert-splattribute-expression", "ember-template-compiler/lib/plugins/deprecate-send-action", "ember-template-compiler/lib/plugins/transform-action-syntax", "ember-template-compiler/lib/plugins/transform-attrs-into-args", "ember-template-compiler/lib/plugins/transform-component-invocation", "ember-template-compiler/lib/plugins/transform-each-in-into-each", "ember-template-compiler/lib/plugins/transform-has-block-syntax", "ember-template-compiler/lib/plugins/transform-in-element", "ember-template-compiler/lib/plugins/transform-link-to", "ember-template-compiler/lib/plugins/transform-old-class-binding-syntax", "ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings", "@ember/deprecated-features"], function (_exports, _assertIfHelperWithoutArguments, _assertInputHelperWithoutBlock, _assertLocalVariableShadowingHelperInvocation, _assertReservedNamedArguments, _assertSplattributeExpression, _deprecateSendAction, _transformActionSyntax, _transformAttrsIntoArgs, _transformComponentInvocation, _transformEachInIntoEach, _transformHasBlockSyntax, _transformInElement, _transformLinkTo, _transformOldClassBindingSyntax, _transformQuotedBindingsIntoJustBindings, _deprecatedFeatures) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -6812,18 +6817,6 @@ define("ember-template-compiler/lib/plugins/index", ["exports", "ember-template-
   });
   _exports.default = void 0;
   var transforms = [_transformComponentInvocation.default, _transformOldClassBindingSyntax.default, _transformQuotedBindingsIntoJustBindings.default, _assertReservedNamedArguments.default, _transformActionSyntax.default, _transformAttrsIntoArgs.default, _transformEachInIntoEach.default, _transformHasBlockSyntax.default, _assertLocalVariableShadowingHelperInvocation.default, _transformLinkTo.default, _assertInputHelperWithoutBlock.default, _transformInElement.default, _assertIfHelperWithoutArguments.default, _assertSplattributeExpression.default];
-
-  if (!true
-  /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
-  ) {
-      transforms.push(_transformInputTypeSyntax.default);
-    }
-
-  if (!true
-  /* EMBER_GLIMMER_FORWARD_MODIFIERS_WITH_SPLATTRIBUTES */
-  ) {
-      transforms.push(_assertModifiersNotInComponents.default);
-    }
 
   if (_deprecatedFeatures.SEND_ACTION) {
     transforms.push(_deprecateSendAction.default);
@@ -7411,85 +7404,6 @@ define("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
     return "The {{in-element}} helper cannot be used. " + sourceInformation;
   }
 });
-define("ember-template-compiler/lib/plugins/transform-input-type-syntax", ["exports", "@glimmer/util"], function (_exports, _util) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-
-  /**
-   @module ember
-  */
-
-  /**
-    A Glimmer2 AST transformation that replaces all instances of
-  
-    ```handlebars
-   {{input type=boundType}}
-    ```
-  
-    with
-  
-    ```handlebars
-   {{input (-input-type boundType) type=boundType}}
-    ```
-  
-    Note that the type parameters is not removed as the -input-type helpers
-    is only used to select the component class. The component still needs
-    the type parameter to function.
-  
-    @private
-    @class TransformInputTypeSyntax
-  */
-  var transformInputTypeSyntax;
-
-  if (true
-  /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
-  ) {
-      transformInputTypeSyntax = function transformInputTypeSyntax() {
-        throw (0, _util.unreachable)();
-      };
-    } else {
-    transformInputTypeSyntax = function transformInputTypeSyntax(env) {
-      var b = env.syntax.builders;
-      return {
-        name: 'transform-input-type-syntax',
-        visitor: {
-          MustacheStatement: function MustacheStatement(node) {
-            if (isInput(node)) {
-              insertTypeHelperParameter(node, b);
-            }
-          }
-        }
-      };
-    };
-
-    var isInput = function isInput(node) {
-      return node.path.original === 'input';
-    };
-
-    var insertTypeHelperParameter = function insertTypeHelperParameter(node, builders) {
-      var pairs = node.hash.pairs;
-      var pair = null;
-
-      for (var i = 0; i < pairs.length; i++) {
-        if (pairs[i].key === 'type') {
-          pair = pairs[i];
-          break;
-        }
-      }
-
-      if (pair && pair.value.type !== 'StringLiteral') {
-        node.params.unshift(builders.sexpr('-input-type', [pair.value], undefined, pair.loc));
-      }
-    };
-  }
-
-  var _default = transformInputTypeSyntax;
-  _exports.default = _default;
-});
 define("ember-template-compiler/lib/plugins/transform-link-to", ["exports", "@ember/debug", "ember-template-compiler/lib/system/calculate-location-display"], function (_exports, _debug, _calculateLocationDisplay) {
   "use strict";
 
@@ -7591,20 +7505,11 @@ define("ember-template-compiler/lib/plugins/transform-link-to", ["exports", "@em
         MustacheStatement: function MustacheStatement(node) {
           if (isInlineLinkTo(node)) {
             var block = transformInlineLinkToIntoBlockForm(env, node);
-
-            if (true
-            /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
-            ) {
-                block = transformPositionalLinkToIntoNamedArguments(env, block);
-              }
-
-            return block;
+            return transformPositionalLinkToIntoNamedArguments(env, block);
           }
         },
         BlockStatement: function BlockStatement(node) {
-          if (true
-          /* EMBER_GLIMMER_ANGLE_BRACKET_BUILT_INS */
-          && isBlockLinkTo(node)) {
+          if (isBlockLinkTo(node)) {
             return transformPositionalLinkToIntoNamedArguments(env, node);
           }
         }
@@ -7909,6 +7814,10 @@ define("ember-template-compiler/lib/system/compile-options", ["exports", "@ember
   var USER_PLUGINS = [];
 
   function compileOptions(_options) {
+    if (_options === void 0) {
+      _options = {};
+    }
+
     var options = (0, _polyfills.assign)({
       meta: {}
     }, _options, {
@@ -8021,6 +7930,10 @@ define("ember-template-compiler/lib/system/compile", ["exports", "require", "emb
   */
 
   function compile(templateString, options) {
+    if (options === void 0) {
+      options = {};
+    }
+
     if (!template && (0, _require.has)('@ember/-internals/glimmer')) {
       // tslint:disable-next-line:no-require-imports
       template = (0, _require.default)("@ember/-internals/glimmer").template;
@@ -8030,9 +7943,11 @@ define("ember-template-compiler/lib/system/compile", ["exports", "require", "emb
       throw new Error('Cannot call `compile` with only the template compiler loaded. Please load `ember.debug.js` or `ember.prod.js` prior to calling `compile`.');
     }
 
-    var precompiledTemplateString = (0, _precompile.default)(templateString, options);
-    var templateJS = new Function("return " + precompiledTemplateString)();
-    return template(templateJS);
+    return template(evaluate((0, _precompile.default)(templateString, options)));
+  }
+
+  function evaluate(precompiled) {
+    return new Function("return " + precompiled)();
   }
 });
 define("ember-template-compiler/lib/system/dasherize-component-name", ["exports", "@ember/-internals/utils"], function (_exports, _utils) {
@@ -8116,6 +8031,10 @@ define("ember-template-compiler/lib/system/precompile", ["exports", "@glimmer/co
     @param {String} templateString This is the string to be compiled by HTMLBars.
   */
   function precompile(templateString, options) {
+    if (options === void 0) {
+      options = {};
+    }
+
     return (0, _compiler.precompile)(templateString, (0, _compileOptions.default)(options));
   }
 });
@@ -8126,7 +8045,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.13.2";
+  var _default = "3.14.2";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {

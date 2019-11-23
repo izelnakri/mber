@@ -6,7 +6,7 @@ const shell = promisify(exec);
 const CWD = process.cwd();
 
 // TODO: reset tmp and dist folders
-export default async function(appName='dummyapp') {
+export default async function(appName = 'dummyapp') {
   await shell(`node --experimental-modules ${CWD}/cli.js new ${appName}`);
 
   const TARGET_PROJECT_PATH = `${CWD}/${appName}`;
@@ -22,10 +22,9 @@ export default async function(appName='dummyapp') {
     `${TARGET_PROJECT_PATH}/index.js`,
     contents.replace("import app from 'mber';", "import app from '../index.js';")
   );
-// const app = require('mber');
   await Promise.all([
     fs.remove(`${TARGET_PROJECT_PATH}/dist`),
-    fs.remove(`${TARGET_PROJECT_PATH}/tmp`),
+    fs.remove(`${TARGET_PROJECT_PATH}/tmp`)
   ]);
   await Promise.all([
     fs.mkdirp(`${TARGET_PROJECT_PATH}/dist`),

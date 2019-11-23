@@ -42,7 +42,7 @@ jobs:
             docker push "${HUB_USERNAME}/mber:${CIRCLE_BRANCH}"
   test:
     docker:
-      - image: docker:dind
+      - image: docker:stable-git
     working_directory: ~/code
     steps:
       - setup_remote_docker
