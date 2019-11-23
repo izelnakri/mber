@@ -39,7 +39,10 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
   const packageJSONBuffer = await fs.readFile(DEFAULT_PACKAGE_JSON_PATH);
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
-  t.deepEqual(packageJSON.dependencies, {});
+  t.deepEqual(packageJSON.dependencies, {
+    'abortcontroller-polyfill': '^1.3.0',
+    'node-fetch': '^2.6.0'
+  });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
   t.deepEqual(packageJSON.fastboot.config.dummyapp, Object.assign(EXAMPLE_ENV, {
     APP: Object.assign(EXAMPLE_ENV.APP, {
@@ -54,7 +57,9 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
     vendorFiles: [EXAMPLE_ASSET_MAP['assets/vendor.js']]
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
-  t.deepEqual(packageJSON.fastboot.moduleWhitelist, ['node-fetch', 'abortcontroller-polyfill']);
+  t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
+    'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+  ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
   mock.removeMock();
@@ -71,7 +76,10 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
   const packageJSONBuffer = await fs.readFile(TMP_PACKAGE_JSON_PATH);
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
-  t.deepEqual(packageJSON.dependencies, {});
+  t.deepEqual(packageJSON.dependencies, {
+    'abortcontroller-polyfill': '^1.3.0',
+    'node-fetch': '^2.6.0'
+  });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
   t.deepEqual(packageJSON.fastboot.config.dummyapp, Object.assign(SECOND_EXAMPLE_ENV, {
     APP: Object.assign(SECOND_EXAMPLE_ENV.APP, {
@@ -86,7 +94,9 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
     vendorFiles: [SECOND_EXAMPLE_ASSET_MAP['assets/vendor.js']]
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
-  t.deepEqual(packageJSON.fastboot.moduleWhitelist, ['node-fetch', 'abortcontroller-polyfill']);
+  t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
+    'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+  ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
   mock.removeMock();
@@ -104,7 +114,10 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
   const packageJSONBuffer = await fs.readFile(DEFAULT_PACKAGE_JSON_PATH);
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
-  t.deepEqual(packageJSON.dependencies, {});
+  t.deepEqual(packageJSON.dependencies, {
+    'abortcontroller-polyfill': '^1.3.0',
+    'node-fetch': '^2.6.0'
+  });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
   t.deepEqual(packageJSON.fastboot.config.dummyapp, Object.assign(targetENV, {
     APP: Object.assign(targetENV.APP, {
@@ -119,7 +132,9 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
     vendorFiles: [EXAMPLE_ASSET_MAP['assets/vendor.js']]
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
-  t.deepEqual(packageJSON.fastboot.moduleWhitelist, ['node-fetch', 'abortcontroller-polyfill']);
+  t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
+    'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+  ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
   mock.removeMock();
