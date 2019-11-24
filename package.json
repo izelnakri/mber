@@ -26,7 +26,7 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
-    "@ember/test-helpers": "1.5.0",
+    "@ember/test-helpers": "1.7.1",
     "@glimmer/resolver": "^0.4.3",
     "ava": "^2.4.0",
     "cors": "^2.8.5",
@@ -35,9 +35,10 @@
     "ember-data": "3.14.0",
     "ember-devtools": "^6.0.0",
     "ember-load-initializers": "^2.1.1",
-    "ember-qunit": "^4.5.1",
+    "ember-qunit": "^4.6.0",
     "ember-resolver": "^6.0.0",
     "ember-source": "3.14.2",
+    "ember-test-waiters": "1.1.1",
     "esm": "^3.2.25",
     "intercept-stdout": "^0.1.2",
     "loader.js": "^4.7.0",
