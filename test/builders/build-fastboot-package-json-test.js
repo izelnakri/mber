@@ -40,7 +40,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
   t.deepEqual(packageJSON.dependencies, {
-    'abortcontroller-polyfill': '^1.3.0',
+    'abortcontroller-polyfill': '^1.4.0',
     'node-fetch': '^2.6.0'
   });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
@@ -77,7 +77,7 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
   t.deepEqual(packageJSON.dependencies, {
-    'abortcontroller-polyfill': '^1.3.0',
+    'abortcontroller-polyfill': '^1.4.0',
     'node-fetch': '^2.6.0'
   });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
@@ -115,7 +115,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
   t.deepEqual(packageJSON.dependencies, {
-    'abortcontroller-polyfill': '^1.3.0',
+    'abortcontroller-polyfill': '^1.4.0',
     'node-fetch': '^2.6.0'
   });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
