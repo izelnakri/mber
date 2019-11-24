@@ -65,7 +65,7 @@
     "ansi-colors": "^4.1.1",
     "babel-plugin-debug-macros": "^0.3.2",
     "babel-plugin-ember-modules-api-polyfill": "^2.9.0",
-    "babel-plugin-filter-imports": "^3.0.0",
+    "babel-plugin-filter-imports": "^4.0.0",
     "babel-plugin-htmlbars-inline-precompile": "^3.0.0",
     "babel-plugin-module-resolver": "^3.2.0",
     "babel6-plugin-strip-heimdall": "^6.0.1",
