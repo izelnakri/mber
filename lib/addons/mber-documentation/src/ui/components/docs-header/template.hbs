@@ -1,9 +1,9 @@
 <header class="docs-header">
-  {{#docs-header/link 'documentation'}}
-    {{#if logo}}
-      <img src="{{logo}}" height="33" class="docs-header-logo" />
+  <DocsHeader::Link @route="documentation">
+    {{#if this.logo}}
+      <img src="{{this.logo}}" height="33" class="docs-header-logo" />
     {{/if}}
-  {{/docs-header/link}}
+  </DocsHeader::Link>
 
   <div class="docs-header-links-wrapper">
     {{yield (hash
@@ -12,10 +12,10 @@
 
     {{!-- TODO: add search box --}}
 
-    {{#if repository}}
-      {{#docs-header/link href="https://github.com/izelnakri/mber" class="docs-header-repository-link"}}
+    {{#if this.repository}}
+      <DocsHeader::Link @href="https://github.com/izelnakri/mber" class="docs-header-repository-link">
         <img src="/images/github.svg" height="25" />
-      {{/docs-header/link}}
+      </DocsHeader::Link>
     {{/if}}
 
     {{!-- Something to take up space on mobile, so the scrolling nav isn't hugging the edge --}}

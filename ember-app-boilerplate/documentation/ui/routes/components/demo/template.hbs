@@ -27,56 +27,57 @@
   Let's look at a basic example:
 </p>
 
-{{#docs-demo as |demo|}}
-  {{#demo.example}}
+<DocsDemo as |demo|>
+  <demo.example>
     <p>I am a <strong>handlebars</strong> template!</p>
-    <p>The value is: {{val}}</p>
+    <p>The value is: {{this.val}}</p>
     <div>
-      {{input value=val class='border'}}
+      {{input value=this.val class='border'}}
     </div>
-  {{/demo.example}}
+  </demo.example>
 
-  {{demo.snippet title="template.hbs" code='
+  <demo.snippet @title="template.hbs" @code='
   <p>I am a <strong>handlebars</strong> template!</p>
-  <p>The value is: {{val}}</p>
+  <p>The value is: {{this.val}}</p>
   <div>
-    {{input value=val class="border"}}
+    {{input value=this.val class="border"}}
   </div>
-  '}}
-{{/docs-demo}}
+  '/>
+</DocsDemo>
 
 <p>
   Here's the code that rendered the above demo (you can copy-paste this block to get going in your own app):
 </p>
 
-{{docs-snippet code='
-  {{#docs-demo as |demo|}}
-    {{#demo.example}}
+<DocsSnippet @code='
+  <DocsDemo as |demo|>
+    <demo.example>
       <p>I am a <strong>handlebars</strong> template!</p>
-      <p>The value is: {{val}}</p>
+      <p>The value is: {{this.val}}</p>
       <div>
-        {{input value=val class="border"}}
+        {{input value=this.val class="border"}}
       </div>
-    {{/demo.example}}
+    </demo.example>
 
-    {{demo.snippet title="template.hbs" code=\'
+    <demo.snippet title="template.hbs" code="
     <p>I am a <strong>handlebars</strong> template!</p>
-    <p>The value is: {{val}}</p>
+    <p>The value is: {{this.val}}</p>
     <div>
-      {{input value=val class="border"}}
+      {{input value=this.val class="border"}}
     </div>
-    \'}}
-  {{/docs-demo}}'}}
+    "/>
+ </DocsDemo>
+'/>
 
 <p>
   To explain,
 </p>
 
 <ul>
-  <li><code>{docs-demo}</code> is the wrapping component
+  <li><code>DocsDemo</code> is the wrapping component
   </li>
   <li>
-    The contextual component <code>{#demo.example}{/demo.example}</code> provides a wrapper to display your example.
+    The contextual component <code>{demo.example}{/demo.example}</code> provides a wrapper to display your example.
     You'll pass a block to this component with the actual code you're demoing - for example, showing off how to use your button.
   </li>
   <li>
@@ -99,25 +100,21 @@
   HTMLBars language value is <code>hbs</code>, JavaScript is <code>js</code>, stylesheets is <code>scss</code>.
 </p>
 
-{{#docs-demo as |demo|}}
-  {{#demo.example}}
-    {{docs-dummy-example}}
-  {{/demo.example}}
+<DocsDemo as |demo|>
+  <demo.example>
+    <DocsDummyExample/>
+  </demo.example>
 
-  {{demo.snippet title="template.hbs" code='
+  <demo.snippet @title="template.hbs" @code='
   <button onclick={{action "toggleIsShowing"}} class="docs-btn">
     Press me!
   </button>
 
-  <p class="mt-4">
-    {{#if isShowing}}
-      Yep
-    {{else}}
-      Nope
-    {{/if}}
-  </p>
-'}}
-  {{demo.snippet title="component.js" code="
+  <div class="mt-4">
+    {{if this.isShowing "Yep" "Nope"}}
+  </div>
+  '/>
+  <demo.snippet @title="component.js" @code="
   import Component from '@ember/component';
 
   export default Component.extend({
@@ -128,8 +125,8 @@
       }
     }
   });
-  "}}
-{{/docs-demo}}
+  "/>
+</DocsDemo>
 
 <h2>Custom Snippet Handling</h2>
 
@@ -137,31 +134,32 @@
   If you wish to override the inferred title or syntax highlighting for a snippet, you can specify <code>title</code> and <code>language</code> properties.
 </p>
 
-{{#docs-demo as |demo|}}
-  {{#demo.example}}
+<DocsDemo as |demo|>
+  <demo.example>
   <pre>
   # Markdown
   - Has syntax highlighting, too
   </pre>
-  {{/demo.example}}
+  </demo.example>
 
-  {{demo.snippet title="Source" code='
-  {{#docs-demo as |demo|}}
-    {{#demo.example name="docs-demo-custom.md"}}
+  <demo.snippet @title="Source" @code='
+  <DocsDemo as |demo|>
+    <demo.example @name="docs-demo-custom.md">
       <pre>
       # Markdown
       - Has syntax highlighting, too
       </pre>
-    {{/demo.example}}
+    </demo.example>
 
-    {{demo.snippet title="Source"}}
-    {{demo.snippet title="My Custom Label"}}
-  {{/docs-demo}}
-  '}}
-  {{demo.snippet title="My Custom Label" language="md" code='
+    <demo.snippet @title="Source"/>
+    <demo.snippet @title="My Custom Label"/>
+  </DocsDemo>
+  '/>
+
+  <demo.snippet @title="My Custom Label" @language="mg" @code='
   <pre>
   # Markdown
   - Has syntax highlighting, too
   </pre>
-  '}}
-{{/docs-demo}}
+  '/>
+</DocsDemo>

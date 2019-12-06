@@ -1,22 +1,23 @@
-{{#docs-header logo="/images/ember-cli.svg" repository="https://github.com/izelnakri/mber" as |header|}}
-  {{#header.link "documentation.index"}}Documentation{{/header.link}}
-{{/docs-header}}
+<DocsHeader @logo="/images/ember-cli.svg" @repository="https://github.com/izelnakri/mber" as |header|>
+  <header.link @route="documentation.index">Documentation</header.link>
+</DocsHeader>
 
-{{#docs-viewer as |viewer|}}
-  {{#viewer.navigation as |nav|}}
-    {{nav.title "Foundation"}}
-    {{nav.link "Introduction" "documentation.index"}}
-    {{nav.link "Color Scheme" "documentation.color-scheme"}}
-    {{nav.link "Buttons" "documentation.buttons"}}
+<DocsViewer as |viewer|>
+  <viewer.navigation as |nav|>
+    <nav.title>Foundation</nav.title>
 
-    {{nav.title "Components"}}
-    {{nav.link "Demo" "documentation.components.demo"}}
-    {{nav.link "Header" "documentation.components.header"}}
-    {{nav.link "Viewer" "documentation.components.viewer"}}
-    {{nav.link "Snippet" "documentation.components.snippet"}}
-  {{/viewer.navigation}}
+    <nav.link @route="documentation.index">Introduction</nav.link>
+    <nav.link @route="documentation.color-scheme">Color Scheme</nav.link>
+    <nav.link @route="documentation.buttons">Buttons</nav.link>
 
-  {{#viewer.page}}
+    <nav.title>Components</nav.title>
+    <nav.link @route="documentation.components.demo">Demo</nav.link>
+    <nav.link @route="documentation.components.header">Header</nav.link>
+    <nav.link @route="documentation.components.viewer">Viewer</nav.link>
+    <nav.link @route="documentation.components.snippet">Snipper</nav.link>
+  </viewer.navigation>
+
+  <viewer.page>
     {{outlet}}
-  {{/viewer.page}}
-{{/docs-viewer}}
+  </viewer.page>
+</DocsViewer>
