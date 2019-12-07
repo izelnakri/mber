@@ -1,11 +1,11 @@
 <li class="docs-viewer-navigation-link">
-  {{#if model}}
-    {{#link-to route model}}
-      {{label}}
-    {{/link-to}}
+  {{#if this.model}}
+    <LinkTo @route={{this.route}} @model={{this.model}}>
+      {{this.label}}
+    </LinkTo>
   {{else}}
-    {{#link-to route}}
-      {{label}}
-    {{/link-to}}
+    <LinkTo @route={{this.route}}>
+      {{this.label}}
+    </LinkTo>
   {{/if}}
 </li>

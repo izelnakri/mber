@@ -1,13 +1,13 @@
-{{#if code}}
-  {{#if title}}
-    <span>{{title}}</span>
+{{#if this.code}}
+  {{#if this.title}}
+    <span>{{this.title}}</span>
   {{/if}}
 
   <div class="docs-snippet-code-block">
-    {{#if showCopy}}
+    {{#if this.showCopy}}
       <button class="docs-snippet-code-block-copy" {{action "copyToClipboard"}}>Copy</button>
     {{/if}}
 
-    <pre>{{trimmedCode}}</pre>
+    <pre>{{this.trimmedCode}}</pre>
   </div>
 {{/if}}

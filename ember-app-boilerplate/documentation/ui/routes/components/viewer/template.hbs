@@ -24,22 +24,27 @@
   To use the Docs Viewer, create a docs route and put your docs-viewer there. Here's how we're using it in this app:
 </p>
 
-{{docs-snippet title="/documentation/ui/routes/template.hbs" code='
-  {{#docs-viewer as |viewer|}}
-    {{#viewer.navigation as |nav|}}
-      {{nav.title "Foundation"}}
-      {{nav.link "Introduction" "documentation.index"}}
-      {{nav.link "Color Scheme" "documentation.color-scheme"}}
-      {{nav.link "Buttons" "documentation.buttons"}}
+<DocsSnippet @title="/documentation/ui/routes/template.hbs" @code='
+<DocsHeader @logo="/images/ember-cli.svg" @repository="https://github.com/izelnakri/mber" as |header|>
+  <header.link @route="documentation.index">Documentation</header.link>
+</DocsHeader>
 
-      {{nav.title "Components"}}
-      {{nav.link "Demo" "documentation.components.demo"}}
-      {{nav.link "Header" "documentation.components.header"}}
-      {{nav.link "Viewer" "documentation.components.viewer"}}
-      {{nav.link "Snippet" "documentation.components.snippet"}}
-    {{/viewer.navigation}}
+<DocsViewer as |viewer|>
+  <viewer.navigation as |nav|>
+    <nav.title>Foundation</nav.title>
 
-    {{#viewer.page}}
-      {{outlet}}
-    {{/viewer.page}}
-  {{/docs-viewer}}'}}
+    <nav.link @route="documentation.index">Introduction</nav.link>
+    <nav.link @route="documentation.color-scheme">Color Scheme</nav.link>
+    <nav.link @route="documentation.buttons">Buttons</nav.link>
+
+    <nav.title>Components</nav.title>
+    <nav.link @route="documentation.components.demo">Demo</nav.link>
+    <nav.link @route="documentation.components.header">Header</nav.link>
+    <nav.link @route="documentation.components.viewer">Viewer</nav.link>
+    <nav.link @route="documentation.components.snippet">Snipper</nav.link>
+  </viewer.navigation>
+
+  <viewer.page>
+    {{outlet}}
+  </viewer.page>
+</DocsViewer>'/>
