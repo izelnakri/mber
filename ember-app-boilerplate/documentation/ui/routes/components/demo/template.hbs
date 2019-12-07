@@ -32,7 +32,7 @@
     <p>I am a <strong>handlebars</strong> template!</p>
     <p>The value is: {{this.val}}</p>
     <div>
-      {{input value=this.val class='border'}}
+      <Input @value={{this.val}} class='border'/>
     </div>
   </demo.example>
 
@@ -40,7 +40,7 @@
   <p>I am a <strong>handlebars</strong> template!</p>
   <p>The value is: {{this.val}}</p>
   <div>
-    {{input value=this.val class="border"}}
+      <Input @value={{this.val}} class="border"/>
   </div>
   '/>
 </DocsDemo>
@@ -55,15 +55,15 @@
       <p>I am a <strong>handlebars</strong> template!</p>
       <p>The value is: {{this.val}}</p>
       <div>
-        {{input value=this.val class="border"}}
+        <Input @value={{this.val}} class="border"/>
       </div>
     </demo.example>
 
-    <demo.snippet title="template.hbs" code="
+    <demo.snippet @title="template.hbs" @code="
     <p>I am a <strong>handlebars</strong> template!</p>
     <p>The value is: {{this.val}}</p>
     <div>
-      {{input value=this.val class="border"}}
+      <Input @value={{this.val}} class="border"/>
     </div>
     "/>
  </DocsDemo>
