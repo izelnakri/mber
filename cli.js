@@ -3,6 +3,7 @@
 import chalk from 'ansi-colors';
 import Console from './lib/utils/console.js';
 import printCommand from './lib/commands/index.js';
+import compileCommand from './lib/commands/compile.js';
 import serveCommand from './lib/commands/serve.js';
 import testCommand from './lib/commands/test.js';
 import buildCommand from './lib/commands/build.js';
@@ -39,8 +40,8 @@ CLI.default(() => printCommand());
 CLI.command(['serve', 'server', 's'], () => serveCommand()); // TODO: add proxy
 CLI.command(['test', 't'], () => testCommand()); // TODO: add --proxy
 CLI.command(['build', 'b'], () => buildCommand()); // TODO: add --proxy
-CLI.command(['console', 'c'], () => consoleCommand());
-
+CLI.command(['compile', 'transpile', 'c'], () => compileCommand());
+CLI.command(['console'], () => consoleCommand());
 CLI.command(['help', 'h', 'print', 'p'], () => printCommand());
 CLI.command(['init', 'new'], () => newCommand());
 CLI.command(['generate', 'g', 'create'], () => generateCommand(process.argv[3], process.argv[4]));
