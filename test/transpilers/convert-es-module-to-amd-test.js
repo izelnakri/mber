@@ -1,7 +1,7 @@
 import test from 'ava';
 import convertESModuletoAMD from '../../lib/transpilers/convert-es-module-to-amd.js';
 
-test('importAddonToAmd(moduleName) works', async (t) => {
+test('convertESModuletoAMD(code, { moduleName }) works', async (t) => {
   const code = `import EmberRouter from '@ember/routing/router';
 import DocumentationRouter from 'mber-documentation';
 import ENV from '../config/environment';
@@ -54,8 +54,3 @@ export default Router;`;
 });`
   );
 });
-
-// test.todo('importAddonToAmd(moduleName, addonPath) works for node_module addon folder');
-// test.todo('importAddonToAmd(moduleName, addonPath) works for non-node_module folder');
-
-// TODO: test behavior   const packagePath = fs.existsSync(mberPackage) ? mberPackage : `${projectRoot}/node_modules/${addonPath}`;
