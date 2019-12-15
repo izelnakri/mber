@@ -111,9 +111,8 @@ function transpileEmberOrderedSet(modulePath) {
 }
 
 async function buildEmberData(projectPath, environment) {
-  const emberDataVersion = JSON.parse(await fs.readFile(`${projectPath}/package.json`)).devDependencies[
-    'ember-data'
-  ]; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
+  const emberDataVersion = JSON.parse(await fs.readFile(`${projectPath}/package.json`))
+    .devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
   const options =
     environment === 'production'
       ? {
@@ -131,7 +130,9 @@ async function buildEmberData(projectPath, environment) {
       '@ember-data/canary-features/addon',
       null
     ),
+    importAddonFolderToAMD('@ember-data/debug', '@ember-data/debug/addon', null),
     importAddonFolderToAMD('@ember-data/model', '@ember-data/model/addon', null),
+    importAddonFolderToAMD('@ember-data/record-data', '@ember-data/record-data/addon', null),
     importAddonFolderToAMD('@ember-data/serializer', '@ember-data/serializer/addon', null),
     importAddonFolderToAMD('@ember-data/store', '@ember-data/store/addon', null),
     new Promise((resolve) =>
