@@ -31,7 +31,7 @@
     "ava": "^2.4.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.1",
-    "ember-cli-test-loader": "^2.2.0",
+    "ember-cli-test-loader": "^3.0.0",
     "ember-data": "3.14.0",
     "ember-devtools": "^6.0.0",
     "ember-load-initializers": "^2.1.1",
@@ -73,7 +73,7 @@
     "babelify": "^10.0.0",
     "browserify": "^16.3.0",
     "cheerio": "^1.0.0-rc.3",
-    "chokidar": "^3.0.2",
+    "chokidar": "^3.3.1",
     "compression": "^1.7.3",
     "eslint": "^6.7.2",
     "eslint-plugin-ember": "^7.7.2",
@@ -90,9 +90,9 @@
     "puppeteer": "2.0.0",
     "sass": "1.23.7",
     "say": "^0.16.0",
-    "terser": "4.4.2",
+    "terser": "4.4.3",
     "through2": "^3.0.0",
-    "ws": "^7.1.1"
+    "ws": "^7.2.1"
   },
   "ava": {
     "files": [
