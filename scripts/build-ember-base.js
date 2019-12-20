@@ -68,11 +68,19 @@ async function readBuildFiles(projectPath, environment, options = { excludeEmber
         Object.defineProperty(_exports, "__esModule", {
           value: true
         });
-        _exports.default = void 0;
+        _exports.default =  {
+          gte: function(version) {
+            return true;
+          }
+        };
+        _exports.gte = function(version) {
+          return true;
+        };
       });
     `,
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/modules/es2017'),
     fs.readFile(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
+    importAddonFolderToAMD('@glimmer/component', '@glimmer/component/addon'),
     fs.readFile(`${MODULE_PATH}/ember-source/dist/ember.debug.js`),
     transpileEmberOrderedSet(MODULE_PATH),
     importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon')

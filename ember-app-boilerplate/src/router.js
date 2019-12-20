@@ -2,10 +2,10 @@ import EmberRouter from '@ember/routing/router';
 import DocumentationRouter from 'mber-documentation';
 import ENV from '../config/environment';
 
-const Router = EmberRouter.extend({
-  location: ENV.locationType,
-  rootURL: ENV.rootURL
-});
+export default class Router extends EmberRouter {
+  location = ENV.locationType;
+  rootURL = ENV.rootURL;
+}
 
 Router.map(function() {
   this.route('index', { path: '/' });

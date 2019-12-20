@@ -1,3 +1,5 @@
+Adapter and Serializer in new ember + documentation expressions
+
 - there could be an issue with eslint configs
 
 - qunit getTestMetadata has direct dep to ember/@test-helpers.

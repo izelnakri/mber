@@ -1,11 +1,10 @@
 import Ember from 'ember';
-import Component from '@ember/component';
-import { computed } from '@ember/object';
+import Component from '@glimmer/component';
 
-export default Component.extend({
-  emberVersion: computed(function() {
-    const [ major, minor ] = Ember.VERSION.split(".");
+export default class WelcomePageComponent extends Component {
+  get emberVersion() {
+    const [major, minor] = Ember.VERSION.split('.');
 
     return `${major}.${minor}.0`;
-  })
-});
+  }
+}

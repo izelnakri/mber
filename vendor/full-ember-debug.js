@@ -341,7 +341,14 @@ var loader, define, requireModule, require, requirejs;
         Object.defineProperty(_exports, "__esModule", {
           value: true
         });
-        _exports.default = void 0;
+        _exports.default =  {
+          gte: function(version) {
+            return true;
+          }
+        };
+        _exports.gte = function(version) {
+          return true;
+        };
       });
     
 define("@glimmer/resolver/index", ["exports", "@glimmer/resolver/resolver", "@glimmer/resolver/module-registries/basic-registry"], function (_exports, _resolver, _basicRegistry) {
@@ -875,6 +882,428 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 });
 
+define("@glimmer/component/index", ["exports", "ember-compatibility-helpers", "@glimmer/component/-private/ember-component-manager", "@glimmer/component/-private/component"], function (_exports, _emberCompatibilityHelpers, _emberComponentManager, _component) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  let GlimmerComponent = _component.default;
+
+  if (true
+  /* DEBUG */
+  ) {
+    // Add assertions against using Glimmer.js only APIs
+    // TODO: Add GlimmerComponent API docs link to these messages once API docs are live
+    function throwMethodUseError(methodName) {
+      throw new Error("You attempted to define the '".concat(methodName, "' method on a Glimmer Component, but that lifecycle hook does not exist in Ember.js applications, it only exists in Glimmer.js apps. You can rename this method, and you can trigger it using a modifier such as {{did-insert}} from '@ember/render-modifiers': https://github.com/emberjs/ember-render-modifiers."));
+    }
+
+    function throwPropertyUseError(propertyName) {
+      throw new Error("You attempted to access the '".concat(propertyName, "' property on a Glimmer Component, but that property does not exist in Ember.js applications, it only exists in Glimmer.js apps. You define a class field with the same name on your component class and it will overwrite this error message, but it will not be used by the framework."));
+    }
+
+    GlimmerComponent = class GlimmerDebugComponent extends GlimmerComponent {
+      constructor(owner, args) {
+        super(owner, args);
+
+        if (typeof this['didInsertElement'] === 'function') {
+          throwMethodUseError('didInsertElement');
+        }
+
+        if (typeof this['didUpdate'] === 'function') {
+          throwMethodUseError('didUpdate');
+        }
+      }
+
+    };
+    let proto = GlimmerComponent.prototype;
+
+    function defineErrorProp(proto, key, getterMethod) {
+      Object.defineProperty(proto, key, {
+        get: () => getterMethod(key),
+
+        set(value) {
+          Object.defineProperty(this, key, {
+            value
+          });
+        }
+
+      });
+    } // Methods should still throw whenever they are accessed
+
+
+    defineErrorProp(proto, 'bounds', throwPropertyUseError);
+    defineErrorProp(proto, 'element', throwPropertyUseError);
+    defineErrorProp(proto, 'debugName', throwPropertyUseError);
+  }
+
+  if ((0, _emberCompatibilityHelpers.gte)('3.8.0-beta.1')) {
+    Ember._setComponentManager(owner => {
+      return new _emberComponentManager.default(owner);
+    }, GlimmerComponent);
+  } else {
+    Ember._setComponentManager('glimmer', GlimmerComponent);
+  }
+
+  var _default = GlimmerComponent;
+  _exports.default = _default;
+});
+define("@glimmer/component/-private/base-component-manager", ["exports", "@glimmer/component/-private/component"], function (_exports, _component) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = BaseComponentManager;
+
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+  /**
+   * This factory function returns a component manager class with common behavior
+   * that can be extend to add Glimmer.js- or Ember.js-specific functionality. As
+   * these environments converge, the need for two component manager
+   * implementations (and thus this factory) should go away.
+   */
+  function BaseComponentManager(setOwner, getOwner, capabilities) {
+    var _temp;
+
+    return _temp = class {
+      static create(attrs) {
+        let owner = getOwner(attrs);
+        return new this(owner);
+      }
+
+      constructor(owner) {
+        _defineProperty(this, "capabilities", capabilities);
+
+        setOwner(this, owner);
+      }
+
+      createComponent(ComponentClass, args) {
+        if (true
+        /* DEBUG */
+        ) {
+          _component.ARGS_SET.set(args.named, true);
+        }
+
+        return new ComponentClass(getOwner(this), args.named);
+      }
+
+      getContext(component) {
+        return component;
+      }
+
+    }, _temp;
+  }
+});
+define("@glimmer/component/-private/component", ["exports", "@glimmer/component/-private/owner"], function (_exports, _owner) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.setDestroying = setDestroying;
+  _exports.setDestroyed = setDestroyed;
+  _exports.default = _exports.ARGS_SET = void 0;
+
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+  const DESTROYING = new WeakMap();
+  const DESTROYED = new WeakMap();
+
+  function setDestroying(component) {
+    DESTROYING.set(component, true);
+  }
+
+  function setDestroyed(component) {
+    DESTROYED.set(component, true);
+  }
+
+  let ARGS_SET;
+  _exports.ARGS_SET = ARGS_SET;
+
+  if (true
+  /* DEBUG */
+  ) {
+    _exports.ARGS_SET = ARGS_SET = new WeakMap();
+  }
+  /**
+   * The `Component` class defines an encapsulated UI element that is rendered to
+   * the DOM. A component is made up of a template and, optionally, this component
+   * object.
+   *
+   * ## Defining a Component
+   *
+   * To define a component, subclass `Component` and add your own properties,
+   * methods and lifecycle hooks:
+   *
+   * ```ts
+   * import Component from '@glimmer/component';
+   *
+   * export default class extends Component {
+   * }
+   * ```
+   *
+   * ## Lifecycle Hooks
+   *
+   * Lifecycle hooks allow you to respond to changes to a component, such as when
+   * it gets created, rendered, updated or destroyed. To add a lifecycle hook to a
+   * component, implement the hook as a method on your component subclass.
+   *
+   * For example, to be notified when Glimmer has rendered your component so you
+   * can attach a legacy jQuery plugin, implement the `didInsertElement()` method:
+   *
+   * ```ts
+   * import Component from '@glimmer/component';
+   *
+   * export default class extends Component {
+   *   didInsertElement() {
+   *     $(this.element).pickadate();
+   *   }
+   * }
+   * ```
+   *
+   * ## Data for Templates
+   *
+   * `Component`s have two different kinds of data, or state, that can be
+   * displayed in templates:
+   *
+   * 1. Arguments
+   * 2. Properties
+   *
+   * Arguments are data that is passed in to a component from its parent
+   * component. For example, if I have a `UserGreeting` component, I can pass it
+   * a name and greeting to use:
+   *
+   * ```hbs
+   * <UserGreeting @name="Ricardo" @greeting="Olá" />
+   * ```
+   *
+   * Inside my `UserGreeting` template, I can access the `@name` and `@greeting`
+   * arguments that I've been given:
+   *
+   * ```hbs
+   * {{@greeting}}, {{@name}}!
+   * ```
+   *
+   * Arguments are also available inside my component:
+   *
+   * ```ts
+   * console.log(this.args.greeting); // prints "Olá"
+   * ```
+   *
+   * Properties, on the other hand, are internal to the component and declared in
+   * the class. You can use properties to store data that you want to show in the
+   * template, or pass to another component as an argument.
+   *
+   * ```ts
+   * import Component from '@glimmer/component';
+   *
+   * export default class extends Component {
+   *   user = {
+   *     name: 'Robbie'
+   *   }
+   * }
+   * ```
+   *
+   * In the above example, we've defined a component with a `user` property that
+   * contains an object with its own `name` property.
+   *
+   * We can render that property in our template:
+   *
+   * ```hbs
+   * Hello, {{user.name}}!
+   * ```
+   *
+   * We can also take that property and pass it as an argument to the
+   * `UserGreeting` component we defined above:
+   *
+   * ```hbs
+   * <UserGreeting @greeting="Hello" @name={{user.name}} />
+   * ```
+   *
+   * ## Arguments vs. Properties
+   *
+   * Remember, arguments are data that was given to your component by its parent
+   * component, and properties are data your component has defined for itself.
+   *
+   * You can tell the difference between arguments and properties in templates
+   * because arguments always start with an `@` sign (think "A is for arguments"):
+   *
+   * ```hbs
+   * {{@firstName}}
+   * ```
+   *
+   * We know that `@firstName` came from the parent component, not the current
+   * component, because it starts with `@` and is therefore an argument.
+   *
+   * On the other hand, if we see:
+   *
+   * ```hbs
+   * {{name}}
+   * ```
+   *
+   * We know that `name` is a property on the component. If we want to know where
+   * the data is coming from, we can go look at our component class to find out.
+   *
+   * Inside the component itself, arguments always show up inside the component's
+   * `args` property. For example, if `{{@firstName}}` is `Tom` in the template,
+   * inside the component `this.args.firstName` would also be `Tom`.
+   */
+
+
+  class BaseComponent {
+    /**
+     * Constructs a new component and assigns itself the passed properties. You
+     * should not construct new components yourself. Instead, Glimmer will
+     * instantiate new components automatically as it renders.
+     *
+     * @param owner
+     * @param args
+     */
+    constructor(owner, args) {
+      _defineProperty(this, "args", void 0);
+
+      if (true
+      /* DEBUG */
+      && !(owner !== null && typeof owner === 'object' && ARGS_SET.has(args))) {
+        throw new Error("You must pass both the owner and args to super() in your component: ".concat(this.constructor.name, ". You can pass them directly, or use ...arguments to pass all arguments through."));
+      }
+
+      this.args = args;
+      (0, _owner.setOwner)(this, owner);
+      DESTROYING.set(this, false);
+      DESTROYED.set(this, false);
+    }
+    /**
+     * Named arguments passed to the component from its parent component.
+     * They can be accessed in JavaScript via `this.args.argumentName` and in the template via `@argumentName`.
+     *
+     * Say you have the following component, which will have two `args`, `firstName` and `lastName`:
+     *
+     * ```hbs
+     * <my-component @firstName="Arthur" @lastName="Dent" />
+     * ```
+     *
+     * If you needed to calculate `fullName` by combining both of them, you would do:
+     *
+     * ```ts
+     * didInsertElement() {
+     *   console.log(`Hi, my full name is ${this.args.firstName} ${this.args.lastName}`);
+     * }
+     * ```
+     *
+     * While in the template you could do:
+     *
+     * ```hbs
+     * <p>Welcome, {{@firstName}} {{@lastName}}!</p>
+     * ```
+     */
+
+
+    get isDestroying() {
+      return DESTROYING.get(this);
+    }
+
+    get isDestroyed() {
+      return DESTROYED.get(this);
+    }
+    /**
+     * Called before the component has been removed from the DOM.
+     */
+
+
+    willDestroy() {}
+
+  }
+
+  _exports.default = BaseComponent;
+});
+define("@glimmer/component/-private/ember-component-manager", ["exports", "ember-compatibility-helpers", "@glimmer/component/-private/base-component-manager", "@glimmer/component/-private/component"], function (_exports, _emberCompatibilityHelpers, _baseComponentManager, _component) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  const CAPABILITIES = (0, _emberCompatibilityHelpers.gte)('3.13.0-beta.1') ? Ember._componentManagerCapabilities('3.13', {
+    destructor: true,
+    asyncLifecycleCallbacks: false,
+    updateHook: false
+  }) : Ember._componentManagerCapabilities('3.4', {
+    destructor: true,
+    asyncLifecycleCallbacks: false
+  });
+  /**
+   * This component manager runs in Ember.js environments and extends the base component manager to:
+   *
+   * 1. Properly destroy the component's associated `meta` data structure
+   * 2. Schedule destruction using Ember's runloop
+   */
+
+  class EmberGlimmerComponentManager extends (0, _baseComponentManager.default)(Ember.setOwner, Ember.getOwner, CAPABILITIES) {
+    destroyComponent(component) {
+      if (component.isDestroying) {
+        return;
+      }
+
+      let meta = Ember.meta(component);
+      meta.setSourceDestroying();
+      (0, _component.setDestroying)(component);
+      Ember.run.schedule('actions', component, component.willDestroy);
+      Ember.run.schedule('destroy', this, scheduledDestroyComponent, component, meta);
+    }
+
+  }
+
+  function scheduledDestroyComponent(component, meta) {
+    if (component.isDestroyed) {
+      return;
+    }
+
+    Ember.destroy(component);
+    meta.setSourceDestroyed();
+    (0, _component.setDestroyed)(component);
+  }
+
+  // In Ember 3.12 and earlier, the updateComponent hook was mandatory.
+  // As of Ember 3.13, the `args` object is stable and each property of the
+  // object participates in the autotrack stack on its own. This means we do not
+  // need to set the `args` property on the component instance to invalidate
+  // tracked getters that rely on `args`, and therefore don't require the `updateComponent`
+  // hook at all.
+  if (!(0, _emberCompatibilityHelpers.gte)('3.13.0-beta.1')) {
+    EmberGlimmerComponentManager.prototype.updateComponent = function updateComponent(component, args) {
+      let argSnapshot = args.named;
+
+      if (true
+      /* DEBUG */
+      ) {
+        argSnapshot = Object.freeze(argSnapshot);
+      }
+
+      Ember.set(component, 'args', argSnapshot);
+    };
+  }
+
+  var _default = EmberGlimmerComponentManager;
+  _exports.default = _default;
+});
+define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function (_exports, _di) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "setOwner", {
+    enumerable: true,
+    get: function () {
+      return _di.setOwner;
+    }
+  });
+});
 (function() {
 /*!
  * @overview  Ember - JavaScript Application Framework
