@@ -1,4 +1,6 @@
 Adapter and Serializer in new ember + documentation expressions
+only Serializer EmbeddedRecordsMixin solution is needed
+also make generators generate octane blueprints
 
 - there could be an issue with eslint configs
 

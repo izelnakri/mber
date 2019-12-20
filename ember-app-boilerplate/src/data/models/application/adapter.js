@@ -6,18 +6,20 @@ import ENV from '../../../../config/environment';
 
 const { RESTAdapter, InvalidError, errorsHashToArray } = DS;
 
-export default RESTAdapter.extend({
-  // session: service(),
-  host: ENV.APP.API_HOST,
+export default class ApplicationAdapter extends RESTAdapter {
+  // @service session;
+  // @tracked this.session.authenticationToken;
+  host = ENV.APP.API_HOST;
+  coalesceFindRequests = true;
+
   pathForType(type) {
     return pluralize(dasherize(type));
-  },
-  // headers: computed('session.{authenticationToken,currentUser.@each}', function() {
+  }
+  // get headers() {
   //   if (this.session.authenticationToken) {
   //     return { Authorization: `Bearer ${this.session.authenticationToken}` };
   //   }
-  // }),
-  coalesceFindRequests: true,
+  // }
   handleResponse(status, headers, payload) {
     if (this.isInvalid(status, headers, payload)) {
       const errors = errorsHashToArray(payload.errors);
@@ -25,6 +27,6 @@ export default RESTAdapter.extend({
       return new InvalidError(errors);
     }
 
-    return this._super(...arguments);
+    return super.handleResponse(...arguments);
   }
-});
+}
