@@ -6,7 +6,7 @@ export default function(environment) {
     locationType: 'auto',
     documentation: {
       path: '/styleguide',
-      enabled: ['development', 'test', 'memserver', 'demo'].includes(environment),
+      enabled: ['development', 'test', 'memserver', 'demo'].includes(environment)
     },
     'ember-resolver': {
       features: {
@@ -26,10 +26,15 @@ export default function(environment) {
       enabled: ['demo', 'test', 'memserver'].includes(environment)
     },
     EmberENV: {
+      _APPLICATION_TEMPLATE_WRAPPER: false,
+      _DEBUG_RENDER_TREE: true,
+      _DEFAULT_ASYNC_OBSERVERS: true,
       _JQUERY_INTEGRATION: false,
+      _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true,
+      _EMBER_MODULE_UNIFICATION: true,
+      'ember-module-unification': true,
+      EMBER_MODULE_UNIFICATION: true,
       FEATURES: {
-        // Here you can enable experimental features on an ember canary build
-        // e.g. 'with-controller': true
         'ember-module-unification': true,
         EMBER_MODULE_UNIFICATION: true
       },
@@ -65,8 +70,7 @@ export default function(environment) {
   }
 
   if (environment === 'production') {
-
   }
 
   return ENV;
-};
+}

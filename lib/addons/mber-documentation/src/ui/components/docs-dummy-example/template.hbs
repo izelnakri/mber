@@ -1,11 +1,13 @@
-<button onclick={{action "toggleIsShowing"}} class="docs-btn">
-  Press me!
-</button>
+<div class="docs-dummy-example">
+  <button onclick={{action "toggleIsShowing"}} class="docs-btn">
+    Press me!
+  </button>
 
-<p class="mt-4">
-  {{#if this.isShowing}}
-    Yep
-  {{else}}
-    Nope
-  {{/if}}
-</p>
+  <p class="mt-4">
+    {{#if this.isShowing}}
+      Yep
+    {{else}}
+      Nope
+    {{/if}}
+  </p>
+</div>
