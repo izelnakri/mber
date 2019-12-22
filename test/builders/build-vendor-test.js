@@ -200,7 +200,7 @@ test.serial('buildVendor(production) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[806\.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[809\.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -234,7 +234,7 @@ test.serial('buildVendor(production) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[584.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[587.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -272,7 +272,7 @@ test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[799.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[802.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -306,7 +306,7 @@ test.serial('buildVendor(production, { fastboot: false }) works without ember da
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[576.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[579.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -438,9 +438,9 @@ test.serial('buildVendor(memserver) works', async (t) => {
   t.deepEqual(
     getWindowENV(window.EmberENV),
     Object.assign({}, DEFAULT_BROWSER_EMBER_ENV, {
-      environment: 'memserver',
-      _APPLICATION_TEMPLATE_WRAPPER: false,
-      _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
+      environment: 'memserver'
+      // _APPLICATION_TEMPLATE_WRAPPER: false,
+      // _TEMPLATE_ONLY_GLIMMER_COMPONENTS: true
     })
   );
   // t.true(window.runningTests === false);
@@ -503,7 +503,7 @@ test.serial('buildVendor(demo) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[806.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[809.\d+ kB\] Environment: demo/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
@@ -536,7 +536,7 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[584.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[587.\d+ kB\] Environment: demo/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
@@ -752,7 +752,7 @@ Object.filter = (object, keys) => {
 };
 
 function getWindowENV(ENV) {
-  return Object.filter(ENV, [
+  return Object.filter(ENV || {}, [
     'LOG_STACKTRACE_ON_DEPRECATION',
     'LOG_VERSION',
     'RAISE_ON_DEPRECATION',
