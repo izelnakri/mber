@@ -84,13 +84,12 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.default=void 0
 let i=n.default;(0,t.gte)("3.8.0-beta.1")?Ember._setComponentManager(e=>new r.default(e),i):Ember._setComponentManager("glimmer",i)
 var s=i
 e.default=s})),define("@glimmer/component/-private/base-component-manager",["exports","@glimmer/component/-private/component"],(function(e,t){"use strict"
-Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e,t,r){return class{static create(e){return new this(t(e))}constructor(t){(function(e,t,r){t in e?Object.defineProperty(e,t,{value:r,enumerable:!0,configurable:!0,writable:!0}):e[t]=r})(this,"capabilities",r),e(this,t)}createComponent(e,r){return new e(t(this),r.named)}getContext(e){return e}}}})),define("@glimmer/component/-private/component",["exports","@glimmer/component/-private/owner"],(function(e,t){"use strict"
+Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e,t,r){return class{static create(e){return new this(t(e))}constructor(t){this.capabilities=r,e(this,t)}createComponent(e,r){return new e(t(this),r.named)}getContext(e){return e}}}})),define("@glimmer/component/-private/component",["exports","@glimmer/component/-private/owner"],(function(e,t){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),e.setDestroying=function(e){r.set(e,!0)},e.setDestroyed=function(e){n.set(e,!0)},e.default=e.ARGS_SET=void 0
 const r=new WeakMap,n=new WeakMap
 let i
 e.ARGS_SET=i
-e.default=class{constructor(e,i){var s,a,o
-o=void 0,(a="args")in(s=this)?Object.defineProperty(s,a,{value:o,enumerable:!0,configurable:!0,writable:!0}):s[a]=o,this.args=i,(0,t.setOwner)(this,e),r.set(this,!1),n.set(this,!1)}get isDestroying(){return r.get(this)}get isDestroyed(){return n.get(this)}willDestroy(){}}})),define("@glimmer/component/-private/ember-component-manager",["exports","ember-compatibility-helpers","@glimmer/component/-private/base-component-manager","@glimmer/component/-private/component"],(function(e,t,r,n){"use strict"
+e.default=class{constructor(e,i){this.args=void 0,this.args=i,(0,t.setOwner)(this,e),r.set(this,!1),n.set(this,!1)}get isDestroying(){return r.get(this)}get isDestroyed(){return n.get(this)}willDestroy(){}}})),define("@glimmer/component/-private/ember-component-manager",["exports","ember-compatibility-helpers","@glimmer/component/-private/base-component-manager","@glimmer/component/-private/component"],(function(e,t,r,n){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),e.default=void 0
 const i=(0,t.gte)("3.13.0-beta.1")?Ember._componentManagerCapabilities("3.13",{destructor:!0,asyncLifecycleCallbacks:!1,updateHook:!1}):Ember._componentManagerCapabilities("3.4",{destructor:!0,asyncLifecycleCallbacks:!1})
 class s extends((0,r.default)(Ember.setOwner,Ember.getOwner,i)){destroyComponent(e){if(e.isDestroying)return

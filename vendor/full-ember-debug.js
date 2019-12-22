@@ -958,8 +958,6 @@ define("@glimmer/component/-private/base-component-manager", ["exports", "@glimm
   });
   _exports.default = BaseComponentManager;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
    * This factory function returns a component manager class with common behavior
    * that can be extend to add Glimmer.js- or Ember.js-specific functionality. As
@@ -976,8 +974,7 @@ define("@glimmer/component/-private/base-component-manager", ["exports", "@glimm
       }
 
       constructor(owner) {
-        _defineProperty(this, "capabilities", capabilities);
-
+        this.capabilities = capabilities;
         setOwner(this, owner);
       }
 
@@ -1007,9 +1004,6 @@ define("@glimmer/component/-private/component", ["exports", "@glimmer/component/
   _exports.setDestroying = setDestroying;
   _exports.setDestroyed = setDestroyed;
   _exports.default = _exports.ARGS_SET = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   const DESTROYING = new WeakMap();
   const DESTROYED = new WeakMap();
 
@@ -1164,7 +1158,7 @@ define("@glimmer/component/-private/component", ["exports", "@glimmer/component/
      * @param args
      */
     constructor(owner, args) {
-      _defineProperty(this, "args", void 0);
+      this.args = void 0;
 
       if (true
       /* DEBUG */
@@ -73866,9 +73860,6 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
     value: true
   });
   _exports.default = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   let nextBfsId = 1;
 
   class RecordDataDefault {
@@ -73876,39 +73867,23 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
      * @deprecated
      */
     constructor(arg1, arg2) {
-      _defineProperty(this, "_errors", void 0);
-
-      _defineProperty(this, "__relationships", void 0);
-
-      _defineProperty(this, "__implicitRelationships", void 0);
-
-      _defineProperty(this, "modelName", void 0);
-
-      _defineProperty(this, "clientId", void 0);
-
-      _defineProperty(this, "id", void 0);
-
-      _defineProperty(this, "isDestroyed", void 0);
-
-      _defineProperty(this, "_isNew", void 0);
-
-      _defineProperty(this, "_bfsId", void 0);
-
-      _defineProperty(this, "__attributes", void 0);
-
-      _defineProperty(this, "__inFlightAttributes", void 0);
-
-      _defineProperty(this, "__data", void 0);
-
-      _defineProperty(this, "_scheduledDestroy", void 0);
-
-      _defineProperty(this, "_isDeleted", void 0);
-
-      _defineProperty(this, "_isDeletionCommited", void 0);
-
-      _defineProperty(this, "identifier", void 0);
-
-      _defineProperty(this, "storeWrapper", void 0);
+      this._errors = void 0;
+      this.__relationships = void 0;
+      this.__implicitRelationships = void 0;
+      this.modelName = void 0;
+      this.clientId = void 0;
+      this.id = void 0;
+      this.isDestroyed = void 0;
+      this._isNew = void 0;
+      this._bfsId = void 0;
+      this.__attributes = void 0;
+      this.__inFlightAttributes = void 0;
+      this.__data = void 0;
+      this._scheduledDestroy = void 0;
+      this._isDeleted = void 0;
+      this._isDeletionCommited = void 0;
+      this.identifier = void 0;
+      this.storeWrapper = void 0;
 
       if (_canaryFeatures.IDENTIFIERS) {
         const [identifier, storeWrapper] = arguments;
@@ -74748,18 +74723,12 @@ define("@ember-data/record-data/-private/relationships/state/belongs-to", ["expo
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   class BelongsToRelationship extends _relationship.default {
     constructor(store, inverseKey, relationshipMeta, recordData, inverseIsAsync) {
       super(store, inverseKey, relationshipMeta, recordData, inverseIsAsync);
-
-      _defineProperty(this, "inverseRecordData", void 0);
-
-      _defineProperty(this, "canonicalState", void 0);
-
-      _defineProperty(this, "key", void 0);
-
+      this.inverseRecordData = void 0;
+      this.canonicalState = void 0;
+      this.key = void 0;
       this.key = relationshipMeta.key;
       this.inverseRecordData = null;
       this.canonicalState = null;
@@ -74987,8 +74956,6 @@ define("@ember-data/record-data/-private/relationships/state/create", ["exports"
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   function createRelationshipFor(relationshipMeta, store, recordData, key) {
     let inverseKey = recordData.storeWrapper.inverseForRelationship(recordData.modelName, key);
     let inverseIsAsync = recordData.storeWrapper.inverseIsAsyncForRelationship(recordData.modelName, key);
@@ -75003,13 +74970,9 @@ define("@ember-data/record-data/-private/relationships/state/create", ["exports"
   class Relationships {
     constructor(recordData) {
       this.recordData = recordData;
-
-      _defineProperty(this, "_store", void 0);
-
-      _defineProperty(this, "_storeWrapper", void 0);
-
-      _defineProperty(this, "initializedRelationships", void 0);
-
+      this._store = void 0;
+      this._storeWrapper = void 0;
+      this.initializedRelationships = void 0;
       this.initializedRelationships = Object.create(null);
       this._storeWrapper = (0, _private.upgradeForInternal)(recordData.storeWrapper);
       this._store = this._storeWrapper._store;
@@ -75054,25 +75017,17 @@ define("@ember-data/record-data/-private/relationships/state/has-many", ["export
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
     @module @ember-data/store
   */
   class ManyRelationship extends _relationship.default {
     constructor(store, inverseKey, relationshipMeta, recordData, inverseIsAsync) {
       super(store, inverseKey, relationshipMeta, recordData, inverseIsAsync);
-
-      _defineProperty(this, "canonicalState", void 0);
-
-      _defineProperty(this, "currentState", void 0);
-
-      _defineProperty(this, "_willUpdateManyArray", void 0);
-
-      _defineProperty(this, "_pendingManyArrayUpdates", void 0);
-
-      _defineProperty(this, "key", void 0);
-
+      this.canonicalState = void 0;
+      this.currentState = void 0;
+      this._willUpdateManyArray = void 0;
+      this._pendingManyArrayUpdates = void 0;
+      this.key = void 0;
       this.canonicalState = [];
       this.currentState = [];
       this._willUpdateManyArray = false;
@@ -75355,56 +75310,31 @@ define("@ember-data/record-data/-private/relationships/state/relationship", ["ex
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   class Relationship {
     constructor(store, inverseKey, relationshipMeta, recordData, inverseIsAsync) {
-      _defineProperty(this, "inverseIsAsync", void 0);
-
-      _defineProperty(this, "kind", void 0);
-
-      _defineProperty(this, "recordData", void 0);
-
-      _defineProperty(this, "members", void 0);
-
-      _defineProperty(this, "canonicalMembers", void 0);
-
-      _defineProperty(this, "store", void 0);
-
-      _defineProperty(this, "key", void 0);
-
-      _defineProperty(this, "inverseKey", void 0);
-
-      _defineProperty(this, "isAsync", void 0);
-
-      _defineProperty(this, "isPolymorphic", void 0);
-
-      _defineProperty(this, "relationshipMeta", void 0);
-
-      _defineProperty(this, "inverseKeyForImplicit", void 0);
-
-      _defineProperty(this, "meta", void 0);
-
-      _defineProperty(this, "__inverseMeta", void 0);
-
-      _defineProperty(this, "_tempModelName", void 0);
-
-      _defineProperty(this, "shouldForceReload", false);
-
-      _defineProperty(this, "relationshipIsStale", void 0);
-
-      _defineProperty(this, "hasDematerializedInverse", void 0);
-
-      _defineProperty(this, "hasAnyRelationshipData", void 0);
-
-      _defineProperty(this, "relationshipIsEmpty", void 0);
-
-      _defineProperty(this, "hasFailedLoadAttempt", false);
-
-      _defineProperty(this, "links", void 0);
-
-      _defineProperty(this, "willSync", void 0);
-
+      this.inverseIsAsync = void 0;
+      this.kind = void 0;
+      this.recordData = void 0;
+      this.members = void 0;
+      this.canonicalMembers = void 0;
+      this.store = void 0;
+      this.key = void 0;
+      this.inverseKey = void 0;
+      this.isAsync = void 0;
+      this.isPolymorphic = void 0;
+      this.relationshipMeta = void 0;
+      this.inverseKeyForImplicit = void 0;
+      this.meta = void 0;
+      this.__inverseMeta = void 0;
+      this._tempModelName = void 0;
+      this.shouldForceReload = false;
+      this.relationshipIsStale = void 0;
+      this.hasDematerializedInverse = void 0;
+      this.hasAnyRelationshipData = void 0;
+      this.relationshipIsEmpty = void 0;
+      this.hasFailedLoadAttempt = false;
+      this.links = void 0;
+      this.willSync = void 0;
       this.inverseIsAsync = inverseIsAsync;
       this.kind = relationshipMeta.kind;
       let async = relationshipMeta.options.async;
@@ -80300,9 +80230,6 @@ define("@ember-data/store/-private/identifiers/cache", ["exports", "@ember-data/
   _exports.setIdentifierResetMethod = setIdentifierResetMethod;
   _exports.identifierCacheFor = identifierCacheFor;
   _exports.IdentifierCache = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   let configuredForgetMethod;
   let configuredGenerationMethod;
   let configuredResetMethod;
@@ -80370,21 +80297,15 @@ define("@ember-data/store/-private/identifiers/cache", ["exports", "@ember-data/
     // to a WeakMap to avoid leaking
     // currently we leak this for test purposes
     constructor() {
-      _defineProperty(this, "_cache", {
+      this._cache = {
         lids: Object.create(null),
         types: Object.create(null)
-      });
-
-      _defineProperty(this, "_generate", void 0);
-
-      _defineProperty(this, "_update", void 0);
-
-      _defineProperty(this, "_forget", void 0);
-
-      _defineProperty(this, "_reset", void 0);
-
-      _defineProperty(this, "_merge", void 0);
-
+      };
+      this._generate = void 0;
+      this._update = void 0;
+      this._forget = void 0;
+      this._reset = void 0;
+      this._merge = void 0;
       // we cache the user configuredGenerationMethod at init because it must
       // be configured prior and is not allowed to be changed
       this._generate = configuredGenerationMethod || defaultGenerationMethod;
@@ -80909,9 +80830,6 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     value: true
   });
   _exports.default = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   const emberRun = Ember.run.backburner;
   const {
     ENV
@@ -81066,46 +80984,27 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     */
     constructor() {
       super(...arguments);
-
-      _defineProperty(this, "_backburner", _backburner.default);
-
-      _defineProperty(this, "recordArrayManager", new _recordArrayManager.default({
+      this._backburner = _backburner.default;
+      this.recordArrayManager = new _recordArrayManager.default({
         store: this
-      }));
-
-      _defineProperty(this, "_notificationManager", void 0);
-
-      _defineProperty(this, "_adapterCache", Object.create(null));
-
-      _defineProperty(this, "_serializerCache", Object.create(null));
-
-      _defineProperty(this, "_storeWrapper", new _recordDataStoreWrapper.default(this));
-
-      _defineProperty(this, "_pendingSave", []);
-
-      _defineProperty(this, "_updatedRelationships", []);
-
-      _defineProperty(this, "_updatedInternalModels", []);
-
-      _defineProperty(this, "_pendingFetch", new Map());
-
-      _defineProperty(this, "_fetchManager", void 0);
-
-      _defineProperty(this, "_schemaDefinitionService", void 0);
-
-      _defineProperty(this, "_trackedAsyncRequests", void 0);
-
-      _defineProperty(this, "shouldAssertMethodCallsOnDestroyedStore", false);
-
-      _defineProperty(this, "shouldTrackAsyncRequests", false);
-
-      _defineProperty(this, "generateStackTracesForTrackedRequests", false);
-
-      _defineProperty(this, "_trackAsyncRequestStart", void 0);
-
-      _defineProperty(this, "_trackAsyncRequestEnd", void 0);
-
-      _defineProperty(this, "__asyncWaiter", void 0);
+      });
+      this._notificationManager = void 0;
+      this._adapterCache = Object.create(null);
+      this._serializerCache = Object.create(null);
+      this._storeWrapper = new _recordDataStoreWrapper.default(this);
+      this._pendingSave = [];
+      this._updatedRelationships = [];
+      this._updatedInternalModels = [];
+      this._pendingFetch = new Map();
+      this._fetchManager = void 0;
+      this._schemaDefinitionService = void 0;
+      this._trackedAsyncRequests = void 0;
+      this.shouldAssertMethodCallsOnDestroyedStore = false;
+      this.shouldTrackAsyncRequests = false;
+      this.generateStackTracesForTrackedRequests = false;
+      this._trackAsyncRequestStart = void 0;
+      this._trackAsyncRequestEnd = void 0;
+      this.__asyncWaiter = void 0;
 
       if (_canaryFeatures.REQUEST_SERVICE) {
         this._fetchManager = new _fetchManager.default(this);
@@ -84298,7 +84197,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+  /**
+    @module @ember-data/store
+  */
 
   /**
     The store service contains all of the data for records loaded from the server.
@@ -84375,12 +84276,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
   class Store extends _coreStore.default {
     constructor(...args) {
       super(...args);
-
-      _defineProperty(this, "_modelFactoryCache", Object.create(null));
-
-      _defineProperty(this, "_relationshipsDefCache", Object.create(null));
-
-      _defineProperty(this, "_attributesDefCache", Object.create(null));
+      this._modelFactoryCache = Object.create(null);
+      this._relationshipsDefCache = Object.create(null);
+      this._attributesDefCache = Object.create(null);
     }
 
     instantiateRecord(identifier, createRecordArgs, recordDataFor, notificationManager) {
@@ -84747,8 +84645,6 @@ define("@ember-data/store/-private/system/fetch-manager", ["exports", "@ember-da
   });
   _exports.default = _exports.SaveOp = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   function payloadIsNotBlank(adapterPayload) {
     if (Array.isArray(adapterPayload)) {
       return true;
@@ -84766,15 +84662,10 @@ define("@ember-data/store/-private/system/fetch-manager", ["exports", "@ember-da
     // fetches pending in the runloop, waiting to be coalesced
     constructor(_store) {
       this._store = _store;
-
-      _defineProperty(this, "isDestroyed", void 0);
-
-      _defineProperty(this, "requestCache", void 0);
-
-      _defineProperty(this, "_pendingSave", void 0);
-
-      _defineProperty(this, "_pendingFetch", void 0);
-
+      this.isDestroyed = void 0;
+      this.requestCache = void 0;
+      this._pendingSave = void 0;
+      this._pendingFetch = void 0;
       // used to keep track of all the find requests that need to be coalesced
       this._pendingFetch = new Map();
       this._pendingSave = [];
@@ -85161,8 +85052,6 @@ define("@ember-data/store/-private/system/identity-map", ["exports", "@ember-dat
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
     @module @ember-data/store
   */
@@ -85176,7 +85065,7 @@ define("@ember-data/store/-private/system/identity-map", ["exports", "@ember-dat
    */
   class IdentityMap {
     constructor() {
-      _defineProperty(this, "_map", Object.create(null));
+      this._map = Object.create(null);
     }
 
     /**
@@ -85225,8 +85114,6 @@ define("@ember-data/store/-private/system/internal-model-map", ["exports", "@emb
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
     @module @ember-data/store
   */
@@ -85244,12 +85131,9 @@ define("@ember-data/store/-private/system/internal-model-map", ["exports", "@emb
   class InternalModelMap {
     constructor(modelName) {
       this.modelName = modelName;
-
-      _defineProperty(this, "_idToModel", Object.create(null));
-
-      _defineProperty(this, "_models", []);
-
-      _defineProperty(this, "_metadata", null);
+      this._idToModel = Object.create(null);
+      this._models = [];
+      this._metadata = null;
     }
     /**
      * @method get
@@ -86338,8 +86222,6 @@ define("@ember-data/store/-private/system/relationship-meta", ["exports", "ember
   _exports.relationshipFromMeta = relationshipFromMeta;
   _exports.RelationshipDefinition = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
     @module @ember-data/store
   */
@@ -86363,23 +86245,14 @@ define("@ember-data/store/-private/system/relationship-meta", ["exports", "ember
   class RelationshipDefinition {
     constructor(meta) {
       this.meta = meta;
-
-      _defineProperty(this, _brand.BRAND_SYMBOL, void 0);
-
-      _defineProperty(this, "_type", '');
-
-      _defineProperty(this, "__inverseKey", '');
-
-      _defineProperty(this, "__inverseIsAsync", true);
-
-      _defineProperty(this, "__hasCalculatedInverse", false);
-
-      _defineProperty(this, "parentModelName", void 0);
-
-      _defineProperty(this, "inverse", void 0);
-
-      _defineProperty(this, "inverseIsAsync", void 0);
-
+      this[_brand.BRAND_SYMBOL] = void 0;
+      this._type = '';
+      this.__inverseKey = '';
+      this.__inverseIsAsync = true;
+      this.__hasCalculatedInverse = false;
+      this.parentModelName = void 0;
+      this.inverse = void 0;
+      this.inverseIsAsync = void 0;
       this.parentModelName = meta.parentModelName;
     }
 
@@ -86469,9 +86342,6 @@ define("@ember-data/store/-private/system/request-cache", ["exports", "@ember-da
     value: true
   });
   _exports.default = _exports.RequestPromise = _exports.Touching = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   const Touching = (0, _symbol.symbol)('touching');
   _exports.Touching = Touching;
   const RequestPromise = (0, _symbol.symbol)('promise');
@@ -86483,11 +86353,9 @@ define("@ember-data/store/-private/system/request-cache", ["exports", "@ember-da
 
   class RequestCache {
     constructor() {
-      _defineProperty(this, "_pending", Object.create(null));
-
-      _defineProperty(this, "_done", Object.create(null));
-
-      _defineProperty(this, "_subscriptions", Object.create(null));
+      this._pending = Object.create(null);
+      this._done = Object.create(null);
+      this._subscriptions = Object.create(null);
     }
 
     enqueue(promise, queryRequest) {
@@ -86626,9 +86494,6 @@ define("@ember-data/store/-private/system/schema-definition-service", ["exports"
   _exports._lookupModelFactory = _lookupModelFactory;
   _exports._modelForMixin = _modelForMixin;
   _exports.DSModelSchemaDefinitionService = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   const HAS_MODEL_PACKAGE = (0, _require.has)('@ember-data/model');
 
   let _Model;
@@ -86644,12 +86509,9 @@ define("@ember-data/store/-private/system/schema-definition-service", ["exports"
   class DSModelSchemaDefinitionService {
     constructor(store) {
       this.store = store;
-
-      _defineProperty(this, "_modelFactoryCache", Object.create(null));
-
-      _defineProperty(this, "_relationshipsDefCache", Object.create(null));
-
-      _defineProperty(this, "_attributesDefCache", Object.create(null));
+      this._modelFactoryCache = Object.create(null);
+      this._relationshipsDefCache = Object.create(null);
+      this._attributesDefCache = Object.create(null);
     } // Following the existing RD implementation
 
 
@@ -87637,8 +87499,6 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
   _exports.extractRecordDataFromRecord = extractRecordDataFromRecord;
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   // once the presentation logic is moved into the Model package we can make
   // eliminate these lossy and redundant helpers
   function relationshipsFor(instance) {
@@ -87713,59 +87573,32 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     constructor(store, identifier) {
       this.store = store;
       this.identifier = identifier;
-
-      _defineProperty(this, "_id", void 0);
-
-      _defineProperty(this, "_tag", 0);
-
-      _defineProperty(this, "modelName", void 0);
-
-      _defineProperty(this, "clientId", void 0);
-
-      _defineProperty(this, "__recordData", void 0);
-
-      _defineProperty(this, "_isDestroyed", void 0);
-
-      _defineProperty(this, "isError", void 0);
-
-      _defineProperty(this, "_pendingRecordArrayManagerFlush", void 0);
-
-      _defineProperty(this, "_isDematerializing", void 0);
-
-      _defineProperty(this, "isReloading", void 0);
-
-      _defineProperty(this, "_doNotDestroy", void 0);
-
-      _defineProperty(this, "isDestroying", void 0);
-
-      _defineProperty(this, "_promiseProxy", void 0);
-
-      _defineProperty(this, "_record", void 0);
-
-      _defineProperty(this, "_scheduledDestroy", void 0);
-
-      _defineProperty(this, "_modelClass", void 0);
-
-      _defineProperty(this, "__deferredTriggers", void 0);
-
-      _defineProperty(this, "__recordArrays", void 0);
-
-      _defineProperty(this, "_references", void 0);
-
-      _defineProperty(this, "_recordReference", void 0);
-
-      _defineProperty(this, "_manyArrayCache", Object.create(null));
-
-      _defineProperty(this, "_retainedManyArrayCache", Object.create(null));
-
-      _defineProperty(this, "_relationshipPromisesCache", Object.create(null));
-
-      _defineProperty(this, "_relationshipProxyCache", Object.create(null));
-
-      _defineProperty(this, "currentState", void 0);
-
-      _defineProperty(this, "error", void 0);
-
+      this._id = void 0;
+      this._tag = 0;
+      this.modelName = void 0;
+      this.clientId = void 0;
+      this.__recordData = void 0;
+      this._isDestroyed = void 0;
+      this.isError = void 0;
+      this._pendingRecordArrayManagerFlush = void 0;
+      this._isDematerializing = void 0;
+      this.isReloading = void 0;
+      this._doNotDestroy = void 0;
+      this.isDestroying = void 0;
+      this._promiseProxy = void 0;
+      this._record = void 0;
+      this._scheduledDestroy = void 0;
+      this._modelClass = void 0;
+      this.__deferredTriggers = void 0;
+      this.__recordArrays = void 0;
+      this._references = void 0;
+      this._recordReference = void 0;
+      this._manyArrayCache = Object.create(null);
+      this._retainedManyArrayCache = Object.create(null);
+      this._relationshipPromisesCache = Object.create(null);
+      this._relationshipProxyCache = Object.create(null);
+      this.currentState = void 0;
+      this.error = void 0;
       this._id = identifier.id;
       this.modelName = identifier.type;
       this.clientId = identifier.lid;
@@ -91240,8 +91073,6 @@ define("@ember-data/store/-private/system/references/record", ["exports", "@embe
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
     @module @ember-data/store
   */
@@ -91256,8 +91087,7 @@ define("@ember-data/store/-private/system/references/record", ["exports", "@embe
   class RecordReference extends _reference.default {
     constructor(...args) {
       super(...args);
-
-      _defineProperty(this, "type", this.internalModel.modelName);
+      this.type = this.internalModel.modelName;
     }
 
     get _id() {
@@ -91414,8 +91244,6 @@ define("@ember-data/store/-private/system/references/reference", ["exports", "@e
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   function isResourceIdentiferWithRelatedLinks(value) {
     return value && value.links && value.links.related;
   }
@@ -91431,9 +91259,7 @@ define("@ember-data/store/-private/system/references/reference", ["exports", "@e
     constructor(store, internalModel) {
       this.store = store;
       this.internalModel = internalModel;
-
-      _defineProperty(this, "recordData", void 0);
-
+      this.recordData = void 0;
       this.recordData = (0, _recordDataFor.default)(this);
     }
 
@@ -92116,8 +91942,6 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
   _exports.internalModelFactoryFor = internalModelFactoryFor;
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
     @module @ember-data/store
   */
@@ -92180,13 +92004,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
   class InternalModelFactory {
     constructor(store) {
       this.store = store;
-
-      _defineProperty(this, "_identityMap", void 0);
-
-      _defineProperty(this, "_newlyCreated", void 0);
-
-      _defineProperty(this, "identifierCache", void 0);
-
+      this._identityMap = void 0;
+      this._newlyCreated = void 0;
+      this.identifierCache = void 0;
       this.identifierCache = (0, _cache.identifierCacheFor)(store);
 
       this.identifierCache.__configureMerge((identifier, matchedIdentifier, resourceData) => {
@@ -92476,18 +92296,12 @@ define("@ember-data/store/-private/system/store/record-data-store-wrapper", ["ex
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   class RecordDataStoreWrapper {
     constructor(_store) {
       this._store = _store;
-
-      _defineProperty(this, _brand.BRAND_SYMBOL, void 0);
-
-      _defineProperty(this, "_willUpdateManyArrays", void 0);
-
-      _defineProperty(this, "_pendingManyArrayUpdates", void 0);
-
+      this[_brand.BRAND_SYMBOL] = void 0;
+      this._willUpdateManyArrays = void 0;
+      this._pendingManyArrayUpdates = void 0;
       this._willUpdateManyArrays = false;
       this._pendingManyArrayUpdates = [];
     }
