@@ -1,9 +1,11 @@
 import Controller from '@ember/controller';
+import { action } from '@ember/object';
 
-export default Controller.extend({
-  actions: {
-    toggleIsShowing() {
-      this.set('isShowing', !this.isShowing);
-    }
+export default class DocumentationComponentsDemoController extends Controller {
+  isShowing = false;
+
+  @action
+  toggleIsShowing() {
+    this.isShowing = !this.isShowing;
   }
-});
+}

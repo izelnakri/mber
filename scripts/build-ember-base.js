@@ -68,11 +68,19 @@ async function readBuildFiles(projectPath, environment, options = { excludeEmber
         Object.defineProperty(_exports, "__esModule", {
           value: true
         });
-        _exports.default = void 0;
+        _exports.default =  {
+          gte: function(version) {
+            return true;
+          }
+        };
+        _exports.gte = function(version) {
+          return true;
+        };
       });
     `,
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/modules/es2017'),
     fs.readFile(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
+    importAddonFolderToAMD('@glimmer/component', '@glimmer/component/addon'),
     fs.readFile(`${MODULE_PATH}/ember-source/dist/ember.debug.js`),
     transpileEmberOrderedSet(MODULE_PATH),
     importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon')
@@ -111,9 +119,8 @@ function transpileEmberOrderedSet(modulePath) {
 }
 
 async function buildEmberData(projectPath, environment) {
-  const emberDataVersion = JSON.parse(await fs.readFile(`${projectPath}/package.json`)).devDependencies[
-    'ember-data'
-  ]; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
+  const emberDataVersion = JSON.parse(await fs.readFile(`${projectPath}/package.json`))
+    .devDependencies['ember-data']; // NOTE: normally stripping -private but ember-data build sourcecode is a disaster
   const options =
     environment === 'production'
       ? {
@@ -131,7 +138,9 @@ async function buildEmberData(projectPath, environment) {
       '@ember-data/canary-features/addon',
       null
     ),
+    importAddonFolderToAMD('@ember-data/debug', '@ember-data/debug/addon', null),
     importAddonFolderToAMD('@ember-data/model', '@ember-data/model/addon', null),
+    importAddonFolderToAMD('@ember-data/record-data', '@ember-data/record-data/addon', null),
     importAddonFolderToAMD('@ember-data/serializer', '@ember-data/serializer/addon', null),
     importAddonFolderToAMD('@ember-data/store', '@ember-data/store/addon', null),
     new Promise((resolve) =>

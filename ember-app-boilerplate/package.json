@@ -45,5 +45,8 @@
   },
   "volta": {
     "node": "12.4.0"
+  },
+  "ember": {
+    "edition": "octane"
   }
 }

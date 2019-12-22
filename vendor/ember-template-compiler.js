@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.14.2
+ * @version   3.15.0
  */
 
 /*globals process */
@@ -145,7 +145,7 @@ define("@ember/-internals/browser-environment/index", ["exports"], function (_ex
   var isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
   _exports.isFirefox = isFirefox;
 });
-define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-features"], function (_exports, _deprecatedFeatures) {
+define("@ember/-internals/environment/index", ["exports", "@ember/debug", "@ember/deprecated-features"], function (_exports, _debug, _deprecatedFeatures) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -351,6 +351,15 @@ define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-fea
     FEATURES: {}
   };
   _exports.ENV = ENV;
+  var providedEnv = global$1.EmberENV;
+
+  if (providedEnv === undefined) {
+    providedEnv = global$1.ENV;
+    (true && !(providedEnv === undefined) && (0, _debug.deprecate)("Configuring Ember's boot options via `window.ENV` is deprecated, please migrate to `window.EmberENV` instead.", providedEnv === undefined, {
+      id: 'ember-environment.window.env',
+      until: '3.17.0'
+    }));
+  }
 
   (function (EmberENV) {
     if (typeof EmberENV !== 'object' || EmberENV === null) return;
@@ -420,7 +429,7 @@ define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-fea
     ) {
       ENV._DEBUG_RENDER_TREE = true;
     }
-  })(global$1.EmberENV || global$1.ENV);
+  })(providedEnv);
 
   function getENV() {
     return ENV;
@@ -455,7 +464,7 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   _exports.isProxy = isProxy;
   _exports.setProxy = setProxy;
   _exports.isEmberArray = isEmberArray;
-  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = void 0;
+  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = _exports.getDebugName = void 0;
 
   /**
     Strongly hint runtimes to intern the provided string.
@@ -691,6 +700,62 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     return dict;
   }
 
+  var getDebugName;
+
+  if (true
+  /* DEBUG */
+  ) {
+    var getFunctionName = function getFunctionName(fn) {
+      var functionName = fn.name;
+
+      if (functionName === undefined) {
+        var match = Function.prototype.toString.call(fn).match(/function (\w+)\s*\(/);
+        functionName = match && match[1] || '';
+      }
+
+      return functionName;
+    };
+
+    var getObjectName = function getObjectName(obj) {
+      var name;
+      var className;
+
+      if (obj.constructor && obj.constructor !== Object) {
+        className = getFunctionName(obj.constructor);
+      }
+
+      if ('toString' in obj && obj.toString !== Object.prototype.toString && obj.toString !== Function.prototype.toString) {
+        name = obj.toString();
+      } // If the class has a decent looking name, and the `toString` is one of the
+      // default Ember toStrings, replace the constructor portion of the toString
+      // with the class name. We check the length of the class name to prevent doing
+      // this when the value is minified.
+
+
+      if (name && name.match(/<.*:ember\d+>/) && className && className[0] !== '_' && className.length > 2 && className !== 'Class') {
+        return name.replace(/<.*:/, "<" + className + ":");
+      }
+
+      return name || className;
+    };
+
+    var getPrimitiveName = function getPrimitiveName(value) {
+      return String(value);
+    };
+
+    getDebugName = function getDebugName(value) {
+      if (typeof value === 'function') {
+        return getFunctionName(value) || "(unknown function)";
+      } else if (typeof value === 'object' && value !== null) {
+        return getObjectName(value) || "(unknown object)";
+      } else {
+        return getPrimitiveName(value);
+      }
+    };
+  }
+
+  var getDebugName$1 = getDebugName;
+  _exports.getDebugName = getDebugName$1;
   var getOwnPropertyDescriptors;
 
   if (Object.getOwnPropertyDescriptors !== undefined) {
@@ -1516,7 +1581,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
       @for @ember/debug
       @param {String} description Describes the expectation. This will become the
         text of the Error thrown if the assertion fails.
-      @param {Boolean} condition Must be truthy for the assertion to pass. If
+      @param {any} condition Must be truthy for the assertion to pass. If
         falsy, an exception will be thrown.
       @public
       @since 1.0.0
@@ -2072,7 +2137,7 @@ define("@ember/deprecated-features/index", ["exports"], function (_exports) {
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = _exports.FUNCTION_PROTOTYPE_EXTENSIONS = _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
+  _exports.PARTIALS = _exports.EMBER_COMPONENT_IS_VISIBLE = _exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = _exports.FUNCTION_PROTOTYPE_EXTENSIONS = _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
 
   /* eslint-disable no-implicit-coercion */
   // These versions should be the version that the deprecation was _introduced_,
@@ -2099,6 +2164,10 @@ define("@ember/deprecated-features/index", ["exports"], function (_exports) {
   _exports.FUNCTION_PROTOTYPE_EXTENSIONS = FUNCTION_PROTOTYPE_EXTENSIONS;
   var MOUSE_ENTER_LEAVE_MOVE_EVENTS = !!'3.13.0-beta.1';
   _exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = MOUSE_ENTER_LEAVE_MOVE_EVENTS;
+  var EMBER_COMPONENT_IS_VISIBLE = !!'3.15.0-beta.1';
+  _exports.EMBER_COMPONENT_IS_VISIBLE = EMBER_COMPONENT_IS_VISIBLE;
+  var PARTIALS = !!'3.15.0-beta.1';
+  _exports.PARTIALS = PARTIALS;
 });
 define("@ember/error/index", ["exports"], function (_exports) {
   "use strict";
@@ -8045,7 +8114,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.14.2";
+  var _default = "3.15.0";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {
