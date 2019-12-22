@@ -958,8 +958,6 @@ define("@glimmer/component/-private/base-component-manager", ["exports", "@glimm
   });
   _exports.default = BaseComponentManager;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
    * This factory function returns a component manager class with common behavior
    * that can be extend to add Glimmer.js- or Ember.js-specific functionality. As
@@ -976,8 +974,7 @@ define("@glimmer/component/-private/base-component-manager", ["exports", "@glimm
       }
 
       constructor(owner) {
-        _defineProperty(this, "capabilities", capabilities);
-
+        this.capabilities = capabilities;
         setOwner(this, owner);
       }
 
@@ -1007,9 +1004,6 @@ define("@glimmer/component/-private/component", ["exports", "@glimmer/component/
   _exports.setDestroying = setDestroying;
   _exports.setDestroyed = setDestroyed;
   _exports.default = _exports.ARGS_SET = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   const DESTROYING = new WeakMap();
   const DESTROYED = new WeakMap();
 
@@ -1164,7 +1158,7 @@ define("@glimmer/component/-private/component", ["exports", "@glimmer/component/
      * @param args
      */
     constructor(owner, args) {
-      _defineProperty(this, "args", void 0);
+      this.args = void 0;
 
       if (true
       /* DEBUG */
