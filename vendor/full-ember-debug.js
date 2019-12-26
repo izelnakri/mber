@@ -20418,7 +20418,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     var options = calledAsDecorator ? undefined : args[1];
 
     var getInjection = function (propertyName) {
-      var owner = (0, _owner.getOwner)(this) || this.container; // fallback to `container` for backwards compat
+      var owner = (0, _owner.getOwner)(this) || this.container || this.__owner__; // fallback to `container` for backwards compat
 
       (true && !(Boolean(owner)) && (0, _debug.assert)("Attempting to lookup an injected property on an object without a container, ensure that the object was instantiated via a container.", Boolean(owner)));
       return owner.lookup(type + ":" + (name || propertyName), {

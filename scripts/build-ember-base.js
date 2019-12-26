@@ -22,7 +22,10 @@ function build(environment, options = { excludeEmberData: false }) {
       .then((fileContents) => {
         const targetContents = fileContents
           .join('\n')
-          .replace(`(0, _emberCompatibilityHelpers.gte)('3.10.0')`, 'true');
+          .replace(
+            'var owner = (0, _owner.getOwner)(this) || this.container;',
+            'var owner = (0, _owner.getOwner)(this) || this.container || this.__owner__;' // NOTE: needed for glimmer-compat for module unification
+          ).replace(`(0, _emberCompatibilityHelpers.gte)('3.10.0')`, 'true');
 
         return writeVendorJS(OUTPUT_PATH, targetContents, environment);
       })

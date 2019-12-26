@@ -895,7 +895,7 @@ e?(0,a.schedule)("actions",n):n()}})})},e.mixin=function(e,...t){return Zt(e,t),
 !("function"==typeof t)&&(0,n.assert)("observer called without a function","function"==typeof t),!(Array.isArray(r)&&r.length>0&&r.every(e=>"string"==typeof e&&Boolean(e.length)))&&(0,n.assert)("observer called without valid path",Array.isArray(r)&&r.length>0&&r.every(e=>"string"==typeof e&&Boolean(e.length))),"boolean"!=typeof s&&(0,n.assert)("observer called without sync","boolean"==typeof s)
 for(var l=[],u=e=>l.push(e),c=0;c<r.length;++c)ct(r[c],u)
 return(0,i.setObservers)(t,{paths:l,sync:s}),t},e.applyMixin=Zt,e.inject=function(e,...t){"string"!=typeof e&&(0,n.assert)("a string type must be provided to inject","string"==typeof e)
-var r=H(t),i=r?void 0:t[0],s=(r||t[1],function(t){var r=(0,d.getOwner)(this)||this.container
+var r=H(t),i=r?void 0:t[0],s=(r||t[1],function(t){var r=(0,d.getOwner)(this)||this.container||this.__owner__
 return!Boolean(r)&&(0,n.assert)("Attempting to lookup an injected property on an object without a container, ensure that the object was instantiated via a container.",Boolean(r)),r.lookup(e+":"+(i||t),{source:void 0,namespace:void 0})})
 Yt.set(s,{namespace:void 0,source:void 0,type:e,name:i})
 var a=gt({get:s,set(e,t){N(this,e,null,t)}})
