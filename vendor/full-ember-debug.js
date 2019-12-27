@@ -65922,6 +65922,458 @@ define("@ember/ordered-set", ["exports"], function (_exports) {
   var _default = OrderedSet;
   _exports.default = _default;
 });
+define("@ember/render-modifiers/modifiers/did-insert", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  /**
+    The `{{did-insert}}` element modifier is activated when an element is
+    inserted into the DOM.
+  
+    In this example, the `fadeIn` function receives the `div` DOM element as its
+    first argument and is executed after the element is inserted into the DOM.
+  
+    ```handlebars
+    <div {{did-insert this.fadeIn}} class="alert">
+      {{yield}}
+    </div>
+    ```
+  
+    ```js
+    export default Component.extend({
+      fadeIn(element) {
+        element.classList.add('fade-in');
+      }
+    });
+    ```
+  
+    By default, the executed function will be unbound. If you would like to access
+    the component context in your function, use the `action` decorator as follows:
+  
+    ```handlebars
+    <div {{did-insert this.incrementCount}}>first</div>
+    <div {{did-insert this.incrementCount}}>second</div>
+  
+    <p>{{this.count}} elements were rendered</p>
+    ```
+  
+    ```js
+    export default Component.extend({
+      count: tracked({ value: 0 }),
+  
+      incrementCount: action(function() {
+        this.count++;
+      })
+    });
+    ```
+  
+    @method did-insert
+    @public
+  */
+  var _default = Ember._setModifierManager(() => ({
+    capabilities: Ember._modifierManagerCapabilities('3.13', {
+      disableAutoTracking: true
+    }),
+
+    createModifier() {},
+
+    installModifier(_state, element, args) {
+      let [fn, ...positional] = args.positional;
+      fn(element, positional, args.named);
+    },
+
+    updateModifier() {},
+
+    destroyModifier() {}
+
+  }), class DidInsertModifier {});
+
+  _exports.default = _default;
+});
+define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  /**
+    The `{{did-update}}` element modifier is activated when any of its arguments
+    are updated. It does not run on initial render.
+  
+    In this example, the `resize` function receives the `textarea` DOM element as its
+    first argument and is executed anytime the `@text` argument changes.
+  
+    ```handlebars
+    <textarea {{did-update this.resize @text}} readonly style="padding: 0px;">
+      {{@text}}
+    </textarea>
+    ```
+  
+    ```js
+    export default Component.extend({
+      resize(element) {
+        element.style.height = `${element.scrollHeight}px`;
+      }
+    });
+    ```
+  
+    In addition to the `element`, both named and positional arguments are passed to the
+    executed function:
+  
+    ```handlebars
+    <div {{did-update this.logArguments @first @second third=@third}} />
+    ```
+  
+    ```js
+    export default Component.extend({
+      logArguments(element, [first, second], { third }) {
+        console.log('element', element);
+        console.log('positional args', first, second);
+        console.log('names args', third);
+      }
+    });
+    ```
+  
+    By default, the executed function will be unbound. If you would like to access
+    the component context in your function, use the `action` decorator as follows:
+  
+    ```handlebars
+    <div {{did-update this.someFunction @someArg} />
+    ```
+  
+    ```js
+    export default Component.extend({
+      someFunction: action(function(element, [someArg]) {
+        // the `this` context will be the component instance
+      })
+    });
+    ```
+  
+    @method did-update
+    @public
+  */
+  var _default = Ember._setModifierManager(() => ({
+    capabilities: Ember._modifierManagerCapabilities('3.13', {
+      disableAutoTracking: true
+    }),
+
+    createModifier() {
+      return {
+        element: null
+      };
+    },
+
+    installModifier(state, element) {
+      // save element into state bucket
+      state.element = element;
+    },
+
+    updateModifier({
+      element
+    }, args) {
+      let [fn, ...positional] = args.positional;
+      fn(element, positional, args.named);
+    },
+
+    destroyModifier() {}
+
+  }), class DidUpdateModifier {});
+
+  _exports.default = _default;
+});
+define("@ember/render-modifiers/modifiers/will-destroy", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  /**
+    The `{{will-destroy}}` element modifier is activated immediately before the element
+    is removed from the DOM.
+  
+    ```handlebars
+    <div {{will-destroy this.teardownPlugin}}>
+      {{yield}}
+    </div>
+    ```
+  
+    ```js
+    export default Component.extend({
+      teardownPlugin(element) {
+        // teardown logic here
+      }
+    });
+    ```
+  
+    By default, the executed function will be unbound. If you would like to access
+    the component context in your function, use the `action` decorator as follows:
+  
+    ```handlebars
+    <div {{will-destroy this.teardownPlugin}}>
+      {{yield}}
+    </div>
+    ```
+  
+    ```js
+    export default Component.extend({
+      teardownPlugin: action(function(element) {
+        // the `this` context will be the component instance
+      })
+    });
+    ```
+  
+    @method will-destroy
+    @public
+  */
+  var _default = Ember._setModifierManager(() => ({
+    capabilities: Ember._modifierManagerCapabilities('3.13', {
+      disableAutoTracking: true
+    }),
+
+    createModifier() {
+      return {
+        element: null
+      };
+    },
+
+    installModifier(state, element) {
+      state.element = element;
+    },
+
+    updateModifier() {},
+
+    destroyModifier({
+      element
+    }, args) {
+      let [fn, ...positional] = args.positional;
+      fn(element, positional, args.named);
+    }
+
+  }), class WillDestroyModifier {});
+
+  _exports.default = _default;
+});
+define("ember-modifier/index", ["exports", "ember-modifier/-private/class/modifier", "ember-modifier/-private/functional/modifier"], function (_exports, _modifier, _modifier2) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "default", {
+    enumerable: true,
+    get: function () {
+      return _modifier.default;
+    }
+  });
+  Object.defineProperty(_exports, "modifier", {
+    enumerable: true,
+    get: function () {
+      return _modifier2.default;
+    }
+  });
+});
+define("ember-modifier/-private/class/modifier-manager", ["exports", "ember-modifier/-private/class/modifier"], function (_exports, _modifier) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  class ClassBasedModifierManager {
+    constructor() {
+      this.capabilities = Ember._modifierManagerCapabilities('3.13');
+    }
+
+    createModifier(factory, args) {
+      let {
+        owner,
+        class: modifier
+      } = factory;
+      return new modifier(owner, args);
+    }
+
+    installModifier(instance, element) {
+      instance.element = element;
+      instance.didReceiveArguments();
+      instance.didInstall();
+    }
+
+    updateModifier(instance, args) {
+      // TODO: this should be an args proxy
+      Ember.set(instance, 'args', args);
+      instance.didUpdateArguments();
+      instance.didReceiveArguments();
+    }
+
+    destroyModifier(instance) {
+      instance.willRemove();
+      instance.element = null;
+
+      if (instance[_modifier.DESTROYING]) {
+        return;
+      }
+
+      let meta = Ember.meta(instance);
+      meta.setSourceDestroying();
+      instance[_modifier.DESTROYING] = true;
+      Ember.run.schedule('actions', instance, instance.willDestroy);
+      Ember.run.schedule('destroy', undefined, scheduleDestroy, instance, meta);
+    }
+
+  }
+
+  function scheduleDestroy(modifier, meta) {
+    if (modifier[_modifier.DESTROYED]) {
+      return;
+    }
+
+    Ember.destroy(modifier);
+    meta.setSourceDestroyed();
+    modifier[_modifier.DESTROYED] = true;
+  }
+
+  var _default = new ClassBasedModifierManager();
+
+  _exports.default = _default;
+});
+define("ember-modifier/-private/class/modifier", ["exports", "ember-modifier/-private/class/modifier-manager"], function (_exports, _modifierManager) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = _exports.DESTROYED = _exports.DESTROYING = void 0;
+  const DESTROYING = Symbol('destroying');
+  _exports.DESTROYING = DESTROYING;
+  const DESTROYED = Symbol('destroyed');
+  _exports.DESTROYED = DESTROYED;
+
+  class ClassBasedModifier {
+    constructor(owner, args) {
+      this[DESTROYING] = false;
+      this[DESTROYED] = false;
+      Ember.setOwner(this, owner);
+      this.element = null;
+      this.args = args;
+    }
+
+    didReceiveArguments() {}
+
+    didUpdateArguments() {}
+
+    didInstall() {}
+
+    willRemove() {}
+
+    willDestroy() {}
+
+    get isDestroying() {
+      return this[DESTROYING];
+    }
+
+    get isDestroyed() {
+      return this[DESTROYED];
+    }
+
+  }
+
+  _exports.default = ClassBasedModifier;
+  Ember._setModifierManager(() => _modifierManager.default, ClassBasedModifier);
+});
+define("ember-modifier/-private/functional/modifier-manager", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+  const MODIFIER_ELEMENTS = new WeakMap();
+  const MODIFIER_TEARDOWNS = new WeakMap();
+
+  function teardown(modifier) {
+    const teardown = MODIFIER_TEARDOWNS.get(modifier);
+
+    if (teardown && typeof teardown === 'function') {
+      teardown();
+    }
+  }
+
+  function setup(modifier, element, args) {
+    const {
+      positional,
+      named
+    } = args;
+    const teardown = modifier(element, positional, named);
+    MODIFIER_TEARDOWNS.set(modifier, teardown);
+  }
+
+  class FunctionalModifierManager {
+    constructor() {
+      this.capabilities = Ember._modifierManagerCapabilities('3.13');
+    }
+
+    createModifier(factory) {
+      const {
+        class: fn
+      } = factory; // This looks superfluous, but this is creating a new instance
+      // of a function -- this is important so that each instance of the
+      // created modifier can have its own state which is stored in
+      // the MODIFIER_ELEMENTS and MODIFIER_TEARDOWNS WeakMaps
+
+      return (...args) => fn(...args);
+    }
+
+    installModifier(modifier, element, args) {
+      MODIFIER_ELEMENTS.set(modifier, element);
+      setup(modifier, element, args);
+    }
+
+    updateModifier(modifier, args) {
+      const element = MODIFIER_ELEMENTS.get(modifier);
+      teardown(modifier);
+      setup(modifier, element, args);
+    }
+
+    destroyModifier(modifier) {
+      teardown(modifier);
+    }
+
+  }
+
+  _exports.default = FunctionalModifierManager;
+});
+define("ember-modifier/-private/functional/modifier", ["exports", "ember-modifier/-private/functional/modifier-manager"], function (_exports, _modifierManager) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = modifier;
+  const MANAGERS = new WeakMap();
+
+  function managerFor(owner) {
+    let manager = MANAGERS.get(owner);
+
+    if (manager === undefined) {
+      manager = new _modifierManager.default(owner);
+    }
+
+    return manager;
+  }
+
+  function modifier(fn) {
+    return Ember._setModifierManager(managerFor, fn);
+  }
+});
 define("ember-inflector/index", ["exports", "ember-inflector/lib/system", "ember-inflector/lib/ext/string"], function (_exports, _system, _string) {
   "use strict";
 
