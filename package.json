@@ -42,7 +42,7 @@
     "ember-devtools": "^6.0.0",
     "ember-load-initializers": "^2.1.1",
     "ember-qunit": "^4.6.0",
-    "ember-resolver": "^6.0.0",
+    "ember-resolver": "^7.0.0",
     "ember-source": "3.15.0",
     "ember-test-waiters": "1.1.1",
     "esm": "^3.2.25",
