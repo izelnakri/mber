@@ -88,7 +88,6 @@ async function readBuildFiles(projectPath, environment, options = { excludeEmber
     fs.readFile(`${MODULE_PATH}/ember-source/dist/ember.debug.js`),
     transpileEmberOrderedSet(MODULE_PATH),
     importAddonFolderToAMD('@ember/render-modifiers', '@ember/render-modifiers/addon'),
-    importAddonFolderToAMD('ember-modifier', 'ember-modifier/addon'),
     importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon')
   ];
 

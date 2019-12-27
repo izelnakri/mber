@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.8.25",
+  "version": "0.9.0",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -85,7 +85,6 @@
     "cheerio": "^1.0.0-rc.3",
     "chokidar": "^3.3.1",
     "compression": "^1.7.3",
-    "ember-modifier": "^1.0.2",
     "eslint": "^6.8.0",
     "eslint-plugin-ember": "^7.7.2",
     "express": "^4.17.1",

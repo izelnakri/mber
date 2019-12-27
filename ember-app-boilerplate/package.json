@@ -36,6 +36,7 @@
     "ember-cli-fastboot": "^2.2.1",
     "ember-data": "3.15.0",
     "ember-devtools": "^6.0.0",
+    "ember-modifier": "^1.0.2",
     "fastboot": "^2.0.3",
     "highlight.js": "^9.15.8",
     "jquery": "^3.4.1",
