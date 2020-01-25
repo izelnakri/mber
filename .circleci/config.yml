@@ -46,6 +46,7 @@ jobs:
     working_directory: ~/code
     steps:
       - setup_remote_docker
+      - run: DOCKER_TAG=$(echo ${HUB_USERNAME}/mber:${CIRCLE_BRANCH} | tr '/' '_')
       - run: docker pull ${HUB_USERNAME}/mber:${CIRCLE_BRANCH}
       - run: docker run -t -d --name="mber" ${HUB_USERNAME}/mber:${CIRCLE_BRANCH} /bin/bash
       - run: docker exec -it -e NODE_OPTIONS=--experimental-modules mber npm test
