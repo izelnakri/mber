@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.15.0
+ * @version   3.16.0
  */
 
 /*globals process */
@@ -1230,88 +1230,86 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
 
   if (true
   /* DEBUG */
-  && true
-  /* EMBER_METAL_TRACKED_PROPERTIES */
   ) {
-      var MANDATORY_SETTERS = new WeakMap();
+    var MANDATORY_SETTERS = new WeakMap();
 
-      var _propertyIsEnumerable = function _propertyIsEnumerable(obj, key) {
-        return Object.prototype.propertyIsEnumerable.call(obj, key);
-      };
+    var _propertyIsEnumerable = function _propertyIsEnumerable(obj, key) {
+      return Object.prototype.propertyIsEnumerable.call(obj, key);
+    };
 
-      _exports.setupMandatorySetter = setupMandatorySetter = function setupMandatorySetter(obj, keyName) {
-        var desc = lookupDescriptor(obj, keyName) || {};
+    _exports.setupMandatorySetter = setupMandatorySetter = function setupMandatorySetter(obj, keyName) {
+      var desc = lookupDescriptor(obj, keyName) || {};
 
-        if (desc.get || desc.set) {
-          // if it has a getter or setter, we can't install the mandatory setter.
-          // native setters are allowed, we have to assume that they will resolve
-          // to tracked properties.
-          return;
-        }
+      if (desc.get || desc.set) {
+        // if it has a getter or setter, we can't install the mandatory setter.
+        // native setters are allowed, we have to assume that they will resolve
+        // to tracked properties.
+        return;
+      }
 
-        if (desc && (!desc.configurable || !desc.writable)) {
-          // if it isn't writable anyways, so we shouldn't provide the setter.
-          // if it isn't configurable, we can't overwrite it anyways.
-          return;
-        }
+      if (desc && (!desc.configurable || !desc.writable)) {
+        // if it isn't writable anyways, so we shouldn't provide the setter.
+        // if it isn't configurable, we can't overwrite it anyways.
+        return;
+      }
 
-        var setters = MANDATORY_SETTERS.get(obj);
+      var setters = MANDATORY_SETTERS.get(obj);
 
-        if (setters === undefined) {
-          setters = {};
-          MANDATORY_SETTERS.set(obj, setters);
-        }
+      if (setters === undefined) {
+        setters = {};
+        MANDATORY_SETTERS.set(obj, setters);
+      }
 
-        desc.hadOwnProperty = Object.hasOwnProperty.call(obj, keyName);
-        setters[keyName] = desc;
-        Object.defineProperty(obj, keyName, {
-          configurable: true,
-          enumerable: _propertyIsEnumerable(obj, keyName),
-          get: function get() {
-            if (desc.get) {
-              return desc.get.call(this);
-            } else {
-              return desc.value;
-            }
-          },
-          set: function set(value) {
-            (true && !(false) && (0, _debug.assert)("You attempted to update " + this + "." + String(keyName) + " to \"" + String(value) + "\", but it is being tracked by a tracking context, such as a template, computed property, or observer. In order to make sure the context updates properly, you must invalidate the property when updating it. You can mark the property as `@tracked`, or use `@ember/object#set` to do this."));
-          }
-        });
-      };
-
-      _exports.teardownMandatorySetter = teardownMandatorySetter = function teardownMandatorySetter(obj, keyName) {
-        var setters = MANDATORY_SETTERS.get(obj);
-
-        if (setters !== undefined && setters[keyName] !== undefined) {
-          Object.defineProperty(obj, keyName, setters[keyName]);
-          setters[keyName] = undefined;
-        }
-      };
-
-      _exports.setWithMandatorySetter = setWithMandatorySetter = function setWithMandatorySetter(obj, keyName, value) {
-        var setters = MANDATORY_SETTERS.get(obj);
-
-        if (setters !== undefined && setters[keyName] !== undefined) {
-          var setter = setters[keyName];
-
-          if (setter.set) {
-            setter.set.call(obj, value);
+      desc.hadOwnProperty = Object.hasOwnProperty.call(obj, keyName);
+      setters[keyName] = desc;
+      Object.defineProperty(obj, keyName, {
+        configurable: true,
+        enumerable: _propertyIsEnumerable(obj, keyName),
+        get: function get() {
+          if (desc.get) {
+            return desc.get.call(this);
           } else {
-            setter.value = value; // If the object didn't have own property before, it would have changed
-            // the enumerability after setting the value the first time.
-
-            if (!setter.hadOwnProperty) {
-              var desc = lookupDescriptor(obj, keyName);
-              desc.enumerable = true;
-              Object.defineProperty(obj, keyName, desc);
-            }
+            return desc.value;
           }
-        } else {
-          obj[keyName] = value;
+        },
+        set: function set(value) {
+          (true && !(false) && (0, _debug.assert)("You attempted to update " + this + "." + String(keyName) + " to \"" + String(value) + "\", but it is being tracked by a tracking context, such as a template, computed property, or observer. In order to make sure the context updates properly, you must invalidate the property when updating it. You can mark the property as `@tracked`, or use `@ember/object#set` to do this."));
         }
-      };
-    }
+      });
+    };
+
+    _exports.teardownMandatorySetter = teardownMandatorySetter = function teardownMandatorySetter(obj, keyName) {
+      var setters = MANDATORY_SETTERS.get(obj);
+
+      if (setters !== undefined && setters[keyName] !== undefined) {
+        Object.defineProperty(obj, keyName, setters[keyName]);
+        setters[keyName] = undefined;
+      }
+    };
+
+    _exports.setWithMandatorySetter = setWithMandatorySetter = function setWithMandatorySetter(obj, keyName, value) {
+      var setters = MANDATORY_SETTERS.get(obj);
+
+      if (setters !== undefined && setters[keyName] !== undefined) {
+        var setter = setters[keyName];
+
+        if (setter.set) {
+          setter.set.call(obj, value);
+        } else {
+          setter.value = value; // If the object didn't have own property before, it would have changed
+          // the enumerability after setting the value the first time.
+
+          if (!setter.hadOwnProperty) {
+            var desc = lookupDescriptor(obj, keyName);
+            desc.enumerable = true;
+            Object.defineProperty(obj, keyName, desc);
+          }
+        }
+      } else {
+        obj[keyName] = value;
+      }
+    };
+  }
   /*
    This package will be eagerly parsed and should have no dependencies on external
    packages.
@@ -1331,7 +1329,7 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     value: true
   });
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -1347,7 +1345,6 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_LIBRARIES_ISREGISTERED: false,
     EMBER_IMPROVED_INSTRUMENTATION: false,
     EMBER_MODULE_UNIFICATION: false,
-    EMBER_METAL_TRACKED_PROPERTIES: true,
     EMBER_CUSTOM_COMPONENT_ARG_PROXY: true,
     EMBER_GLIMMER_SET_COMPONENT_TEMPLATE: true,
     EMBER_ROUTING_MODEL_ARG: true
@@ -1408,8 +1405,6 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_IMPROVED_INSTRUMENTATION = EMBER_IMPROVED_INSTRUMENTATION;
   var EMBER_MODULE_UNIFICATION = featureValue(FEATURES.EMBER_MODULE_UNIFICATION);
   _exports.EMBER_MODULE_UNIFICATION = EMBER_MODULE_UNIFICATION;
-  var EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
-  _exports.EMBER_METAL_TRACKED_PROPERTIES = EMBER_METAL_TRACKED_PROPERTIES;
   var EMBER_CUSTOM_COMPONENT_ARG_PROXY = featureValue(FEATURES.EMBER_CUSTOM_COMPONENT_ARG_PROXY);
   _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = EMBER_CUSTOM_COMPONENT_ARG_PROXY;
   var EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = featureValue(FEATURES.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE);
@@ -2137,7 +2132,7 @@ define("@ember/deprecated-features/index", ["exports"], function (_exports) {
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.PARTIALS = _exports.EMBER_COMPONENT_IS_VISIBLE = _exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = _exports.FUNCTION_PROTOTYPE_EXTENSIONS = _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
+  _exports.GLOBALS_RESOLVER = _exports.PARTIALS = _exports.EMBER_COMPONENT_IS_VISIBLE = _exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = _exports.FUNCTION_PROTOTYPE_EXTENSIONS = _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
 
   /* eslint-disable no-implicit-coercion */
   // These versions should be the version that the deprecation was _introduced_,
@@ -2168,6 +2163,8 @@ define("@ember/deprecated-features/index", ["exports"], function (_exports) {
   _exports.EMBER_COMPONENT_IS_VISIBLE = EMBER_COMPONENT_IS_VISIBLE;
   var PARTIALS = !!'3.15.0-beta.1';
   _exports.PARTIALS = PARTIALS;
+  var GLOBALS_RESOLVER = !!'3.16.0-beta.1';
+  _exports.GLOBALS_RESOLVER = GLOBALS_RESOLVER;
 });
 define("@ember/error/index", ["exports"], function (_exports) {
   "use strict";
@@ -8114,7 +8111,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.15.0";
+  var _default = "3.16.0";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {

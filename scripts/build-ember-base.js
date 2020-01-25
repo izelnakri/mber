@@ -154,6 +154,12 @@ async function buildEmberData(projectPath, environment) {
         exports.default = '${emberDataVersion}';
       });
     `)
+    ),
+    importAddonFolderToAMD(
+      '@ember-data/private-build-infra',
+      '@ember-data/private-build-infra/addon',
+      null,
+      options
     )
   ];
 }
