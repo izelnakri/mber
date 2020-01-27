@@ -32,7 +32,7 @@
     "@ember-data/private-build-infra": "3.15.0",
     "@ember-data/record-data": "3.15.0",
     "@ember-data/serializer": "3.15.0",
-    "@ember-data/store": "3.15.0",
+    "@ember-data/store": "3.16.0",
     "@glimmer/resolver": "^0.4.3",
     "ava": "^2.4.0",
     "cors": "^2.8.5",
