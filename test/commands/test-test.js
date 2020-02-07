@@ -32,30 +32,34 @@ test.afterEach.always(async () => {
 // TODO: memserver test cases, --debug mode works, backend-tests
 
 test.serial('$ mber test -> runs successfully on ci mode', async (t) => {
-  t.plan(7);
+  t.plan(6);
 
   await createDummyApp();
 
   const counter = countTime();
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js test`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js test`, {
+    cwd: PROJECT_ROOT
+  });
   const timeTakenForTests = counter.stop();
 
   console.log(stdout);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
+  // t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(stdout.includes('Integration | Component | welcome-page:'));
   t.true(stdout.includes('✔ should render correctly'));
   t.true(stdout.includes('Unit | Route | index:'));
   t.true(stdout.includes('✔ it exists'));
   t.true(stdout.includes('ember ALL TESTS PASS'));
-  t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD)
+  t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD);
 });
 
 test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
-  t.plan(6);
+  t.plan(5);
 
   await createDummyApp();
-  await fs.writeFile(`${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`, `
+  await fs.writeFile(
+    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+    `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
     import { setupApplicationTest } from 'ember-qunit';
@@ -70,42 +74,49 @@ test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
         assert.equal(document.querySelector('#title').innerHTML.includes('Congratulations, you made it!'), true);
       });
     });
-  `);
+  `
+  );
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const counter = countTime();
-  const { exitCode, stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js test`, {
-    cwd: PROJECT_ROOT
-  });
+  const { exitCode, stdout, childProcess } = await spawnProcess(
+    `node --experimental-modules ${CWD}/cli.js test`,
+    {
+      cwd: PROJECT_ROOT
+    }
+  );
   const timeTakenForTests = counter.stop();
 
   console.log('stdout', stdout);
 
   t.true(exitCode === 1);
   t.true(stdout.includes('ember THERE IS A FAILED TEST!'));
-  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
+  // t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(stdout.includes('Acceptance | /'));
   t.true(stdout.includes('✘ visitor can go to / and see the right content'));
-  t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD + 5000)
+  t.true(timeTakenForTests < BASE_CI_TEST_TIME_THRESHOLD + 5000);
 
   childProcess.kill('SIGKILL');
   mock.removeMock();
 });
 
 test.serial('$ mber test --server -> builds test files successfully', async (t) => {
-  t.plan(5);
+  t.plan(4);
 
   await createDummyApp();
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js test --server`, {
-    cwd: PROJECT_ROOT
-  });
+  const { stdout, childProcess } = await spawnProcess(
+    `node --experimental-modules ${CWD}/cli.js test --server`,
+    {
+      cwd: PROJECT_ROOT
+    }
+  );
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
   console.log('QUNIT_RESULT is', QUNIT_RESULT);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
+  // t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(QUNIT_RESULT.passed === 4);
   t.true(QUNIT_RESULT.failed === 0);
   t.true(QUNIT_RESULT.total === 4);
@@ -118,20 +129,23 @@ test.serial('$ mber test --server -> builds test files successfully', async (t) 
 });
 
 test.serial('$ mber test --server -> can run successfully and then fail on watch', async (t) => {
-  t.plan(13);
+  t.plan(12);
 
   await createDummyApp();
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js test --server`, {
-    cwd: PROJECT_ROOT
-  });
+  const { stdout, childProcess } = await spawnProcess(
+    `node --experimental-modules ${CWD}/cli.js test --server`,
+    {
+      cwd: PROJECT_ROOT
+    }
+  );
 
   childProcess.stdout.on('data', (data) => console.log(data));
 
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
+  // t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
   t.true(QUNIT_RESULT.passed === 4);
   t.true(QUNIT_RESULT.failed === 0);
   t.true(QUNIT_RESULT.total === 4);
@@ -139,7 +153,9 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
 
   await browser.close();
 
-  await fs.writeFile(`${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`, `
+  await fs.writeFile(
+    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+    `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
     import { setupApplicationTest } from 'ember-qunit';
@@ -154,7 +170,8 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
         assert.equal(document.querySelector('#title').innerHTML.includes('Congratulations, you made it!'), true);
       });
     });
-  `);
+  `
+  );
   await waitForRecompile(1000);
 
   const secondVisit = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
@@ -164,7 +181,9 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   t.true(secondVisit.QUNIT_RESULT.total === 6);
   t.true(secondVisit.QUNIT_RESULT.runtime < 1000);
 
-  await fs.writeFile(`${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`, `
+  await fs.writeFile(
+    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+    `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
     import { setupApplicationTest } from 'ember-qunit';
@@ -179,7 +198,8 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
         assert.equal(document.querySelector('#title').innerHTML.includes('Congratulations, you made it!'), true);
       });
     });
-  `);
+  `
+  );
   await waitForRecompile(1000);
 
   const thirdVisit = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
@@ -196,11 +216,15 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   mock.removeMock();
 });
 
-test.serial('$ mber test --server -> can run fail successfully and then watches successfully', async (t) => {
-  t.plan(9);
+test.serial(
+  '$ mber test --server -> can run fail successfully and then watches successfully',
+  async (t) => {
+    t.plan(8);
 
-  await createDummyApp();
-  await fs.writeFile(`${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`, `
+    await createDummyApp();
+    await fs.writeFile(
+      `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+      `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
     import { setupApplicationTest } from 'ember-qunit';
@@ -215,26 +239,32 @@ test.serial('$ mber test --server -> can run fail successfully and then watches 
         assert.equal(document.querySelector('#title').innerHTML.includes('Congratulations, you made it!'), true);
       });
     });
-  `);
+  `
+    );
 
-  const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js test --server`, {
-    cwd: PROJECT_ROOT
-  });
+    const mock = mockProcessCWD(PROJECT_ROOT);
+    const { stdout, childProcess } = await spawnProcess(
+      `node --experimental-modules ${CWD}/cli.js test --server`,
+      {
+        cwd: PROJECT_ROOT
+      }
+    );
 
-  childProcess.stdout.on('data', (data) => console.log(data));
+    childProcess.stdout.on('data', (data) => console.log(data));
 
-  const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
+    const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
-  t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
-  t.true(QUNIT_RESULT.passed === 5);
-  t.true(QUNIT_RESULT.failed === 1);
-  t.true(QUNIT_RESULT.total === 6);
-  t.true(QUNIT_RESULT.runtime < 1000);
+    // t.true(stdout.includes('ember Server is running on http://localhost:1234 (Environment: test)'));
+    t.true(QUNIT_RESULT.passed === 5);
+    t.true(QUNIT_RESULT.failed === 1);
+    t.true(QUNIT_RESULT.total === 6);
+    t.true(QUNIT_RESULT.runtime < 1000);
 
-  await browser.close();
+    await browser.close();
 
-  await fs.writeFile(`${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`, `
+    await fs.writeFile(
+      `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+      `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
     import { setupApplicationTest } from 'ember-qunit';
@@ -249,21 +279,23 @@ test.serial('$ mber test --server -> can run fail successfully and then watches 
         assert.equal(document.querySelector('#title').innerHTML.includes('Congratulations, you made it!'), true);
       });
     });
-  `);
-  await waitForRecompile(2000);
+  `
+    );
+    await waitForRecompile(2000);
 
-  const secondVisit = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
+    const secondVisit = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
-  t.true(secondVisit.QUNIT_RESULT.passed === 6);
-  t.true(secondVisit.QUNIT_RESULT.failed === 0);
-  t.true(secondVisit.QUNIT_RESULT.total === 6);
-  t.true(secondVisit.QUNIT_RESULT.runtime < 1000);
+    t.true(secondVisit.QUNIT_RESULT.passed === 6);
+    t.true(secondVisit.QUNIT_RESULT.failed === 0);
+    t.true(secondVisit.QUNIT_RESULT.total === 6);
+    t.true(secondVisit.QUNIT_RESULT.runtime < 1000);
 
-  await secondVisit.browser.close();
+    await secondVisit.browser.close();
 
-  childProcess.kill('SIGKILL');
-  mock.removeMock();
-});
+    childProcess.kill('SIGKILL');
+    mock.removeMock();
+  }
+);
 
 async function spawnProcess(command, options) {
   return new Promise((resolve) => {
