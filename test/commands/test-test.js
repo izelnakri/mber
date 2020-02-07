@@ -17,16 +17,16 @@ const BASE_CI_TEST_TIME_THRESHOLD = 40000;
 let childProcessTree = [];
 
 test.beforeEach(async () => {
-  await fs.remove('dummyapp');
   await killProcessOnPort(HTTP_PORT);
+  await fs.remove('dummyapp');
 });
 
 test.afterEach.always(async () => {
   childProcessTree.forEach((childProcess) => childProcess.kill('SIGKILL'));
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 
-  await fs.remove('dummyapp');
   await killProcessOnPort(HTTP_PORT);
+  await fs.remove('dummyapp');
 });
 
 // TODO: memserver test cases, --debug mode works, backend-tests
