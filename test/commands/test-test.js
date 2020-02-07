@@ -112,6 +112,9 @@ test.serial('$ mber test --server -> builds test files successfully', async (t) 
       cwd: PROJECT_ROOT
     }
   );
+
+  await waitForRecompile(2000);
+
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
   console.log('QUNIT_RESULT is', QUNIT_RESULT);
@@ -142,6 +145,8 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   );
 
   childProcess.stdout.on('data', (data) => console.log(data));
+1
+  await waitForRecompile(2000);
 
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
@@ -251,6 +256,8 @@ test.serial(
     );
 
     childProcess.stdout.on('data', (data) => console.log(data));
+
+    await waitForRecompile(1000);
 
     const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
 
