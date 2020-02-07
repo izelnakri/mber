@@ -44,7 +44,7 @@
     "ember-load-initializers": "^2.1.1",
     "ember-qunit": "^4.6.0",
     "ember-resolver": "^6.0.0",
-    "ember-source": "3.16.0",
+    "ember-source": "3.16.1",
     "ember-test-waiters": "1.2.0",
     "esm": "^3.2.25",
     "intercept-stdout": "^0.1.2",
@@ -60,12 +60,12 @@
     "url": "https://github.com/izelnakri/mber.git"
   },
   "dependencies": {
-    "@babel/core": "^7.8.3",
+    "@babel/core": "^7.8.4",
     "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-proposal-decorators": "^7.8.3",
     "@babel/plugin-transform-modules-amd": "^7.8.3",
     "@babel/plugin-transform-typescript": "^7.8.3",
-    "@babel/preset-env": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
     "@ember-data/canary-features": "^3.16.0",
     "@ember/ordered-set": "^2.0.3",
     "@ember/render-modifiers": "^1.0.2",
