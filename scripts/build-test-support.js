@@ -67,10 +67,13 @@ function buildTestVendorJS() {
     const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
     const timer = countTime();
 
-    const waiterIndexPath = `${MODULE_PATH}/ember-test-waiters/addons/index.ts`;
+    const waiterIndexPath = `${MODULE_PATH}/ember-test-waiters/addon/index.ts`;
     const indexContent = await fs.readFile(waiterIndexPath);
 
-    await fs.writeFile(waiterIndexPath, indexContent.replace("export * from './types';", ''));
+    await fs.writeFile(
+      waiterIndexPath,
+      indexContent.toString().replace("export * from './types';", '')
+    );
 
     return Promise.all([
       fs.readFile(`${VENDOR_PATH}/ember-testing.js`),

@@ -9,10 +9,11 @@ let moduleConfig = buildResolverConfig(config.modulePrefix);
  * to add support for them.
  */
 
- moduleConfig.types = Object.assign({}, moduleConfig.types, { // NOTE: needed fast fastboot!
-   ajax: { definitiveCollection: 'main' },
-   mixin: { definitiveCollection: 'main' }
- });
+moduleConfig.types = Object.assign({}, moduleConfig.types, {
+  // NOTE: needed for fastboot!
+  ajax: { definitiveCollection: 'main' },
+  mixin: { definitiveCollection: 'main' }
+});
 
 export default Resolver.extend({
   config: moduleConfig

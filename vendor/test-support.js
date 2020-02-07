@@ -6,18 +6,17 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.14.2
+ * @version   3.16.1
  */
-
 /*globals process */
-let define, require, Ember;
+var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
 
-// Used in @ember/-internals/environment/lib/global.js
+
 mainContext = this; // eslint-disable-line no-undef
 
-(function() {
-  let registry;
-  let seen;
+(function () {
+  var registry;
+  var seen;
 
   function missingModule(name, referrerName) {
     if (referrerName) {
@@ -28,15 +27,15 @@ mainContext = this; // eslint-disable-line no-undef
   }
 
   function internalRequire(_name, referrerName) {
-    let name = _name;
-    let mod = registry[name];
+    var name = _name;
+    var mod = registry[name];
 
     if (!mod) {
       name = name + '/index';
       mod = registry[name];
     }
 
-    let exports = seen[name];
+    var exports = seen[name];
 
     if (exports !== undefined) {
       return exports;
@@ -48,11 +47,11 @@ mainContext = this; // eslint-disable-line no-undef
       missingModule(_name, referrerName);
     }
 
-    let deps = mod.deps;
-    let callback = mod.callback;
-    let reified = new Array(deps.length);
+    var deps = mod.deps;
+    var callback = mod.callback;
+    var reified = new Array(deps.length);
 
-    for (let i = 0; i < deps.length; i++) {
+    for (var i = 0; i < deps.length; i++) {
       if (deps[i] === 'exports') {
         reified[i] = exports;
       } else if (deps[i] === 'require') {
@@ -63,14 +62,10 @@ mainContext = this; // eslint-disable-line no-undef
     }
 
     callback.apply(this, reified);
-
     return exports;
   }
 
-  let isNode =
-    typeof window === 'undefined' &&
-    typeof process !== 'undefined' &&
-    {}.toString.call(process) === '[object process]';
+  var isNode = typeof window === 'undefined' && typeof process !== 'undefined' && {}.toString.call(process) === '[object process]';
 
   if (!isNode) {
     Ember = this.Ember = this.Ember || {};
@@ -84,8 +79,8 @@ mainContext = this; // eslint-disable-line no-undef
     registry = Object.create(null);
     seen = Object.create(null);
 
-    define = function(name, deps, callback) {
-      let value = {};
+    define = function (name, deps, callback) {
+      var value = {};
 
       if (!callback) {
         value.deps = [];
@@ -98,11 +93,11 @@ mainContext = this; // eslint-disable-line no-undef
       registry[name] = value;
     };
 
-    require = function(name) {
+    require = function (name) {
       return internalRequire(name, null);
-    };
+    }; // setup `require` module
 
-    // setup `require` module
+
     require['default'] = require;
 
     require.has = function registryHas(moduleName) {
@@ -110,18 +105,16 @@ mainContext = this; // eslint-disable-line no-undef
     };
 
     require._eak_seen = registry;
-
     Ember.__loader = {
       define: define,
       require: require,
-      registry: registry,
+      registry: registry
     };
   } else {
     define = Ember.__loader.define;
     require = Ember.__loader.require;
   }
 })();
-
 define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn", "@ember/debug/lib/capture-render-tree"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2, _captureRenderTree) {
   "use strict";
 
@@ -286,7 +279,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
       @for @ember/debug
       @param {String} description Describes the expectation. This will become the
         text of the Error thrown if the assertion fails.
-      @param {Boolean} condition Must be truthy for the assertion to pass. If
+      @param {any} condition Must be truthy for the assertion to pass. If
         falsy, an exception will be thrown.
       @public
       @since 1.0.0
@@ -9583,6 +9576,8 @@ define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
       return [];
     }
 
+    reset() {}
+
   }
 
   _exports.default = NoopTestWaiter;
@@ -9595,8 +9590,6 @@ define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
   });
   _exports.default = void 0;
 
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   /**
    * A class providing a production, noop replacement for the {TestWaiter<T>} class.
    *
@@ -9605,8 +9598,7 @@ define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
    */
   class NoopTestWaiter {
     constructor(name) {
-      _defineProperty(this, "name", void 0);
-
+      this.name = void 0;
       this.name = name;
     }
 
@@ -9623,6 +9615,8 @@ define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
     debugInfo() {
       return [];
     }
+
+    reset() {}
 
   }
 
@@ -9752,6 +9746,17 @@ define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-
     debugInfo() {
       return [...this.items.values()];
     }
+    /**
+     * Resets the waiter state, clearing items tracking async operations in this waiter.
+     *
+     * @public
+     * @method reset
+     */
+
+
+    reset() {
+      this.items.clear();
+    }
 
   }
 
@@ -9764,9 +9769,6 @@ define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-
     value: true
   });
   _exports.default = void 0;
-
-  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
   let token = 0;
 
   function getNextToken() {
@@ -9787,14 +9789,10 @@ define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-
      * @param name {WaiterName} the name of the test waiter
      */
     constructor(name, nextToken) {
-      _defineProperty(this, "name", void 0);
-
-      _defineProperty(this, "nextToken", void 0);
-
-      _defineProperty(this, "isRegistered", false);
-
-      _defineProperty(this, "items", new Map());
-
+      this.name = void 0;
+      this.nextToken = void 0;
+      this.isRegistered = false;
+      this.items = new Map();
       this.name = name; // @ts-ignore
 
       this.nextToken = nextToken || getNextToken;
@@ -9889,6 +9887,17 @@ define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-
 
     debugInfo() {
       return [...this.items.values()];
+    }
+    /**
+     * Resets the waiter state, clearing items tracking async operations in this waiter.
+     *
+     * @public
+     * @method reset
+     */
+
+
+    reset() {
+      this.items.clear();
     }
 
   }

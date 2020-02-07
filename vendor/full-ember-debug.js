@@ -1306,7 +1306,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.16.0
+ * @version   3.16.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -1742,7 +1742,10 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     lookup(fullName, options) {
-      (true && !(!this.isDestroyed) && (0, _debug.assert)('expected container not to be destroyed', !this.isDestroyed));
+      if (this.isDestroyed) {
+        throw new Error("Can not call `.lookup` after the owner has been destroyed");
+      }
+
       (true && !(this.registry.isValidFullName(fullName)) && (0, _debug.assert)('fullName must be a proper full name', this.registry.isValidFullName(fullName)));
       return lookup(this, this.registry.normalize(fullName), options);
     }
@@ -1755,8 +1758,8 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     destroy() {
-      destroyDestroyables(this);
       this.isDestroying = true;
+      destroyDestroyables(this);
     }
 
     finalizeDestroy() {
@@ -1810,7 +1813,10 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     factoryFor(fullName, options = {}) {
-      (true && !(!this.isDestroyed) && (0, _debug.assert)('expected container not to be destroyed', !this.isDestroyed));
+      if (this.isDestroyed) {
+        throw new Error("Can not call `.factoryFor` after the owner has been destroyed");
+      }
+
       var normalizedName = this.registry.normalize(fullName);
       (true && !(this.registry.isValidFullName(normalizedName)) && (0, _debug.assert)('fullName must be a proper full name', this.registry.isValidFullName(normalizedName)));
       (true && !(false
@@ -1972,7 +1978,16 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     if (isSingletonInstance(container, fullName, options)) {
-      return container.cache[normalizedName] = factoryManager.create();
+      var instance = container.cache[normalizedName] = factoryManager.create(); // if this lookup happened _during_ destruction (emits a deprecation, but
+      // is still possible) ensure that it gets destroyed
+
+      if (container.isDestroying) {
+        if (typeof instance.destroy === 'function') {
+          instance.destroy();
+        }
+      }
+
+      return instance;
     } // SomeClass { singleton: false, instantiate: true }
 
 
@@ -2103,6 +2118,23 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
     }
 
     create(options) {
+      var {
+        container
+      } = this;
+
+      if (container.isDestroyed) {
+        throw new Error("Can not create new instances after the owner has been destroyed (you attempted to create " + this.fullName + ")");
+      }
+
+      if (true
+      /* DEBUG */
+      ) {
+        (true && !(!container.isDestroying) && (0, _debug.deprecate)("Instantiating a new instance of " + this.fullName + " while the owner is being destroyed is deprecated.", !container.isDestroying, {
+          id: 'container.lookup-on-destroy',
+          until: '3.20.0'
+        }));
+      }
+
       var injectionsCache = this.injections;
 
       if (injectionsCache === undefined) {
@@ -35698,11 +35730,7 @@ define("@ember/application/globals-resolver", ["exports", "@ember/-internals/uti
 
 
       init() {
-        (true && !(false) && (0, _debug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
-          until: '4.0.0',
-          id: 'globals-resolver',
-          url: 'https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver'
-        }));
+        
         this._parseNameCache = (0, _utils.dictionary)(null);
       }
 
@@ -47983,8 +48011,9 @@ define("@glimmer/reference", ["exports", "@glimmer/util"], function (_exports, _
       this.lastChecked = INITIAL;
       this.lastValue = INITIAL;
       this.isUpdating = false;
-      this.subtag = null;
       this.subtags = null;
+      this.subtag = null;
+      this.subtagBufferCache = null;
       this[TYPE] = type;
     }
 
@@ -48001,11 +48030,21 @@ define("@glimmer/reference", ["exports", "@glimmer/util"], function (_exports, _
           var {
             subtags,
             subtag,
+            subtagBufferCache,
+            lastValue,
             revision
           } = this;
 
           if (subtag !== null) {
-            revision = Math.max(revision, subtag[COMPUTE]());
+            var subtagValue = subtag[COMPUTE]();
+
+            if (subtagValue === subtagBufferCache) {
+              revision = Math.max(revision, lastValue);
+            } else {
+              // Clear the temporary buffer cache
+              this.subtagBufferCache = null;
+              revision = Math.max(revision, subtagValue);
+            }
           }
 
           if (subtags !== null) {
@@ -48029,19 +48068,34 @@ define("@glimmer/reference", ["exports", "@glimmer/util"], function (_exports, _
       return this.lastValue;
     }
 
-    static update(_tag, subtag) {
+    static update(_tag, _subtag) {
       // TODO: TS 3.7 should allow us to do this via assertion
       var tag = _tag;
+      var subtag = _subtag;
 
       if (subtag === CONSTANT_TAG) {
         tag.subtag = null;
       } else {
-        tag.subtag = subtag; // subtag could be another type of tag, e.g. CURRENT_TAG or VOLATILE_TAG.
-        // If so, lastChecked/lastValue will be undefined, result in these being
-        // NaN. This is fine, it will force the system to recompute.
-
-        tag.lastChecked = Math.min(tag.lastChecked, subtag.lastChecked);
-        tag.lastValue = Math.max(tag.lastValue, subtag.lastValue);
+        // There are two different possibilities when updating a subtag:
+        //
+        // 1. subtag[COMPUTE]() <= tag[COMPUTE]();
+        // 2. subtag[COMPUTE]() > tag[COMPUTE]();
+        //
+        // The first possibility is completely fine within our caching model, but
+        // the second possibility presents a problem. If the parent tag has
+        // already been read, then it's value is cached and will not update to
+        // reflect the subtag's greater value. Next time the cache is busted, the
+        // subtag's value _will_ be read, and it's value will be _greater_ than
+        // the saved snapshot of the parent, causing the resulting calculation to
+        // be rerun erroneously.
+        //
+        // In order to prevent this, when we first update to a new subtag we store
+        // its computed value, and then check against that computed value on
+        // subsequent updates. If its value hasn't changed, then we return the
+        // parent's previous value. Once the subtag changes for the first time,
+        // we clear the cache and everything is finally in sync with the parent.
+        tag.subtagBufferCache = subtag[COMPUTE]();
+        tag.subtag = subtag;
       }
     }
 
@@ -58343,11 +58397,7 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.ApplicationInstance = _instance.default;
   Object.defineProperty(Ember, 'Resolver', {
     get() {
-      (true && !(false) && (0, EmberDebug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
-        id: 'ember.globals-resolver',
-        until: '4.0.0',
-        url: 'https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver'
-      }));
+      
       return _globalsResolver.default;
     }
 
@@ -58826,7 +58876,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.16.0";
+  var _default = "3.16.1";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {

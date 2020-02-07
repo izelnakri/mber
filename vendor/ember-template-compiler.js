@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.16.0
+ * @version   3.16.1
  */
 
 /*globals process */
@@ -8111,7 +8111,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.16.0";
+  var _default = "3.16.1";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {
@@ -13517,7 +13517,7 @@ define("simple-html-tokenizer", ["exports"], function (_exports) {
         },
         data: function data() {
           var char = this.peek();
-          var tag = this.tagNameBuffer.toLowerCase();
+          var tag = this.tagNameBuffer;
 
           if (char === '<' && !this.isIgnoredEndTag()) {
             this.delegate.finishData();
@@ -14042,7 +14042,7 @@ define("simple-html-tokenizer", ["exports"], function (_exports) {
     };
 
     EventedTokenizer.prototype.isIgnoredEndTag = function () {
-      var tag = this.tagNameBuffer.toLowerCase();
+      var tag = this.tagNameBuffer;
       return tag === 'title' && this.input.substring(this.index, this.index + 8) !== '</title>' || tag === 'style' && this.input.substring(this.index, this.index + 8) !== '</style>' || tag === 'script' && this.input.substring(this.index, this.index + 9) !== '</script>';
     };
 

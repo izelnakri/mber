@@ -165,8 +165,21 @@ async function buildEmberData(projectPath, environment) {
 }
 
 function writeVendorJS(path, content, environment) {
+  const targetContent = content.replace(
+    'this._najaxRequest(options);',
+    '(window.$ && window.$.ajax) ? this._ajaxRequest(options) : this._najaxRequest(options);'
+  ).replace(`(true && !(false) && (0, _debug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
+          until: '4.0.0',
+          id: 'globals-resolver',
+          url: 'https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver'
+        }));`, '').replace(`(true && !(false) && (0, EmberDebug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
+        id: 'ember.globals-resolver',
+        until: '4.0.0',
+        url: 'https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver'
+      }));`, '');
+
   if (environment === 'production') {
-    const minified = Terser.minify(content, {
+    const minified = Terser.minify(targetContent, {
       compress: {
         negate_iife: false,
         sequences: 20
@@ -179,13 +192,7 @@ function writeVendorJS(path, content, environment) {
     return fs.writeFile(path, minified);
   }
 
-  return fs.writeFile(
-    path,
-    content.replace(
-      'this._najaxRequest(options);',
-      '(window.$ && window.$.ajax) ? this._ajaxRequest(options) : this._najaxRequest(options);'
-    )
-  );
+  return fs.writeFile(path, targetContent);
 }
 
 function readArguments() {
