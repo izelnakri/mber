@@ -69863,7 +69863,7 @@ define("@ember-data/model/index", ["exports", "@ember-data/model/-private"], fun
     }
   });
 });
-define("@ember-data/model/-private/attr", ["exports", "@ember-data/canary-features", "@ember-data/store/-private", "@ember-data/model/-private/util"], function (_exports, _canaryFeatures, _private, _util) {
+define("@ember-data/model/-private/attr", ["exports", "@ember-data/store/-private", "@ember-data/model/-private/util"], function (_exports, _private, _util) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -70016,7 +70016,9 @@ define("@ember-data/model/-private/attr", ["exports", "@ember-data/canary-featur
           }
         }
 
-        if (_canaryFeatures.RECORD_DATA_ERRORS) {
+        if (false
+        /* RECORD_DATA_ERRORS */
+        ) {
           let oldValue = this._internalModel._recordData.getAttr(key);
 
           if (oldValue !== value) {
@@ -70917,7 +70919,7 @@ define("@ember-data/model/-private/index", ["exports", "@ember-data/model/-priva
     }
   });
 });
-define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-features", "@ember-data/private-build-infra/deprecations", "@ember-data/store/-private", "@ember-data/model/-private/errors", "@ember-data/model/-private/system/relationships/ext"], function (_exports, _canaryFeatures, _deprecations, _private, _errors, _ext) {
+define("@ember-data/model/-private/model", ["exports", "@ember-data/store/-private", "@ember-data/model/-private/errors", "@ember-data/model/-private/system/relationships/ext"], function (_exports, _private, _errors, _ext) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -70969,10 +70971,14 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
   const isValidRecordData = Ember.computed('errors.length', function (key) {
     return !(this.get('errors.length') > 0);
   }).readOnly();
-  const isValid = _canaryFeatures.RECORD_DATA_ERRORS ? isValidRecordData : retrieveFromCurrentState;
+  const isValid = false
+  /* RECORD_DATA_ERRORS */
+  ? isValidRecordData : retrieveFromCurrentState;
   let isDeletedCP;
 
-  if (_canaryFeatures.RECORD_DATA_STATE) {
+  if (false
+  /* RECORD_DATA_STATE */
+  ) {
     isDeletedCP = Ember.computed('currentState', function () {
       let rd = (0, _private.recordDataFor)(this);
 
@@ -70988,7 +70994,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
 
   let isNewCP;
 
-  if (_canaryFeatures.RECORD_DATA_STATE) {
+  if (false
+  /* RECORD_DATA_STATE */
+  ) {
     isNewCP = Ember.computed('currentState', function () {
       let rd = (0, _private.recordDataFor)(this);
 
@@ -71004,7 +71012,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
 
   let adapterError;
 
-  if (_canaryFeatures.REQUEST_SERVICE) {
+  if (false
+  /* REQUEST_SERVICE */
+  ) {
     adapterError = Ember.computed(function () {
       let request = this._lastError;
 
@@ -71020,7 +71030,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
 
   let isError;
 
-  if (_canaryFeatures.REQUEST_SERVICE) {
+  if (false
+  /* REQUEST_SERVICE */
+  ) {
     isError = Ember.computed(function () {
       let errorReq = this._errorRequests[this._errorRequests.length - 1];
 
@@ -71036,7 +71048,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
 
   let isReloading;
 
-  if (_canaryFeatures.REQUEST_SERVICE) {
+  if (false
+  /* REQUEST_SERVICE */
+  ) {
     isReloading = Ember.computed({
       get() {
         if (this._isReloading === undefined) {
@@ -71076,11 +71090,15 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
         }
       }
 
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         this._invalidRequests = [];
       }
 
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         this.store.getRequestStateService().subscribeForRecord(this._internalModel.identifier, request => {
           if (request.state === 'rejected') {
             // TODO filter out queries
@@ -71105,7 +71123,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
     },
 
     _notifyNetworkChanges: function () {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         ['isSaving', 'isValid', 'isError', 'adapterError', 'isReloading'].forEach(key => this.notifyPropertyChange(key));
       } else {
         ['isValid'].forEach(key => this.notifyPropertyChange(key));
@@ -71264,7 +71284,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
     isValid: isValid,
 
     _markInvalidRequestAsClean() {
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         this._invalidRequests = [];
 
         this._notifyNetworkChanges();
@@ -71426,7 +71448,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
         this.send('becameValid');
       });
 
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         let recordData = (0, _private.recordDataFor)(this);
         let jsonApiErrors;
 
@@ -71448,7 +71472,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
     }).readOnly(),
 
     invalidErrorsChanged(jsonApiErrors) {
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         this._clearErrorMessages();
 
         let errors = (0, _private.errorsArrayToHash)(jsonApiErrors);
@@ -71715,11 +71741,15 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
     rollbackAttributes() {
       this._internalModel.rollbackAttributes();
 
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         this._markInvalidRequestAsClean();
       }
 
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         this._markErrorRequestAsClean();
       }
     },
@@ -72046,7 +72076,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
 
   });
 
-  if (_deprecations.DEPRECATE_EVENTED_API_USAGE) {
+  if (true
+  /* DEPRECATE_EVENTED_API_USAGE */
+  ) {
     /**
     Override the default event firing from Ember.Evented to
     also call methods with the given name.
@@ -72056,7 +72088,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
     */
     Model.reopen({
       trigger(name) {
-        if (_deprecations.DEPRECATE_RECORD_LIFECYCLE_EVENT_METHODS) {
+        if (true
+        /* DEPRECATE_RECORD_LIFECYCLE_EVENT_METHODS */
+        ) {
           let fn = this[name];
 
           if (typeof fn === 'function') {
@@ -72083,7 +72117,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
     });
   }
 
-  if (_deprecations.DEPRECATE_MODEL_DATA) {
+  if (true
+  /* DEPRECATE_MODEL_DATA */
+  ) {
     /**
     @property data
     @private
@@ -72104,7 +72140,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
     });
   }
 
-  if (_deprecations.DEPRECATE_MODEL_TOJSON) {
+  if (true
+  /* DEPRECATE_MODEL_TOJSON */
+  ) {
     /**
       Use [JSONSerializer](JSONSerializer.html) to
       get the JSON representation of a record.
@@ -72197,7 +72235,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
 
     let _deprecatedLifecycleMethods;
 
-    if (_deprecations.DEPRECATE_RECORD_LIFECYCLE_EVENT_METHODS) {
+    if (true
+    /* DEPRECATE_RECORD_LIFECYCLE_EVENT_METHODS */
+    ) {
       const INSTANCE_DEPRECATIONS = new WeakMap();
       _deprecatedLifecycleMethods = ['becameError', 'becameInvalid', 'didCreate', 'didDelete', 'didLoad', 'didUpdate', 'ready', 'rolledBack'];
 
@@ -72217,7 +72257,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
       init() {
         this._super(...arguments);
 
-        if (_deprecations.DEPRECATE_EVENTED_API_USAGE) {
+        if (true
+        /* DEPRECATE_EVENTED_API_USAGE */
+        ) {
           this._getDeprecatedEventedInfo = () => "".concat(this._internalModel.modelName, "#").concat(this.id);
         }
 
@@ -72235,7 +72277,9 @@ define("@ember-data/model/-private/model", ["exports", "@ember-data/canary-featu
           throw new Ember.Error("You may not set 'id' as an attribute on your model. Please remove any lines that look like: `id: attr('<type>')` from ".concat(this.constructor.toString()));
         }
 
-        if (_deprecations.DEPRECATE_RECORD_LIFECYCLE_EVENT_METHODS) {
+        if (true
+        /* DEPRECATE_RECORD_LIFECYCLE_EVENT_METHODS */
+        ) {
           let lifecycleDeprecations = lookupDeprecations(this.constructor);
 
           _deprecatedLifecycleMethods.forEach(methodName => {
@@ -72868,7 +72912,7 @@ define("@ember-data/model/-private/util", ["exports", "ember-compatibility-helpe
     }
   }
 });
-define("@ember-data/model/-private/system/many-array", ["exports", "@ember-data/canary-features", "@ember-data/store/-private"], function (_exports, _canaryFeatures, _private) {
+define("@ember-data/model/-private/system/many-array", ["exports", "@ember-data/store/-private"], function (_exports, _private) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -73003,7 +73047,9 @@ define("@ember-data/model/-private/system/many-array", ["exports", "@ember-data/
         let internalModel = this.currentState[i];
         let shouldRemove;
 
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           shouldRemove = internalModel._isDematerializing;
         } else {
           shouldRemove = internalModel._isDematerializing || !internalModel.isLoaded();
@@ -73090,7 +73136,9 @@ define("@ember-data/model/-private/system/many-array", ["exports", "@ember-data/
         this.set('meta', jsonApi.meta);
       }
 
-      if (_canaryFeatures.FULL_LINKS_ON_RELATIONSHIPS) {
+      if (false
+      /* FULL_LINKS_ON_RELATIONSHIPS */
+      ) {
         if (jsonApi.links) {
           this.set('links', jsonApi.links);
         }
@@ -73256,7 +73304,7 @@ define("@ember-data/model/-private/system/promise-belongs-to", ["exports", "@emb
   var _default = PromiseBelongsTo;
   _exports.default = _default;
 });
-define("@ember-data/model/-private/system/promise-many-array", ["exports", "@ember-data/canary-features", "@ember-data/store/-private"], function (_exports, _canaryFeatures, _private) {
+define("@ember-data/model/-private/system/promise-many-array", ["exports", "@ember-data/store/-private"], function (_exports, _private) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -73287,7 +73335,9 @@ define("@ember-data/model/-private/system/promise-many-array", ["exports", "@emb
     @private
   */
   const PromiseManyArray = _private.PromiseArray.extend({
-    links: _canaryFeatures.FULL_LINKS_ON_RELATIONSHIPS ? Ember.computed.reads('content.links') : undefined,
+    links: false
+    /* FULL_LINKS_ON_RELATIONSHIPS */
+    ? Ember.computed.reads('content.links') : undefined,
 
     reload(options) {
       (true && Ember.assert('You are trying to reload an async manyArray before it has been created', Ember.get(this, 'content')));
@@ -73592,7 +73642,7 @@ define("@ember-data/record-data/-private/record-data-for", ["exports", "@ember-d
     return implicitRelationshipsFor(instance)[propertyName];
   }
 });
-define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/canary-features", "@ember-data/record-data/-private/coerce-id", "@ember-data/record-data/-private/relationships/state/create"], function (_exports, _canaryFeatures, _coerceId, _create) {
+define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/record-data/-private/coerce-id", "@ember-data/record-data/-private/relationships/state/create"], function (_exports, _coerceId, _create) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -73628,7 +73678,9 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
       this.identifier = void 0;
       this.storeWrapper = void 0;
 
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         const [identifier, storeWrapper] = arguments;
         this.identifier = identifier;
         this.modelName = identifier.type;
@@ -73656,7 +73708,9 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
 
 
     getResourceIdentifier() {
-      return _canaryFeatures.IDENTIFIERS ? this.identifier : {
+      return true
+      /* IDENTIFIERS */
+      ? this.identifier : {
         id: this.id,
         type: this.modelName,
         lid: this.clientId,
@@ -73704,7 +73758,9 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
     }
 
     _clearErrors() {
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         if (this._errors) {
           this._errors = undefined;
           this.storeWrapper.notifyErrorsChange(this.modelName, this.id, this.clientId);
@@ -73713,9 +73769,13 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
     }
 
     getErrors() {
-      (true && Ember.assert('Can not call getErrors unless the RECORD_DATA_ERRORS feature flag is on', !!_canaryFeatures.RECORD_DATA_ERRORS));
+      (true && Ember.assert('Can not call getErrors unless the RECORD_DATA_ERRORS feature flag is on', !!false
+      /* RECORD_DATA_ERRORS */
+      ));
 
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         let errors = this._errors || [];
         return errors;
       } else {
@@ -73934,7 +73994,9 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
     }
 
     notifyStateChange() {
-      if (_canaryFeatures.RECORD_DATA_STATE) {
+      if (false
+      /* RECORD_DATA_STATE */
+      ) {
         this.storeWrapper.notifyStateChange(this.modelName, this.id, this.clientId);
       }
     } // get ResourceIdentifiers for "current state"
@@ -73977,7 +74039,9 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
 
       this._inFlightAttributes = null;
 
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         if (errors) {
           this._errors = errors;
         }
@@ -74736,7 +74800,7 @@ define("@ember-data/record-data/-private/relationships/state/create", ["exports"
 
   _exports.default = Relationships;
 });
-define("@ember-data/record-data/-private/relationships/state/has-many", ["exports", "@ember-data/canary-features", "@ember-data/store/-debug", "@ember-data/record-data/-private/ordered-set", "@ember-data/record-data/-private/relationships/state/relationship"], function (_exports, _canaryFeatures, _debug, _orderedSet, _relationship) {
+define("@ember-data/record-data/-private/relationships/state/has-many", ["exports", "@ember-data/store/-debug", "@ember-data/record-data/-private/ordered-set", "@ember-data/record-data/-private/relationships/state/relationship"], function (_exports, _debug, _orderedSet, _relationship) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -74934,7 +74998,9 @@ define("@ember-data/record-data/-private/relationships/state/has-many", ["export
       let recordData = this.recordData;
       let storeWrapper = recordData.storeWrapper;
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         storeWrapper.notifyHasManyChange(recordData.modelName, recordData.id, recordData.clientId, this.key);
       } else {
         storeWrapper.notifyPropertyChange(recordData.modelName, recordData.id, recordData.clientId, this.key);
@@ -75004,7 +75070,7 @@ define("@ember-data/record-data/-private/relationships/state/has-many", ["export
     return set;
   }
 });
-define("@ember-data/record-data/-private/relationships/state/relationship", ["exports", "@ember-data/canary-features", "@ember-data/record-data/-private/normalize-link", "@ember-data/record-data/-private/ordered-set", "@ember-data/record-data/-private/record-data-for"], function (_exports, _canaryFeatures, _normalizeLink2, _orderedSet, _recordDataFor) {
+define("@ember-data/record-data/-private/relationships/state/relationship", ["exports", "@ember-data/record-data/-private/normalize-link", "@ember-data/record-data/-private/ordered-set", "@ember-data/record-data/-private/record-data-for"], function (_exports, _normalizeLink2, _orderedSet, _recordDataFor) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -75660,7 +75726,9 @@ define("@ember-data/record-data/-private/relationships/state/relationship", ["ex
           let recordData = this.recordData;
           let storeWrapper = this.recordData.storeWrapper;
 
-          if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+          if (false
+          /* CUSTOM_MODEL_CLASS */
+          ) {
             storeWrapper.notifyBelongsToChange(recordData.modelName, recordData.id, recordData.clientId, this.key);
           } else {
             storeWrapper.notifyPropertyChange(recordData.modelName, recordData.id, recordData.clientId, // We know we are not an implicit relationship here
@@ -75823,7 +75891,7 @@ define("@ember-data/serializer/index", ["exports"], function (_exports) {
 
   _exports.default = _default;
 });
-define("@ember-data/serializer/json-api", ["exports", "ember-inflector", "@ember-data/canary-features", "@ember-data/serializer/json", "@ember-data/store"], function (_exports, _emberInflector, _canaryFeatures, _json, _store) {
+define("@ember-data/serializer/json-api", ["exports", "ember-inflector", "@ember-data/serializer/json", "@ember-data/store"], function (_exports, _emberInflector, _json, _store) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -76301,7 +76369,9 @@ define("@ember-data/serializer/json-api", ["exports", "ember-inflector", "@ember
         let belongsTo = snapshot.belongsTo(key);
         let belongsToIsNotNew;
 
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           belongsToIsNotNew = belongsTo && !belongsTo.isNew;
         } else {
           belongsToIsNotNew = belongsTo && belongsTo.record && !belongsTo.record.get('isNew');
@@ -80512,7 +80582,7 @@ define("@ember-data/store/-private/system/coerce-id", ["exports"], function (_ex
   var _default = coerceId;
   _exports.default = _default;
 });
-define("@ember-data/store/-private/system/core-store", ["exports", "require", "@ember-data/canary-features", "@ember-data/private-build-infra", "@ember-data/private-build-infra/deprecations", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/ts-interfaces/utils/symbol", "@ember-data/store/-private/utils/construct-resource", "@ember-data/store/-private/utils/promise-record", "@ember-data/store/-private/system/backburner", "@ember-data/store/-private/system/coerce-id", "@ember-data/store/-private/system/errors-utils", "@ember-data/store/-private/system/fetch-manager", "@ember-data/store/-private/system/model/internal-model", "@ember-data/store/-private/system/model/shim-model-class", "@ember-data/store/-private/system/normalize-model-name", "@ember-data/store/-private/system/promise-proxies", "@ember-data/store/-private/system/record-array-manager", "@ember-data/store/-private/system/record-data-for", "@ember-data/store/-private/system/record-notification-manager", "@ember-data/store/-private/system/request-cache", "@ember-data/store/-private/system/store/common", "@ember-data/store/-private/system/store/finders", "@ember-data/store/-private/system/store/internal-model-factory", "@ember-data/store/-private/system/store/record-data-store-wrapper", "@ember-data/store/-private/system/store/serializer-response"], function (_exports, _require, _canaryFeatures, _privateBuildInfra, _deprecations, _cache, _symbol, _constructResource, _promiseRecord, _backburner, _coerceId, _errorsUtils, _fetchManager, _internalModel, _shimModelClass, _normalizeModelName, _promiseProxies, _recordArrayManager, _recordDataFor, _recordNotificationManager, _requestCache, _common, _finders, _internalModelFactory, _recordDataStoreWrapper, _serializerResponse) {
+define("@ember-data/store/-private/system/core-store", ["exports", "require", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/ts-interfaces/utils/symbol", "@ember-data/store/-private/utils/construct-resource", "@ember-data/store/-private/utils/promise-record", "@ember-data/store/-private/system/backburner", "@ember-data/store/-private/system/coerce-id", "@ember-data/store/-private/system/errors-utils", "@ember-data/store/-private/system/fetch-manager", "@ember-data/store/-private/system/model/internal-model", "@ember-data/store/-private/system/model/shim-model-class", "@ember-data/store/-private/system/normalize-model-name", "@ember-data/store/-private/system/promise-proxies", "@ember-data/store/-private/system/record-array-manager", "@ember-data/store/-private/system/record-data-for", "@ember-data/store/-private/system/record-notification-manager", "@ember-data/store/-private/system/request-cache", "@ember-data/store/-private/system/store/common", "@ember-data/store/-private/system/store/finders", "@ember-data/store/-private/system/store/internal-model-factory", "@ember-data/store/-private/system/store/record-data-store-wrapper", "@ember-data/store/-private/system/store/serializer-response"], function (_exports, _require, _cache, _symbol, _constructResource, _promiseRecord, _backburner, _coerceId, _errorsUtils, _fetchManager, _internalModel, _shimModelClass, _normalizeModelName, _promiseProxies, _recordArrayManager, _recordDataFor, _recordNotificationManager, _requestCache, _common, _finders, _internalModelFactory, _recordDataStoreWrapper, _serializerResponse) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -80533,7 +80603,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
   let _Model;
 
   function getModel() {
-    if (_privateBuildInfra.HAS_MODEL_PACKAGE) {
+    if (true
+    /* HAS_MODEL_PACKAGE */
+    ) {
       _Model = _Model || (0, _require.default)("@ember-data/model").default;
     }
 
@@ -80705,11 +80777,15 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       this._trackAsyncRequestEnd = void 0;
       this.__asyncWaiter = void 0;
 
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         this._fetchManager = new _fetchManager.default(this);
       }
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         this._notificationManager = new _recordNotificationManager.default(this);
         this.__recordDataFor = this.__recordDataFor.bind(this);
       }
@@ -80717,7 +80793,11 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       if (true
       /* DEBUG */
       ) {
-        if (_privateBuildInfra.HAS_EMBER_DATA_PACKAGE && _privateBuildInfra.HAS_SERIALIZER_PACKAGE) {
+        if (true
+        /* HAS_EMBER_DATA_PACKAGE */
+        && true
+        /* HAS_SERIALIZER_PACKAGE */
+        ) {
           // support for legacy moduleFor style unit tests
           // that did not include transforms in "needs"
           // or which were not set to integration:true
@@ -80807,7 +80887,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     getRequestStateService() {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         return this._fetchManager.requestCache;
       }
 
@@ -80815,7 +80897,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     get identifierCache() {
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         return (0, _cache.identifierCacheFor)(this);
       }
 
@@ -80823,7 +80907,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     _instantiateRecord(internalModel, modelName, recordData, identifier, properties) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         // assert here
         if (properties !== undefined) {
           (true && Ember.assert("You passed '".concat(properties, "' as properties for record creation instead of an object."), typeof properties === 'object' && properties !== null));
@@ -80901,7 +80987,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     getSchemaDefinitionService() {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         return this._schemaDefinitionService;
       }
 
@@ -81051,8 +81139,12 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         assertDestroyingStore(this, 'deleteRecord');
       }
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
-        if (_privateBuildInfra.HAS_MODEL_PACKAGE && record instanceof getModel()) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
+        if (true
+        /* HAS_MODEL_PACKAGE */
+        && record instanceof getModel()) {
           return record.deleteRecord();
         } else {
           let identifier = (0, _internalModelFactory.recordIdentifierFor)(record);
@@ -81084,8 +81176,12 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         assertDestroyingStore(this, 'unloadRecord');
       }
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
-        if (_privateBuildInfra.HAS_MODEL_PACKAGE && record instanceof getModel()) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
+        if (true
+        /* HAS_MODEL_PACKAGE */
+        && record instanceof getModel()) {
           return record.unloadRecord();
         } else {
           let identifier = (0, _internalModelFactory.recordIdentifierFor)(record);
@@ -81369,7 +81465,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       } //TODO double check about reloading
 
 
-      if (!_canaryFeatures.REQUEST_SERVICE) {
+      if (!false
+      /* REQUEST_SERVICE */
+      ) {
         if (internalModel.isLoading()) {
           return internalModel._promiseProxy;
         }
@@ -81449,7 +81547,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       let promise = this._fetchManager.scheduleFetch(identifier, options, generateStackTrace);
 
       return promise.then(payload => {
-        if (_canaryFeatures.IDENTIFIERS) {
+        if (true
+        /* IDENTIFIERS */
+        ) {
           // ensure that regardless of id returned we assign to the correct record
           if (payload.data && !Array.isArray(payload.data)) {
             payload.data.lid = identifier.lid;
@@ -81477,7 +81577,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     _scheduleFetch(internalModel, options) {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         return this._scheduleFetchThroughFetchManager(internalModel, options);
       } else {
         if (internalModel._promiseProxy) {
@@ -81536,7 +81638,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     flushAllPendingFetches() {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         return; //assert here
       } else {
         if (this.isDestroyed || this.isDestroying) {
@@ -81771,7 +81875,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
 
     _reloadRecord(internalModel, options) {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         options.isReloading = true;
       }
 
@@ -81999,7 +82105,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
       if (internalModel) {
         // short circuit if we are already loading
-        if (_canaryFeatures.REQUEST_SERVICE) {
+        if (false
+        /* REQUEST_SERVICE */
+        ) {
           // Temporary fix for requests already loading until we move this inside the fetch manager
           let pendingRequests = this.getRequestStateService().getPendingRequestsForRecord(internalModel.identifier).filter(req => req.type === 'query');
 
@@ -82540,7 +82648,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
       internalModel.adapterWillCommit();
 
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         if (!options) {
           options = {};
         }
@@ -82606,7 +82716,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
 
     flushPendingSave() {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         // assert here
         return;
       }
@@ -82625,7 +82737,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         let adapter = this.adapterFor(internalModel.modelName);
         let operation;
 
-        if (_canaryFeatures.RECORD_DATA_STATE) {
+        if (false
+        /* RECORD_DATA_STATE */
+        ) {
           // TODO move this out of internalModel
           if (internalModel.isNew()) {
             operation = 'createRecord';
@@ -82681,7 +82795,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         (true && Ember.assert("Your ".concat(internalModel.modelName, " record was saved to the server, but the response does not have an id and no id has been set client side. Records must have ids. Please update the server response to provide an id in the response or generate the id on the client side either before saving the record or while normalizing the response."), internalModel.id));
       }
 
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         const cache = (0, _cache.identifierCacheFor)(this);
         const identifier = internalModel.identifier;
 
@@ -82712,7 +82828,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         assertDestroyingStore(this, 'recordWasInvalid');
       }
 
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         internalModel.adapterDidInvalidate(parsedErrors, error);
       } else {
         internalModel.adapterDidInvalidate(parsedErrors);
@@ -82778,7 +82896,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       const isLoading = internalModel.currentState.stateName === 'root.loading';
       const isUpdate = internalModel.currentState.isEmpty === false && !isLoading;
 
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         // exclude store.push (root.empty) case
         if (isUpdate || isLoading) {
           let identifier = internalModel.identifier;
@@ -83019,7 +83139,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         if (ENV.DS_WARN_ON_UNKNOWN_KEYS) {
           let unknownAttributes, unknownRelationships;
 
-          if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+          if (false
+          /* CUSTOM_MODEL_CLASS */
+          ) {
             let relationships = this.getSchemaDefinitionService().relationshipsDefinitionFor(modelName);
             let attributes = this.getSchemaDefinitionService().attributesDefinitionFor(modelName); // Check unknown attributes
 
@@ -83152,7 +83274,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     serializeRecord(record, options) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         let identifier = (0, _internalModelFactory.recordIdentifierFor)(record);
         let internalModel = (0, _internalModelFactory.internalModelFactoryFor)(this).peek(identifier); // TODO we used to check if the record was destroyed here
 
@@ -83163,7 +83287,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     saveRecord(record, options) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         let identifier = (0, _internalModelFactory.recordIdentifierFor)(record);
         let internalModel = (0, _internalModelFactory.internalModelFactoryFor)(this).peek(identifier); // TODO we used to check if the record was destroyed here
         // Casting can be removed once REQUEST_SERVICE ff is turned on
@@ -83176,7 +83302,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     relationshipReferenceFor(identifier, key) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         let stableIdentifier = (0, _cache.identifierCacheFor)(this).getOrCreateRecordIdentifier(identifier);
         let internalModel = (0, _internalModelFactory.internalModelFactoryFor)(this).peek(stableIdentifier); // TODO we used to check if the record was destroyed here
 
@@ -83205,7 +83333,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
 
     createRecordDataFor(modelName, id, clientId, storeWrapper) {
-      if (_privateBuildInfra.HAS_RECORD_DATA_PACKAGE) {
+      if (true
+      /* HAS_RECORD_DATA_PACKAGE */
+      ) {
         // we can't greedily use require as this causes
         // a cycle we can't easily fix (or clearly pin point) at present.
         //
@@ -83215,7 +83345,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
           _RecordData = (0, _require.default)("@ember-data/record-data/-private").RecordData;
         }
 
-        if (_canaryFeatures.IDENTIFIERS) {
+        if (true
+        /* IDENTIFIERS */
+        ) {
           let identifier = (0, _cache.identifierCacheFor)(this).getOrCreateRecordIdentifier({
             type: modelName,
             id,
@@ -83294,7 +83426,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
 
     newClientId() {
-      if (!_canaryFeatures.IDENTIFIERS) {
+      if (!true
+      /* IDENTIFIERS */
+      ) {
         return globalClientIdCounter++;
       }
 
@@ -83356,7 +83490,11 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
       if (true
       /* DEBUG */
-      && _privateBuildInfra.HAS_EMBER_DATA_PACKAGE && _privateBuildInfra.HAS_ADAPTER_PACKAGE && adapter === undefined) {
+      && true
+      /* HAS_EMBER_DATA_PACKAGE */
+      && true
+      /* HAS_ADAPTER_PACKAGE */
+      && adapter === undefined) {
         if (normalizedModelName === '-json-api') {
           const Adapter = (0, _require.default)("@ember-data/adapter/json-api").default;
           owner.register("adapter:-json-api", Adapter);
@@ -83388,7 +83526,11 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
       if (true
       /* DEBUG */
-      && _privateBuildInfra.HAS_EMBER_DATA_PACKAGE && _privateBuildInfra.HAS_ADAPTER_PACKAGE && adapter === undefined) {
+      && true
+      /* HAS_EMBER_DATA_PACKAGE */
+      && true
+      /* HAS_ADAPTER_PACKAGE */
+      && adapter === undefined) {
         if (adapterName === '-json-api') {
           const Adapter = (0, _require.default)("@ember-data/adapter/json-api").default;
           owner.register("adapter:-json-api", Adapter);
@@ -83457,11 +83599,17 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       let owner = Ember.getOwner(this);
       serializer = owner.lookup("serializer:".concat(normalizedModelName));
 
-      if (_deprecations.DEPRECATE_LEGACY_TEST_REGISTRATIONS) {
+      if (true
+      /* DEPRECATE_LEGACY_TEST_REGISTRATIONS */
+      ) {
         // in production this is handled by the re-export
         if (true
         /* DEBUG */
-        && _privateBuildInfra.HAS_EMBER_DATA_PACKAGE && _privateBuildInfra.HAS_SERIALIZER_PACKAGE && serializer === undefined) {
+        && true
+        /* HAS_EMBER_DATA_PACKAGE */
+        && true
+        /* HAS_SERIALIZER_PACKAGE */
+        && serializer === undefined) {
           if (normalizedModelName === '-json-api') {
             const Serializer = (0, _require.default)("@ember-data/serializer/json-api").default;
             owner.register("serializer:-json-api", Serializer);
@@ -83499,7 +83647,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
       let serializerName;
 
-      if (_deprecations.DEPRECATE_DEFAULT_SERIALIZER) {
+      if (true
+      /* DEPRECATE_DEFAULT_SERIALIZER */
+      ) {
         // no model specific serializer or application serializer, check for the `defaultSerializer`
         // property defined on the adapter
         let adapter = this.adapterFor(modelName);
@@ -83512,11 +83662,17 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         serializer = serializerName ? _serializerCache[serializerName] || owner.lookup("serializer:".concat(serializerName)) : undefined;
       }
 
-      if (_deprecations.DEPRECATE_LEGACY_TEST_REGISTRATIONS) {
+      if (true
+      /* DEPRECATE_LEGACY_TEST_REGISTRATIONS */
+      ) {
         // in production this is handled by the re-export
         if (true
         /* DEBUG */
-        && _privateBuildInfra.HAS_EMBER_DATA_PACKAGE && _privateBuildInfra.HAS_SERIALIZER_PACKAGE && serializer === undefined) {
+        && true
+        /* HAS_EMBER_DATA_PACKAGE */
+        && true
+        /* HAS_SERIALIZER_PACKAGE */
+        && serializer === undefined) {
           if (serializerName === '-json-api') {
             const Serializer = (0, _require.default)("@ember-data/serializer/json-api").default;
             owner.register("serializer:-json-api", Serializer);
@@ -83543,14 +83699,20 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         }
       }
 
-      if (_deprecations.DEPRECATE_DEFAULT_SERIALIZER) {
+      if (true
+      /* DEPRECATE_DEFAULT_SERIALIZER */
+      ) {
         // final fallback, no model specific serializer, no application serializer, no
         // `serializer` property on store: use the convenience JSONSerializer
         serializer = _serializerCache['-default'] || owner.lookup('serializer:-default');
 
         if (true
         /* DEBUG */
-        && _privateBuildInfra.HAS_EMBER_DATA_PACKAGE && _privateBuildInfra.HAS_SERIALIZER_PACKAGE && serializer === undefined) {
+        && true
+        /* HAS_EMBER_DATA_PACKAGE */
+        && true
+        /* HAS_SERIALIZER_PACKAGE */
+        && serializer === undefined) {
           const JSONSerializer = (0, _require.default)("@ember-data/serializer/json").default;
           owner.register('serializer:-default', JSONSerializer);
           serializer = owner.lookup('serializer:-default');
@@ -83641,7 +83803,9 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
 
   }
 
-  if (_deprecations.DEPRECATE_DEFAULT_ADAPTER) {
+  if (true
+  /* DEPRECATE_DEFAULT_ADAPTER */
+  ) {
     Ember.defineProperty(CoreStore.prototype, 'defaultAdapter', Ember.computed('adapter', function () {
       Ember.deprecate("store.adapterFor(modelName) resolved the (\"".concat(this.adapter || '-json-api', "\") adapter via the deprecated `store.defaultAdapter` property.\n\n\tPreviously, applications could define the store's `adapter` property which would be used by `defaultAdapter` and `adapterFor` as a fallback for when an adapter was not found by an exact name match. This behavior is deprecated in favor of explicitly defining an application or type-specific adapter."), false, {
         id: 'ember-data:default-adapter',
@@ -83800,7 +83964,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     assertInDebug("Attempted to schedule a fetch for a record without an id.", identifier.id === null);
   }
 });
-define("@ember-data/store/-private/system/deprecated-evented", ["exports", "@ember-data/private-build-infra/deprecations"], function (_exports, _deprecations) {
+define("@ember-data/store/-private/system/deprecated-evented", ["exports"], function (_exports) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -83891,7 +84055,9 @@ define("@ember-data/store/-private/system/deprecated-evented", ["exports", "@emb
     });
   }
 
-  var _default = _deprecations.DEPRECATE_EVENTED_API_USAGE ? true
+  var _default = true
+  /* DEPRECATE_EVENTED_API_USAGE */
+  ? true
   /* DEBUG */
   ? DeprecatedEvented : Ember.Evented : {};
 
@@ -83968,7 +84134,7 @@ define("@ember-data/store/-private/system/diff-array", ["exports"], function (_e
     };
   }
 });
-define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-data/canary-features", "@ember-data/store/-private/system/core-store", "@ember-data/store/-private/system/model/notify-changes", "@ember-data/store/-private/system/model/shim-model-class", "@ember-data/store/-private/system/normalize-model-name", "@ember-data/store/-private/system/schema-definition-service"], function (_exports, _canaryFeatures, _coreStore, _notifyChanges, _shimModelClass, _normalizeModelName, _schemaDefinitionService) {
+define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-data/store/-private/system/core-store", "@ember-data/store/-private/system/model/notify-changes", "@ember-data/store/-private/system/model/shim-model-class", "@ember-data/store/-private/system/normalize-model-name", "@ember-data/store/-private/system/schema-definition-service"], function (_exports, _coreStore, _notifyChanges, _shimModelClass, _normalizeModelName, _schemaDefinitionService) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -84110,7 +84276,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
       let klass = maybeFactory && maybeFactory.class ? maybeFactory.class : maybeFactory;
 
       if (!klass || !klass.isModel) {
-        if (!_canaryFeatures.CUSTOM_MODEL_CLASS || !this.getSchemaDefinitionService().doesTypeExist(modelName)) {
+        if (!false
+        /* CUSTOM_MODEL_CLASS */
+        || !this.getSchemaDefinitionService().doesTypeExist(modelName)) {
           throw new Ember.Error("No model was found for '".concat(modelName, "' and no schema handles the type"));
         }
 
@@ -84154,7 +84322,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
       (true && Ember.assert("You need to pass a model name to the store's hasModelFor method", Ember.isPresent(modelName)));
       (true && Ember.assert("Passing classes to store methods has been removed. Please pass a dasherized string instead of ".concat(modelName), typeof modelName === 'string'));
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         return this.getSchemaDefinitionService().doesTypeExist(modelName);
       } else {
         (true && Ember.assert("You need to pass a model name to the store's hasModelFor method", Ember.isPresent(modelName)));
@@ -84166,7 +84336,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
     }
 
     _relationshipMetaFor(modelName, id, key) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         return this._relationshipsDefinitionFor(modelName)[key];
       } else {
         let modelClass = this.modelFor(modelName);
@@ -84176,7 +84348,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
     }
 
     _attributesDefinitionFor(modelName, identifier) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         if (identifier) {
           return this.getSchemaDefinitionService().attributesDefinitionFor(identifier);
         } else {
@@ -84198,7 +84372,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
     }
 
     _relationshipsDefinitionFor(modelName, identifier) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         if (identifier) {
           return this.getSchemaDefinitionService().relationshipsDefinitionFor(identifier);
         } else {
@@ -84218,7 +84394,9 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
     }
 
     getSchemaDefinitionService() {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         if (!this._schemaDefinitionService) {
           this._schemaDefinitionService = new _schemaDefinitionService.DSModelSchemaDefinitionService(this);
         }
@@ -85888,7 +86066,7 @@ define("@ember-data/store/-private/system/request-cache", ["exports", "@ember-da
 
   _exports.default = RequestCache;
 });
-define("@ember-data/store/-private/system/schema-definition-service", ["exports", "require", "@ember-data/private-build-infra", "@ember-data/store/-private/system/normalize-model-name"], function (_exports, _require, _privateBuildInfra, _normalizeModelName) {
+define("@ember-data/store/-private/system/schema-definition-service", ["exports", "require", "@ember-data/store/-private/system/normalize-model-name"], function (_exports, _require, _normalizeModelName) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -85900,7 +86078,9 @@ define("@ember-data/store/-private/system/schema-definition-service", ["exports"
 
   let _modelForMixin;
 
-  if (_privateBuildInfra.HAS_MODEL_PACKAGE) {
+  if (true
+  /* HAS_MODEL_PACKAGE */
+  ) {
     let _found;
 
     _modelForMixin = function () {
@@ -85988,7 +86168,9 @@ define("@ember-data/store/-private/system/schema-definition-service", ["exports"
     if (!factory) {
       factory = _lookupModelFactory(store, normalizedModelName);
 
-      if (!factory && _privateBuildInfra.HAS_MODEL_PACKAGE) {
+      if (!factory && true
+      /* HAS_MODEL_PACKAGE */
+      ) {
         //Support looking up mixins as base types for polymorphic relationships
         factory = _modelForMixin(store, normalizedModelName);
       }
@@ -86194,7 +86376,7 @@ define("@ember-data/store/-private/system/snapshot-record-array", ["exports"], f
 
   _exports.default = SnapshotRecordArray;
 });
-define("@ember-data/store/-private/system/snapshot", ["exports", "@ember-data/canary-features", "@ember-data/store/-private/system/record-data-for"], function (_exports, _canaryFeatures, _recordDataFor) {
+define("@ember-data/store/-private/system/snapshot", ["exports", "@ember-data/store/-private/system/record-data-for"], function (_exports, _recordDataFor) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -86248,7 +86430,9 @@ define("@ember-data/store/-private/system/snapshot", ["exports", "@ember-data/ca
 
       this.modelName = identifier.type;
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         this.identifier = identifier;
       }
       /*
@@ -86321,13 +86505,17 @@ define("@ember-data/store/-private/system/snapshot", ["exports", "@ember-data/ca
       let attributes = this.__attributes = Object.create(null);
       let attrs;
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         attrs = Object.keys(this._store._attributesDefinitionFor(this.modelName, this.identifier));
       } else {
         attrs = Object.keys(this._store._attributesDefinitionFor(this.modelName));
       }
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         attrs.forEach(keyName => {
           if (schemaIsDSModel(this.type)) {
             // if the schema is for a DSModel then the instance is too
@@ -86355,7 +86543,9 @@ define("@ember-data/store/-private/system/snapshot", ["exports", "@ember-data/ca
     }
 
     get isNew() {
-      if (!_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (!false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         throw new Error('isNew is only available when custom model class ff is on');
       }
 
@@ -86588,7 +86778,9 @@ define("@ember-data/store/-private/system/snapshot", ["exports", "@ember-data/ca
 
 
     eachAttribute(callback, binding) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         let attrDefs = this._store._attributesDefinitionFor(this.modelName, this.identifier);
 
         Object.keys(attrDefs).forEach(key => {
@@ -86615,7 +86807,9 @@ define("@ember-data/store/-private/system/snapshot", ["exports", "@ember-data/ca
 
 
     eachRelationship(callback, binding) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         let relationshipDefs = this._store._relationshipsDefinitionFor(this.modelName, this.identifier);
 
         Object.keys(relationshipDefs).forEach(key => {
@@ -86888,7 +87082,7 @@ define("@ember-data/store/-private/identifiers/utils/uuid-v4", ["exports"], func
     return bytesToUuid(rnds);
   }
 });
-define("@ember-data/store/-private/system/model/internal-model", ["exports", "@ember-data/canary-features", "@ember-data/private-build-infra", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/system/coerce-id", "@ember-data/store/-private/system/errors-utils", "@ember-data/store/-private/system/record-data-for", "@ember-data/store/-private/system/references", "@ember-data/store/-private/system/snapshot", "@ember-data/store/-private/system/store/internal-model-factory", "@ember-data/store/-private/system/model/states"], function (_exports, _canaryFeatures, _privateBuildInfra, _cache, _coerceId, _errorsUtils, _recordDataFor, _references, _snapshot, _internalModelFactory, _states) {
+define("@ember-data/store/-private/system/model/internal-model", ["exports", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/system/coerce-id", "@ember-data/store/-private/system/errors-utils", "@ember-data/store/-private/system/record-data-for", "@ember-data/store/-private/system/references", "@ember-data/store/-private/system/snapshot", "@ember-data/store/-private/system/store/internal-model-factory", "@ember-data/store/-private/system/model/states"], function (_exports, _cache, _coerceId, _errorsUtils, _recordDataFor, _references, _snapshot, _internalModelFactory, _states) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -86923,7 +87117,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
   let _getModelPackage;
 
-  if (_privateBuildInfra.HAS_MODEL_PACKAGE) {
+  if (true
+  /* HAS_MODEL_PACKAGE */
+  ) {
     _getModelPackage = function () {
       if (!_found) {
         let modelPackage = require("@ember-data/model/-private");
@@ -86946,7 +87142,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
 
   function isNotCustomModelClass(store) {
-    return !_canaryFeatures.CUSTOM_MODEL_CLASS;
+    return !false
+    /* CUSTOM_MODEL_CLASS */
+    ;
   }
 
   /*
@@ -87025,7 +87223,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
       this.currentState = void 0;
       this.error = void 0;
 
-      if (_privateBuildInfra.HAS_MODEL_PACKAGE) {
+      if (true
+      /* HAS_MODEL_PACKAGE */
+      ) {
         _getModelPackage();
       }
 
@@ -87058,7 +87258,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     get id() {
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         return this.identifier.id; // || this._id;
       }
 
@@ -87066,7 +87268,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     set id(value) {
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         if (value !== this._id) {
           let newIdentifier = {
             type: this.identifier.type,
@@ -87076,7 +87280,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
           (0, _cache.identifierCacheFor)(this.store).updateRecordIdentifier(this.identifier, newIdentifier);
           Ember.set(this, '_tag', this._tag + 1); // TODO Show deprecation for private api
         }
-      } else if (!_canaryFeatures.IDENTIFIERS) {
+      } else if (!true
+      /* IDENTIFIERS */
+      ) {
         this._id = value;
       }
     }
@@ -87150,7 +87356,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
         return true;
       }
 
-      if (_canaryFeatures.RECORD_DATA_STATE) {
+      if (false
+      /* RECORD_DATA_STATE */
+      ) {
         if (this.isLoading()) {
           return false;
         }
@@ -87158,7 +87366,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
       let isRecordFullyDeleted;
 
-      if (_canaryFeatures.RECORD_DATA_STATE) {
+      if (false
+      /* RECORD_DATA_STATE */
+      ) {
         isRecordFullyDeleted = this._isRecordFullyDeleted();
       } else {
         isRecordFullyDeleted = this.currentState.stateName === 'root.deleted.saved';
@@ -87168,7 +87378,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     _isRecordFullyDeleted() {
-      if (_canaryFeatures.RECORD_DATA_STATE) {
+      if (false
+      /* RECORD_DATA_STATE */
+      ) {
         if (this._recordData.isDeletionCommitted && this._recordData.isDeletionCommitted()) {
           return true;
         } else if (this._recordData.isNew && this._recordData.isDeleted && this._recordData.isNew() && this._recordData.isDeleted()) {
@@ -87208,7 +87420,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     isDeleted() {
-      if (_canaryFeatures.RECORD_DATA_STATE) {
+      if (false
+      /* RECORD_DATA_STATE */
+      ) {
         if (this._recordData.isDeleted) {
           return this._recordData.isDeleted();
         } else {
@@ -87220,7 +87434,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     isNew() {
-      if (_canaryFeatures.RECORD_DATA_STATE) {
+      if (false
+      /* RECORD_DATA_STATE */
+      ) {
         if (this._recordData.isNew) {
           return this._recordData.isNew();
         } else {
@@ -87232,7 +87448,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     isValid() {
-      if (!_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (!false
+      /* RECORD_DATA_ERRORS */
+      ) {
         return this.currentState.isValid;
       }
     }
@@ -87247,7 +87465,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
           store
         } = this;
 
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this._record = store._instantiateRecord(this, this.modelName, this._recordData, this.identifier, properties);
         } else {
           if (isNotCustomModelClass(store)) {
@@ -87259,7 +87479,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
               currentState: this.currentState
             };
 
-            if (!_canaryFeatures.REQUEST_SERVICE) {
+            if (!false
+            /* REQUEST_SERVICE */
+            ) {
               createOptions.isError = this.isError;
               createOptions.adapterError = this.error;
             }
@@ -87335,7 +87557,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
       this._doNotDestroy = false;
 
       if (this._record) {
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this.store.teardownRecord(this._record);
         } else {
           this._record.destroy();
@@ -87372,7 +87596,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     deleteRecord() {
-      if (_canaryFeatures.RECORD_DATA_STATE) {
+      if (false
+      /* RECORD_DATA_STATE */
+      ) {
         if (this._recordData.setIsDeleted) {
           this._recordData.setIsDeleted(true);
         }
@@ -87385,7 +87611,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
       let promiseLabel = 'DS: Model#save ' + this;
       let resolver = Ember.RSVP.defer(promiseLabel);
 
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         // Casting to narrow due to the feature flag paths inside scheduleSave
         return this.store.scheduleSave(this, resolver, options);
       } else {
@@ -87411,7 +87639,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     reload(options) {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         if (!options) {
           options = {};
         }
@@ -87592,7 +87822,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
           type: this.store.modelFor(relationshipMeta.type),
           recordData: this._recordData,
           meta: jsonApi.meta,
-          links: _canaryFeatures.FULL_LINKS_ON_RELATIONSHIPS ? jsonApi.links : undefined,
+          links: false
+          /* FULL_LINKS_ON_RELATIONSHIPS */
+          ? jsonApi.links : undefined,
           key,
           isPolymorphic: relationshipMeta.options.polymorphic,
           initialState: initialState.slice(),
@@ -87830,7 +88062,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
 
     loadingData(promise) {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         this.send('loadingData');
       } else {
         this.send('loadingData', promise);
@@ -87865,7 +88099,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     hasChangedAttributes() {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         if (!this.__recordData) {
           // no need to calculate changed attributes when calling `findRecord`
           return false;
@@ -87888,7 +88124,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
 
     changedAttributes() {
-      if (_canaryFeatures.REQUEST_SERVICE) {
+      if (false
+      /* REQUEST_SERVICE */
+      ) {
         if (!this.__recordData) {
           // no need to calculate changed attributes when calling `findRecord`
           return {};
@@ -87942,7 +88180,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
     manyArrayRecordAdded(key) {
       if (this.hasRecord) {
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this.store._notificationManager.notify(this.identifier, 'relationships');
         } else {
           this._record.notifyHasManyAdded(key);
@@ -87952,7 +88192,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
     notifyHasManyChange(key) {
       if (this.hasRecord) {
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this.store._notificationManager.notify(this.identifier, 'relationships');
         } else {
           let manyArray = this._manyArrayCache[key];
@@ -87973,7 +88215,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
     notifyBelongsToChange(key) {
       if (this.hasRecord) {
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this.store._notificationManager.notify(this.identifier, 'relationships');
         } else {
           this._record.notifyBelongsToChange(key, this._record);
@@ -87999,14 +88243,18 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
     notifyPropertyChange(key) {
       if (this.hasRecord) {
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this.store._notificationManager.notify(this.identifier, 'property');
         } else {
           this._record.notifyPropertyChange(key);
         }
       }
 
-      if (!_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (!false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         let manyArray = this._manyArrayCache[key] || this._retainedManyArrayCache[key];
 
         if (manyArray) {
@@ -88021,10 +88269,14 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     notifyStateChange(key) {
-      (true && Ember.assert('Cannot notify state change if Record Data State flag is not on', !!_canaryFeatures.RECORD_DATA_STATE));
+      (true && Ember.assert('Cannot notify state change if Record Data State flag is not on', !!false
+      /* RECORD_DATA_STATE */
+      ));
 
       if (this.hasRecord) {
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this.store._notificationManager.notify(this.identifier, 'state');
         } else {
           if (!key || key === 'isNew') {
@@ -88267,7 +88519,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     setId(id) {
-      if (!_canaryFeatures.IDENTIFIERS) {
+      if (!true
+      /* IDENTIFIERS */
+      ) {
         (true && Ember.assert("A record's id cannot be changed once it is in the loaded state", this.id === null || this.id === id));
       }
 
@@ -88284,7 +88538,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
       }
 
       if (didChange && this.hasRecord) {
-        if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+        if (false
+        /* CUSTOM_MODEL_CLASS */
+        ) {
           this.store._notificationManager.notify(this.identifier, 'identity');
         } else {
           this.notifyPropertyChange('id');
@@ -88293,7 +88549,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     didError(error) {
-      if (!_canaryFeatures.REQUEST_SERVICE) {
+      if (!false
+      /* REQUEST_SERVICE */
+      ) {
         this.error = error;
         this.isError = true;
 
@@ -88307,7 +88565,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     didCleanError() {
-      if (!_canaryFeatures.REQUEST_SERVICE) {
+      if (!false
+      /* REQUEST_SERVICE */
+      ) {
         this.error = null;
         this.isError = false;
 
@@ -88339,7 +88599,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
         return;
       }
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         this.store._notificationManager.notify(this.identifier, 'attributes');
       } else {
         this._record._notifyProperties(changedKeys);
@@ -88359,9 +88621,13 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     hasErrors() {
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         if (this._recordData.getErrors) {
-          return this._recordData.getErrors(_canaryFeatures.IDENTIFIERS ? this.identifier : {}).length > 0;
+          return this._recordData.getErrors(true
+          /* IDENTIFIERS */
+          ? this.identifier : {}).length > 0;
         } else {
           let errors = Ember.get(this.getRecord(), 'errors');
           return errors.get('length') > 0;
@@ -88379,7 +88645,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
 
 
     adapterDidInvalidate(parsedErrors, error) {
-      if (_canaryFeatures.RECORD_DATA_ERRORS) {
+      if (false
+      /* RECORD_DATA_ERRORS */
+      ) {
         let attribute;
 
         if (error && parsedErrors) {
@@ -88404,11 +88672,15 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
             }];
           }
 
-          this._recordData.commitWasRejected(_canaryFeatures.IDENTIFIERS ? this.identifier : {}, jsonApiErrors);
+          this._recordData.commitWasRejected(true
+          /* IDENTIFIERS */
+          ? this.identifier : {}, jsonApiErrors);
         } else {
           this.send('becameError');
 
-          this._recordData.commitWasRejected(_canaryFeatures.IDENTIFIERS ? this.identifier : {});
+          this._recordData.commitWasRejected(true
+          /* IDENTIFIERS */
+          ? this.identifier : {});
         }
       } else {
         let attribute;
@@ -88429,7 +88701,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
       let invalidErrors;
 
       if (this._recordData.getErrors) {
-        invalidErrors = this._recordData.getErrors(_canaryFeatures.IDENTIFIERS ? this.identifier : {}) || [];
+        invalidErrors = this._recordData.getErrors(true
+        /* IDENTIFIERS */
+        ? this.identifier : {}) || [];
       } else {
         return;
       }
@@ -88438,7 +88712,9 @@ define("@ember-data/store/-private/system/model/internal-model", ["exports", "@e
     }
 
     notifyInvalidErrorsChange(jsonApiErrors) {
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         this.store._notificationManager.notify(this.identifier, 'errors');
       } else {
         this.getRecord().invalidErrorsChanged(jsonApiErrors);
@@ -88689,7 +88965,7 @@ define("@ember-data/store/-private/system/model/shim-model-class", ["exports"], 
 
   _exports.default = ShimModelClass;
 });
-define("@ember-data/store/-private/system/model/states", ["exports", "@ember-data/canary-features"], function (_exports, _canaryFeatures) {
+define("@ember-data/store/-private/system/model/states", ["exports"], function (_exports) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -89190,7 +89466,9 @@ define("@ember-data/store/-private/system/model/states", ["exports", "@ember-dat
 
       // EVENTS
       loadingData(internalModel, promise) {
-        if (!_canaryFeatures.REQUEST_SERVICE) {
+        if (!false
+        /* REQUEST_SERVICE */
+        ) {
           internalModel._promiseProxy = promise;
         }
 
@@ -89286,7 +89564,9 @@ define("@ember-data/store/-private/system/model/states", ["exports", "@ember-dat
           resolve,
           options
         }) {
-          if (!_canaryFeatures.REQUEST_SERVICE) {
+          if (!false
+          /* REQUEST_SERVICE */
+          ) {
             resolve(internalModel.store._reloadRecord(internalModel, options));
           }
         },
@@ -89475,7 +89755,7 @@ define("@ember-data/store/-private/system/model/states", ["exports", "@ember-dat
 
   _exports.default = _default;
 });
-define("@ember-data/store/-private/system/record-arrays/adapter-populated-record-array", ["exports", "@ember-data/private-build-infra/deprecations", "@ember-data/store/-private/system/record-arrays/record-array"], function (_exports, _deprecations, _recordArray) {
+define("@ember-data/store/-private/system/record-arrays/adapter-populated-record-array", ["exports", "@ember-data/store/-private/system/record-arrays/record-array"], function (_exports, _recordArray) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -89571,7 +89851,9 @@ define("@ember-data/store/-private/system/record-arrays/adapter-populated-record
 
       this.manager._associateWithRecordArray(internalModels, this);
 
-      if (_deprecations.DEPRECATE_EVENTED_API_USAGE) {
+      if (true
+      /* DEPRECATE_EVENTED_API_USAGE */
+      ) {
         const _hasDidLoad = true
         /* DEBUG */
         ? this._has('didLoad') : this.has('didLoad');
@@ -89839,7 +90121,7 @@ define("@ember-data/store/-private/system/record-arrays/record-array", ["exports
 
   _exports.default = _default;
 });
-define("@ember-data/store/-private/system/references/belongs-to", ["exports", "@ember-data/private-build-infra/deprecations", "@ember-data/store/-debug", "@ember-data/store/-private/system/record-data-for", "@ember-data/store/-private/system/store/internal-model-factory", "@ember-data/store/-private/system/references/reference"], function (_exports, _deprecations, _debug, _recordDataFor, _internalModelFactory, _reference) {
+define("@ember-data/store/-private/system/references/belongs-to", ["exports", "@ember-data/store/-debug", "@ember-data/store/-private/system/record-data-for", "@ember-data/store/-private/system/store/internal-model-factory", "@ember-data/store/-private/system/references/reference"], function (_exports, _debug, _recordDataFor, _internalModelFactory, _reference) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -89963,7 +90245,9 @@ define("@ember-data/store/-private/system/references/belongs-to", ["exports", "@
       return Ember.RSVP.resolve(objectOrPromise).then(data => {
         let record;
 
-        if (_deprecations.DEPRECATE_BELONGS_TO_REFERENCE_PUSH && (0, _internalModelFactory.peekRecordIdentifier)(data)) {
+        if (true
+        /* DEPRECATE_BELONGS_TO_REFERENCE_PUSH */
+        && (0, _internalModelFactory.peekRecordIdentifier)(data)) {
           (true && !(false) && Ember.deprecate('Pushing a record into a BelongsToReference is deprecated', false, {
             id: 'ember-data:belongs-to-reference-push-record',
             until: '4.0'
@@ -90660,7 +90944,7 @@ define("@ember-data/store/-private/system/references/record", ["exports", "@embe
 
   _exports.default = RecordReference;
 });
-define("@ember-data/store/-private/system/references/reference", ["exports", "@ember-data/canary-features", "@ember-data/store/-private/system/record-data-for"], function (_exports, _canaryFeatures, _recordDataFor) {
+define("@ember-data/store/-private/system/references/reference", ["exports", "@ember-data/store/-private/system/record-data-for"], function (_exports, _recordDataFor) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -90830,7 +91114,9 @@ define("@ember-data/store/-private/system/references/reference", ["exports", "@e
 
   }
 
-  if (_canaryFeatures.FULL_LINKS_ON_RELATIONSHIPS) {
+  if (false
+  /* FULL_LINKS_ON_RELATIONSHIPS */
+  ) {
     Reference.prototype.links = function links() {
       let resource = this._resource();
 
@@ -90895,7 +91181,7 @@ define("@ember-data/store/-private/system/store/common", ["exports"], function (
     });
   }
 });
-define("@ember-data/store/-private/system/store/finders", ["exports", "@ember-data/canary-features", "@ember-data/store/-private/system/coerce-id", "@ember-data/store/-private/system/store/common", "@ember-data/store/-private/system/store/serializer-response"], function (_exports, _canaryFeatures, _coerceId, _common, _serializerResponse) {
+define("@ember-data/store/-private/system/store/finders", ["exports", "@ember-data/store/-private/system/coerce-id", "@ember-data/store/-private/system/store/common", "@ember-data/store/-private/system/store/serializer-response"], function (_exports, _coerceId, _common, _serializerResponse) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -90921,7 +91207,9 @@ define("@ember-data/store/-private/system/store/finders", ["exports", "@ember-da
   }
 
   function _find(adapter, store, modelClass, id, internalModel, options) {
-    if (_canaryFeatures.REQUEST_SERVICE) {// assert here
+    if (false
+    /* REQUEST_SERVICE */
+    ) {// assert here
     }
 
     let snapshot = internalModel.createSnapshot(options);
@@ -90945,7 +91233,9 @@ define("@ember-data/store/-private/system/store/finders", ["exports", "@ember-da
         id: 'ds.store.findRecord.id-mismatch'
       }));
 
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         // ensure that regardless of id returned we assign to the correct record
         payload.data.lid = identifier.lid;
       }
@@ -91279,7 +91569,7 @@ define("@ember-data/store/-private/system/store/finders", ["exports", "@ember-da
     }, null, "DS: Extract payload of queryRecord ".concat(modelName));
   }
 });
-define("@ember-data/store/-private/system/store/internal-model-factory", ["exports", "@ember-data/canary-features", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/utils/construct-resource", "@ember-data/store/-private/system/identity-map", "@ember-data/store/-private/system/model/internal-model"], function (_exports, _canaryFeatures, _cache, _constructResource, _identityMap, _internalModel) {
+define("@ember-data/store/-private/system/store/internal-model-factory", ["exports", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/utils/construct-resource", "@ember-data/store/-private/system/identity-map", "@ember-data/store/-private/system/model/internal-model"], function (_exports, _cache, _constructResource, _identityMap, _internalModel) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -91398,7 +91688,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
 
       this._identityMap = new _identityMap.default();
 
-      if (!_canaryFeatures.IDENTIFIERS) {
+      if (!true
+      /* IDENTIFIERS */
+      ) {
         this._newlyCreated = new _identityMap.default();
       }
     }
@@ -91415,7 +91707,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
 
 
     lookup(resource, data) {
-      if (_canaryFeatures.IDENTIFIERS && data !== undefined) {
+      if (true
+      /* IDENTIFIERS */
+      && data !== undefined) {
         // if we've been given data associated with this lookup
         // we must first give secondary-caches for LIDs the
         // opportunity to populate based on it
@@ -91451,7 +91745,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
 
 
     peek(identifier) {
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         return this.modelMapFor(identifier.type).get(identifier.lid);
       } else {
         let internalModel = null;
@@ -91466,7 +91762,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
     }
 
     getByResource(resource) {
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         const normalizedResource = (0, _constructResource.default)(resource.type, resource.id, resource.lid);
         return this.lookup(normalizedResource);
       } else {
@@ -91515,7 +91813,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
       let existingInternalModel = this.peekById(modelName, id);
       (true && Ember.assert("'".concat(modelName, "' was saved to the server, but the response returned the new id '").concat(id, "', which has already been used with another record.'"), Ember.isNone(existingInternalModel) || existingInternalModel === internalModel));
 
-      if (!_canaryFeatures.IDENTIFIERS) {
+      if (!true
+      /* IDENTIFIERS */
+      ) {
         this.modelMapFor(type).set(id, internalModel);
 
         this._newlyCreatedModelsFor(type).remove(internalModel, lid);
@@ -91538,7 +91838,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
       });
       let internalModel;
 
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         internalModel = identifier ? this.modelMapFor(type).get(identifier.lid) : null;
       } else {
         internalModel = this.modelMapFor(type).get(id);
@@ -91583,7 +91885,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
 
       let internalModel = new _internalModel.default(this.store, identifier);
 
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         this.modelMapFor(resource.type).add(internalModel, identifier.lid);
       } else {
         if (isCreate === true) {
@@ -91601,7 +91905,9 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
       let recordMap = this.modelMapFor(internalModel.modelName);
       let clientId = internalModel.identifier.lid;
 
-      if (_canaryFeatures.IDENTIFIERS) {
+      if (true
+      /* IDENTIFIERS */
+      ) {
         recordMap.remove(internalModel, clientId);
       } else {
         if (internalModel.id) {
@@ -91637,7 +91943,7 @@ define("@ember-data/store/-private/system/store/internal-model-factory", ["expor
 
   _exports.default = InternalModelFactory;
 });
-define("@ember-data/store/-private/system/store/record-data-store-wrapper", ["exports", "@ember-data/canary-features", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/ts-interfaces/utils/brand", "@ember-data/store/-private/utils/construct-resource", "@ember-data/store/-private/system/ts-upgrade-map", "@ember-data/store/-private/system/store/internal-model-factory"], function (_exports, _canaryFeatures, _cache, _brand, _constructResource, _tsUpgradeMap, _internalModelFactory) {
+define("@ember-data/store/-private/system/store/record-data-store-wrapper", ["exports", "@ember-data/store/-private/identifiers/cache", "@ember-data/store/-private/ts-interfaces/utils/brand", "@ember-data/store/-private/utils/construct-resource", "@ember-data/store/-private/system/ts-upgrade-map", "@ember-data/store/-private/system/store/internal-model-factory"], function (_exports, _cache, _brand, _constructResource, _tsUpgradeMap, _internalModelFactory) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -91656,7 +91962,9 @@ define("@ember-data/store/-private/system/store/record-data-store-wrapper", ["ex
     }
 
     get identifierCache() {
-      if (!_canaryFeatures.IDENTIFIERS) {
+      if (!true
+      /* IDENTIFIERS */
+      ) {
         throw new Error("Store.identifierCache is unavailable in this build of EmberData");
       }
 
@@ -91737,7 +92045,9 @@ define("@ember-data/store/-private/system/store/record-data-store-wrapper", ["ex
 
       const definition = (0, _tsUpgradeMap.upgradeForInternal)(this.relationshipsDefinitionFor(type)[key]);
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         if (definition.inverse !== undefined) {
           return definition.inverse;
         } else {
@@ -91758,7 +92068,9 @@ define("@ember-data/store/-private/system/store/record-data-store-wrapper", ["ex
 
       const definition = (0, _tsUpgradeMap.upgradeForInternal)(this.relationshipsDefinitionFor(type)[key]);
 
-      if (_canaryFeatures.CUSTOM_MODEL_CLASS) {
+      if (false
+      /* CUSTOM_MODEL_CLASS */
+      ) {
         if (definition.inverse === null) {
           return false;
         }

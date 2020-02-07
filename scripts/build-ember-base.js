@@ -115,7 +115,7 @@ function transpileEmberOrderedSet(modulePath) {
           );
 
         return convertESModuletoAMD(nonBroccoliEmberOrderedSet, {
-          moduleName: '@ember/ordered-set'
+          moduleName: '@ember/ordered-set', emberDataRelated: true
         });
       })
       .then((result) => resolve(result))

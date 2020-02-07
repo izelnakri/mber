@@ -14,26 +14,28 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
         fs.writeFile(`${APP_ROOT}/src/data/models/user/model.js`, `
           import DS from 'ember-data';
 
-          export default DS.Model.extend({
-            firstName: DS.attr('string'),
-            lastName: DS.attr('string'),
-            active: DS.attr('boolean')
-          });
+          const { Model, attr } = DS;
+
+          export default class User extends Model {
+            @attr('string') firstName;
+            @attr('string') lastName;
+            @attr('boolean') active;
+          }
         `),
         fs.writeFile(`${APP_ROOT}/src/ui/routes/index/route.js`, `
           import RSVP from 'rsvp';
           import Route from '@ember/routing/route';
 
-          export default Route.extend({
+          export default class IndexRoute extends Route {
             model() {
               return RSVP.hash({
-                activeUsers: this.get('store').query('user', { active: true })
+                activeUsers: this.store.query('user', { active: true })
               });
             }
-          });
+          }
         `),
         fs.writeFile(`${APP_ROOT}/src/ui/routes/index/template.hbs`, `
-          {{welcome-page}}
+          <WelcomePage/>
 
           <div id="users">
             {{#each model.activeUsers as |activeUser|}}
