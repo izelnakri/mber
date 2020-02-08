@@ -145,6 +145,7 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   );
 
   childProcess.stdout.on('data', (data) => console.log(data));
+
   await waitForRecompile(2000);
 
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
