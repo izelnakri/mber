@@ -124,7 +124,7 @@
     },
     "require": [
       "esm",
-      "./disable-colors"
+      "./vendor/disable-colors"
     ],
     "concurrency": 1,
     "failFast": true
