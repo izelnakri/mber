@@ -2,53 +2,73 @@ import fs from 'fs-extra';
 import findProjectRoot from '../../lib/utils/find-project-root';
 import createDummyApp from './create-dummy-app';
 
-export default async function(appName='dummyapp', options={ memserver: false }) {
+export default async function(appName = 'dummyapp', options = { memserver: false }) {
   const PROJECT_ROOT = await findProjectRoot();
   const APP_ROOT = `${PROJECT_ROOT}/${appName}`;
 
   return new Promise((resolvePromise) => {
-    createDummyApp(appName).then(() => {
-      return fs.mkdirp(`${APP_ROOT}/src/data/models/user`);
-    }).then(() => {
-      const operations = [
-        fs.writeFile(`${APP_ROOT}/src/data/models/user/model.js`, `
+    createDummyApp(appName)
+      .then(() => {
+        return fs.mkdirp(`${APP_ROOT}/src/data/models/user`);
+      })
+      .then(() => {
+        const operations = [
+          fs.writeFile(
+            `${APP_ROOT}/src/data/models/user/model.ts`,
+            `
           import DS from 'ember-data';
 
-          export default DS.Model.extend({
-            firstName: DS.attr('string'),
-            lastName: DS.attr('string'),
-            active: DS.attr('boolean')
-          });
-        `),
-        fs.writeFile(`${APP_ROOT}/src/ui/routes/index/route.js`, `
+          const { Model, attr } = DS;
+
+          export default class User extends Model {
+            @attr('string') firstName;
+            @attr('string') lastName;
+            @attr('boolean') active;
+          }
+        `
+          ),
+          fs.writeFile(
+            `${APP_ROOT}/src/ui/routes/index/route.ts`,
+            `
           import RSVP from 'rsvp';
           import Route from '@ember/routing/route';
 
-          export default Route.extend({
+          export default class IndexRoute extends Route {
             model() {
               return RSVP.hash({
-                activeUsers: this.get('store').query('user', { active: true })
+                activeUsers: this.store.query('user', { active: true })
               });
             }
-          });
-        `),
-        fs.writeFile(`${APP_ROOT}/src/ui/routes/index/template.hbs`, `
-          {{welcome-page}}
+          }
+        `
+          ),
+          fs.writeFile(
+            `${APP_ROOT}/src/ui/routes/index/template.hbs`,
+            `
+          <WelcomePage/>
 
           <div id="users">
             {{#each model.activeUsers as |activeUser|}}
               <h4>{{activeUser.firstName}} {{activeUser.lastName}}</h4>
             {{/each}}
           </div>
-        `)
-      ].concat(options.memserver ? [
-        fs.writeFile(`${APP_ROOT}/memserver/models/user.js`, `
+        `
+          )
+        ].concat(
+          options.memserver
+            ? [
+                fs.writeFile(
+                  `${APP_ROOT}/memserver/models/user.js`,
+                  `
           import Model from 'memserver/model';
 
           export default Model({
           });
-        `),
-        fs.writeFile(`${APP_ROOT}/memserver/fixtures/users.js`, `
+        `
+                ),
+                fs.writeFile(
+                  `${APP_ROOT}/memserver/fixtures/users.js`,
+                  `
           export default [
             {
               id: 1,
@@ -69,8 +89,11 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
               active: true
             }
           ];
-        `),
-        fs.writeFile(`${APP_ROOT}/memserver/server.js`, `
+        `
+                ),
+                fs.writeFile(
+                  `${APP_ROOT}/memserver/server.js`,
+                  `
           import ENV from '../config/environment';
           import Response from 'memserver/response';
 
@@ -89,11 +112,15 @@ export default async function(appName='dummyapp', options={ memserver: false }) 
               return Response(422, { error: 'Unexpected error occured' })
             })
           }
-        `)
-      ] : []);
+        `
+                )
+              ]
+            : []
+        );
 
-      return Promise.all(operations);
-    }).then(() => resolvePromise(true))
+        return Promise.all(operations);
+      })
+      .then(() => resolvePromise(true))
       .catch((error) => console.log('createDummyApp error:', error));
   });
 }

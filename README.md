@@ -1,6 +1,6 @@
 # mber: Modern Ember.js CLI alternative, without broccoli.
 
-This build system uses [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default.
+This build system uses [TypeScript](https://www.typescriptlang.org/docs/handbook/basic-types.html), [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default.
 It also runs JS transpilation, bundling and linting in a multithreaded context with a thread pool in order to utilize all your CPU cores.
 I've recently rewrote ember-cli, because it uses a not-so-ideal broccoli build system that does too much counter-intuitive magic.
 One day after reading ember-cli source code, I've realized rewriting this from scratch is the only way to move forward for me personally.

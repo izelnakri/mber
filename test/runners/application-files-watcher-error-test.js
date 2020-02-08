@@ -123,14 +123,15 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
   const WebSocketServer = await applicationFilesWatcher({
     applicationName: 'dummyapp',
     ENV: {
-      environment: 'memserver', modulePrefix: 'dummyapp',
+      environment: 'memserver',
+      modulePrefix: 'dummyapp',
       memserver: { enabled: true }
     },
     buildCache: {},
     cliArguments: { fastboot: true, socketPort: DEFAULT_SOCKET_PORT, testing: true }
   });
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 2000));
   await writeCSSCode('/src/ui/styles/application.scss', CSS_ERROR);
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/styles/application.scss') === 1);
@@ -173,14 +174,15 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
   const WebSocketServer = await applicationFilesWatcher({
     applicationName: 'dummyapp',
     ENV: {
-      environment: 'test', modulePrefix: 'dummyapp',
+      environment: 'test',
+      modulePrefix: 'dummyapp',
       memserver: { enabled: true }
     },
     buildCache: {},
     cliArguments: { fastboot: true, socketPort: TARGET_SOCKET_PORT, testing: true }
   });
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 3000));
   stdout.length = 0;
   await writeCSSCode('/src/ui/styles/application.scss', CSS_ERROR);
 
@@ -210,12 +212,15 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
 });
 
 async function testCSSErrorHandlingWorks(t, stdout, environment) {
-  await writeCSSCode('/src/ui/styles/application.scss', `@import "vendor";
+  await writeCSSCode(
+    '/src/ui/styles/application.scss',
+    `@import "vendor";
   @import "components";
   .testing-class {
     color: red;
   }
-`);
+`
+  );
 
   // t.true(getChangeNotificationCount(stdout, '/src/ui/styles/application.scss') === 2);
   // t.true(getBuildingNotificationCount(stdout, 'application.css') === 2);
@@ -226,14 +231,17 @@ async function testCSSErrorHandlingWorks(t, stdout, environment) {
   t.true(occurrenceCount(firstContent, '.testing-class') === 1);
 
   await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component`);
-  await writeCSSCode('/src/ui/components/some-component/styles.scss', '.some-component { color, purple }');
+  await writeCSSCode(
+    '/src/ui/components/some-component/styles.scss',
+    '.some-component { color, purple }'
+  );
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/some-component/styles.scss') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 3);
   t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember CSS build error:/g) === 2);
 
-  t.true(firstContent === await readApplicationCSS());
+  t.true(firstContent === (await readApplicationCSS()));
 
   await writeCSSCode('/src/ui/styles/application.scss', CSS_ERROR);
 
@@ -242,15 +250,21 @@ async function testCSSErrorHandlingWorks(t, stdout, environment) {
   t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
   t.true(stdoutOccurenceCount(stdout, /ember CSS build error:/g) === 3);
 
-  t.true(firstContent === await readApplicationCSS());
+  t.true(firstContent === (await readApplicationCSS()));
 
-  await writeCSSCode('/src/ui/components/some-component/styles.scss', '.some-component { color: purple; }');
-  await writeCSSCode('/src/ui/styles/application.scss', `@import "vendor";
+  await writeCSSCode(
+    '/src/ui/components/some-component/styles.scss',
+    '.some-component { color: purple; }'
+  );
+  await writeCSSCode(
+    '/src/ui/styles/application.scss',
+    `@import "vendor";
   @import "components";
   .testing-class {
     color: red;
   }
-  `);
+  `
+  );
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/styles/application.scss') === 4);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 6);
@@ -265,9 +279,9 @@ async function testCSSErrorHandlingWorks(t, stdout, environment) {
 }
 
 async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
-  await writeComponentCode('/welcome-page/component.js', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/welcome-page/component.ts', DEFAULT_EDITED_COMPONENT_JS);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
   // t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
 
@@ -276,36 +290,38 @@ async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
   t.true(occurrenceCount(firstContent, /there is edited code/g) === 1);
 
   await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
-  await writeComponentCode('/dummy-component/component.js', JS_TYPO_ERROR);
+  await writeComponentCode('/dummy-component/component.ts', JS_TYPO_ERROR);
 
-  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
   // t.true(stdoutOccurenceCount(stdout, /application\.js build error!/g) === 2);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 1); // NOTE: this doesnt tell which file!!
 
-  t.true(firstContent === await readApplicationJS());
+  t.true(firstContent === (await readApplicationJS()));
 
-  await writeComponentCode('/welcome-page/component.js', JS_FILE_ERROR);
+  await writeComponentCode('/welcome-page/component.ts', JS_FILE_ERROR);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 2);
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 2);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
   // t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 2);
 
-  t.true(firstContent === await readApplicationJS());
+  t.true(firstContent === (await readApplicationJS()));
 
-  await writeComponentCode('/dummy-component/component.js', DEFAULT_EDITED_COMPONENT_JS);
-  await writeComponentCode('/welcome-page/component.js', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/dummy-component/component.ts', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/welcome-page/component.ts', DEFAULT_EDITED_COMPONENT_JS);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 3);
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 3);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 5);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 2);
 
   const lastContent = await readApplicationJS();
 
   t.true(occurrenceCount(lastContent, /there is edited code/g) === 2);
-  t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(
+    codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/dummy-component/component')
+  );
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/component'));
 }
 
@@ -329,7 +345,7 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
   // t.true(stdoutOccurenceCount(stdout, /application\.js build error!/g) === 8);
   t.true(stdoutOccurenceCount(stdout, /message: 'Unclosed element `h1`/g) === 1); // NOTE: this doesnt tell which file!!
 
-  t.true(firstContent === await readApplicationJS());
+  t.true(firstContent === (await readApplicationJS()));
 
   await writeComponentCode('/welcome-page/template.hbs', HBS_SYNTAX_ERROR);
 
@@ -339,7 +355,7 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
   // t.true(stdoutOccurenceCount(stdout, /application\.js build error!/g) === 12);
   // t.true(stdoutOccurenceCount(stdout, /Error: Parse error on line 3:/g) === 1);
 
-  t.true(firstContent === await readApplicationJS());
+  t.true(firstContent === (await readApplicationJS()));
 
   await writeComponentCode('/dummy-component/template.hbs', DEFAULT_TEMPLATE_HBS);
   await writeComponentCode('/welcome-page/template.hbs', DEFAULT_TEMPLATE_HBS);
@@ -354,7 +370,7 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/template'));
 }
 
-async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
+async function testMemserverJSErrorHandlingWorks(t, stdout, environment) {
   await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
 
   t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 1);
@@ -377,7 +393,7 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   // console.log(stdout);
   // t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) === 3); // NOTE: this doesnt tell which file!!
 
-  t.true(firstContent === await readMemServerJS());
+  t.true(firstContent === (await readMemServerJS()));
 
   await writeMemServerCode('/models/user.js', JS_FILE_ERROR);
 
@@ -387,7 +403,7 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
   // t.true(stdoutOccurenceCount(stdout, /memserver\.js build error!/g) === 4);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) >= 3);
 
-  t.true(firstContent === await readMemServerJS());
+  t.true(firstContent === (await readMemServerJS()));
 
   await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
   await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
@@ -404,9 +420,14 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment)  {
 }
 
 async function testTestJSErrorHandlingWorks(t, stdout, environment) {
-  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', DEFAULT_INTEGRATION_TEST_TO_ADD);
+  await writeIntegrationTestOnComponent(
+    '/welcome-page/integration-test.ts',
+    DEFAULT_INTEGRATION_TEST_TO_ADD
+  );
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
+  t.true(
+    getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.ts') === 1
+  );
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
 
@@ -415,42 +436,51 @@ async function testTestJSErrorHandlingWorks(t, stdout, environment) {
   t.true(occurrenceCount(firstContent, /this is added by this test/g) === 1);
 
   await fs.mkdirp(`${PROJECT_ROOT}/tests/acceptance`);
-  await writeAcceptanceTestOnTestFolder('/homepage-test.js', JS_FILE_ERROR);
+  await writeAcceptanceTestOnTestFolder('/homepage-test.ts', JS_FILE_ERROR);
 
-  t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
   // t.true(stdoutOccurenceCount(stdout, /tests\.js build error!/g) === 2);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) >= 3); // NOTE: this doesnt tell which file
 
-  t.true(firstContent === await readTestsJS());
+  t.true(firstContent === (await readTestsJS()));
 
-  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', JS_TYPO_ERROR);
+  await writeIntegrationTestOnComponent('/welcome-page/integration-test.ts', JS_TYPO_ERROR);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 2);
+  t.true(
+    getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.ts') === 2
+  );
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 1);
   // t.true(stdoutOccurenceCount(stdout, /tests\.js build error!/g) === 4);
   t.true(stdoutOccurenceCount(stdout, /Unexpected token, expected ","/g) >= 3); // NOTE: this doesnt tell which file!!
 
-  t.true(firstContent === await readTestsJS());
+  t.true(firstContent === (await readTestsJS()));
 
-  await writeAcceptanceTestOnTestFolder('/homepage-test.js', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
-  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', DEFAULT_INTEGRATION_TEST_TO_ADD);
+  await writeAcceptanceTestOnTestFolder('/homepage-test.ts', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
+  await writeIntegrationTestOnComponent(
+    '/welcome-page/integration-test.ts',
+    DEFAULT_INTEGRATION_TEST_TO_ADD
+  );
 
-  t.true(getChangeNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
+  t.true(getChangeNotificationCount(stdout, '/tests/acceptance/homepage-test.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 5);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 2);
 
   const secondContent = await readTestsJS();
 
   t.true(occurrenceCount(secondContent, /this is added by this test'/g) === 2);
-  t.true(codeIncludesAMDModule(secondContent, 'dummyapp/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    codeIncludesAMDModule(secondContent, 'dummyapp/src/ui/components/welcome-page/integration-test')
+  );
   t.true(codeIncludesAMDModule(secondContent, 'dummyapp/tests/acceptance/homepage-test'));
 
-  await removeIntegrationTestOnComponent('/welcome-page/integration-test.js');
+  await removeIntegrationTestOnComponent('/welcome-page/integration-test.ts');
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
+  t.true(
+    getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.ts') === 1
+  );
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 6);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', environment) === 3);
 
@@ -459,7 +489,9 @@ async function testTestJSErrorHandlingWorks(t, stdout, environment) {
   t.true(secondContent !== lastContent);
   t.true(occurrenceCount(lastContent, /this is added by this test'/g) === 1);
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/tests/acceptance/homepage-test'));
-  t.true(!codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/integration-test'));
+  t.true(
+    !codeIncludesAMDModule(lastContent, 'dummyapp/src/ui/components/welcome-page/integration-test')
+  );
 }
 
 function stdoutOccurenceCount(stdout, targetString) {
@@ -478,7 +510,10 @@ function writeCSSCode(path, content) {
   });
 }
 
-function writeComponentCode(path='/dummy-component/component.js', content=DEFAULT_COMPONENT_JS) {
+function writeComponentCode(
+  path = '/dummy-component/component.ts',
+  content = DEFAULT_COMPONENT_JS
+) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
@@ -486,7 +521,7 @@ function writeComponentCode(path='/dummy-component/component.js', content=DEFAUL
   });
 }
 
-function writeMemServerCode(path, content=DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
+function writeMemServerCode(path, content = DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/memserver${path}`, content);
 
@@ -494,7 +529,7 @@ function writeMemServerCode(path, content=DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
   });
 }
 
-function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_TO_ADD) {
+function writeAcceptanceTestOnTestFolder(path, content = DEFAULT_ACCEPTANCE_TEST_TO_ADD) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/tests/acceptance${path}`, content);
 
@@ -502,7 +537,10 @@ function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_T
   });
 }
 
-function writeIntegrationTestOnComponent(path='/welcome-page/integration-test.js', content=DEFAULT_INTEGRATION_TEST_TO_ADD) {
+function writeIntegrationTestOnComponent(
+  path = '/welcome-page/integration-test.ts',
+  content = DEFAULT_INTEGRATION_TEST_TO_ADD
+) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
@@ -510,7 +548,7 @@ function writeIntegrationTestOnComponent(path='/welcome-page/integration-test.js
   });
 }
 
-function removeIntegrationTestOnComponent(path='/welcome-page/integration-test.js') {
+function removeIntegrationTestOnComponent(path = '/welcome-page/integration-test.ts') {
   return new Promise(async (resolve) => {
     await fs.remove(`${PROJECT_ROOT}/src/ui/components${path}`);
 

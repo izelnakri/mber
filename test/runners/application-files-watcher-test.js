@@ -104,7 +104,7 @@ test.serial('it watches correctly on development mode', async (t) => {
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 1000));
 
   const WebSocketServer = await applicationFilesWatcher({
     applicationName: 'dummyapp',
@@ -113,7 +113,7 @@ test.serial('it watches correctly on development mode', async (t) => {
     cliArguments: { fastboot: true, socketPort: TARGET_SOCKET_PORT }
   });
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 2000));
 
   const firstSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://127.0.0.1:${TARGET_SOCKET_PORT}`);
@@ -148,7 +148,7 @@ test.serial('it watches memserver files correctly', async (t) => {
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 1000));
 
   const WebSocketServer = await applicationFilesWatcher({
     applicationName: 'dummyapp',
@@ -163,7 +163,7 @@ test.serial('it watches memserver files correctly', async (t) => {
     cliArguments: { fastboot: true, socketPort: 65511 }
   });
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 2000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 2000));
 
   t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 0);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 0);
@@ -228,7 +228,7 @@ test.serial('it watches test files correctly', async (t) => {
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 1000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 1000));
 
   const WebSocketServer = await applicationFilesWatcher({
     applicationName: 'dummyapp',
@@ -243,7 +243,7 @@ test.serial('it watches test files correctly', async (t) => {
     cliArguments: { fastboot: false, socketPort: DEFAULT_SOCKET_PORT, testing: true }
   });
 
-  await (new Promise((resolve) => setTimeout(() => resolve(), 3000)));
+  await new Promise((resolve) => setTimeout(() => resolve(), 3000));
 
   const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
@@ -272,16 +272,21 @@ test.serial('it watches test files correctly', async (t) => {
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
 
   await fs.mkdirp(`${PROJECT_ROOT}/tests/acceptance`);
-  await writeAcceptanceTestOnTestFolder('/homepage-test.js', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
+  await writeAcceptanceTestOnTestFolder('/homepage-test.ts', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
 
-  t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 1);
   t.true(codeIncludesAMDModule(await readTestsJS(), 'dummyapp/tests/acceptance/homepage-test'));
 
-  await writeIntegrationTestOnComponent('/welcome-page/integration-test.js', DEFAULT_INTEGRATION_TEST_TO_ADD);
+  await writeIntegrationTestOnComponent(
+    '/welcome-page/integration-test.ts',
+    DEFAULT_INTEGRATION_TEST_TO_ADD
+  );
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
+  t.true(
+    getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.ts') === 1
+  );
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 2);
 
@@ -291,9 +296,11 @@ test.serial('it watches test files correctly', async (t) => {
 
   t.true(occurrenceCount(testsFirstContent, /this is added by this test/g) === 2);
 
-  await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/integration-test.js`);
+  await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/integration-test.ts`);
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.js') === 1);
+  t.true(
+    getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/integration-test.ts') === 1
+  );
   t.true(getBuildingNotificationCount(stdout, 'tests.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'tests.js', 'test') === 3);
 
@@ -325,7 +332,10 @@ function writeCSSCode(path, content) {
   });
 }
 
-function writeComponentCode(path='/dummy-component/component.js', content=DEFAULT_COMPONENT_JS) {
+function writeComponentCode(
+  path = '/dummy-component/component.ts',
+  content = DEFAULT_COMPONENT_JS
+) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
@@ -341,7 +351,7 @@ function removeFile(codePath) {
   });
 }
 
-function writeMemServerCode(path, content=DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
+function writeMemServerCode(path, content = DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/memserver${path}`, content);
 
@@ -349,7 +359,7 @@ function writeMemServerCode(path, content=DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
   });
 }
 
-function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_TO_ADD) {
+function writeAcceptanceTestOnTestFolder(path, content = DEFAULT_ACCEPTANCE_TEST_TO_ADD) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/tests/acceptance${path}`, content);
 
@@ -357,7 +367,10 @@ function writeAcceptanceTestOnTestFolder(path, content=DEFAULT_ACCEPTANCE_TEST_T
   });
 }
 
-function writeIntegrationTestOnComponent(path='/welcome-page/integration-test.js', content=DEFAULT_INTEGRATION_TEST_TO_ADD) {
+function writeIntegrationTestOnComponent(
+  path = '/welcome-page/integration-test.ts',
+  content = DEFAULT_INTEGRATION_TEST_TO_ADD
+) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
 
@@ -414,7 +427,10 @@ async function applicationFileWatcherTests(t, stdout, environment) {
   t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
 
   await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component`);
-  await writeCSSCode('/src/ui/components/some-component/styles.scss', '.awesomeness { color: blue }');
+  await writeCSSCode(
+    '/src/ui/components/some-component/styles.scss',
+    '.awesomeness { color: blue }'
+  );
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/some-component/styles.scss') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 2);
@@ -425,68 +441,84 @@ async function applicationFileWatcherTests(t, stdout, environment) {
   t.true(occurrenceCount(cssContent, /\.awesomeness {/g) === 1);
 
   await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
-  await writeComponentCode('/dummy-component/component.js');
+  await writeComponentCode('/dummy-component/component.ts');
 
-  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 1);
 
   const firstContent = await readApplicationJS();
 
-  t.true(codeIncludesAMDModule(firstContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(
+    codeIncludesAMDModule(firstContent, 'dummyapp/src/ui/components/dummy-component/component')
+  );
   t.true(!firstContent.includes(`console.log('there is edited code');`));
 
-  await writeComponentCode('/dummy-component/component.js', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/dummy-component/component.ts', DEFAULT_EDITED_COMPONENT_JS);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(
+    getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1
+  );
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 2);
 
   const secondContent = await readApplicationJS();
 
-  t.true(codeIncludesAMDModule(secondContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(
+    codeIncludesAMDModule(secondContent, 'dummyapp/src/ui/components/dummy-component/component')
+  );
   t.true(occurrenceCount(secondContent, /there is edited code/g) === 1);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 0);
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 0);
 
-  await writeComponentCode('/welcome-page/component.js', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/welcome-page/component.ts', DEFAULT_EDITED_COMPONENT_JS);
 
-  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
+  t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
 
   const thirdContent = await readApplicationJS();
 
-  t.true(codeIncludesAMDModule(thirdContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(
+    codeIncludesAMDModule(thirdContent, 'dummyapp/src/ui/components/dummy-component/component')
+  );
   t.true(codeIncludesAMDModule(thirdContent, 'dummyapp/src/ui/components/welcome-page/component'));
   t.true(occurrenceCount(thirdContent, /there is edited code/g) === 2);
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 0);
+  t.true(
+    getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 0
+  );
 
-  await removeFile(`${PROJECT_ROOT}/src/ui/components/dummy-component/component.js`);
+  await removeFile(`${PROJECT_ROOT}/src/ui/components/dummy-component/component.ts`);
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.js') === 1);
+  t.true(
+    getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1
+  );
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 4);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 4);
 
   const fourthContent = await readApplicationJS();
 
   t.true(codeIncludesAMDModule(fourthContent, 'dummyapp/src/ui/components/welcome-page/component'));
-  t.true(!codeIncludesAMDModule(fourthContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(
+    !codeIncludesAMDModule(fourthContent, 'dummyapp/src/ui/components/dummy-component/component')
+  );
   t.true(occurrenceCount(fourthContent, /there is edited code/g) === 1);
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 0);
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 0);
 
-  await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/component.js`);
+  await removeFile(`${PROJECT_ROOT}/src/ui/components/welcome-page/component.ts`);
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.js') === 1);
+  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 5);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 5);
 
   const fifthContent = await readApplicationJS();
 
   t.true(!codeIncludesAMDModule(fifthContent, 'dummyapp/src/ui/components/welcome-page/component'));
-  t.true(!codeIncludesAMDModule(fifthContent, 'dummyapp/src/ui/components/dummy-component/component'));
+  t.true(
+    !codeIncludesAMDModule(fifthContent, 'dummyapp/src/ui/components/dummy-component/component')
+  );
   t.true(occurrenceCount(fifthContent, /there is edited code/g) === 0);
 
   await writeComponentCode('/dummy-component/template.hbs', DEFAULT_TEMPLATE_HBS);
@@ -494,12 +526,24 @@ async function applicationFileWatcherTests(t, stdout, environment) {
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 6);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 6);
-  t.true(codeIncludesAMDModule(await readApplicationJS(), 'dummyapp/src/ui/components/dummy-component/template'));
+  t.true(
+    codeIncludesAMDModule(
+      await readApplicationJS(),
+      'dummyapp/src/ui/components/dummy-component/template'
+    )
+  );
 
   await removeFile(`${PROJECT_ROOT}/src/ui/components/dummy-component/template.hbs`);
 
-  t.true(getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1);
+  t.true(
+    getRemovalNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1
+  );
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 7);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 7);
-  t.true(!codeIncludesAMDModule(await readApplicationJS(), 'dummyapp/src/ui/components/dummy-component/template'));
+  t.true(
+    !codeIncludesAMDModule(
+      await readApplicationJS(),
+      'dummyapp/src/ui/components/dummy-component/template'
+    )
+  );
 }

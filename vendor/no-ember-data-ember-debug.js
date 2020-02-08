@@ -1306,7 +1306,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.15.0
+ * @version   3.16.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -1742,7 +1742,10 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     lookup(fullName, options) {
-      (true && !(!this.isDestroyed) && (0, _debug.assert)('expected container not to be destroyed', !this.isDestroyed));
+      if (this.isDestroyed) {
+        throw new Error("Can not call `.lookup` after the owner has been destroyed");
+      }
+
       (true && !(this.registry.isValidFullName(fullName)) && (0, _debug.assert)('fullName must be a proper full name', this.registry.isValidFullName(fullName)));
       return lookup(this, this.registry.normalize(fullName), options);
     }
@@ -1755,8 +1758,8 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     destroy() {
-      destroyDestroyables(this);
       this.isDestroying = true;
+      destroyDestroyables(this);
     }
 
     finalizeDestroy() {
@@ -1810,7 +1813,10 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     factoryFor(fullName, options = {}) {
-      (true && !(!this.isDestroyed) && (0, _debug.assert)('expected container not to be destroyed', !this.isDestroyed));
+      if (this.isDestroyed) {
+        throw new Error("Can not call `.factoryFor` after the owner has been destroyed");
+      }
+
       var normalizedName = this.registry.normalize(fullName);
       (true && !(this.registry.isValidFullName(normalizedName)) && (0, _debug.assert)('fullName must be a proper full name', this.registry.isValidFullName(normalizedName)));
       (true && !(false
@@ -1972,7 +1978,16 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     if (isSingletonInstance(container, fullName, options)) {
-      return container.cache[normalizedName] = factoryManager.create();
+      var instance = container.cache[normalizedName] = factoryManager.create(); // if this lookup happened _during_ destruction (emits a deprecation, but
+      // is still possible) ensure that it gets destroyed
+
+      if (container.isDestroying) {
+        if (typeof instance.destroy === 'function') {
+          instance.destroy();
+        }
+      }
+
+      return instance;
     } // SomeClass { singleton: false, instantiate: true }
 
 
@@ -2103,6 +2118,23 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
     }
 
     create(options) {
+      var {
+        container
+      } = this;
+
+      if (container.isDestroyed) {
+        throw new Error("Can not create new instances after the owner has been destroyed (you attempted to create " + this.fullName + ")");
+      }
+
+      if (true
+      /* DEBUG */
+      ) {
+        (true && !(!container.isDestroying) && (0, _debug.deprecate)("Instantiating a new instance of " + this.fullName + " while the owner is being destroyed is deprecated.", !container.isDestroying, {
+          id: 'container.lookup-on-destroy',
+          until: '3.20.0'
+        }));
+      }
+
       var injectionsCache = this.injections;
 
       if (injectionsCache === undefined) {
@@ -3786,7 +3818,7 @@ define("@ember/-internals/extension-support/lib/data_adapter", ["exports", "@emb
 
   _exports.default = _default;
 });
-define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/polyfills", "@ember/-internals/container", "@glimmer/opcode-compiler", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/runloop", "@glimmer/reference", "@ember/-internals/metal", "@ember/debug", "@glimmer/runtime", "@glimmer/util", "@ember/-internals/owner", "@ember/-internals/views", "@ember/-internals/browser-environment", "@ember/instrumentation", "@ember/service", "@ember/-internals/environment", "@ember/deprecated-features", "@ember/string", "@glimmer/wire-format", "rsvp", "@glimmer/node", "@ember/-internals/routing", "@ember/component/template-only", "@ember/error"], function (_exports, _emberBabel, _polyfills, _container, _opcodeCompiler, _runtime, _utils, _runloop, _reference, _metal, _debug, _runtime2, _util, _owner, _views, _browserEnvironment, _instrumentation, _service, _environment2, _deprecatedFeatures, _string, _wireFormat, _rsvp, _node, _routing, _templateOnly, _error) {
+define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/polyfills", "@ember/-internals/container", "@glimmer/opcode-compiler", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/runloop", "@glimmer/reference", "@ember/-internals/metal", "@ember/debug", "@glimmer/runtime", "@ember/-internals/owner", "@ember/-internals/views", "@ember/-internals/browser-environment", "@ember/instrumentation", "@ember/service", "@glimmer/util", "@ember/-internals/environment", "@ember/deprecated-features", "@ember/string", "@glimmer/wire-format", "rsvp", "@glimmer/node", "@ember/-internals/routing", "@ember/component/template-only", "@ember/error"], function (_exports, _emberBabel, _polyfills, _container, _opcodeCompiler, _runtime, _utils, _runloop, _reference, _metal, _debug, _runtime2, _owner, _views, _browserEnvironment, _instrumentation, _service, _util, _environment2, _deprecatedFeatures, _string, _wireFormat, _rsvp, _node, _routing, _templateOnly, _error) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -4235,18 +4267,8 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
         this.debugStackLog = env ? env.debugRenderTree.logCurrentRenderStack() : '';
       }
 
-      {
-        this.propertyTag = (0, _reference.createUpdatableTag)();
-      }
+      this.propertyTag = (0, _reference.createUpdatableTag)();
       this.tag = this.propertyTag;
-
-      if (true
-      /* DEBUG */
-      && !true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          (0, _metal.watchKey)(parentValue, propertyKey);
-        }
     }
 
     compute() {
@@ -4255,13 +4277,11 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
         propertyKey
       } = this;
       var ret;
-      {
-        var tag = (0, _metal.track)(() => ret = (0, _metal.get)(parentValue, propertyKey), true
-        /* DEBUG */
-        && debugRenderMessage$1(this['debug']()));
-        (0, _metal.consume)(tag);
-        (0, _reference.update)(this.propertyTag, tag);
-      }
+      var tag = (0, _metal.track)(() => ret = (0, _metal.get)(parentValue, propertyKey), true
+      /* DEBUG */
+      && debugRenderMessage$1(this['debug']()));
+      (0, _metal.consume)(tag);
+      (0, _reference.update)(this.propertyTag, tag);
       return ret;
     }
 
@@ -4312,23 +4332,12 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
 
       if (parentValueType === 'object' && _parentValue !== null || parentValueType === 'function') {
         var parentValue = _parentValue;
-
-        if (true
-        /* DEBUG */
-        && !true
-        /* EMBER_METAL_TRACKED_PROPERTIES */
-        ) {
-            (0, _metal.watchKey)(parentValue, propertyKey);
-          }
-
         var ret;
-        {
-          var tag = (0, _metal.track)(() => ret = (0, _metal.get)(parentValue, propertyKey), true
-          /* DEBUG */
-          && debugRenderMessage$1(this['debug']()));
-          (0, _metal.consume)(tag);
-          (0, _reference.update)(propertyTag, tag);
-        }
+        var tag = (0, _metal.track)(() => ret = (0, _metal.get)(parentValue, propertyKey), true
+        /* DEBUG */
+        && debugRenderMessage$1(this['debug']()));
+        (0, _metal.consume)(tag);
+        (0, _reference.update)(propertyTag, tag);
         return ret;
       } else {
         return undefined;
@@ -4606,7 +4615,7 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     return typeof value$$1 === 'function';
   }
 
-  function isPrimitive(value$$1) {
+  function ensurePrimitive(value$$1) {
     if (true
     /* DEBUG */
     ) {
@@ -4620,8 +4629,6 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
 
       (true && !(value$$1 === undefined || value$$1 === null || typeof value$$1 === 'boolean' || typeof value$$1 === 'number' || typeof value$$1 === 'string') && (0, _debug.assert)("This is a fall-through check for typing purposes only! `value` must already be a primitive at this point." + label + ")", value$$1 === undefined || value$$1 === null || typeof value$$1 === 'boolean' || typeof value$$1 === 'number' || typeof value$$1 === 'string'));
     }
-
-    return true;
   }
 
   function valueToRef(value$$1, bound = true, env) {
@@ -4631,27 +4638,9 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     } else if (isFunction(value$$1)) {
       // ember doesn't do observing with functions
       return new UnboundReference(value$$1);
-    } else if (isPrimitive(value$$1)) {
-      return _runtime2.PrimitiveReference.create(value$$1);
-    } else if (true
-    /* DEBUG */
-    ) {
-      var type = typeof value$$1;
-      var output;
-
-      try {
-        output = String(value$$1);
-      } catch (e) {
-        output = null;
-      }
-
-      if (output) {
-        throw (0, _util.unreachable)("[BUG] Unexpected " + type + " (" + output + ")");
-      } else {
-        throw (0, _util.unreachable)("[BUG] Unexpected " + type);
-      }
     } else {
-      throw (0, _util.unreachable)();
+      ensurePrimitive(value$$1);
+      return _runtime2.PrimitiveReference.create(value$$1);
     }
   }
 
@@ -4662,27 +4651,9 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     } else if (isFunction(value$$1)) {
       // ember doesn't do observing with functions
       return new UnboundReference(value$$1[key]);
-    } else if (isPrimitive(value$$1)) {
-      return _runtime2.UNDEFINED_REFERENCE;
-    } else if (true
-    /* DEBUG */
-    ) {
-      var type = typeof value$$1;
-      var output;
-
-      try {
-        output = String(value$$1);
-      } catch (e) {
-        output = null;
-      }
-
-      if (output) {
-        throw (0, _util.unreachable)("[BUG] Unexpected " + type + " (" + output + ")");
-      } else {
-        throw (0, _util.unreachable)("[BUG] Unexpected " + type);
-      }
     } else {
-      throw (0, _util.unreachable)();
+      ensurePrimitive(value$$1);
+      return _runtime2.UNDEFINED_REFERENCE;
     }
   }
 
@@ -7043,23 +7014,28 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
   /**
     The `{{each-in}}` helper loops over properties on an object.
   
-    For example, if the `@user` argument contains this object:
+    For example, given this component definition:
   
-    ```javascript
-    {
-      "name": "Shelly Sails",
-      "age": 42
+    ```app/components/developer-details.js
+    import Component from '@glimmer/component';
+    import { tracked } from '@glimmer/tracking';
+  
+    export default class extends Component {
+      @tracked developer = {
+        "name": "Shelly Sails",
+        "age": 42
+      };
     }
     ```
   
-    This template would display all properties on the `@user`
+    This template would display all properties on the `developer`
     object in a list:
   
-    ```handlebars
+    ```app/components/developer-details.hbs
     <ul>
-    {{#each-in @user as |key value|}}
-      <li>{{key}}: {{value}}</li>
-    {{/each-in}}
+      {{#each-in this.developer as |key value|}}
+        <li>{{key}}: {{value}}</li>
+      {{/each-in}}
     </ul>
     ```
   
@@ -7225,9 +7201,7 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
           value$$1 = obj[key]; // Add the tag of the returned value if it is an array, since arrays
           // should always cause updates if they are consumed and then changed
 
-          if (true
-          /* EMBER_METAL_TRACKED_PROPERTIES */
-          && (0, _metal.isTracking)()) {
+          if ((0, _metal.isTracking)()) {
             (0, _metal.consume)((0, _metal.tagForProperty)(obj, key));
 
             if (Array.isArray(value$$1) || (0, _utils.isEmberArray)(value$$1)) {
@@ -9982,7 +9956,7 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
   
     ```handlebars
     Search:
-    <Input @value={{this.searchWord}}>
+    <Input @value={{this.searchWord}} />
     ```
   
     In this example, the initial value in the `<input>` will be set to the value of
@@ -11325,33 +11299,70 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
   
     For example, these two usages are equivalent:
   
+    ```app/components/developer-detail.js
+    import Component from '@glimmer/component';
+    import { tracked } from '@glimmer/tracking';
+  
+    export default class extends Component {
+      @tracked developer = {
+        name: "Sandi Metz",
+        language: "Ruby"
+      }
+    }
+    ```
+  
     ```handlebars
-    {{person.height}}
-    {{get person "height"}}
+    {{this.developer.name}}
+    {{get this.developer "name"}}
     ```
   
     If there were several facts about a person, the `{{get}}` helper can dynamically
     pick one:
   
+    ```app/templates/application.hbs
+    <DeveloperDetail @factName="language" />
+    ```
+  
     ```handlebars
-    {{get person factName}}
+    {{get this.developer @factName}}
     ```
   
     For a more complex example, this template would allow the user to switch
     between showing the user's height and weight with a click:
   
-    ```handlebars
-    {{get person factName}}
-    <button {{action (fn (mut factName)) "height"}}>Show height</button>
-    <button {{action (fn (mut factName)) "weight"}}>Show weight</button>
+    ```app/components/developer-detail.js
+    import Component from '@glimmer/component';
+    import { tracked } from '@glimmer/tracking';
+  
+    export default class extends Component {
+      @tracked developer = {
+        name: "Sandi Metz",
+        language: "Ruby"
+      }
+  
+      @tracked currentFact = 'name'
+  
+      @action
+      showFact(fact) {
+        this.currentFact = fact;
+      }
+    }
+    ```
+  
+    ```app/components/developer-detail.js
+    {{get this.developer this.currentFact}}
+  
+    <button {{on 'click' (fn this.showFact "name")}}>Show name</button>
+    <button {{on 'click' (fn this.showFact "language")}}>Show language</button>
     ```
   
     The `{{get}}` helper can also respect mutable values itself. For example:
   
-    ```handlebars
-    {{input value=(mut (get person factName)) type="text"}}
-    <button {{action (fn (mut factName)) "height"}}>Show height</button>
-    <button {{action (fn (mut factName)) "weight"}}>Show weight</button>
+    ```app/components/developer-detail.js
+    <Input @value={{mut (get this.person this.currentFact)}} />
+  
+    <button {{on 'click' (fn this.showFact "name")}}>Show name</button>
+    <button {{on 'click' (fn this.showFact "language")}}>Show language</button>
     ```
   
     Would allow the user to swap what fact is being displayed, and also edit
@@ -11519,19 +11530,22 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     using the block form to wrap the section of template you want to conditionally render.
     Like so:
   
-    ```handlebars
-    {{! will not render if foo is falsey}}
-    {{#if foo}}
-      Welcome to the {{foo.bar}}
+    ```app/templates/application.hbs
+    <Weather />
+    ```
+  
+    ```app/components/weather.hbs
+    {{! will not render because greeting is undefined}}
+    {{#if @isRaining}}
+      Yes, grab an umbrella!
     {{/if}}
     ```
   
-    You can also specify a template to show if the property is falsey by using
+    You can also define what to show if the property is falsey by using
     the `else` helper.
   
-    ```handlebars
-    {{! is it raining outside?}}
-    {{#if isRaining}}
+    ```app/components/weather.hbs
+    {{#if @isRaining}}
       Yes, grab an umbrella!
     {{else}}
       No, it's lovely outside!
@@ -11541,15 +11555,25 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     You are also able to combine `else` and `if` helpers to create more complex
     conditional logic.
   
-    ```handlebars
-    {{#if isMorning}}
-      Good morning
-    {{else if isAfternoon}}
-      Good afternoon
+    For the following template:
+  
+     ```app/components/weather.hbs
+    {{#if @isRaining}}
+      Yes, grab an umbrella!
+    {{else if @isCold}}
+      Grab a coat, it's chilly!
     {{else}}
-      Good night
+      No, it's lovely outside!
     {{/if}}
     ```
+  
+    If you call it by saying `isCold` is true:
+  
+    ```app/templates/application.hbs
+    <Weather @isCold={{true}} />
+    ```
+  
+    Then `Grab a coat, it's chilly!` will be rendered.
   
     ## Inline form
   
@@ -11560,28 +11584,18 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
   
     For example, if `useLongGreeting` is truthy, the following:
   
-    ```handlebars
-    {{if useLongGreeting "Hello" "Hi"}} Alex
+    ```app/templates/application.hbs
+    <Greeting @useLongGreeting={{true}} />
+    ```
+  
+    ```app/components/greeting.hbs
+    {{if @useLongGreeting "Hello" "Hi"}} Alex
     ```
   
     Will render:
   
     ```html
     Hello Alex
-    ```
-  
-    ### Nested `if`
-  
-    You can use the `if` helper inside another helper as a nested helper:
-  
-    ```handlebars
-    <SomeComponent @height={{if isBig "100" "10"}} />
-    ```
-  
-    or
-  
-    ```handlebars
-    {{some-component height=(if isBig "100" "10")}}
     ```
   
     One detail to keep in mind is that both branches of the `if` helper will be evaluated,
@@ -11612,57 +11626,70 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     the second argument will be displayed, otherwise, the third argument will be
     displayed
   
-    For example, if `useLongGreeting` is false below:
+    For example, if you pass a falsey `useLongGreeting` to the `Greeting` component:
   
-    ```handlebars
-    {{unless useLongGreeting "Hi" "Hello"}} Ben
+    ```app/templates/application.hbs
+    <Greeting @useLongGreeting={{false}} />
+    ```
+  
+    ```app/components/greeting.hbs
+    {{unless @useLongGreeting "Hi" "Hello"}} Ben
     ```
   
     Then it will display:
   
     ```html
-    Hi
-    ```
-  
-    You can use the `unless` helper inside another helper as a subexpression.
-    If isBig is not true, it will set the height to 10:
-  
-    ```handlebars
-    {{! If isBig is not true, it will set the height to 10.}}
-    <SomeComponent @height={{unless isBig "10" "100"}} />
-    ```
-  
-    or
-  
-    ```handlebars
-    {{some-component height=(unless isBig "10" "100")}}
+    Hi Ben
     ```
   
     ## Block form
   
-    Like the `if` helper, `unless` helper also has a block form.
+    Like the `if` helper, the `unless` helper also has a block form.
   
-    ```handlebars
-    {{! If greetings are found, the text below will not render.}}
-    {{#unless greetings}}
-      No greetings were found. Why not set one?
+    The following will not render anything:
+  
+    ```app/templates/application.hbs
+    <Greeting />
+    ```
+  
+    ```app/components/greeting.hbs
+    {{#unless @greeting}}
+      No greeting was found. Why not set one?
     {{/unless}}
     ```
   
     You can also use an `else` helper with the `unless` block. The
     `else` will display if the value is truthy.
   
-    ```handlebars
-    {{! Is the user logged in?}}
-    {{#unless userData}}
+    If you have the following component:
+  
+    ```app/components/logged-in.hbs
+    {{#unless @userData}}
       Please login.
     {{else}}
       Welcome back!
     {{/unless}}
     ```
   
-    If `userData` is false, undefined, null, or empty in the above example,
-    then it will render:
+    Calling it with a truthy `userData`:
+  
+    ```app/templates/application.hbs
+    <LoggedIn @userData={{hash username="Zoey"}} />
+    ```
+  
+    Will render:
+  
+    ```html
+    Welcome back!
+    ```
+  
+    and calling it with a falsey `userData`:
+  
+    ```app/templates/application.hbs
+    <LoggedIn @userData={{false}} />
+    ```
+  
+    Will render:
   
     ```html
     Please login.
@@ -12003,7 +12030,7 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     if it is set with a new value:
   
     ```handlebars
-    {{unbound name}}
+    {{unbound this.name}}
     ```
   
     Like any helper, the `unbound` helper can accept a nested helper expression.
@@ -12011,9 +12038,9 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
   
     ```handlebars
     {{unbound (some-custom-helper)}}
-    {{unbound (capitalize name)}}
+    {{unbound (capitalize this.name)}}
     {{! You can use any helper, including unbound, in a nested expression }}
-    {{capitalize (unbound name)}}
+    {{capitalize (unbound this.name)}}
     ```
   
     The `unbound` helper only accepts a single argument, and it return an
@@ -12644,7 +12671,7 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     For example, if you'd like to run a function on your component when a `<button>`
     in the components template is clicked you might do something like:
   
-    ```app/templates/components/like-post.hbs
+    ```app/components/like-post.hbs
     <button {{on 'click' this.saveLike}}>Like this post!</button>
     ```
   
@@ -12692,7 +12719,7 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     For example, in our example case above if you'd like to pass in the post that
     was being liked when the button is clicked you could do something like:
   
-    ```app/templates/components/like-post.js
+    ```app/components/like-post.hbs
     <button {{on 'click' (fn this.saveLike @post)}}>Like this post!</button>
     ```
   
@@ -13277,22 +13304,21 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     your template. An important use of the `{{outlet}}` helper is in your
     application's `application.hbs` file:
   
-    ```handlebars
-    {{! app/templates/application.hbs }}
-    <!-- header content goes here, and will always display -->
+    ```app/templates/application.hbs
     <MyHeader />
+  
     <div class="my-dynamic-content">
       <!-- this content will change based on the current route, which depends on the current URL -->
       {{outlet}}
     </div>
-    <!-- footer content goes here, and will always display -->
+  
     <MyFooter />
     ```
   
     You may also specify a name for the `{{outlet}}`, which is useful when using more than one
     `{{outlet}}` in a template:
   
-    ```handlebars
+    ```app/templates/application.hbs
     {{outlet "menu"}}
     {{outlet "sidebar"}}
     {{outlet "main"}}
@@ -13304,11 +13330,11 @@ define("@ember/-internals/glimmer/index", ["exports", "ember-babel", "@ember/pol
     ```app/routes/menu.js
     import Route from '@ember/routing/route';
   
-    export default Route.extend({
+    export default class MenuRoute extends Route {
       renderTemplate() {
         this.render({ outlet: 'menu' });
       }
-    });
+    }
     ```
   
     See the [routing guide](https://guides.emberjs.com/release/routing/rendering-a-template/) for more
@@ -14478,11 +14504,7 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
 
       this._parent = undefined;
       this._descriptors = undefined;
-      this._watching = undefined;
       this._mixins = undefined;
-      this._deps = undefined;
-      this._chainWatchers = undefined;
-      this._chains = undefined;
       this._tag = undefined;
       this._tags = undefined; // initial value for all flags right now is false
       // see FLAGS const for detailed list of flags used
@@ -14534,13 +14556,7 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
         return;
       }
 
-      this.setMetaDestroyed(); // remove chainWatchers to remove circular references that would prevent GC
-
-      var chains = this.readableChains();
-
-      if (chains !== undefined) {
-        chains.destroy();
-      }
+      this.setMetaDestroyed();
     }
 
     isSourceDestroying() {
@@ -14591,60 +14607,6 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       return this[key] || (this[key] = new Set());
     }
 
-    _findInherited1(key) {
-      var pointer = this;
-
-      while (pointer !== null) {
-        var map = pointer[key];
-
-        if (map !== undefined) {
-          return map;
-        }
-
-        pointer = pointer.parent;
-      }
-    }
-
-    _findInherited2(key, subkey) {
-      var pointer = this;
-
-      while (pointer !== null) {
-        var map = pointer[key];
-
-        if (map !== undefined) {
-          var value = map[subkey];
-
-          if (value !== undefined) {
-            return value;
-          }
-        }
-
-        pointer = pointer.parent;
-      }
-    }
-
-    _findInherited3(key, subkey, subsubkey) {
-      var pointer = this;
-
-      while (pointer !== null) {
-        var map = pointer[key];
-
-        if (map !== undefined) {
-          var submap = map[subkey];
-
-          if (submap !== undefined) {
-            var value = submap[subsubkey];
-
-            if (value !== undefined) {
-              return value;
-            }
-          }
-        }
-
-        pointer = pointer.parent;
-      }
-    }
-
     _findInheritedMap(key, subkey) {
       var pointer = this;
 
@@ -14677,63 +14639,6 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       }
 
       return false;
-    } // Implements a member that provides a lazily created map of maps,
-    // with inheritance at both levels.
-
-
-    writeDeps(subkey, itemkey, count) {
-      (true && !(!this.isMetaDestroyed()) && (0, _debug.assert)(this.isMetaDestroyed() ? "Cannot modify dependent keys for `" + itemkey + "` on `" + (0, _utils.toString)(this.source) + "` after it has been destroyed." : '', !this.isMetaDestroyed()));
-
-      var outerMap = this._getOrCreateOwnMap('_deps');
-
-      var innerMap = outerMap[subkey];
-
-      if (innerMap === undefined) {
-        innerMap = outerMap[subkey] = Object.create(null);
-      }
-
-      innerMap[itemkey] = count;
-    }
-
-    peekDeps(subkey, itemkey) {
-      var val = this._findInherited3('_deps', subkey, itemkey);
-
-      return val === undefined ? 0 : val;
-    }
-
-    hasDeps(subkey) {
-      var val = this._findInherited2('_deps', subkey);
-
-      return val !== undefined;
-    }
-
-    forEachInDeps(subkey, fn) {
-      var pointer = this;
-      var seen;
-
-      while (pointer !== null) {
-        var map = pointer._deps;
-
-        if (map !== undefined) {
-          var innerMap = map[subkey];
-
-          if (innerMap !== undefined) {
-            seen = seen === undefined ? new Set() : seen;
-
-            for (var innerKey in innerMap) {
-              if (!seen.has(innerKey)) {
-                seen.add(innerKey);
-
-                if (innerMap[innerKey] > 0) {
-                  fn(innerKey);
-                }
-              }
-            }
-          }
-        }
-
-        pointer = pointer.parent;
-      }
     }
 
     writableTags() {
@@ -14789,60 +14694,6 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       }
 
       return undefined;
-    }
-
-    writableChainWatchers(create) {
-      (true && !(!this.isMetaDestroyed()) && (0, _debug.assert)(this.isMetaDestroyed() ? "Cannot create a new chain watcher for `" + (0, _utils.toString)(this.source) + "` after it has been destroyed." : '', !this.isMetaDestroyed()));
-      var ret = this._chainWatchers;
-
-      if (ret === undefined) {
-        ret = this._chainWatchers = create(this.source);
-      }
-
-      return ret;
-    }
-
-    readableChainWatchers() {
-      return this._chainWatchers;
-    }
-
-    writableChains(create) {
-      (true && !(!this.isMetaDestroyed()) && (0, _debug.assert)(this.isMetaDestroyed() ? "Cannot create a new chains for `" + (0, _utils.toString)(this.source) + "` after it has been destroyed." : '', !this.isMetaDestroyed()));
-      var {
-        _chains: ret
-      } = this;
-
-      if (ret === undefined) {
-        this._chains = ret = create(this.source);
-        var {
-          parent
-        } = this;
-
-        if (parent !== null) {
-          var parentChains = parent.writableChains(create);
-          parentChains.copyTo(ret);
-        }
-      }
-
-      return ret;
-    }
-
-    readableChains() {
-      return this._findInherited1('_chains');
-    }
-
-    writeWatching(subkey, value) {
-      (true && !(!this.isMetaDestroyed()) && (0, _debug.assert)(this.isMetaDestroyed() ? "Cannot update watchers for `" + subkey + "` on `" + (0, _utils.toString)(this.source) + "` after it has been destroyed." : '', !this.isMetaDestroyed()));
-
-      var map = this._getOrCreateOwnMap('_watching');
-
-      map[subkey] = value;
-    }
-
-    peekWatching(subkey) {
-      var count = this._findInherited2('_watching', subkey);
-
-      return count === undefined ? 0 : count;
     }
 
     addMixin(mixin) {
@@ -15168,44 +15019,6 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
   }
 
   _exports.Meta = Meta;
-
-  if (true
-  /* DEBUG */
-  ) {
-    Meta.prototype.writeValues = function (subkey, value) {
-      (true && !(!this.isMetaDestroyed()) && (0, _debug.assert)(this.isMetaDestroyed() ? "Cannot set the value of `" + subkey + "` on `" + (0, _utils.toString)(this.source) + "` after it has been destroyed." : '', !this.isMetaDestroyed()));
-
-      var map = this._getOrCreateOwnMap('_values');
-
-      map[subkey] = value === undefined ? UNDEFINED : value;
-    };
-
-    Meta.prototype.peekValues = function (key) {
-      var val = this._findInherited2('_values', key);
-
-      return val === UNDEFINED ? undefined : val;
-    };
-
-    Meta.prototype.deleteFromValues = function (key) {
-      delete this._getOrCreateOwnMap('_values')[key];
-    };
-
-    Meta.prototype.readInheritedValue = function (key) {
-      return this._findInherited2('_values', key);
-    };
-
-    Meta.prototype.writeValue = function (obj, key, value) {
-      var descriptor = (0, _utils.lookupDescriptor)(obj, key);
-      var isMandatorySetter = descriptor !== null && descriptor.set && descriptor.set.isMandatorySetter;
-
-      if (isMandatorySetter) {
-        this.writeValues(key, value);
-      } else {
-        obj[key] = value;
-      }
-    };
-  }
-
   var getPrototypeOf = Object.getPrototypeOf;
   var metaStore = new WeakMap();
 
@@ -15358,7 +15171,7 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
     return -1;
   }
 });
-define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/-internals/meta", "@ember/-internals/utils", "@ember/debug", "@glimmer/reference", "@ember/runloop", "@ember/-internals/environment", "@ember/error", "ember/version", "@ember/deprecated-features", "@ember/-internals/owner"], function (_exports, _polyfills, _meta2, _utils, _debug, _reference, _runloop, _environment, _error, _version, _deprecatedFeatures, _owner) {
+define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@ember/-internals/utils", "@ember/debug", "@ember/-internals/environment", "@ember/runloop", "@glimmer/reference", "@ember/polyfills", "@ember/error", "ember/version", "@ember/deprecated-features", "@ember/-internals/owner"], function (_exports, _meta2, _utils, _debug, _environment, _runloop, _reference, _polyfills, _error, _version, _deprecatedFeatures, _owner) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -15383,7 +15196,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
   _exports.removeArrayObserver = removeArrayObserver;
   _exports.arrayContentWillChange = arrayContentWillChange;
   _exports.arrayContentDidChange = arrayContentDidChange;
-  _exports.eachProxyFor = eachProxyFor;
   _exports.eachProxyArrayWillChange = eachProxyArrayWillChange;
   _exports.eachProxyArrayDidChange = eachProxyArrayDidChange;
   _exports.addListener = addListener;
@@ -15399,7 +15211,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
   _exports.changeProperties = changeProperties;
   _exports.endPropertyChanges = endPropertyChanges;
   _exports.notifyPropertyChange = notifyPropertyChange;
-  _exports.overrideChains = overrideChains;
   _exports.defineProperty = defineProperty;
   _exports.isElementDescriptor = isElementDescriptor;
   _exports.nativeDescDecorator = nativeDescDecorator;
@@ -15407,17 +15218,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
   _exports.descriptorForProperty = descriptorForProperty;
   _exports.isClassicDecorator = isClassicDecorator;
   _exports.setClassicDecorator = setClassicDecorator;
-  _exports.watchKey = watchKey;
-  _exports.unwatchKey = unwatchKey;
-  _exports.finishChains = finishChains;
-  _exports.removeChainWatcher = removeChainWatcher;
   _exports.getChainTagsForKey = getChainTagsForKey;
-  _exports.watchPath = watchPath;
-  _exports.unwatchPath = unwatchPath;
-  _exports.isWatching = isWatching;
-  _exports.unwatch = unwatch;
-  _exports.watch = watch;
-  _exports.watcherCount = watcherCount;
   _exports.getProperties = getProperties;
   _exports.setProperties = setProperties;
   _exports.expandProperties = expandProperties;
@@ -15446,7 +15247,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
   _exports.removeNamespace = removeNamespace;
   _exports.isNamespaceSearchDisabled = isSearchDisabled;
   _exports.setNamespaceSearchDisabled = setSearchDisabled;
-  _exports.NAMESPACES_BY_ID = _exports.NAMESPACES = _exports.deprecateMutationsInAutotrackingTransaction = _exports.runInAutotrackingTransaction = _exports.Tracker = _exports.UNKNOWN_PROPERTY_TAG = _exports.DEBUG_INJECTION_FUNCTIONS = _exports.aliasMethod = _exports.Mixin = _exports.Libraries = _exports.libraries = _exports.ARGS_PROXY_TAGS = _exports.ChainNode = _exports.PROPERTY_DID_CHANGE = _exports.PROXY_CONTENT = _exports.ComputedProperty = _exports._globalsComputed = void 0;
+  _exports.NAMESPACES_BY_ID = _exports.NAMESPACES = _exports.deprecateMutationsInAutotrackingTransaction = _exports.runInAutotrackingTransaction = _exports.Tracker = _exports.UNKNOWN_PROPERTY_TAG = _exports.DEBUG_INJECTION_FUNCTIONS = _exports.aliasMethod = _exports.Mixin = _exports.Libraries = _exports.libraries = _exports.ARGS_PROXY_TAGS = _exports.PROPERTY_DID_CHANGE = _exports.PROXY_CONTENT = _exports.ComputedProperty = _exports._globalsComputed = void 0;
   var COMPUTED_PROPERTY_CACHED_VALUES = new WeakMap();
   var COMPUTED_PROPERTY_LAST_REVISION = new WeakMap();
 
@@ -15485,52 +15286,30 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     }
   }
 
-  var setLastRevisionFor;
-  var getLastRevisionFor;
-  {
-    setLastRevisionFor = (obj, key, revision) => {
-      var cache = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
+  function setLastRevisionFor(obj, key, revision) {
+    var cache = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
 
-      if (cache === undefined) {
-        cache = new Map();
-        COMPUTED_PROPERTY_LAST_REVISION.set(obj, cache);
-      }
+    if (cache === undefined) {
+      cache = new Map();
+      COMPUTED_PROPERTY_LAST_REVISION.set(obj, cache);
+    }
 
-      cache.set(key, revision);
-    };
+    cache.set(key, revision);
+  }
 
-    getLastRevisionFor = (obj, key) => {
-      var cache = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
+  function getLastRevisionFor(obj, key) {
+    var cache = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
 
-      if (cache === undefined) {
-        return 0;
-      } else {
-        var revision = cache.get(key);
-        return revision === undefined ? 0 : revision;
-      }
-    };
+    if (cache === undefined) {
+      return 0;
+    } else {
+      var revision = cache.get(key);
+      return revision === undefined ? 0 : revision;
+    }
   }
 
   function peekCacheFor(obj) {
     return COMPUTED_PROPERTY_CACHED_VALUES.get(obj);
-  }
-
-  var EACH_PROXIES = new WeakMap();
-
-  function eachProxyArrayWillChange(array, idx, removedCnt, addedCnt) {
-    var eachProxy = EACH_PROXIES.get(array);
-
-    if (eachProxy !== undefined) {
-      eachProxy.arrayWillChange(array, idx, removedCnt, addedCnt);
-    }
-  }
-
-  function eachProxyArrayDidChange(array, idx, removedCnt, addedCnt) {
-    var eachProxy = EACH_PROXIES.get(array);
-
-    if (eachProxy !== undefined) {
-      eachProxy.arrayDidChange(array, idx, removedCnt, addedCnt);
-    }
   }
   /**
   @module @ember/object
@@ -15730,6 +15509,205 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     return keyName + AFTER_OBSERVERS;
   }
 
+  var SYNC_DEFAULT = !_environment.ENV._DEFAULT_ASYNC_OBSERVERS;
+  var SYNC_OBSERVERS = new Map();
+  var ASYNC_OBSERVERS = new Map();
+  /**
+  @module @ember/object
+  */
+
+  /**
+    @method addObserver
+    @static
+    @for @ember/object/observers
+    @param obj
+    @param {String} path
+    @param {Object|Function} target
+    @param {Function|String} [method]
+    @public
+  */
+
+  function addObserver(obj, path, target, method, sync = SYNC_DEFAULT) {
+    var eventName = changeEvent(path);
+    addListener(obj, eventName, target, method, false, sync);
+    var meta$$1 = (0, _meta2.peekMeta)(obj);
+
+    if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
+      activateObserver(obj, eventName, sync);
+    }
+  }
+  /**
+    @method removeObserver
+    @static
+    @for @ember/object/observers
+    @param obj
+    @param {String} path
+    @param {Object|Function} target
+    @param {Function|String} [method]
+    @public
+  */
+
+
+  function removeObserver(obj, path, target, method, sync = SYNC_DEFAULT) {
+    var eventName = changeEvent(path);
+    var meta$$1 = (0, _meta2.peekMeta)(obj);
+
+    if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
+      deactivateObserver(obj, eventName, sync);
+    }
+
+    removeListener(obj, eventName, target, method);
+  }
+
+  function getOrCreateActiveObserversFor(target, sync) {
+    var observerMap = sync === true ? SYNC_OBSERVERS : ASYNC_OBSERVERS;
+
+    if (!observerMap.has(target)) {
+      observerMap.set(target, new Map());
+    }
+
+    return observerMap.get(target);
+  }
+
+  function activateObserver(target, eventName, sync = false) {
+    var activeObservers = getOrCreateActiveObserversFor(target, sync);
+
+    if (activeObservers.has(eventName)) {
+      activeObservers.get(eventName).count++;
+    } else {
+      var [path] = eventName.split(':');
+      var tag = (0, _reference.combine)(getChainTagsForKey(target, path));
+      activeObservers.set(eventName, {
+        count: 1,
+        path,
+        tag,
+        lastRevision: (0, _reference.value)(tag),
+        suspended: false
+      });
+    }
+  }
+
+  function deactivateObserver(target, eventName, sync = false) {
+    var observerMap = sync === true ? SYNC_OBSERVERS : ASYNC_OBSERVERS;
+    var activeObservers = observerMap.get(target);
+
+    if (activeObservers !== undefined) {
+      var _observer = activeObservers.get(eventName);
+
+      _observer.count--;
+
+      if (_observer.count === 0) {
+        activeObservers.delete(eventName);
+
+        if (activeObservers.size === 0) {
+          observerMap.delete(target);
+        }
+      }
+    }
+  }
+  /**
+   * Primarily used for cases where we are redefining a class, e.g. mixins/reopen
+   * being applied later. Revalidates all the observers, resetting their tags.
+   *
+   * @private
+   * @param target
+   */
+
+
+  function revalidateObservers(target) {
+    if (ASYNC_OBSERVERS.has(target)) {
+      ASYNC_OBSERVERS.get(target).forEach(observer => {
+        observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
+        observer.lastRevision = (0, _reference.value)(observer.tag);
+      });
+    }
+
+    if (SYNC_OBSERVERS.has(target)) {
+      SYNC_OBSERVERS.get(target).forEach(observer => {
+        observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
+        observer.lastRevision = (0, _reference.value)(observer.tag);
+      });
+    }
+  }
+
+  var lastKnownRevision = 0;
+
+  function flushAsyncObservers(shouldSchedule = true) {
+    if (lastKnownRevision === (0, _reference.value)(_reference.CURRENT_TAG)) {
+      return;
+    }
+
+    lastKnownRevision = (0, _reference.value)(_reference.CURRENT_TAG);
+    ASYNC_OBSERVERS.forEach((activeObservers, target) => {
+      var meta$$1 = (0, _meta2.peekMeta)(target);
+
+      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
+        ASYNC_OBSERVERS.delete(target);
+        return;
+      }
+
+      activeObservers.forEach((observer, eventName) => {
+        if (!(0, _reference.validate)(observer.tag, observer.lastRevision)) {
+          var sendObserver = () => {
+            try {
+              sendEvent(target, eventName, [target, observer.path]);
+            } finally {
+              observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
+              observer.lastRevision = (0, _reference.value)(observer.tag);
+            }
+          };
+
+          if (shouldSchedule) {
+            (0, _runloop.schedule)('actions', sendObserver);
+          } else {
+            sendObserver();
+          }
+        }
+      });
+    });
+  }
+
+  function flushSyncObservers() {
+    // When flushing synchronous observers, we know that something has changed (we
+    // only do this during a notifyPropertyChange), so there's no reason to check
+    // a global revision.
+    SYNC_OBSERVERS.forEach((activeObservers, target) => {
+      var meta$$1 = (0, _meta2.peekMeta)(target);
+
+      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
+        SYNC_OBSERVERS.delete(target);
+        return;
+      }
+
+      activeObservers.forEach((observer, eventName) => {
+        if (!observer.suspended && !(0, _reference.validate)(observer.tag, observer.lastRevision)) {
+          try {
+            observer.suspended = true;
+            sendEvent(target, eventName, [target, observer.path]);
+          } finally {
+            observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
+            observer.lastRevision = (0, _reference.value)(observer.tag);
+            observer.suspended = false;
+          }
+        }
+      });
+    });
+  }
+
+  function setObserverSuspended(target, property, suspended) {
+    var activeObservers = SYNC_OBSERVERS.get(target);
+
+    if (!activeObservers) {
+      return;
+    }
+
+    var observer = activeObservers.get(changeEvent(property));
+
+    if (observer) {
+      observer.suspended = suspended;
+    }
+  }
+
   var DECORATOR_DESCRIPTOR_MAP = new WeakMap();
   /**
     Returns the CP descriptor assocaited with `obj` and `keyName`, if any.
@@ -15781,464 +15759,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     DECORATOR_DESCRIPTOR_MAP.set(dec, value$$1);
   }
 
-  var firstDotIndexCache = new _utils.Cache(1000, key => key.indexOf('.'));
-
-  function isPath(path) {
-    return typeof path === 'string' && firstDotIndexCache.get(path) !== -1;
-  }
-  /**
-  @module @ember/object
-  */
-  // DEFINING PROPERTIES API
-  //
-
-
-  function MANDATORY_SETTER_FUNCTION(name) {
-    function SETTER_FUNCTION(value$$1) {
-      var m = (0, _meta2.peekMeta)(this);
-
-      if (m.isInitializing() || m.isPrototypeMeta(this)) {
-        m.writeValues(name, value$$1);
-      } else {
-        (true && !(false) && (0, _debug.assert)("You must use set() to set the `" + name + "` property (of " + this + ") to `" + value$$1 + "`.", false));
-      }
-    }
-
-    return (0, _polyfills.assign)(SETTER_FUNCTION, {
-      isMandatorySetter: true
-    });
-  }
-
-  function DEFAULT_GETTER_FUNCTION(name) {
-    return function GETTER_FUNCTION() {
-      var meta$$1 = (0, _meta2.peekMeta)(this);
-
-      if (meta$$1 !== null) {
-        return meta$$1.peekValues(name);
-      }
-    };
-  }
-
-  function INHERITING_GETTER_FUNCTION(name) {
-    function IGETTER_FUNCTION() {
-      var meta$$1 = (0, _meta2.peekMeta)(this);
-      var val;
-
-      if (meta$$1 !== null) {
-        val = meta$$1.readInheritedValue(name);
-
-        if (val === undefined) {
-          var proto = Object.getPrototypeOf(this);
-          val = proto === null ? undefined : proto[name];
-        } else {
-          val = val === _meta2.UNDEFINED ? undefined : val;
-        }
-      }
-
-      return val;
-    }
-
-    return (0, _polyfills.assign)(IGETTER_FUNCTION, {
-      isInheritingGetter: true
-    });
-  }
-  /**
-    NOTE: This is a low-level method used by other parts of the API. You almost
-    never want to call this method directly. Instead you should use
-    `mixin()` to define new properties.
-  
-    Defines a property on an object. This method works much like the ES5
-    `Object.defineProperty()` method except that it can also accept computed
-    properties and other special descriptors.
-  
-    Normally this method takes only three parameters. However if you pass an
-    instance of `Descriptor` as the third param then you can pass an
-    optional value as the fourth parameter. This is often more efficient than
-    creating new descriptor hashes for each property.
-  
-    ## Examples
-  
-    ```javascript
-    import { defineProperty, computed } from '@ember/object';
-  
-    // ES5 compatible mode
-    defineProperty(contact, 'firstName', {
-      writable: true,
-      configurable: false,
-      enumerable: true,
-      value: 'Charles'
-    });
-  
-    // define a simple property
-    defineProperty(contact, 'lastName', undefined, 'Jolley');
-  
-    // define a computed property
-    defineProperty(contact, 'fullName', computed('firstName', 'lastName', function() {
-      return this.firstName+' '+this.lastName;
-    }));
-    ```
-  
-    @public
-    @method defineProperty
-    @static
-    @for @ember/object
-    @param {Object} obj the object to define this property on. This may be a prototype.
-    @param {String} keyName the name of the property
-    @param {Descriptor} [desc] an instance of `Descriptor` (typically a
-      computed property) or an ES5 descriptor.
-      You must provide this or `data` but not both.
-    @param {*} [data] something other than a descriptor, that will
-      become the explicit value of this property.
-  */
-
-
-  function defineProperty(obj, keyName, desc, data, meta$$1) {
-    if (meta$$1 === undefined) {
-      meta$$1 = (0, _meta2.meta)(obj);
-    }
-
-    var watching = meta$$1.peekWatching(keyName) > 0;
-    var previousDesc = descriptorForProperty(obj, keyName, meta$$1);
-    var wasDescriptor = previousDesc !== undefined;
-
-    if (wasDescriptor) {
-      previousDesc.teardown(obj, keyName, meta$$1);
-    } // used to track if the the property being defined be enumerable
-
-
-    var enumerable = true; // Ember.NativeArray is a normal Ember.Mixin that we mix into `Array.prototype` when prototype extensions are enabled
-    // mutating a native object prototype like this should _not_ result in enumerable properties being added (or we have significant
-    // issues with things like deep equality checks from test frameworks, or things like jQuery.extend(true, [], [])).
-    //
-    // this is a hack, and we should stop mutating the array prototype by default 😫
-
-    if (obj === Array.prototype) {
-      enumerable = false;
-    }
-
-    var value$$1;
-
-    if (isClassicDecorator(desc)) {
-      var propertyDesc;
-
-      if (true
-      /* DEBUG */
-      ) {
-        propertyDesc = desc(obj, keyName, undefined, meta$$1, true);
-      } else {
-        propertyDesc = desc(obj, keyName, undefined, meta$$1);
-      }
-
-      Object.defineProperty(obj, keyName, propertyDesc); // pass the decorator function forward for backwards compat
-
-      value$$1 = desc;
-    } else if (desc === undefined || desc === null) {
-      value$$1 = data;
-
-      if (true
-      /* DEBUG */
-      && watching) {
-        meta$$1.writeValues(keyName, data);
-        var defaultDescriptor = {
-          configurable: true,
-          enumerable,
-          set: MANDATORY_SETTER_FUNCTION(keyName),
-          get: DEFAULT_GETTER_FUNCTION(keyName)
-        };
-        Object.defineProperty(obj, keyName, defaultDescriptor);
-      } else if (wasDescriptor || enumerable === false) {
-        Object.defineProperty(obj, keyName, {
-          configurable: true,
-          enumerable,
-          writable: true,
-          value: value$$1
-        });
-      } else {
-        if (true
-        /* EMBER_METAL_TRACKED_PROPERTIES */
-        && true
-        /* DEBUG */
-        ) {
-          (0, _utils.setWithMandatorySetter)(obj, keyName, data);
-        } else {
-          obj[keyName] = data;
-        }
-      }
-    } else {
-      value$$1 = desc; // fallback to ES5
-
-      Object.defineProperty(obj, keyName, desc);
-    } // if key is being watched, override chains that
-    // were initialized with the prototype
-
-
-    {
-      if (!meta$$1.isPrototypeMeta(obj)) {
-        revalidateObservers(obj);
-      }
-    } // The `value` passed to the `didDefineProperty` hook is
-    // either the descriptor or data, whichever was passed.
-
-    if (typeof obj.didDefineProperty === 'function') {
-      obj.didDefineProperty(obj, keyName, value$$1);
-    }
-  }
-
-  var handleMandatorySetter;
-
-  function watchKey(obj, keyName, _meta) {
-    var meta$$1 = _meta === undefined ? (0, _meta2.meta)(obj) : _meta;
-    var count = meta$$1.peekWatching(keyName);
-    meta$$1.writeWatching(keyName, count + 1);
-
-    if (count === 0) {
-      // activate watching first time
-      var possibleDesc = descriptorForProperty(obj, keyName, meta$$1);
-
-      if (possibleDesc !== undefined && possibleDesc.willWatch !== undefined) {
-        possibleDesc.willWatch(obj, keyName, meta$$1);
-      }
-
-      if (true
-      /* DEBUG */
-      ) {
-        // NOTE: this is dropped for prod + minified builds
-        handleMandatorySetter(meta$$1, obj, keyName);
-      }
-    }
-  }
-
-  if (true
-  /* DEBUG */
-  ) {
-    var _hasOwnProperty = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
-
-    var _propertyIsEnumerable = (obj, key) => Object.prototype.propertyIsEnumerable.call(obj, key); // Future traveler, although this code looks scary. It merely exists in
-    // development to aid in development asertions. Production builds of
-    // ember strip this entire block out
-
-
-    handleMandatorySetter = function handleMandatorySetter(m, obj, keyName) {
-      var descriptor = (0, _utils.lookupDescriptor)(obj, keyName);
-      var hasDescriptor = descriptor !== null;
-      var possibleDesc = hasDescriptor && descriptor.value;
-
-      if (isClassicDecorator(possibleDesc)) {
-        return;
-      }
-
-      var configurable = hasDescriptor ? descriptor.configurable : true;
-      var isWritable = hasDescriptor ? descriptor.writable : true;
-      var hasValue = hasDescriptor ? 'value' in descriptor : true; // this x in Y deopts, so keeping it in this function is better;
-
-      if (configurable && isWritable && hasValue && keyName in obj) {
-        var desc = {
-          configurable: true,
-          set: MANDATORY_SETTER_FUNCTION(keyName),
-          enumerable: _propertyIsEnumerable(obj, keyName),
-          get: undefined
-        };
-
-        if (_hasOwnProperty(obj, keyName)) {
-          m.writeValues(keyName, obj[keyName]);
-          desc.get = DEFAULT_GETTER_FUNCTION(keyName);
-        } else {
-          desc.get = INHERITING_GETTER_FUNCTION(keyName);
-        }
-
-        Object.defineProperty(obj, keyName, desc);
-      }
-    };
-  }
-
-  function unwatchKey(obj, keyName, _meta) {
-    var meta$$1 = _meta === undefined ? (0, _meta2.peekMeta)(obj) : _meta; // do nothing of this object has already been destroyed
-
-    if (meta$$1 === null || meta$$1.isSourceDestroyed()) {
-      return;
-    }
-
-    var count = meta$$1.peekWatching(keyName);
-
-    if (count === 1) {
-      meta$$1.writeWatching(keyName, 0);
-      var possibleDesc = descriptorForProperty(obj, keyName, meta$$1);
-      var isDescriptor = possibleDesc !== undefined;
-
-      if (isDescriptor && possibleDesc.didUnwatch !== undefined) {
-        possibleDesc.didUnwatch(obj, keyName, meta$$1);
-      }
-
-      if (typeof obj.didUnwatchProperty === 'function') {
-        obj.didUnwatchProperty(keyName);
-      }
-
-      if (true
-      /* DEBUG */
-      ) {
-        // It is true, the following code looks quite WAT. But have no fear, It
-        // exists purely to improve development ergonomics and is removed from
-        // ember.min.js and ember.prod.js builds.
-        //
-        // Some further context: Once a property is watched by ember, bypassing `set`
-        // for mutation, will bypass observation. This code exists to assert when
-        // that occurs, and attempt to provide more helpful feedback. The alternative
-        // is tricky to debug partially observable properties.
-        if (!isDescriptor && keyName in obj) {
-          var maybeMandatoryDescriptor = (0, _utils.lookupDescriptor)(obj, keyName);
-
-          if (maybeMandatoryDescriptor && maybeMandatoryDescriptor.set && maybeMandatoryDescriptor.set.isMandatorySetter) {
-            if (maybeMandatoryDescriptor.get && maybeMandatoryDescriptor.get.isInheritingGetter) {
-              var possibleValue = meta$$1.readInheritedValue(keyName);
-
-              if (possibleValue === undefined) {
-                delete obj[keyName];
-                return;
-              }
-            }
-
-            Object.defineProperty(obj, keyName, {
-              configurable: true,
-              enumerable: Object.prototype.propertyIsEnumerable.call(obj, keyName),
-              writable: true,
-              value: meta$$1.peekValues(keyName)
-            });
-            meta$$1.deleteFromValues(keyName);
-          }
-        }
-      }
-    } else if (count > 1) {
-      meta$$1.writeWatching(keyName, count - 1);
-    }
-  }
-
-  function eachProxyFor(array) {
-    var eachProxy = EACH_PROXIES.get(array);
-
-    if (eachProxy === undefined) {
-      eachProxy = new EachProxy(array);
-      EACH_PROXIES.set(array, eachProxy);
-    }
-
-    return eachProxy;
-  }
-
-  class EachProxy {
-    constructor(content) {
-      this._content = content;
-      this._keys = undefined;
-      (0, _meta2.meta)(this);
-    } // ..........................................................
-    // ARRAY CHANGES
-    // Invokes whenever the content array itself changes.
-
-
-    arrayWillChange(content, idx, removedCnt
-    /*, addedCnt */
-    ) {
-      // eslint-disable-line no-unused-vars
-      var keys = this._keys;
-
-      if (!keys) {
-        return;
-      }
-
-      var lim = removedCnt > 0 ? idx + removedCnt : -1;
-
-      if (lim > 0) {
-        for (var key in keys) {
-          removeObserverForContentKey(content, key, this, idx, lim);
-        }
-      }
-    }
-
-    arrayDidChange(content, idx, _removedCnt, addedCnt) {
-      var keys = this._keys;
-
-      if (!keys) {
-        return;
-      }
-
-      var lim = addedCnt > 0 ? idx + addedCnt : -1;
-      var meta$$1 = (0, _meta2.peekMeta)(this);
-
-      for (var key in keys) {
-        if (lim > 0) {
-          addObserverForContentKey(content, key, this, idx, lim);
-        }
-
-        notifyPropertyChange(this, key, meta$$1);
-      }
-    } // ..........................................................
-    // LISTEN FOR NEW OBSERVERS AND OTHER EVENT LISTENERS
-    // Start monitoring keys based on who is listening...
-
-
-    willWatchProperty(property) {
-      this.beginObservingContentKey(property);
-    }
-
-    didUnwatchProperty(property) {
-      this.stopObservingContentKey(property);
-    } // ..........................................................
-    // CONTENT KEY OBSERVING
-    // Actual watch keys on the source content.
-
-
-    beginObservingContentKey(keyName) {
-      var keys = this._keys;
-
-      if (keys === undefined) {
-        keys = this._keys = Object.create(null);
-      }
-
-      if (!keys[keyName]) {
-        keys[keyName] = 1;
-        var content = this._content;
-        var len = content.length;
-        addObserverForContentKey(content, keyName, this, 0, len);
-      } else {
-        keys[keyName]++;
-      }
-    }
-
-    stopObservingContentKey(keyName) {
-      var keys = this._keys;
-
-      if (keys !== undefined && keys[keyName] > 0 && --keys[keyName] <= 0) {
-        var content = this._content;
-        var len = content.length;
-        removeObserverForContentKey(content, keyName, this, 0, len);
-      }
-    }
-
-    contentKeyDidChange(_obj, keyName) {
-      notifyPropertyChange(this, keyName);
-    }
-
-  }
-
-  function addObserverForContentKey(content, keyName, proxy, idx, loc) {
-    while (--loc >= idx) {
-      var item = objectAt(content, loc);
-
-      if (item) {
-        (true && !(typeof item === 'object') && (0, _debug.assert)("When using @each to observe the array `" + content.toString() + "`, the array must return an object", typeof item === 'object'));
-        addObserver(item, keyName, proxy, 'contentKeyDidChange');
-      }
-    }
-  }
-
-  function removeObserverForContentKey(content, keyName, proxy, idx, loc) {
-    while (--loc >= idx) {
-      var item = objectAt(content, loc);
-
-      if (item) {
-        removeObserver(item, keyName, proxy, 'contentKeyDidChange');
-      }
-    }
-  }
-
   function isElementDescriptor(args) {
     var [maybeTarget, maybeKey, maybeDesc] = args;
     return (// Ensure we have the right number of args
@@ -16248,45 +15768,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       typeof maybeDesc === 'object' && maybeDesc !== null && 'enumerable' in maybeDesc && 'configurable' in maybeDesc || // TS compatibility
       maybeDesc === undefined)
     );
-  } // ..........................................................
-  // DEPENDENT KEYS
-  //
-
-
-  function addDependentKeys(desc, obj, keyName, meta$$1) {
-    // the descriptor has a list of dependent keys, so
-    // add all of its dependent keys.
-    var depKeys = desc._dependentKeys;
-
-    if (depKeys === null || depKeys === undefined) {
-      return;
-    }
-
-    for (var idx = 0; idx < depKeys.length; idx++) {
-      var depKey = depKeys[idx]; // Increment the number of times depKey depends on keyName.
-
-      meta$$1.writeDeps(depKey, keyName, meta$$1.peekDeps(depKey, keyName) + 1); // Watch the depKey
-
-      watch(obj, depKey, meta$$1);
-    }
-  }
-
-  function removeDependentKeys(desc, obj, keyName, meta$$1) {
-    // the descriptor has a list of dependent keys, so
-    // remove all of its dependent keys.
-    var depKeys = desc._dependentKeys;
-
-    if (depKeys === null || depKeys === undefined) {
-      return;
-    }
-
-    for (var idx = 0; idx < depKeys.length; idx++) {
-      var depKey = depKeys[idx]; // Decrement the number of times depKey depends on keyName.
-
-      meta$$1.writeDeps(depKey, keyName, meta$$1.peekDeps(depKey, keyName) - 1); // Unwatch the depKey
-
-      unwatch(obj, depKey, meta$$1);
-    }
   }
 
   function nativeDescDecorator(propertyDesc) {
@@ -16349,11 +15830,9 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       var computedDesc = {
         enumerable: desc.enumerable,
         configurable: desc.configurable,
-        get: DESCRIPTOR_GETTER_FUNCTION(key, desc)
+        get: DESCRIPTOR_GETTER_FUNCTION(key, desc),
+        set: DESCRIPTOR_SETTER_FUNCTION(key, desc)
       };
-      {
-        computedDesc.set = DESCRIPTOR_SETTER_FUNCTION(key, desc);
-      }
       return computedDesc;
     };
 
@@ -16726,11 +16205,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     }
 
     var meta$$1 = _meta === undefined ? (0, _meta2.meta)(object) : _meta;
-    {
-      if (!(propertyKey in object) && typeof object[UNKNOWN_PROPERTY_TAG] === 'function') {
-        return object[UNKNOWN_PROPERTY_TAG](propertyKey);
-      }
+
+    if (!(propertyKey in object) && typeof object[UNKNOWN_PROPERTY_TAG] === 'function') {
+      return object[UNKNOWN_PROPERTY_TAG](propertyKey);
     }
+
     var tags = meta$$1.writableTags();
     var tag = tags[propertyKey];
 
@@ -16738,20 +16217,16 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       return tag;
     }
 
-    {
-      var newTag = (0, _reference.createUpdatableTag)();
+    var newTag = (0, _reference.createUpdatableTag)();
 
-      if (true
-      /* DEBUG */
-      ) {
-        {
-          (0, _utils.setupMandatorySetter)(object, propertyKey);
-        }
-        newTag._propertyKey = propertyKey;
-      }
-
-      return tags[propertyKey] = newTag;
+    if (true
+    /* DEBUG */
+    ) {
+      (0, _utils.setupMandatorySetter)(object, propertyKey);
+      newTag._propertyKey = propertyKey;
     }
+
+    return tags[propertyKey] = newTag;
   }
 
   function tagFor(object, _meta) {
@@ -16802,834 +16277,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     _runloop.backburner.ensureInstance();
   }
   /**
-  @module @ember/object
-  */
-
-
-  var PROXY_CONTENT = (0, _utils.symbol)('PROXY_CONTENT');
-  _exports.PROXY_CONTENT = PROXY_CONTENT;
-  var getPossibleMandatoryProxyValue;
-
-  if (true
-  /* DEBUG */
-  && _utils.HAS_NATIVE_PROXY) {
-    getPossibleMandatoryProxyValue = function getPossibleMandatoryProxyValue(obj, keyName) {
-      var content = obj[PROXY_CONTENT];
-
-      if (content === undefined) {
-        return obj[keyName];
-      } else {
-        /* global Reflect */
-        return Reflect.get(content, keyName, obj);
-      }
-    };
-  } // ..........................................................
-  // GET AND SET
-  //
-  // If we are on a platform that supports accessors we can use those.
-  // Otherwise simulate accessors by looking up the property directly on the
-  // object.
-
-  /**
-    Gets the value of a property on an object. If the property is computed,
-    the function will be invoked. If the property is not defined but the
-    object implements the `unknownProperty` method then that will be invoked.
-  
-    ```javascript
-    import { get } from '@ember/object';
-    get(obj, "name");
-    ```
-  
-    If you plan to run on IE8 and older browsers then you should use this
-    method anytime you want to retrieve a property on an object that you don't
-    know for sure is private. (Properties beginning with an underscore '_'
-    are considered private.)
-  
-    On all newer browsers, you only need to use this method to retrieve
-    properties if the property might not be defined on the object and you want
-    to respect the `unknownProperty` handler. Otherwise you can ignore this
-    method.
-  
-    Note that if the object itself is `undefined`, this method will throw
-    an error.
-  
-    @method get
-    @for @ember/object
-    @static
-    @param {Object} obj The object to retrieve from.
-    @param {String} keyName The property key to retrieve
-    @return {Object} the property value or `null`.
-    @public
-  */
-
-
-  function get(obj, keyName) {
-    (true && !(arguments.length === 2) && (0, _debug.assert)("Get must be called with two arguments; an object and a property key", arguments.length === 2));
-    (true && !(obj !== undefined && obj !== null) && (0, _debug.assert)("Cannot call get with '" + keyName + "' on an undefined object.", obj !== undefined && obj !== null));
-    (true && !(typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)) && (0, _debug.assert)("The key provided to get must be a string or number, you passed " + keyName, typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)));
-    (true && !(typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0) && (0, _debug.assert)("'this' in paths is not supported", typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0));
-    var type = typeof obj;
-    var isObject = type === 'object';
-    var isFunction = type === 'function';
-    var isObjectLike = isObject || isFunction;
-
-    if (isPath(keyName)) {
-      return isObjectLike ? _getPath(obj, keyName) : undefined;
-    }
-
-    var value$$1;
-
-    if (isObjectLike) {
-      var tracking = isTracking();
-      {
-        if (tracking) {
-          consume(tagForProperty(obj, keyName));
-        }
-      }
-
-      if (true
-      /* DEBUG */
-      && _utils.HAS_NATIVE_PROXY) {
-        value$$1 = getPossibleMandatoryProxyValue(obj, keyName);
-      } else {
-        value$$1 = obj[keyName];
-      } // Add the tag of the returned value if it is an array, since arrays
-      // should always cause updates if they are consumed and then changed
-
-
-      if (true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      && tracking && (Array.isArray(value$$1) || (0, _utils.isEmberArray)(value$$1))) {
-        consume(tagForProperty(value$$1, '[]'));
-      }
-    } else {
-      value$$1 = obj[keyName];
-    }
-
-    if (value$$1 === undefined) {
-      if (isObject && !(keyName in obj) && typeof obj.unknownProperty === 'function') {
-        if (true
-        /* DEBUG */
-        ) {
-          var ret;
-          deprecateMutationsInAutotrackingTransaction(() => {
-            ret = obj.unknownProperty(keyName);
-          });
-          return ret;
-        } else {
-          return obj.unknownProperty(keyName);
-        }
-      }
-    }
-
-    return value$$1;
-  }
-
-  function _getPath(root, path) {
-    var obj = root;
-    var parts = typeof path === 'string' ? path.split('.') : path;
-
-    for (var i = 0; i < parts.length; i++) {
-      if (obj === undefined || obj === null || obj.isDestroyed) {
-        return undefined;
-      }
-
-      obj = get(obj, parts[i]);
-    }
-
-    return obj;
-  }
-  /**
-    Retrieves the value of a property from an Object, or a default value in the
-    case that the property returns `undefined`.
-  
-    ```javascript
-    import { getWithDefault } from '@ember/object';
-    getWithDefault(person, 'lastName', 'Doe');
-    ```
-  
-    @method getWithDefault
-    @for @ember/object
-    @static
-    @param {Object} obj The object to retrieve from.
-    @param {String} keyName The name of the property to retrieve
-    @param {Object} defaultValue The value to return if the property value is undefined
-    @return {Object} The property value or the defaultValue.
-    @public
-  */
-
-
-  function getWithDefault(root, key, defaultValue) {
-    var value$$1 = get(root, key);
-
-    if (value$$1 === undefined) {
-      return defaultValue;
-    }
-
-    return value$$1;
-  }
-
-  function isObject(obj) {
-    return typeof obj === 'object' && obj !== null;
-  }
-
-  function isVolatile(obj, keyName, meta$$1) {
-    var desc = descriptorForProperty(obj, keyName, meta$$1);
-    return !(desc !== undefined && desc._volatile === false);
-  }
-
-  class ChainWatchers {
-    constructor() {
-      // chain nodes that reference a key in this obj by key
-      // we only create ChainWatchers when we are going to add them
-      // so create this upfront
-      this.chains = Object.create(null);
-    }
-
-    add(key, node) {
-      var nodes = this.chains[key];
-
-      if (nodes === undefined) {
-        this.chains[key] = [node];
-      } else {
-        nodes.push(node);
-      }
-    }
-
-    remove(key, node) {
-      var nodes = this.chains[key];
-
-      if (nodes !== undefined) {
-        for (var i = 0; i < nodes.length; i++) {
-          if (nodes[i] === node) {
-            nodes.splice(i, 1);
-            break;
-          }
-        }
-      }
-    }
-
-    has(key, node) {
-      var nodes = this.chains[key];
-
-      if (nodes !== undefined) {
-        for (var i = 0; i < nodes.length; i++) {
-          if (nodes[i] === node) {
-            return true;
-          }
-        }
-      }
-
-      return false;
-    }
-
-    revalidateAll() {
-      for (var key in this.chains) {
-        this.notify(key, true, undefined);
-      }
-    }
-
-    revalidate(key) {
-      this.notify(key, true, undefined);
-    } // key: the string key that is part of a path changed
-    // revalidate: boolean; the chains that are watching this value should revalidate
-    // callback: function that will be called with the object and path that
-    //           will be/are invalidated by this key change, depending on
-    //           whether the revalidate flag is passed
-
-
-    notify(key, revalidate, callback) {
-      var nodes = this.chains[key];
-
-      if (nodes === undefined || nodes.length === 0) {
-        return;
-      }
-
-      var affected = undefined;
-
-      if (callback !== undefined) {
-        affected = [];
-      }
-
-      for (var i = 0; i < nodes.length; i++) {
-        nodes[i].notify(revalidate, affected);
-      }
-
-      if (callback === undefined) {
-        return;
-      } // we gather callbacks so we don't notify them during revalidation
-
-
-      for (var _i = 0; _i < affected.length; _i += 2) {
-        var obj = affected[_i];
-        var path = affected[_i + 1];
-        callback(obj, path);
-      }
-    }
-
-  }
-
-  function makeChainWatcher() {
-    return new ChainWatchers();
-  }
-
-  function makeChainNode(obj) {
-    return new ChainNode(null, null, obj);
-  }
-
-  function addChainWatcher(obj, keyName, node) {
-    var m = (0, _meta2.meta)(obj);
-    m.writableChainWatchers(makeChainWatcher).add(keyName, node);
-    watchKey(obj, keyName, m);
-  }
-
-  function removeChainWatcher(obj, keyName, node, _meta) {
-    if (!isObject(obj)) {
-      return;
-    }
-
-    var meta$$1 = _meta === undefined ? (0, _meta2.peekMeta)(obj) : _meta;
-
-    if (meta$$1 === null || meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed() || meta$$1.readableChainWatchers() === undefined) {
-      return;
-    } // make meta writable
-
-
-    meta$$1 = (0, _meta2.meta)(obj);
-    meta$$1.readableChainWatchers().remove(keyName, node);
-    unwatchKey(obj, keyName, meta$$1);
-  }
-
-  var NODE_STACK = [];
-
-  function destroyRoot(root) {
-    pushChildren(root);
-
-    while (NODE_STACK.length > 0) {
-      var node = NODE_STACK.pop();
-      pushChildren(node);
-      destroyOne(node);
-    }
-  }
-
-  function destroyOne(node) {
-    if (node.isWatching) {
-      removeChainWatcher(node.object, node.key, node);
-      node.isWatching = false;
-    }
-  }
-
-  function pushChildren(node) {
-    var nodes = node.chains;
-
-    if (nodes !== undefined) {
-      for (var key in nodes) {
-        if (nodes[key] !== undefined) {
-          NODE_STACK.push(nodes[key]);
-        }
-      }
-    }
-  } // A ChainNode watches a single key on an object. If you provide a starting
-  // value for the key then the node won't actually watch it. For a root node
-  // pass null for parent and key and object for value.
-
-
-  class ChainNode {
-    constructor(parent, key, value$$1) {
-      this.paths = undefined;
-      this.isWatching = false;
-      this.chains = undefined;
-      this.object = undefined;
-      this.count = 0;
-      this.parent = parent;
-      this.key = key;
-      this.content = value$$1; // It is false for the root of a chain (because we have no parent)
-
-      var isWatching = this.isWatching = parent !== null;
-
-      if (isWatching) {
-        var parentValue = parent.value();
-
-        if (isObject(parentValue)) {
-          this.object = parentValue;
-          addChainWatcher(parentValue, key, this);
-        }
-      }
-    }
-
-    value() {
-      if (this.content === undefined && this.isWatching) {
-        var obj = this.parent.value();
-        this.content = lazyGet(obj, this.key);
-      }
-
-      return this.content;
-    }
-
-    destroy() {
-      // check if root
-      if (this.parent === null) {
-        destroyRoot(this);
-      } else {
-        destroyOne(this);
-      }
-    } // copies a top level object only
-
-
-    copyTo(target) {
-      var paths = this.paths;
-
-      if (paths !== undefined) {
-        var path;
-
-        for (path in paths) {
-          if (paths[path] > 0) {
-            target.add(path);
-          }
-        }
-      }
-    } // called on the root node of a chain to setup watchers on the specified
-    // path.
-
-
-    add(path) {
-      var paths = this.paths || (this.paths = {});
-      paths[path] = (paths[path] || 0) + 1;
-      var tails = path.split('.');
-      this.chain(tails.shift(), tails);
-    } // called on the root node of a chain to teardown watcher on the specified
-    // path
-
-
-    remove(path) {
-      var paths = this.paths;
-
-      if (paths === undefined) {
-        return;
-      }
-
-      if (paths[path] > 0) {
-        paths[path]--;
-      }
-
-      var tails = path.split('.');
-      this.unchain(tails.shift(), tails);
-    }
-
-    chain(key, tails) {
-      var chains = this.chains;
-
-      if (chains === undefined) {
-        chains = this.chains = Object.create(null);
-      }
-
-      var node = chains[key];
-
-      if (node === undefined) {
-        node = chains[key] = new ChainNode(this, key, undefined);
-      }
-
-      node.count++; // count chains...
-      // chain rest of path if there is one
-
-      if (tails.length > 0) {
-        node.chain(tails.shift(), tails);
-      }
-    }
-
-    unchain(key, tails) {
-      var chains = this.chains;
-      var node = chains[key]; // unchain rest of path first...
-
-      if (tails.length > 0) {
-        node.unchain(tails.shift(), tails);
-      } // delete node if needed.
-
-
-      node.count--;
-
-      if (node.count <= 0) {
-        chains[node.key] = undefined;
-        node.destroy();
-      }
-    }
-
-    notify(revalidate, affected) {
-      if (revalidate && this.isWatching) {
-        var parentValue = this.parent.value();
-
-        if (parentValue !== this.object) {
-          removeChainWatcher(this.object, this.key, this);
-
-          if (isObject(parentValue)) {
-            this.object = parentValue;
-            addChainWatcher(parentValue, this.key, this);
-          } else {
-            this.object = undefined;
-          }
-        }
-
-        this.content = undefined;
-      } // then notify chains...
-
-
-      var chains = this.chains;
-
-      if (chains !== undefined) {
-        var node;
-
-        for (var key in chains) {
-          node = chains[key];
-
-          if (node !== undefined) {
-            node.notify(revalidate, affected);
-          }
-        }
-      }
-
-      if (affected !== undefined && this.parent !== null) {
-        this.parent.populateAffected(this.key, 1, affected);
-      }
-    }
-
-    populateAffected(path, depth, affected) {
-      if (this.key) {
-        path = this.key + "." + path;
-      }
-
-      if (this.parent !== null) {
-        this.parent.populateAffected(path, depth + 1, affected);
-      } else if (depth > 1) {
-        affected.push(this.value(), path);
-      }
-    }
-
-  }
-
-  _exports.ChainNode = ChainNode;
-
-  function lazyGet(obj, key) {
-    if (!isObject(obj)) {
-      return;
-    }
-
-    var meta$$1 = (0, _meta2.peekMeta)(obj); // check if object meant only to be a prototype
-
-    if (meta$$1 !== null && meta$$1.proto === obj) {
-      return;
-    } // Use `get` if the return value is an EachProxy or an uncacheable value.
-
-
-    if (key === '@each') {
-      return eachProxyFor(obj);
-    } else if (isVolatile(obj, key, meta$$1)) {
-      return get(obj, key); // Otherwise attempt to get the cached value of the computed property
-    } else {
-      return getCachedValueFor(obj, key);
-    }
-  }
-
-  function finishChains(meta$$1) {
-    // finish any current chains node watchers that reference obj
-    var chainWatchers = meta$$1.readableChainWatchers();
-
-    if (chainWatchers !== undefined) {
-      chainWatchers.revalidateAll();
-    } // ensure that if we have inherited any chains they have been
-    // copied onto our own meta.
-
-
-    if (meta$$1.readableChains() !== undefined) {
-      meta$$1.writableChains(makeChainNode);
-    }
-  }
-
-  function watchPath(obj, keyPath, meta$$1) {
-    var m = meta$$1 === undefined ? (0, _meta2.meta)(obj) : meta$$1;
-    var counter = m.peekWatching(keyPath);
-    m.writeWatching(keyPath, counter + 1);
-
-    if (counter === 0) {
-      // activate watching first time
-      m.writableChains(makeChainNode).add(keyPath);
-    }
-  }
-
-  function unwatchPath(obj, keyPath, meta$$1) {
-    var m = meta$$1 === undefined ? (0, _meta2.peekMeta)(obj) : meta$$1;
-
-    if (m === null) {
-      return;
-    }
-
-    var counter = m.peekWatching(keyPath);
-
-    if (counter > 0) {
-      m.writeWatching(keyPath, counter - 1);
-
-      if (counter === 1) {
-        m.writableChains(makeChainNode).remove(keyPath);
-      }
-    }
-  }
-  /**
-  @module ember
-  */
-
-  /**
-    Starts watching a property on an object. Whenever the property changes,
-    invokes `Ember.notifyPropertyChange`. This is the primitive used by observers
-    and dependent keys; usually you will never call this method directly but instead
-    use higher level methods like `addObserver()`.
-  
-    @private
-    @method watch
-    @for Ember
-    @param obj
-    @param {String} keyPath
-    @param {Object} meta
-  */
-
-
-  function watch(obj, keyPath, meta$$1) {
-    if (isPath(keyPath)) {
-      watchPath(obj, keyPath, meta$$1);
-    } else {
-      watchKey(obj, keyPath, meta$$1);
-    }
-  }
-
-  function isWatching(obj, key) {
-    return watcherCount(obj, key) > 0;
-  }
-
-  function watcherCount(obj, key) {
-    var meta$$1 = (0, _meta2.peekMeta)(obj);
-    return meta$$1 !== null && meta$$1.peekWatching(key) || 0;
-  }
-  /**
-    Stops watching a property on an object. Usually you will never call this method directly but instead
-    use higher level methods like `removeObserver()`.
-  
-    @private
-    @method unwatch
-    @for Ember
-    @param obj
-    @param {String} keyPath
-    @param {Object} meta
-  */
-
-
-  function unwatch(obj, keyPath, meta$$1) {
-    if (isPath(keyPath)) {
-      unwatchPath(obj, keyPath, meta$$1);
-    } else {
-      unwatchKey(obj, keyPath, meta$$1);
-    }
-  }
-
-  var SYNC_DEFAULT = !_environment.ENV._DEFAULT_ASYNC_OBSERVERS;
-  var SYNC_OBSERVERS = new Map();
-  var ASYNC_OBSERVERS = new Map();
-  /**
-  @module @ember/object
-  */
-
-  /**
-    @method addObserver
-    @static
-    @for @ember/object/observers
-    @param obj
-    @param {String} path
-    @param {Object|Function} target
-    @param {Function|String} [method]
-    @public
-  */
-
-  function addObserver(obj, path, target, method, sync = SYNC_DEFAULT) {
-    var eventName = changeEvent(path);
-    addListener(obj, eventName, target, method, false, sync);
-    {
-      var meta$$1 = (0, _meta2.peekMeta)(obj);
-
-      if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
-        activateObserver(obj, eventName, sync);
-      }
-    }
-  }
-  /**
-    @method removeObserver
-    @static
-    @for @ember/object/observers
-    @param obj
-    @param {String} path
-    @param {Object|Function} target
-    @param {Function|String} [method]
-    @public
-  */
-
-
-  function removeObserver(obj, path, target, method, sync = SYNC_DEFAULT) {
-    var eventName = changeEvent(path);
-    {
-      var meta$$1 = (0, _meta2.peekMeta)(obj);
-
-      if (meta$$1 === null || !(meta$$1.isPrototypeMeta(obj) || meta$$1.isInitializing())) {
-        deactivateObserver(obj, eventName, sync);
-      }
-    }
-    removeListener(obj, eventName, target, method);
-  }
-
-  function getOrCreateActiveObserversFor(target, sync) {
-    var observerMap = sync === true ? SYNC_OBSERVERS : ASYNC_OBSERVERS;
-
-    if (!observerMap.has(target)) {
-      observerMap.set(target, new Map());
-    }
-
-    return observerMap.get(target);
-  }
-
-  function activateObserver(target, eventName, sync = false) {
-    var activeObservers = getOrCreateActiveObserversFor(target, sync);
-
-    if (activeObservers.has(eventName)) {
-      activeObservers.get(eventName).count++;
-    } else {
-      var [path] = eventName.split(':');
-      var tag = (0, _reference.combine)(getChainTagsForKey(target, path));
-      activeObservers.set(eventName, {
-        count: 1,
-        path,
-        tag,
-        lastRevision: (0, _reference.value)(tag),
-        suspended: false
-      });
-    }
-  }
-
-  function deactivateObserver(target, eventName, sync = false) {
-    var observerMap = sync === true ? SYNC_OBSERVERS : ASYNC_OBSERVERS;
-    var activeObservers = observerMap.get(target);
-
-    if (activeObservers !== undefined) {
-      var _observer = activeObservers.get(eventName);
-
-      _observer.count--;
-
-      if (_observer.count === 0) {
-        activeObservers.delete(eventName);
-
-        if (activeObservers.size === 0) {
-          observerMap.delete(target);
-        }
-      }
-    }
-  }
-  /**
-   * Primarily used for cases where we are redefining a class, e.g. mixins/reopen
-   * being applied later. Revalidates all the observers, resetting their tags.
-   *
-   * @private
-   * @param target
-   */
-
-
-  function revalidateObservers(target) {
-    if (ASYNC_OBSERVERS.has(target)) {
-      ASYNC_OBSERVERS.get(target).forEach(observer => {
-        observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
-        observer.lastRevision = (0, _reference.value)(observer.tag);
-      });
-    }
-
-    if (SYNC_OBSERVERS.has(target)) {
-      SYNC_OBSERVERS.get(target).forEach(observer => {
-        observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
-        observer.lastRevision = (0, _reference.value)(observer.tag);
-      });
-    }
-  }
-
-  var lastKnownRevision = 0;
-
-  function flushAsyncObservers(shouldSchedule = true) {
-    if (lastKnownRevision === (0, _reference.value)(_reference.CURRENT_TAG)) {
-      return;
-    }
-
-    lastKnownRevision = (0, _reference.value)(_reference.CURRENT_TAG);
-    ASYNC_OBSERVERS.forEach((activeObservers, target) => {
-      var meta$$1 = (0, _meta2.peekMeta)(target);
-
-      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
-        ASYNC_OBSERVERS.delete(target);
-        return;
-      }
-
-      activeObservers.forEach((observer, eventName) => {
-        if (!(0, _reference.validate)(observer.tag, observer.lastRevision)) {
-          var sendObserver = () => {
-            try {
-              sendEvent(target, eventName, [target, observer.path]);
-            } finally {
-              observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
-              observer.lastRevision = (0, _reference.value)(observer.tag);
-            }
-          };
-
-          if (shouldSchedule) {
-            (0, _runloop.schedule)('actions', sendObserver);
-          } else {
-            sendObserver();
-          }
-        }
-      });
-    });
-  }
-
-  function flushSyncObservers() {
-    // When flushing synchronous observers, we know that something has changed (we
-    // only do this during a notifyPropertyChange), so there's no reason to check
-    // a global revision.
-    SYNC_OBSERVERS.forEach((activeObservers, target) => {
-      var meta$$1 = (0, _meta2.peekMeta)(target);
-
-      if (meta$$1 && (meta$$1.isSourceDestroying() || meta$$1.isMetaDestroyed())) {
-        SYNC_OBSERVERS.delete(target);
-        return;
-      }
-
-      activeObservers.forEach((observer, eventName) => {
-        if (!observer.suspended && !(0, _reference.validate)(observer.tag, observer.lastRevision)) {
-          try {
-            observer.suspended = true;
-            sendEvent(target, eventName, [target, observer.path]);
-          } finally {
-            observer.tag = (0, _reference.combine)(getChainTagsForKey(target, observer.path));
-            observer.lastRevision = (0, _reference.value)(observer.tag);
-            observer.suspended = false;
-          }
-        }
-      });
-    });
-  }
-
-  function setObserverSuspended(target, property, suspended) {
-    var activeObservers = SYNC_OBSERVERS.get(target);
-
-    if (!activeObservers) {
-      return;
-    }
-
-    var observer = activeObservers.get(changeEvent(property));
-
-    if (observer) {
-      observer.suspended = suspended;
-    }
-  }
-  /**
    @module ember
    @private
    */
@@ -17667,22 +16314,12 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       markObjectAsDirty(obj, keyName, meta$$1);
     }
 
-    if (true
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    && deferred <= 0) {
+    if (deferred <= 0) {
       flushSyncObservers();
     }
 
     if (PROPERTY_DID_CHANGE in obj) {
       obj[PROPERTY_DID_CHANGE](keyName);
-    }
-  }
-
-  function overrideChains(_obj, keyName, meta$$1) {
-    var chainWatchers = meta$$1.readableChainWatchers();
-
-    if (chainWatchers !== undefined) {
-      chainWatchers.revalidate(keyName);
     }
   }
   /**
@@ -17705,9 +16342,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     deferred--;
 
     if (deferred <= 0) {
-      {
-        flushSyncObservers();
-      }
+      flushSyncObservers();
     }
   }
   /**
@@ -18129,6 +16764,307 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     }
   }
   /**
+  @module @ember/object
+  */
+
+  /**
+    NOTE: This is a low-level method used by other parts of the API. You almost
+    never want to call this method directly. Instead you should use
+    `mixin()` to define new properties.
+  
+    Defines a property on an object. This method works much like the ES5
+    `Object.defineProperty()` method except that it can also accept computed
+    properties and other special descriptors.
+  
+    Normally this method takes only three parameters. However if you pass an
+    instance of `Descriptor` as the third param then you can pass an
+    optional value as the fourth parameter. This is often more efficient than
+    creating new descriptor hashes for each property.
+  
+    ## Examples
+  
+    ```javascript
+    import { defineProperty, computed } from '@ember/object';
+  
+    // ES5 compatible mode
+    defineProperty(contact, 'firstName', {
+      writable: true,
+      configurable: false,
+      enumerable: true,
+      value: 'Charles'
+    });
+  
+    // define a simple property
+    defineProperty(contact, 'lastName', undefined, 'Jolley');
+  
+    // define a computed property
+    defineProperty(contact, 'fullName', computed('firstName', 'lastName', function() {
+      return this.firstName+' '+this.lastName;
+    }));
+    ```
+  
+    @public
+    @method defineProperty
+    @static
+    @for @ember/object
+    @param {Object} obj the object to define this property on. This may be a prototype.
+    @param {String} keyName the name of the property
+    @param {Descriptor} [desc] an instance of `Descriptor` (typically a
+      computed property) or an ES5 descriptor.
+      You must provide this or `data` but not both.
+    @param {*} [data] something other than a descriptor, that will
+      become the explicit value of this property.
+  */
+
+
+  function defineProperty(obj, keyName, desc, data, meta$$1) {
+    if (meta$$1 === undefined) {
+      meta$$1 = (0, _meta2.meta)(obj);
+    }
+
+    var previousDesc = descriptorForProperty(obj, keyName, meta$$1);
+    var wasDescriptor = previousDesc !== undefined;
+
+    if (wasDescriptor) {
+      previousDesc.teardown(obj, keyName, meta$$1);
+    } // used to track if the the property being defined be enumerable
+
+
+    var enumerable = true; // Ember.NativeArray is a normal Ember.Mixin that we mix into `Array.prototype` when prototype extensions are enabled
+    // mutating a native object prototype like this should _not_ result in enumerable properties being added (or we have significant
+    // issues with things like deep equality checks from test frameworks, or things like jQuery.extend(true, [], [])).
+    //
+    // this is a hack, and we should stop mutating the array prototype by default 😫
+
+    if (obj === Array.prototype) {
+      enumerable = false;
+    }
+
+    var value$$1;
+
+    if (isClassicDecorator(desc)) {
+      var propertyDesc;
+
+      if (true
+      /* DEBUG */
+      ) {
+        propertyDesc = desc(obj, keyName, undefined, meta$$1, true);
+      } else {
+        propertyDesc = desc(obj, keyName, undefined, meta$$1);
+      }
+
+      Object.defineProperty(obj, keyName, propertyDesc); // pass the decorator function forward for backwards compat
+
+      value$$1 = desc;
+    } else if (desc === undefined || desc === null) {
+      value$$1 = data;
+
+      if (wasDescriptor || enumerable === false) {
+        Object.defineProperty(obj, keyName, {
+          configurable: true,
+          enumerable,
+          writable: true,
+          value: value$$1
+        });
+      } else {
+        if (true
+        /* DEBUG */
+        ) {
+          (0, _utils.setWithMandatorySetter)(obj, keyName, data);
+        } else {
+          obj[keyName] = data;
+        }
+      }
+    } else {
+      value$$1 = desc; // fallback to ES5
+
+      Object.defineProperty(obj, keyName, desc);
+    } // if key is being watched, override chains that
+    // were initialized with the prototype
+
+
+    if (!meta$$1.isPrototypeMeta(obj)) {
+      revalidateObservers(obj);
+    } // The `value` passed to the `didDefineProperty` hook is
+    // either the descriptor or data, whichever was passed.
+
+
+    if (typeof obj.didDefineProperty === 'function') {
+      obj.didDefineProperty(obj, keyName, value$$1);
+    }
+  }
+
+  var firstDotIndexCache = new _utils.Cache(1000, key => key.indexOf('.'));
+
+  function isPath(path) {
+    return typeof path === 'string' && firstDotIndexCache.get(path) !== -1;
+  }
+  /**
+  @module @ember/object
+  */
+
+
+  var PROXY_CONTENT = (0, _utils.symbol)('PROXY_CONTENT');
+  _exports.PROXY_CONTENT = PROXY_CONTENT;
+  var getPossibleMandatoryProxyValue;
+
+  if (true
+  /* DEBUG */
+  && _utils.HAS_NATIVE_PROXY) {
+    getPossibleMandatoryProxyValue = function getPossibleMandatoryProxyValue(obj, keyName) {
+      var content = obj[PROXY_CONTENT];
+
+      if (content === undefined) {
+        return obj[keyName];
+      } else {
+        /* global Reflect */
+        return Reflect.get(content, keyName, obj);
+      }
+    };
+  } // ..........................................................
+  // GET AND SET
+  //
+  // If we are on a platform that supports accessors we can use those.
+  // Otherwise simulate accessors by looking up the property directly on the
+  // object.
+
+  /**
+    Gets the value of a property on an object. If the property is computed,
+    the function will be invoked. If the property is not defined but the
+    object implements the `unknownProperty` method then that will be invoked.
+  
+    ```javascript
+    import { get } from '@ember/object';
+    get(obj, "name");
+    ```
+  
+    If you plan to run on IE8 and older browsers then you should use this
+    method anytime you want to retrieve a property on an object that you don't
+    know for sure is private. (Properties beginning with an underscore '_'
+    are considered private.)
+  
+    On all newer browsers, you only need to use this method to retrieve
+    properties if the property might not be defined on the object and you want
+    to respect the `unknownProperty` handler. Otherwise you can ignore this
+    method.
+  
+    Note that if the object itself is `undefined`, this method will throw
+    an error.
+  
+    @method get
+    @for @ember/object
+    @static
+    @param {Object} obj The object to retrieve from.
+    @param {String} keyName The property key to retrieve
+    @return {Object} the property value or `null`.
+    @public
+  */
+
+
+  function get(obj, keyName) {
+    (true && !(arguments.length === 2) && (0, _debug.assert)("Get must be called with two arguments; an object and a property key", arguments.length === 2));
+    (true && !(obj !== undefined && obj !== null) && (0, _debug.assert)("Cannot call get with '" + keyName + "' on an undefined object.", obj !== undefined && obj !== null));
+    (true && !(typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)) && (0, _debug.assert)("The key provided to get must be a string or number, you passed " + keyName, typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)));
+    (true && !(typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0) && (0, _debug.assert)("'this' in paths is not supported", typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0));
+    var type = typeof obj;
+    var isObject = type === 'object';
+    var isFunction = type === 'function';
+    var isObjectLike = isObject || isFunction;
+
+    if (isPath(keyName)) {
+      return isObjectLike ? _getPath(obj, keyName) : undefined;
+    }
+
+    var value$$1;
+
+    if (isObjectLike) {
+      if (true
+      /* DEBUG */
+      && _utils.HAS_NATIVE_PROXY) {
+        value$$1 = getPossibleMandatoryProxyValue(obj, keyName);
+      } else {
+        value$$1 = obj[keyName];
+      }
+    } else {
+      value$$1 = obj[keyName];
+    }
+
+    if (value$$1 === undefined) {
+      if (isObject && !(keyName in obj) && typeof obj.unknownProperty === 'function') {
+        if (true
+        /* DEBUG */
+        ) {
+          deprecateMutationsInAutotrackingTransaction(() => {
+            value$$1 = obj.unknownProperty(keyName);
+          });
+        } else {
+          value$$1 = obj.unknownProperty(keyName);
+        }
+      }
+    }
+
+    if (isObjectLike && isTracking()) {
+      consume(tagForProperty(obj, keyName)); // Add the tag of the returned value if it is an array, since arrays
+      // should always cause updates if they are consumed and then changed
+
+      if (Array.isArray(value$$1) || (0, _utils.isEmberArray)(value$$1)) {
+        consume(tagForProperty(value$$1, '[]'));
+      } // Add the value of the content if the value is a proxy. This is because
+      // content changes the truthiness/falsiness of the proxy.
+
+
+      if ((0, _utils.isProxy)(value$$1)) {
+        consume(tagForProperty(value$$1, 'content'));
+      }
+    }
+
+    return value$$1;
+  }
+
+  function _getPath(root, path) {
+    var obj = root;
+    var parts = typeof path === 'string' ? path.split('.') : path;
+
+    for (var i = 0; i < parts.length; i++) {
+      if (obj === undefined || obj === null || obj.isDestroyed) {
+        return undefined;
+      }
+
+      obj = get(obj, parts[i]);
+    }
+
+    return obj;
+  }
+  /**
+    Retrieves the value of a property from an Object, or a default value in the
+    case that the property returns `undefined`.
+  
+    ```javascript
+    import { getWithDefault } from '@ember/object';
+    getWithDefault(person, 'lastName', 'Doe');
+    ```
+  
+    @method getWithDefault
+    @for @ember/object
+    @static
+    @param {Object} obj The object to retrieve from.
+    @param {String} keyName The name of the property to retrieve
+    @param {Object} defaultValue The value to return if the property value is undefined
+    @return {Object} The property value or the defaultValue.
+    @public
+  */
+
+
+  function getWithDefault(root, key, defaultValue) {
+    var value$$1 = get(root, key);
+
+    if (value$$1 === undefined) {
+      return defaultValue;
+    }
+
+    return value$$1;
+  }
+  /**
    @module @ember/object
   */
 
@@ -18171,16 +17107,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       return setPath(obj, keyName, value$$1, tolerant);
     }
 
-    var meta$$1 = (0, _meta2.peekMeta)(obj);
-    {
-      var descriptor = (0, _utils.lookupDescriptor)(obj, keyName);
-      var setter = descriptor === null ? undefined : descriptor.set;
+    var descriptor = (0, _utils.lookupDescriptor)(obj, keyName);
+    var setter = descriptor === null ? undefined : descriptor.set;
 
-      if (setter !== undefined && CP_SETTER_FUNCS.has(setter)) {
-        obj[keyName] = value$$1;
-        return value$$1;
-      }
+    if (setter !== undefined && CP_SETTER_FUNCS.has(setter)) {
+      obj[keyName] = value$$1;
+      return value$$1;
     }
+
     var currentValue;
 
     if (true
@@ -18198,15 +17132,13 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       if (true
       /* DEBUG */
       ) {
-        {
-          (0, _utils.setWithMandatorySetter)(obj, keyName, value$$1);
-        }
+        (0, _utils.setWithMandatorySetter)(obj, keyName, value$$1);
       } else {
         obj[keyName] = value$$1;
       }
 
       if (currentValue !== value$$1) {
-        notifyPropertyChange(obj, keyName, meta$$1);
+        notifyPropertyChange(obj, keyName);
       }
     }
 
@@ -18527,17 +17459,31 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       mode the computed property will not automatically cache the return value.
       It also does not automatically fire any change events. You must manually notify
       any changes if you want to observe this property.
-      Dependency keys have no effect on volatile properties as they are for cache
+         Dependency keys have no effect on volatile properties as they are for cache
       invalidation and notification when cached value is invalidated.
-      ```javascript
+         Example:
+         ```javascript
+      import { computed } from '@ember/object';
+         class CallCounter {
+        _calledCount = 0;
+           @computed().volatile()
+        get calledCount() {
+          return this._calledCount++;
+        }
+      }
+      ```
+         Classic Class Example:
+         ```javascript
       import EmberObject, { computed } from '@ember/object';
-      let outsideService = EmberObject.extend({
-        value: computed(function() {
-          return OutsideService.getValue();
+         let CallCounter = EmberObject.extend({
+        _calledCount: 0,
+           value: computed(function() {
+          return this._calledCount++;
         }).volatile()
-      }).create();
+      });
       ```
       @method volatile
+      @deprecated
       @return {ComputedProperty} this
       @chainable
       @public
@@ -18555,17 +17501,30 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     /**
       Call on a computed property to set it into read-only mode. When in this
       mode the computed property will throw an error when set.
-      ```javascript
+         Example:
+         ```javascript
+      import { computed, set } from '@ember/object';
+         class Person {
+        @computed().readOnly()
+        get guid() {
+          return 'guid-guid-guid';
+        }
+      }
+         let person = new Person();
+      set(person, 'guid', 'new-guid'); // will throw an exception
+      ```
+         Classic Class Example:
+         ```javascript
       import EmberObject, { computed } from '@ember/object';
-      let Person = EmberObject.extend({
+         let Person = EmberObject.extend({
         guid: computed(function() {
           return 'guid-guid-guid';
         }).readOnly()
       });
-      let person = Person.create();
+         let person = Person.create();
       person.set('guid', 'new-guid'); // will throw an exception
       ```
-      @method readOnly
+         @method readOnly
       @return {ComputedProperty} this
       @chainable
       @public
@@ -18579,22 +17538,42 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     /**
       Sets the dependent keys on this computed property. Pass any number of
       arguments containing key paths that this computed property depends on.
-      ```javascript
+         Example:
+         ```javascript
       import EmberObject, { computed } from '@ember/object';
-      let President = EmberObject.extend({
-        fullName: computed('firstName', 'lastName', function() {
+         class President {
+        constructor(firstName, lastName) {
+          set(this, 'firstName', firstName);
+          set(this, 'lastName', lastName);
+        }
+           // Tell Ember that this computed property depends on firstName
+        // and lastName
+        @computed().property('firstName', 'lastName')
+        get fullName() {
+          return `${this.firstName} ${this.lastName}`;
+        }
+      }
+         let president = new President('Barack', 'Obama');
+         president.fullName; // 'Barack Obama'
+      ```
+         Classic Class Example:
+         ```javascript
+      import EmberObject, { computed } from '@ember/object';
+         let President = EmberObject.extend({
+        fullName: computed(function() {
           return this.get('firstName') + ' ' + this.get('lastName');
-          // Tell Ember that this computed property depends on firstName
+             // Tell Ember that this computed property depends on firstName
           // and lastName
-        })
+        }).property('firstName', 'lastName')
       });
-      let president = President.create({
+         let president = President.create({
         firstName: 'Barack',
         lastName: 'Obama'
       });
-      president.get('fullName'); // 'Barack Obama'
+         president.get('fullName'); // 'Barack Obama'
       ```
-      @method property
+         @method property
+      @deprecated
       @param {String} path* zero or more property paths
       @return {ComputedProperty} this
       @chainable
@@ -18632,48 +17611,41 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       In some cases, you may want to annotate computed properties with additional
       metadata about how they function or what values they operate on. For example,
       computed property functions may close over variables that are then no longer
-      available for introspection.
-      You can pass a hash of these values to a computed property like this:
-      ```
+      available for introspection. You can pass a hash of these values to a
+      computed property.
+         Example:
+         ```javascript
       import { computed } from '@ember/object';
       import Person from 'my-app/utils/person';
-      person: computed(function() {
-        let personId = this.get('personId');
-        return Person.create({ id: personId });
-      }).meta({ type: Person })
+         class Store {
+        @computed().meta({ type: Person })
+        get person() {
+          let personId = this.personId;
+          return Person.create({ id: personId });
+        }
+      }
       ```
-      The hash that you pass to the `meta()` function will be saved on the
+         Classic Class Example:
+         ```javascript
+      import { computed } from '@ember/object';
+      import Person from 'my-app/utils/person';
+         const Store = EmberObject.extend({
+        person: computed(function() {
+          let personId = this.get('personId');
+          return Person.create({ id: personId });
+        }).meta({ type: Person })
+      });
+      ```
+         The hash that you pass to the `meta()` function will be saved on the
       computed property descriptor under the `_meta` key. Ember runtime
       exposes a public API for retrieving these values from classes,
       via the `metaForProperty()` function.
-      @method meta
+         @method meta
       @param {Object} meta
       @chainable
       @public
     */
-    // invalidate cache when CP key changes
 
-
-    didChange(obj, keyName) {
-      // _suspended is set via a CP.set to ensure we don't clear
-      // the cached value set by the setter
-      if (this._volatile || this._suspended === obj) {
-        return;
-      } // don't create objects just to invalidate
-
-
-      var meta$$1 = (0, _meta2.peekMeta)(obj);
-
-      if (meta$$1 === null || meta$$1.source !== obj) {
-        return;
-      }
-
-      var cache = peekCacheFor(obj);
-
-      if (cache !== undefined && cache.delete(keyName)) {
-        removeDependentKeys(this, obj, keyName, meta$$1);
-      }
-    }
 
     get(obj, keyName) {
       if (this._volatile) {
@@ -18681,52 +17653,50 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       }
 
       var cache = getCacheFor(obj);
-      {
-        var propertyTag = tagForProperty(obj, keyName);
-        var ret;
+      var propertyTag = tagForProperty(obj, keyName);
+      var ret;
 
-        if (cache.has(keyName) && (0, _reference.validate)(propertyTag, getLastRevisionFor(obj, keyName))) {
-          ret = cache.get(keyName);
+      if (cache.has(keyName) && (0, _reference.validate)(propertyTag, getLastRevisionFor(obj, keyName))) {
+        ret = cache.get(keyName);
+      } else {
+        // For backwards compatibility, we only throw if the CP has any dependencies. CPs without dependencies
+        // should be allowed, even after the object has been destroyed, which is why we check _dependentKeys.
+        (true && !(this._dependentKeys === undefined || !(0, _meta2.meta)(obj).isMetaDestroyed()) && (0, _debug.assert)("Attempted to access the computed " + obj + "." + keyName + " on a destroyed object, which is not allowed", this._dependentKeys === undefined || !(0, _meta2.meta)(obj).isMetaDestroyed()));
+        var upstreamTag = undefined;
+
+        if (this._auto === true) {
+          upstreamTag = track(() => {
+            ret = this._getter.call(obj, keyName);
+          });
         } else {
-          // For backwards compatibility, we only throw if the CP has any dependencies. CPs without dependencies
-          // should be allowed, even after the object has been destroyed, which is why we check _dependentKeys.
-          (true && !(this._dependentKeys === undefined || !(0, _meta2.meta)(obj).isMetaDestroyed()) && (0, _debug.assert)("Attempted to access the computed " + obj + "." + keyName + " on a destroyed object, which is not allowed", this._dependentKeys === undefined || !(0, _meta2.meta)(obj).isMetaDestroyed()));
-          var upstreamTag = undefined;
-
-          if (this._auto === true) {
-            upstreamTag = track(() => {
-              ret = this._getter.call(obj, keyName);
-            });
-          } else {
-            // Create a tracker that absorbs any trackable actions inside the CP
-            untrack(() => {
-              ret = this._getter.call(obj, keyName);
-            });
-          }
-
-          if (this._dependentKeys !== undefined) {
-            var tag = (0, _reference.combine)(getChainTagsForKeys(obj, this._dependentKeys));
-            upstreamTag = upstreamTag === undefined ? tag : (0, _reference.combine)([upstreamTag, tag]);
-          }
-
-          if (upstreamTag !== undefined) {
-            (0, _reference.update)(propertyTag, upstreamTag);
-          }
-
-          setLastRevisionFor(obj, keyName, (0, _reference.value)(propertyTag));
-          cache.set(keyName, ret);
-          finishLazyChains(obj, keyName, ret);
+          // Create a tracker that absorbs any trackable actions inside the CP
+          untrack(() => {
+            ret = this._getter.call(obj, keyName);
+          });
         }
 
-        consume(propertyTag); // Add the tag of the returned value if it is an array, since arrays
-        // should always cause updates if they are consumed and then changed
-
-        if (Array.isArray(ret) || (0, _utils.isEmberArray)(ret)) {
-          consume(tagForProperty(ret, '[]'));
+        if (this._dependentKeys !== undefined) {
+          var tag = (0, _reference.combine)(getChainTagsForKeys(obj, this._dependentKeys));
+          upstreamTag = upstreamTag === undefined ? tag : (0, _reference.combine)([upstreamTag, tag]);
         }
 
-        return ret;
+        if (upstreamTag !== undefined) {
+          (0, _reference.update)(propertyTag, upstreamTag);
+        }
+
+        setLastRevisionFor(obj, keyName, (0, _reference.value)(propertyTag));
+        cache.set(keyName, ret);
+        finishLazyChains(obj, keyName, ret);
       }
+
+      consume(propertyTag); // Add the tag of the returned value if it is an array, since arrays
+      // should always cause updates if they are consumed and then changed
+
+      if (Array.isArray(ret) || (0, _utils.isEmberArray)(ret)) {
+        consume(tagForProperty(ret, '[]'));
+      }
+
+      return ret;
     }
 
     set(obj, keyName, value$$1) {
@@ -18742,26 +17712,24 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
         return this.volatileSet(obj, keyName, value$$1);
       }
 
-      {
-        var ret;
+      var ret;
 
-        try {
-          beginPropertyChanges();
-          ret = this._set(obj, keyName, value$$1);
-          finishLazyChains(obj, keyName, ret);
-          var propertyTag = tagForProperty(obj, keyName);
+      try {
+        beginPropertyChanges();
+        ret = this._set(obj, keyName, value$$1);
+        finishLazyChains(obj, keyName, ret);
+        var propertyTag = tagForProperty(obj, keyName);
 
-          if (this._dependentKeys !== undefined) {
-            (0, _reference.update)(propertyTag, (0, _reference.combine)(getChainTagsForKeys(obj, this._dependentKeys)));
-          }
-
-          setLastRevisionFor(obj, keyName, (0, _reference.value)(propertyTag));
-        } finally {
-          endPropertyChanges();
+        if (this._dependentKeys !== undefined) {
+          (0, _reference.update)(propertyTag, (0, _reference.combine)(getChainTagsForKeys(obj, this._dependentKeys)));
         }
 
-        return ret;
+        setLastRevisionFor(obj, keyName, (0, _reference.value)(propertyTag));
+      } finally {
+        endPropertyChanges();
       }
+
+      return ret;
     }
 
     _throwReadOnlyError(obj, keyName) {
@@ -18800,15 +17768,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       var hadCachedValue = cache.has(keyName);
       var cachedValue = cache.get(keyName);
       var ret;
-      {
-        setObserverSuspended(obj, keyName, true);
+      setObserverSuspended(obj, keyName, true);
 
-        try {
-          ret = this._setter.call(obj, keyName, value$$1, cachedValue);
-        } finally {
-          setObserverSuspended(obj, keyName, false);
-        }
+      try {
+        ret = this._setter.call(obj, keyName, value$$1, cachedValue);
+      } finally {
+        setObserverSuspended(obj, keyName, false);
       } // allows setter to return the same value that is cached already
+
 
       if (hadCachedValue && cachedValue === ret) {
         return ret;
@@ -18826,22 +17793,22 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       if (!this._volatile) {
         var cache = peekCacheFor(obj);
 
-        if (cache !== undefined && cache.delete(keyName)) {
-          removeDependentKeys(this, obj, keyName, meta$$1);
+        if (cache !== undefined) {
+          cache.delete(keyName);
         }
       }
 
       super.teardown(obj, keyName, meta$$1);
     }
 
-  }
+    auto() {
+      this._auto = true;
+    }
+
+  } // TODO: This class can be svelted once `meta` has been deprecated
+
 
   _exports.ComputedProperty = ComputedProperty;
-  {
-    ComputedProperty.prototype.auto = function () {
-      this._auto = true;
-    };
-  } // TODO: This class can be svelted once `meta` has been deprecated
 
   class ComputedDecoratorImpl extends Function {
     readOnly() {
@@ -18915,7 +17882,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
   var _globalsComputed = computed.bind(null);
 
   _exports._globalsComputed = _globalsComputed;
-  var CONSUMED = Object.freeze({});
 
   function alias(altKey) {
     (true && !(!isElementDescriptor(Array.prototype.slice.call(arguments))) && (0, _debug.assert)('You attempted to use @alias as a decorator directly, but it requires a `altKey` parameter', !isElementDescriptor(Array.prototype.slice.call(arguments))));
@@ -18961,49 +17927,24 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       super.teardown(obj, keyName, meta$$1);
     }
 
-    willWatch(obj, keyName, meta$$1) {}
-
     get(obj, keyName) {
       var ret;
-      {
-        var propertyTag = tagForProperty(obj, keyName); // We don't use the tag since CPs are not automatic, we just want to avoid
-        // anything tracking while we get the altKey
+      var propertyTag = tagForProperty(obj, keyName); // We don't use the tag since CPs are not automatic, we just want to avoid
+      // anything tracking while we get the altKey
 
-        untrack(() => {
-          ret = get(obj, this.altKey);
-        });
-        var lastRevision = getLastRevisionFor(obj, keyName);
+      untrack(() => {
+        ret = get(obj, this.altKey);
+      });
+      var lastRevision = getLastRevisionFor(obj, keyName);
 
-        if (!(0, _reference.validate)(propertyTag, lastRevision)) {
-          (0, _reference.update)(propertyTag, (0, _reference.combine)(getChainTagsForKey(obj, this.altKey)));
-          setLastRevisionFor(obj, keyName, (0, _reference.value)(propertyTag));
-          finishLazyChains(obj, keyName, ret);
-        }
-
-        consume(propertyTag);
+      if (!(0, _reference.validate)(propertyTag, lastRevision)) {
+        (0, _reference.update)(propertyTag, (0, _reference.combine)(getChainTagsForKey(obj, this.altKey)));
+        setLastRevisionFor(obj, keyName, (0, _reference.value)(propertyTag));
+        finishLazyChains(obj, keyName, ret);
       }
+
+      consume(propertyTag);
       return ret;
-    }
-
-    unconsume(obj, keyName, meta$$1) {
-      var wasConsumed = getCachedValueFor(obj, keyName) === CONSUMED;
-
-      if (wasConsumed || meta$$1.peekWatching(keyName) > 0) {
-        removeDependentKeys(this, obj, keyName, meta$$1);
-      }
-
-      if (wasConsumed) {
-        getCacheFor(obj).delete(keyName);
-      }
-    }
-
-    consume(obj, keyName, meta$$1) {
-      var cache = getCacheFor(obj);
-
-      if (cache.get(keyName) !== CONSUMED) {
-        cache.set(keyName, CONSUMED);
-        addDependentKeys(this, obj, keyName, meta$$1);
-      }
     }
 
     set(obj, _keyName, value$$1) {
@@ -19068,6 +18009,24 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
       }
 
     });
+  }
+
+  var EACH_PROXIES = new WeakMap();
+
+  function eachProxyArrayWillChange(array, idx, removedCnt, addedCnt) {
+    var eachProxy = EACH_PROXIES.get(array);
+
+    if (eachProxy !== undefined) {
+      eachProxy.arrayWillChange(array, idx, removedCnt, addedCnt);
+    }
+  }
+
+  function eachProxyArrayDidChange(array, idx, removedCnt, addedCnt) {
+    var eachProxy = EACH_PROXIES.get(array);
+
+    if (eachProxy !== undefined) {
+      eachProxy.arrayDidChange(array, idx, removedCnt, addedCnt);
+    }
   }
   /**
    @module @ember/utils
@@ -19944,8 +18903,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/polyfills", "@ember/
     if (listeners !== undefined) {
       var updateListener = add ? addListener : removeListener;
 
-      for (var _i2 = 0; _i2 < listeners.length; _i2++) {
-        updateListener(obj, listeners[_i2], null, key);
+      for (var _i = 0; _i < listeners.length; _i++) {
+        updateListener(obj, listeners[_i], null, key);
       }
     }
   }
@@ -23920,11 +22879,7 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
       // some situations. Eventually, we should work on making these async somehow.
 
 
-      if (true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          (0, _metal.flushAsyncObservers)(false);
-        }
+      (0, _metal.flushAsyncObservers)(false);
     }
     /*
       Called when a query parameter for this route changes, regardless of whether the route
@@ -25374,9 +24329,7 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
         // immediately. Eventually, we should work on making this async somehow.
 
 
-        if (true
-        /* EMBER_METAL_TRACKED_PROPERTIES */
-        && qpUpdated === true) {
+        if (qpUpdated === true) {
           (0, _metal.flushAsyncObservers)(false);
         }
 
@@ -28407,35 +27360,6 @@ define("@ember/-internals/runtime/lib/mixins/-proxy", ["exports", "@ember/-inter
     isTruthy: (0, _metal.computed)('content', function () {
       return Boolean((0, _metal.get)(this, 'content'));
     }),
-
-    willWatchProperty(key) {
-      if (!true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          var contentKey = "content." + key;
-          (0, _metal.addObserver)(this, contentKey, null, '_contentPropertyDidChange');
-        }
-    },
-
-    didUnwatchProperty(key) {
-      if (!true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          var contentKey = "content." + key;
-          (0, _metal.removeObserver)(this, contentKey, null, '_contentPropertyDidChange');
-        }
-    },
-
-    _contentPropertyDidChange(content, contentKey) {
-      var key = contentKey.slice(8); // remove "content."
-
-      if (key in this) {
-        return;
-      } // if shadowed in proxy
-
-
-      (0, _metal.notifyPropertyChange)(this, key);
-    },
 
     [_metal.UNKNOWN_PROPERTY_TAG](key) {
       return (0, _reference.combine)((0, _metal.getChainTagsForKey)(this, "content." + key));
@@ -31945,14 +30869,9 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       this._lengthDirty = true;
       this._length = 0;
       this._arrangedContent = null;
-
-      if (true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          this._arrangedContentIsUpdating = false;
-          this._arrangedContentTag = (0, _reference.combine)((0, _metal.getChainTagsForKey)(this, 'arrangedContent'));
-          this._arrangedContentRevision = (0, _reference.value)(this._arrangedContentTag);
-        }
+      this._arrangedContentIsUpdating = false;
+      this._arrangedContentTag = (0, _reference.combine)((0, _metal.getChainTagsForKey)(this, 'arrangedContent'));
+      this._arrangedContentRevision = (0, _reference.value)(this._arrangedContentTag);
 
       this._addArrangedContentArrayObserver();
     }
@@ -32011,11 +30930,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
 
 
     objectAt(idx) {
-      if (true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          this._revalidate();
-        }
+      this._revalidate();
 
       if (this._objects === null) {
         this._objects = [];
@@ -32042,11 +30957,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
 
 
     get length() {
-      if (true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          this._revalidate();
-        }
+      this._revalidate();
 
       if (this._lengthDirty) {
         var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
@@ -32078,18 +30989,8 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       }
     }
 
-    [_metal.PROPERTY_DID_CHANGE](key) {
-      if (true
-      /* EMBER_METAL_TRACKED_PROPERTIES */
-      ) {
-          this._revalidate();
-        } else {
-        if (key === 'arrangedContent') {
-          this._updateArrangedContentArray();
-        } else if (key === 'content') {
-          this._invalidate();
-        }
-      }
+    [_metal.PROPERTY_DID_CHANGE]() {
+      this._revalidate();
     }
 
     _updateArrangedContentArray() {
@@ -32149,28 +31050,21 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       this._lengthDirty = true;
     }
 
+    _revalidate() {
+      if (!this._arrangedContentIsUpdating && !(0, _reference.validate)(this._arrangedContentTag, this._arrangedContentRevision)) {
+        this._arrangedContentIsUpdating = true;
+
+        this._updateArrangedContentArray();
+
+        this._arrangedContentIsUpdating = false;
+        this._arrangedContentTag = (0, _reference.combine)((0, _metal.getChainTagsForKey)(this, 'arrangedContent'));
+        this._arrangedContentRevision = (0, _reference.value)(this._arrangedContentTag);
+      }
+    }
+
   }
 
   _exports.default = ArrayProxy;
-
-  var _revalidate;
-
-  if (true
-  /* EMBER_METAL_TRACKED_PROPERTIES */
-  ) {
-      _revalidate = function () {
-        if (!this._arrangedContentIsUpdating && !(0, _reference.validate)(this._arrangedContentTag, this._arrangedContentRevision)) {
-          this._arrangedContentIsUpdating = true;
-
-          this._updateArrangedContentArray();
-
-          this._arrangedContentIsUpdating = false;
-          this._arrangedContentTag = (0, _reference.combine)((0, _metal.getChainTagsForKey)(this, 'arrangedContent'));
-          this._arrangedContentRevision = (0, _reference.value)(this._arrangedContentTag);
-        }
-      };
-    }
-
   ArrayProxy.reopen(_array.MutableArray, {
     /**
       The array that the proxy pretends to be. In the default `ArrayProxy`
@@ -32179,8 +31073,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
        @property arrangedContent
       @public
     */
-    arrangedContent: (0, _metal.alias)('content'),
-    _revalidate
+    arrangedContent: (0, _metal.alias)('content')
   });
 });
 define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-internals/container", "@ember/-internals/owner", "@ember/polyfills", "@ember/-internals/utils", "@ember/runloop", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/-internals/runtime/lib/mixins/action_handler", "@ember/debug"], function (_exports, _container, _owner, _polyfills, _utils, _runloop, _meta2, _metal, _action_handler, _debug) {
@@ -32274,20 +31167,12 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
     obj.init(properties);
     m.unsetInitializing();
+    var observerEvents = m.observerEvents();
 
-    if (true
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    ) {
-        var observerEvents = m.observerEvents();
-
-        if (observerEvents !== undefined) {
-          for (var _i = 0; _i < observerEvents.length; _i++) {
-            (0, _metal.activateObserver)(obj, observerEvents[_i].event, observerEvents[_i].sync);
-          }
-        }
-      } else {
-      // re-enable chains
-      (0, _metal.finishChains)(m);
+    if (observerEvents !== undefined) {
+      for (var _i = 0; _i < observerEvents.length; _i++) {
+        (0, _metal.activateObserver)(obj, observerEvents[_i].event, observerEvents[_i].sync);
+      }
     }
 
     (0, _metal.sendEvent)(obj, 'init', undefined, undefined, undefined, m);
@@ -33461,6 +32346,7 @@ define("@ember/-internals/runtime/lib/type-of", ["exports", "@ember/-internals/r
     '[object Number]': 'number',
     '[object String]': 'string',
     '[object Function]': 'function',
+    '[object AsyncFunction]': 'function',
     '[object Array]': 'array',
     '[object Date]': 'date',
     '[object RegExp]': 'regexp',
@@ -34362,91 +33248,89 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
 
   if (true
   /* DEBUG */
-  && true
-  /* EMBER_METAL_TRACKED_PROPERTIES */
   ) {
-      var MANDATORY_SETTERS = new WeakMap();
+    var MANDATORY_SETTERS = new WeakMap();
 
-      var _propertyIsEnumerable = function (obj, key) {
-        return Object.prototype.propertyIsEnumerable.call(obj, key);
-      };
+    var _propertyIsEnumerable = function (obj, key) {
+      return Object.prototype.propertyIsEnumerable.call(obj, key);
+    };
 
-      _exports.setupMandatorySetter = setupMandatorySetter = function (obj, keyName) {
-        var desc = lookupDescriptor(obj, keyName) || {};
+    _exports.setupMandatorySetter = setupMandatorySetter = function (obj, keyName) {
+      var desc = lookupDescriptor(obj, keyName) || {};
 
-        if (desc.get || desc.set) {
-          // if it has a getter or setter, we can't install the mandatory setter.
-          // native setters are allowed, we have to assume that they will resolve
-          // to tracked properties.
-          return;
-        }
+      if (desc.get || desc.set) {
+        // if it has a getter or setter, we can't install the mandatory setter.
+        // native setters are allowed, we have to assume that they will resolve
+        // to tracked properties.
+        return;
+      }
 
-        if (desc && (!desc.configurable || !desc.writable)) {
-          // if it isn't writable anyways, so we shouldn't provide the setter.
-          // if it isn't configurable, we can't overwrite it anyways.
-          return;
-        }
+      if (desc && (!desc.configurable || !desc.writable)) {
+        // if it isn't writable anyways, so we shouldn't provide the setter.
+        // if it isn't configurable, we can't overwrite it anyways.
+        return;
+      }
 
-        var setters = MANDATORY_SETTERS.get(obj);
+      var setters = MANDATORY_SETTERS.get(obj);
 
-        if (setters === undefined) {
-          setters = {};
-          MANDATORY_SETTERS.set(obj, setters);
-        }
+      if (setters === undefined) {
+        setters = {};
+        MANDATORY_SETTERS.set(obj, setters);
+      }
 
-        desc.hadOwnProperty = Object.hasOwnProperty.call(obj, keyName);
-        setters[keyName] = desc;
-        Object.defineProperty(obj, keyName, {
-          configurable: true,
-          enumerable: _propertyIsEnumerable(obj, keyName),
+      desc.hadOwnProperty = Object.hasOwnProperty.call(obj, keyName);
+      setters[keyName] = desc;
+      Object.defineProperty(obj, keyName, {
+        configurable: true,
+        enumerable: _propertyIsEnumerable(obj, keyName),
 
-          get() {
-            if (desc.get) {
-              return desc.get.call(this);
-            } else {
-              return desc.value;
-            }
-          },
-
-          set(value) {
-            (true && !(false) && (0, _debug.assert)("You attempted to update " + this + "." + String(keyName) + " to \"" + String(value) + "\", but it is being tracked by a tracking context, such as a template, computed property, or observer. In order to make sure the context updates properly, you must invalidate the property when updating it. You can mark the property as `@tracked`, or use `@ember/object#set` to do this."));
-          }
-
-        });
-      };
-
-      _exports.teardownMandatorySetter = teardownMandatorySetter = function (obj, keyName) {
-        var setters = MANDATORY_SETTERS.get(obj);
-
-        if (setters !== undefined && setters[keyName] !== undefined) {
-          Object.defineProperty(obj, keyName, setters[keyName]);
-          setters[keyName] = undefined;
-        }
-      };
-
-      _exports.setWithMandatorySetter = setWithMandatorySetter = function (obj, keyName, value) {
-        var setters = MANDATORY_SETTERS.get(obj);
-
-        if (setters !== undefined && setters[keyName] !== undefined) {
-          var setter = setters[keyName];
-
-          if (setter.set) {
-            setter.set.call(obj, value);
+        get() {
+          if (desc.get) {
+            return desc.get.call(this);
           } else {
-            setter.value = value; // If the object didn't have own property before, it would have changed
-            // the enumerability after setting the value the first time.
-
-            if (!setter.hadOwnProperty) {
-              var desc = lookupDescriptor(obj, keyName);
-              desc.enumerable = true;
-              Object.defineProperty(obj, keyName, desc);
-            }
+            return desc.value;
           }
-        } else {
-          obj[keyName] = value;
+        },
+
+        set(value) {
+          (true && !(false) && (0, _debug.assert)("You attempted to update " + this + "." + String(keyName) + " to \"" + String(value) + "\", but it is being tracked by a tracking context, such as a template, computed property, or observer. In order to make sure the context updates properly, you must invalidate the property when updating it. You can mark the property as `@tracked`, or use `@ember/object#set` to do this."));
         }
-      };
-    }
+
+      });
+    };
+
+    _exports.teardownMandatorySetter = teardownMandatorySetter = function (obj, keyName) {
+      var setters = MANDATORY_SETTERS.get(obj);
+
+      if (setters !== undefined && setters[keyName] !== undefined) {
+        Object.defineProperty(obj, keyName, setters[keyName]);
+        setters[keyName] = undefined;
+      }
+    };
+
+    _exports.setWithMandatorySetter = setWithMandatorySetter = function (obj, keyName, value) {
+      var setters = MANDATORY_SETTERS.get(obj);
+
+      if (setters !== undefined && setters[keyName] !== undefined) {
+        var setter = setters[keyName];
+
+        if (setter.set) {
+          setter.set.call(obj, value);
+        } else {
+          setter.value = value; // If the object didn't have own property before, it would have changed
+          // the enumerability after setting the value the first time.
+
+          if (!setter.hadOwnProperty) {
+            var desc = lookupDescriptor(obj, keyName);
+            desc.enumerable = true;
+            Object.defineProperty(obj, keyName, desc);
+          }
+        }
+      } else {
+        obj[keyName] = value;
+      }
+    };
+  }
   /*
    This package will be eagerly parsed and should have no dependencies on external
    packages.
@@ -36705,13 +35589,7 @@ define("@ember/-internals/views/lib/views/states/in_dom", ["exports", "@ember/-i
       /* DEBUG */
       ) {
         var elementId = view.elementId;
-
-        if (true
-        /* EMBER_METAL_TRACKED_PROPERTIES */
-        ) {
-            (0, _utils.teardownMandatorySetter)(view, 'elementId');
-          }
-
+        (0, _utils.teardownMandatorySetter)(view, 'elementId');
         Object.defineProperty(view, 'elementId', {
           configurable: true,
           enumerable: true,
@@ -36751,7 +35629,7 @@ define("@ember/-internals/views/lib/views/states/pre_render", ["exports", "@embe
 
   _exports.default = _default2;
 });
-define("@ember/application/globals-resolver", ["exports", "@ember/-internals/utils", "@ember/-internals/metal", "@ember/debug", "@ember/string", "@ember/-internals/runtime", "@ember/-internals/glimmer"], function (_exports, _utils, _metal, _debug, _string, _runtime, _glimmer) {
+define("@ember/application/globals-resolver", ["exports", "@ember/-internals/utils", "@ember/-internals/metal", "@ember/debug", "@ember/string", "@ember/-internals/runtime", "@ember/-internals/glimmer", "@ember/deprecated-features"], function (_exports, _utils, _metal, _debug, _string, _runtime, _glimmer, _deprecatedFeatures) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -36830,349 +35708,356 @@ define("@ember/application/globals-resolver", ["exports", "@ember/-internals/uti
     @class GlobalsResolver
     @extends EmberObject
     @public
+    @deprecated
   */
-  class DefaultResolver extends _runtime.Object {
-    static create(props) {
-      // DO NOT REMOVE even though this doesn't do anything
-      // This is required for a FireFox 60+ JIT bug with our tests.
-      // without it, create(props) in our tests would lose props on a deopt.
-      return super.create(props);
-    }
-    /**
-      This will be set to the Application instance when it is
-      created.
-       @property namespace
-      @public
-    */
+  var DefaultResolver;
 
-
-    init() {
-      this._parseNameCache = (0, _utils.dictionary)(null);
-    }
-
-    normalize(fullName) {
-      var [type, name] = fullName.split(':');
-      (true && !(fullName.split(':').length === 2) && (0, _debug.assert)('Tried to normalize a container name without a colon (:) in it. ' + 'You probably tried to lookup a name that did not contain a type, ' + 'a colon, and a name. A proper lookup name would be `view:post`.', fullName.split(':').length === 2));
-
-      if (type !== 'template') {
-        var result = name.replace(/(\.|_|-)./g, m => m.charAt(1).toUpperCase());
-        return type + ":" + result;
-      } else {
-        return fullName;
+  if (_deprecatedFeatures.GLOBALS_RESOLVER) {
+    DefaultResolver = class DefaultResolver extends _runtime.Object {
+      static create(props) {
+        // DO NOT REMOVE even though this doesn't do anything
+        // This is required for a FireFox 60+ JIT bug with our tests.
+        // without it, create(props) in our tests would lose props on a deopt.
+        return super.create(props);
       }
-    }
-    /**
-      This method is called via the container's resolver method.
-      It parses the provided `fullName` and then looks up and
-      returns the appropriate template or class.
-       @method resolve
-      @param {String} fullName the lookup string
-      @return {Object} the resolved factory
-      @public
-    */
+      /**
+        This will be set to the Application instance when it is
+        created.
+         @property namespace
+        @public
+        @deprecated
+      */
 
 
-    resolve(fullName) {
-      var parsedName = this.parseName(fullName);
-      var resolveMethodName = parsedName.resolveMethodName;
-      var resolved;
-
-      if (this[resolveMethodName]) {
-        resolved = this[resolveMethodName](parsedName);
+      init() {
+        
+        this._parseNameCache = (0, _utils.dictionary)(null);
       }
 
-      resolved = resolved || this.resolveOther(parsedName);
+      normalize(fullName) {
+        var [type, name] = fullName.split(':');
+        (true && !(fullName.split(':').length === 2) && (0, _debug.assert)('Tried to normalize a container name without a colon (:) in it. ' + 'You probably tried to lookup a name that did not contain a type, ' + 'a colon, and a name. A proper lookup name would be `view:post`.', fullName.split(':').length === 2));
 
-      if (true
-      /* DEBUG */
-      ) {
-        if (parsedName.root && parsedName.root.LOG_RESOLVER) {
-          this._logLookup(resolved, parsedName);
+        if (type !== 'template') {
+          var result = name.replace(/(\.|_|-)./g, m => m.charAt(1).toUpperCase());
+          return type + ":" + result;
+        } else {
+          return fullName;
+        }
+      }
+      /**
+        This method is called via the container's resolver method.
+        It parses the provided `fullName` and then looks up and
+        returns the appropriate template or class.
+         @method resolve
+        @param {String} fullName the lookup string
+        @return {Object} the resolved factory
+        @public
+      */
+
+
+      resolve(fullName) {
+        var parsedName = this.parseName(fullName);
+        var resolveMethodName = parsedName.resolveMethodName;
+        var resolved;
+
+        if (this[resolveMethodName]) {
+          resolved = this[resolveMethodName](parsedName);
         }
 
-        if (resolved) {
-          var VALIDATED_TYPES = {
-            route: ['isRouteFactory', 'Ember.Route'],
-            component: ['isComponentFactory', 'Ember.Component'],
-            view: ['isViewFactory', 'Ember.View'],
-            service: ['isServiceFactory', 'Ember.Service']
-          };
-          var validationAttributes = VALIDATED_TYPES[parsedName.type];
+        resolved = resolved || this.resolveOther(parsedName);
 
-          if (validationAttributes) {
-            var [factoryFlag, expectedType] = validationAttributes;
-            (true && !(Boolean(resolved[factoryFlag])) && (0, _debug.assert)("Expected " + parsedName.fullName + " to resolve to an " + expectedType + " but " + ("instead it was " + resolved + "."), Boolean(resolved[factoryFlag])));
+        if (true
+        /* DEBUG */
+        ) {
+          if (parsedName.root && parsedName.root.LOG_RESOLVER) {
+            this._logLookup(resolved, parsedName);
+          }
+
+          if (resolved) {
+            var VALIDATED_TYPES = {
+              route: ['isRouteFactory', 'Ember.Route'],
+              component: ['isComponentFactory', 'Ember.Component'],
+              view: ['isViewFactory', 'Ember.View'],
+              service: ['isServiceFactory', 'Ember.Service']
+            };
+            var validationAttributes = VALIDATED_TYPES[parsedName.type];
+
+            if (validationAttributes) {
+              var [factoryFlag, expectedType] = validationAttributes;
+              (true && !(Boolean(resolved[factoryFlag])) && (0, _debug.assert)("Expected " + parsedName.fullName + " to resolve to an " + expectedType + " but " + ("instead it was " + resolved + "."), Boolean(resolved[factoryFlag])));
+            }
           }
         }
+
+        return resolved;
+      }
+      /**
+        Convert the string name of the form 'type:name' to
+        a Javascript object with the parsed aspects of the name
+        broken out.
+         @param {String} fullName the lookup string
+        @method parseName
+        @protected
+      */
+
+
+      parseName(fullName) {
+        return this._parseNameCache[fullName] || (this._parseNameCache[fullName] = this._parseName(fullName));
       }
 
-      return resolved;
-    }
-    /**
-      Convert the string name of the form 'type:name' to
-      a Javascript object with the parsed aspects of the name
-      broken out.
-       @param {String} fullName the lookup string
-      @method parseName
-      @protected
-    */
+      _parseName(fullName) {
+        var [type, fullNameWithoutType] = fullName.split(':');
+        var name = fullNameWithoutType;
+        var namespace = (0, _metal.get)(this, 'namespace');
+        var root = namespace;
+        var lastSlashIndex = name.lastIndexOf('/');
+        var dirname = lastSlashIndex !== -1 ? name.slice(0, lastSlashIndex) : null;
+
+        if (type !== 'template' && lastSlashIndex !== -1) {
+          var parts = name.split('/');
+          name = parts[parts.length - 1];
+          var namespaceName = (0, _string.capitalize)(parts.slice(0, -1).join('.'));
+          root = (0, _metal.findNamespace)(namespaceName);
+          (true && !(root) && (0, _debug.assert)("You are looking for a " + name + " " + type + " in the " + namespaceName + " namespace, but the namespace could not be found", root));
+        }
+
+        var resolveMethodName = fullNameWithoutType === 'main' ? 'Main' : (0, _string.classify)(type);
+
+        if (!(name && type)) {
+          throw new TypeError("Invalid fullName: `" + fullName + "`, must be of the form `type:name` ");
+        }
+
+        return {
+          fullName,
+          type,
+          fullNameWithoutType,
+          dirname,
+          name,
+          root,
+          resolveMethodName: "resolve" + resolveMethodName
+        };
+      }
+      /**
+        Returns a human-readable description for a fullName. Used by the
+        Application namespace in assertions to describe the
+        precise name of the class that Ember is looking for, rather than
+        container keys.
+         @param {String} fullName the lookup string
+        @method lookupDescription
+        @protected
+      */
 
 
-    parseName(fullName) {
-      return this._parseNameCache[fullName] || (this._parseNameCache[fullName] = this._parseName(fullName));
-    }
+      lookupDescription(fullName) {
+        var parsedName = this.parseName(fullName);
+        var description;
 
-    _parseName(fullName) {
-      var [type, fullNameWithoutType] = fullName.split(':');
-      var name = fullNameWithoutType;
-      var namespace = (0, _metal.get)(this, 'namespace');
-      var root = namespace;
-      var lastSlashIndex = name.lastIndexOf('/');
-      var dirname = lastSlashIndex !== -1 ? name.slice(0, lastSlashIndex) : null;
+        if (parsedName.type === 'template') {
+          return "template at " + parsedName.fullNameWithoutType.replace(/\./g, '/');
+        }
 
-      if (type !== 'template' && lastSlashIndex !== -1) {
-        var parts = name.split('/');
-        name = parts[parts.length - 1];
-        var namespaceName = (0, _string.capitalize)(parts.slice(0, -1).join('.'));
-        root = (0, _metal.findNamespace)(namespaceName);
-        (true && !(root) && (0, _debug.assert)("You are looking for a " + name + " " + type + " in the " + namespaceName + " namespace, but the namespace could not be found", root));
+        description = parsedName.root + "." + (0, _string.classify)(parsedName.name).replace(/\./g, '');
+
+        if (parsedName.type !== 'model') {
+          description += (0, _string.classify)(parsedName.type);
+        }
+
+        return description;
       }
 
-      var resolveMethodName = fullNameWithoutType === 'main' ? 'Main' : (0, _string.classify)(type);
-
-      if (!(name && type)) {
-        throw new TypeError("Invalid fullName: `" + fullName + "`, must be of the form `type:name` ");
+      makeToString(factory) {
+        return factory.toString();
       }
-
-      return {
-        fullName,
-        type,
-        fullNameWithoutType,
-        dirname,
-        name,
-        root,
-        resolveMethodName: "resolve" + resolveMethodName
-      };
-    }
-    /**
-      Returns a human-readable description for a fullName. Used by the
-      Application namespace in assertions to describe the
-      precise name of the class that Ember is looking for, rather than
-      container keys.
-       @param {String} fullName the lookup string
-      @method lookupDescription
-      @protected
-    */
+      /**
+        Given a parseName object (output from `parseName`), apply
+        the conventions expected by `Router`
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method useRouterNaming
+        @protected
+      */
 
 
-    lookupDescription(fullName) {
-      var parsedName = this.parseName(fullName);
-      var description;
-
-      if (parsedName.type === 'template') {
-        return "template at " + parsedName.fullNameWithoutType.replace(/\./g, '/');
-      }
-
-      description = parsedName.root + "." + (0, _string.classify)(parsedName.name).replace(/\./g, '');
-
-      if (parsedName.type !== 'model') {
-        description += (0, _string.classify)(parsedName.type);
-      }
-
-      return description;
-    }
-
-    makeToString(factory) {
-      return factory.toString();
-    }
-    /**
-      Given a parseName object (output from `parseName`), apply
-      the conventions expected by `Router`
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method useRouterNaming
-      @protected
-    */
-
-
-    useRouterNaming(parsedName) {
-      if (parsedName.name === 'basic') {
-        parsedName.name = '';
-      } else {
-        parsedName.name = parsedName.name.replace(/\./g, '_');
-      }
-    }
-    /**
-      Look up the template in Ember.TEMPLATES
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method resolveTemplate
-      @protected
-    */
-
-
-    resolveTemplate(parsedName) {
-      var templateName = parsedName.fullNameWithoutType.replace(/\./g, '/');
-      return (0, _glimmer.getTemplate)(templateName) || (0, _glimmer.getTemplate)((0, _string.decamelize)(templateName));
-    }
-    /**
-      Lookup the view using `resolveOther`
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method resolveView
-      @protected
-    */
-
-
-    resolveView(parsedName) {
-      this.useRouterNaming(parsedName);
-      return this.resolveOther(parsedName);
-    }
-    /**
-      Lookup the controller using `resolveOther`
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method resolveController
-      @protected
-    */
-
-
-    resolveController(parsedName) {
-      this.useRouterNaming(parsedName);
-      return this.resolveOther(parsedName);
-    }
-    /**
-      Lookup the route using `resolveOther`
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method resolveRoute
-      @protected
-    */
-
-
-    resolveRoute(parsedName) {
-      this.useRouterNaming(parsedName);
-      return this.resolveOther(parsedName);
-    }
-    /**
-      Lookup the model on the Application namespace
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method resolveModel
-      @protected
-    */
-
-
-    resolveModel(parsedName) {
-      var className = (0, _string.classify)(parsedName.name);
-      var factory = (0, _metal.get)(parsedName.root, className);
-      return factory;
-    }
-    /**
-      Look up the specified object (from parsedName) on the appropriate
-      namespace (usually on the Application)
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method resolveHelper
-      @protected
-    */
-
-
-    resolveHelper(parsedName) {
-      return this.resolveOther(parsedName);
-    }
-    /**
-      Look up the specified object (from parsedName) on the appropriate
-      namespace (usually on the Application)
-       @param {Object} parsedName a parseName object with the parsed
-        fullName lookup string
-      @method resolveOther
-      @protected
-    */
-
-
-    resolveOther(parsedName) {
-      var className = (0, _string.classify)(parsedName.name) + (0, _string.classify)(parsedName.type);
-      var factory = (0, _metal.get)(parsedName.root, className);
-      return factory;
-    }
-
-    resolveMain(parsedName) {
-      var className = (0, _string.classify)(parsedName.type);
-      return (0, _metal.get)(parsedName.root, className);
-    }
-    /**
-      Used to iterate all items of a given type.
-       @method knownForType
-      @param {String} type the type to search for
-      @private
-    */
-
-
-    knownForType(type) {
-      var namespace = (0, _metal.get)(this, 'namespace');
-      var suffix = (0, _string.classify)(type);
-      var typeRegexp = new RegExp(suffix + "$");
-      var known = (0, _utils.dictionary)(null);
-      var knownKeys = Object.keys(namespace);
-
-      for (var index = 0; index < knownKeys.length; index++) {
-        var name = knownKeys[index];
-
-        if (typeRegexp.test(name)) {
-          var containerName = this.translateToContainerFullname(type, name);
-          known[containerName] = true;
+      useRouterNaming(parsedName) {
+        if (parsedName.name === 'basic') {
+          parsedName.name = '';
+        } else {
+          parsedName.name = parsedName.name.replace(/\./g, '_');
         }
       }
+      /**
+        Look up the template in Ember.TEMPLATES
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method resolveTemplate
+        @protected
+      */
 
-      return known;
+
+      resolveTemplate(parsedName) {
+        var templateName = parsedName.fullNameWithoutType.replace(/\./g, '/');
+        return (0, _glimmer.getTemplate)(templateName) || (0, _glimmer.getTemplate)((0, _string.decamelize)(templateName));
+      }
+      /**
+        Lookup the view using `resolveOther`
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method resolveView
+        @protected
+      */
+
+
+      resolveView(parsedName) {
+        this.useRouterNaming(parsedName);
+        return this.resolveOther(parsedName);
+      }
+      /**
+        Lookup the controller using `resolveOther`
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method resolveController
+        @protected
+      */
+
+
+      resolveController(parsedName) {
+        this.useRouterNaming(parsedName);
+        return this.resolveOther(parsedName);
+      }
+      /**
+        Lookup the route using `resolveOther`
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method resolveRoute
+        @protected
+      */
+
+
+      resolveRoute(parsedName) {
+        this.useRouterNaming(parsedName);
+        return this.resolveOther(parsedName);
+      }
+      /**
+        Lookup the model on the Application namespace
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method resolveModel
+        @protected
+      */
+
+
+      resolveModel(parsedName) {
+        var className = (0, _string.classify)(parsedName.name);
+        var factory = (0, _metal.get)(parsedName.root, className);
+        return factory;
+      }
+      /**
+        Look up the specified object (from parsedName) on the appropriate
+        namespace (usually on the Application)
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method resolveHelper
+        @protected
+      */
+
+
+      resolveHelper(parsedName) {
+        return this.resolveOther(parsedName);
+      }
+      /**
+        Look up the specified object (from parsedName) on the appropriate
+        namespace (usually on the Application)
+         @param {Object} parsedName a parseName object with the parsed
+          fullName lookup string
+        @method resolveOther
+        @protected
+      */
+
+
+      resolveOther(parsedName) {
+        var className = (0, _string.classify)(parsedName.name) + (0, _string.classify)(parsedName.type);
+        var factory = (0, _metal.get)(parsedName.root, className);
+        return factory;
+      }
+
+      resolveMain(parsedName) {
+        var className = (0, _string.classify)(parsedName.type);
+        return (0, _metal.get)(parsedName.root, className);
+      }
+      /**
+        Used to iterate all items of a given type.
+         @method knownForType
+        @param {String} type the type to search for
+        @private
+      */
+
+
+      knownForType(type) {
+        var namespace = (0, _metal.get)(this, 'namespace');
+        var suffix = (0, _string.classify)(type);
+        var typeRegexp = new RegExp(suffix + "$");
+        var known = (0, _utils.dictionary)(null);
+        var knownKeys = Object.keys(namespace);
+
+        for (var index = 0; index < knownKeys.length; index++) {
+          var name = knownKeys[index];
+
+          if (typeRegexp.test(name)) {
+            var containerName = this.translateToContainerFullname(type, name);
+            known[containerName] = true;
+          }
+        }
+
+        return known;
+      }
+      /**
+        Converts provided name from the backing namespace into a container lookup name.
+         Examples:
+         * App.FooBarHelper -> helper:foo-bar
+        * App.THelper -> helper:t
+         @method translateToContainerFullname
+        @param {String} type
+        @param {String} name
+        @private
+      */
+
+
+      translateToContainerFullname(type, name) {
+        var suffix = (0, _string.classify)(type);
+        var namePrefix = name.slice(0, suffix.length * -1);
+        var dasherizedName = (0, _string.dasherize)(namePrefix);
+        return type + ":" + dasherizedName;
+      }
+
+    };
+
+    if (true
+    /* DEBUG */
+    ) {
+      /**
+          @method _logLookup
+          @param {Boolean} found
+          @param {Object} parsedName
+          @private
+        */
+      DefaultResolver.prototype._logLookup = function (found, parsedName) {
+        var symbol = found ? '[✓]' : '[ ]';
+        var padding;
+
+        if (parsedName.fullName.length > 60) {
+          padding = '.';
+        } else {
+          padding = new Array(60 - parsedName.fullName.length).join('.');
+        }
+
+        (0, _debug.info)(symbol, parsedName.fullName, padding, this.lookupDescription(parsedName.fullName));
+      };
     }
-    /**
-      Converts provided name from the backing namespace into a container lookup name.
-       Examples:
-       * App.FooBarHelper -> helper:foo-bar
-      * App.THelper -> helper:t
-       @method translateToContainerFullname
-      @param {String} type
-      @param {String} name
-      @private
-    */
-
-
-    translateToContainerFullname(type, name) {
-      var suffix = (0, _string.classify)(type);
-      var namePrefix = name.slice(0, suffix.length * -1);
-      var dasherizedName = (0, _string.dasherize)(namePrefix);
-      return type + ":" + dasherizedName;
-    }
-
   }
 
   var _default = DefaultResolver;
   _exports.default = _default;
-
-  if (true
-  /* DEBUG */
-  ) {
-    /**
-        @method _logLookup
-        @param {Boolean} found
-        @param {Object} parsedName
-        @private
-      */
-    DefaultResolver.prototype._logLookup = function (found, parsedName) {
-      var symbol = found ? '[✓]' : '[ ]';
-      var padding;
-
-      if (parsedName.fullName.length > 60) {
-        padding = '.';
-      } else {
-        padding = new Array(60 - parsedName.fullName.length).join('.');
-      }
-
-      (0, _debug.info)(symbol, parsedName.fullName, padding, this.lookupDescription(parsedName.fullName));
-    };
-  }
 });
 define("@ember/application/index", ["exports", "@ember/-internals/owner", "@ember/application/lib/lazy_load", "@ember/application/lib/application"], function (_exports, _owner, _lazy_load, _application) {
   "use strict";
@@ -37725,46 +36610,32 @@ define("@ember/application/lib/application", ["exports", "ember-babel", "@ember/
   var librariesRegistered = false;
   /**
     An instance of `Application` is the starting point for every Ember
-    application. It helps to instantiate, initialize and coordinate the many
+    application. It instantiates, initializes and coordinates the
     objects that make up your app.
   
-    Each Ember app has one and only one `Application` object. In fact, the
-    very first thing you should do in your application is create the instance:
+    Each Ember app has one and only one `Application` object. Although
+    Ember CLI creates this object implicitly, the `Application` class
+    is defined in the `app/app.js`. You can define a `ready` method on the
+    `Application` class, which will be run by Ember when the application is
+    initialized.
   
-    ```javascript
-    import Application from '@ember/application';
-  
-    window.App = Application.create();
+    ```app/app.js
+    const App = Application.extend({
+      ready() {
+        // your code here
+      }
+    })
     ```
   
-    Typically, the application object is the only global variable. All other
-    classes in your app should be properties on the `Application` instance,
-    which highlights its first role: a global namespace.
-  
-    For example, if you define a view class, it might look like this:
-  
-    ```javascript
-    import Application from '@ember/application';
-  
-    App.MyView = Ember.View.extend();
-    ```
-  
-    By default, calling `Application.create()` will automatically initialize
-    your application by calling the `Application.initialize()` method. If
-    you need to delay initialization, you can call your app's `deferReadiness()`
-    method. When you are ready for your app to be initialized, call its
-    `advanceReadiness()` method.
-  
-    You can define a `ready` method on the `Application` instance, which
-    will be run by Ember when the application is initialized.
-  
-    Because `Application` inherits from `Ember.Namespace`, any classes
+    Because `Application` ultimately inherits from `Ember.Namespace`, any classes
     you create will have useful string representations when calling `toString()`.
     See the `Ember.Namespace` documentation for more information.
   
     While you can think of your `Application` as a container that holds the
     other classes in your application, there are several other responsibilities
-    going on under-the-hood that you may want to understand.
+    going on under-the-hood that you may want to understand. It is also important
+    to understand that an `Application` is different from an `ApplicationInstance`.
+    Refer to the Guides to understand the difference between these.
   
     ### Event Delegation
   
@@ -37787,10 +36658,10 @@ define("@ember/application/lib/application", ["exports", "ember-babel", "@ember/
     default, you can specify custom events and their corresponding view method
     names by setting the application's `customEvents` property:
   
-    ```javascript
+    ```app/app.js
     import Application from '@ember/application';
   
-    let App = Application.create({
+    let App = Application.extend({
       customEvents: {
         // add support for the paste event
         paste: 'paste'
@@ -37802,10 +36673,10 @@ define("@ember/application/lib/application", ["exports", "ember-babel", "@ember/
     specify the event name with a `null` value in the `customEvents`
     property:
   
-    ```javascript
+    ```app/app.js
     import Application from '@ember/application';
   
-    let App = Application.create({
+    let App = Application.extend({
       customEvents: {
         // prevent listeners for mouseenter/mouseleave events
         mouseenter: null,
@@ -37822,10 +36693,10 @@ define("@ember/application/lib/application", ["exports", "ember-babel", "@ember/
     For example, if only events inside a DOM element with the ID of `ember-app`
     should be delegated, set your application's `rootElement` property:
   
-    ```javascript
+    ```app/app.js
     import Application from '@ember/application';
   
-    let App = Application.create({
+    let App = Application.extend({
       rootElement: '#ember-app'
     });
     ```
@@ -37841,25 +36712,23 @@ define("@ember/application/lib/application", ["exports", "ember-babel", "@ember/
   
     ### Initializers
   
-    Libraries on top of Ember can add initializers, like so:
+    To add behavior to the Application's boot process, you can define initializers in
+    the `app/initializers` directory, or with `ember generate initializer` using Ember CLI.
+    These files should export a named `initialize` function which will receive the created `application`
+    object as its first argument.
   
     ```javascript
-    import Application from '@ember/application';
-  
-    Application.initializer({
-      name: 'api-adapter',
-  
-      initialize: function(application) {
-        application.register('api-adapter:main', ApiAdapter);
-      }
-    });
+    export function initialize(application) {
+      // application.inject('route', 'foo', 'service:foo');
+    }
     ```
   
-    Initializers provide an opportunity to access the internal registry, which
-    organizes the different components of an Ember application. Additionally
-    they provide a chance to access the instantiated application. Beyond
-    being used for libraries, initializers are also a great way to organize
-    dependency injection or setup in your own application.
+    Application initializers can be used for a variety of reasons including:
+  
+    - setting up external libraries
+    - injecting dependencies
+    - setting up event listeners in embedded apps
+    - deferring the boot process using the `deferReadiness` and `advanceReadiness` APIs.
   
     ### Routing
   
@@ -37935,9 +36804,9 @@ define("@ember/application/lib/application", ["exports", "ember-babel", "@ember/
       a value of `null` will prevent a default event listener from being
       added for that event.
        To add new events to be listened to:
-       ```javascript
+       ```app/app.js
       import Application from '@ember/application';
-       let App = Application.create({
+       let App = Application.extend({
         customEvents: {
           // add support for the paste event
           paste: 'paste'
@@ -37945,9 +36814,9 @@ define("@ember/application/lib/application", ["exports", "ember-babel", "@ember/
       });
       ```
        To prevent default events from being listened to:
-       ```javascript
+       ```app/app.js
       import Application from '@ember/application';
-       let App = Application.create({
+       let App = Application.extend({
         customEvents: {
           // remove support for mouseenter / mouseleave events
           mouseenter: null,
@@ -38775,7 +37644,7 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     value: true
   });
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_METAL_TRACKED_PROPERTIES = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -38791,7 +37660,6 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_LIBRARIES_ISREGISTERED: false,
     EMBER_IMPROVED_INSTRUMENTATION: false,
     EMBER_MODULE_UNIFICATION: false,
-    EMBER_METAL_TRACKED_PROPERTIES: true,
     EMBER_CUSTOM_COMPONENT_ARG_PROXY: true,
     EMBER_GLIMMER_SET_COMPONENT_TEMPLATE: true,
     EMBER_ROUTING_MODEL_ARG: true
@@ -38852,8 +37720,6 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_IMPROVED_INSTRUMENTATION = EMBER_IMPROVED_INSTRUMENTATION;
   var EMBER_MODULE_UNIFICATION = featureValue(FEATURES.EMBER_MODULE_UNIFICATION);
   _exports.EMBER_MODULE_UNIFICATION = EMBER_MODULE_UNIFICATION;
-  var EMBER_METAL_TRACKED_PROPERTIES = featureValue(FEATURES.EMBER_METAL_TRACKED_PROPERTIES);
-  _exports.EMBER_METAL_TRACKED_PROPERTIES = EMBER_METAL_TRACKED_PROPERTIES;
   var EMBER_CUSTOM_COMPONENT_ARG_PROXY = featureValue(FEATURES.EMBER_CUSTOM_COMPONENT_ARG_PROXY);
   _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = EMBER_CUSTOM_COMPONENT_ARG_PROXY;
   var EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = featureValue(FEATURES.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE);
@@ -39769,7 +38635,7 @@ define("@ember/deprecated-features/index", ["exports"], function (_exports) {
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.PARTIALS = _exports.EMBER_COMPONENT_IS_VISIBLE = _exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = _exports.FUNCTION_PROTOTYPE_EXTENSIONS = _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
+  _exports.GLOBALS_RESOLVER = _exports.PARTIALS = _exports.EMBER_COMPONENT_IS_VISIBLE = _exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = _exports.FUNCTION_PROTOTYPE_EXTENSIONS = _exports.APP_CTRL_ROUTER_PROPS = _exports.ALIAS_METHOD = _exports.JQUERY_INTEGRATION = _exports.COMPONENT_MANAGER_STRING_LOOKUP = _exports.ROUTER_EVENTS = _exports.MERGE = _exports.LOGGER = _exports.EMBER_EXTEND_PROTOTYPES = _exports.SEND_ACTION = void 0;
 
   /* eslint-disable no-implicit-coercion */
   // These versions should be the version that the deprecation was _introduced_,
@@ -39800,6 +38666,8 @@ define("@ember/deprecated-features/index", ["exports"], function (_exports) {
   _exports.EMBER_COMPONENT_IS_VISIBLE = EMBER_COMPONENT_IS_VISIBLE;
   var PARTIALS = !!'3.15.0-beta.1';
   _exports.PARTIALS = PARTIALS;
+  var GLOBALS_RESOLVER = !!'3.16.0-beta.1';
+  _exports.GLOBALS_RESOLVER = GLOBALS_RESOLVER;
 });
 define("@ember/engine/index", ["exports", "ember-babel", "@ember/engine/lib/engine-parent", "@ember/-internals/utils", "@ember/controller", "@ember/-internals/runtime", "@ember/-internals/container", "dag-map", "@ember/debug", "@ember/-internals/metal", "@ember/application/globals-resolver", "@ember/engine/instance", "@ember/-internals/routing", "@ember/-internals/extension-support", "@ember/-internals/views", "@ember/-internals/glimmer"], function (_exports, _emberBabel, _engineParent, _utils, _controller, _runtime, _container, _dagMap, _debug, _metal, _globalsResolver, _instance, _routing, _extensionSupport, _views, _glimmer) {
   "use strict";
@@ -40896,10 +39764,6 @@ define("@ember/object/compat", ["exports", "@ember/-internals/metal", "@ember/de
   };
 
   function dependentKeyCompat(target, key, desc) {
-    (true && !(Boolean(true
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    )) && (0, _debug.assert)('The dependentKeyCompat decorator can only be used if the tracked properties feature is enabled', Boolean(true)));
-
     if (!(0, _metal.isElementDescriptor)([target, key, desc])) {
       desc = target;
 
@@ -43872,79 +42736,25 @@ define("@ember/object/lib/computed/reduce_computed_macros", ["exports", "@ember/
 
 
   function propertySort(itemsKey, sortPropertiesKey) {
-    var activeObserversMap = new WeakMap();
-    var sortPropertyDidChangeMap = new WeakMap();
+    var cp = (0, _metal.computed)(itemsKey + ".[]", sortPropertiesKey + ".[]", function (key) {
+      var sortProperties = (0, _metal.get)(this, sortPropertiesKey);
+      (true && !((0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')) && (0, _debug.assert)("The sort definition for '" + key + "' on " + this + " must be a function or an array of strings", (0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')));
+      var itemsKeyIsAtThis = itemsKey === '@this';
+      var normalizedSortProperties = normalizeSortProperties(sortProperties);
+      var items = itemsKeyIsAtThis ? this : (0, _metal.get)(this, itemsKey);
 
-    if (true
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    ) {
-        var cp = (0, _metal.computed)(itemsKey + ".[]", sortPropertiesKey + ".[]", function (key) {
-          var sortProperties = (0, _metal.get)(this, sortPropertiesKey);
-          (true && !((0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')) && (0, _debug.assert)("The sort definition for '" + key + "' on " + this + " must be a function or an array of strings", (0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')));
-          var itemsKeyIsAtThis = itemsKey === '@this';
-          var normalizedSortProperties = normalizeSortProperties(sortProperties);
-          var items = itemsKeyIsAtThis ? this : (0, _metal.get)(this, itemsKey);
+      if (!(0, _runtime.isArray)(items)) {
+        return (0, _runtime.A)();
+      }
 
-          if (!(0, _runtime.isArray)(items)) {
-            return (0, _runtime.A)();
-          }
-
-          if (normalizedSortProperties.length === 0) {
-            return (0, _runtime.A)(items.slice());
-          } else {
-            return sortByNormalizedSortProperties(items, normalizedSortProperties);
-          }
-        }).readOnly();
-        (0, _metal.descriptorForDecorator)(cp).auto();
-        return cp;
+      if (normalizedSortProperties.length === 0) {
+        return (0, _runtime.A)(items.slice());
       } else {
-      return (0, _metal.computed)(sortPropertiesKey + ".[]", function (key) {
-        var sortProperties = (0, _metal.get)(this, sortPropertiesKey);
-        (true && !((0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')) && (0, _debug.assert)("The sort definition for '" + key + "' on " + this + " must be a function or an array of strings", (0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string'))); // Add/remove property observers as required.
-
-        var activeObservers = activeObserversMap.get(this);
-
-        if (!sortPropertyDidChangeMap.has(this)) {
-          sortPropertyDidChangeMap.set(this, function () {
-            (0, _metal.notifyPropertyChange)(this, key);
-          });
-        }
-
-        var sortPropertyDidChange = sortPropertyDidChangeMap.get(this);
-
-        if (activeObservers !== undefined) {
-          activeObservers.forEach(path => (0, _metal.removeObserver)(this, path, sortPropertyDidChange));
-        }
-
-        var itemsKeyIsAtThis = itemsKey === '@this';
-        var normalizedSortProperties = normalizeSortProperties(sortProperties);
-
-        if (normalizedSortProperties.length === 0) {
-          var path = itemsKeyIsAtThis ? "[]" : itemsKey + ".[]";
-          (0, _metal.addObserver)(this, path, sortPropertyDidChange);
-          activeObservers = [path];
-        } else {
-          activeObservers = normalizedSortProperties.map(([prop]) => {
-            var path = itemsKeyIsAtThis ? "@each." + prop : itemsKey + ".@each." + prop;
-            (0, _metal.addObserver)(this, path, sortPropertyDidChange);
-            return path;
-          });
-        }
-
-        activeObserversMap.set(this, activeObservers);
-        var items = itemsKeyIsAtThis ? this : (0, _metal.get)(this, itemsKey);
-
-        if (!(0, _runtime.isArray)(items)) {
-          return (0, _runtime.A)();
-        }
-
-        if (normalizedSortProperties.length === 0) {
-          return (0, _runtime.A)(items.slice());
-        } else {
-          return sortByNormalizedSortProperties(items, normalizedSortProperties);
-        }
-      }).readOnly();
-    }
+        return sortByNormalizedSortProperties(items, normalizedSortProperties);
+      }
+    }).readOnly();
+    (0, _metal.descriptorForDecorator)(cp).auto();
+    return cp;
   }
 
   function normalizeSortProperties(sortProperties) {
@@ -44181,27 +42991,16 @@ define("@ember/runloop/index", ["exports", "@ember/debug", "@ember/-internals/er
 
   function onEnd(current, next) {
     currentRunLoop = next;
-
-    if (true
-    /* EMBER_METAL_TRACKED_PROPERTIES */
-    ) {
-        (0, _metal.flushAsyncObservers)();
-      }
+    (0, _metal.flushAsyncObservers)();
   }
 
-  var flush;
-
-  if (true
-  /* EMBER_METAL_TRACKED_PROPERTIES */
-  ) {
-      flush = function (queueName, next) {
-        if (queueName === 'render' || queueName === _rsvpErrorQueue) {
-          (0, _metal.flushAsyncObservers)();
-        }
-
-        next();
-      };
+  function flush(queueName, next) {
+    if (queueName === 'render' || queueName === _rsvpErrorQueue) {
+      (0, _metal.flushAsyncObservers)();
     }
+
+    next();
+  }
 
   var _rsvpErrorQueue = ("" + Math.random() + Date.now()).replace('.', '');
   /**
@@ -49212,8 +48011,9 @@ define("@glimmer/reference", ["exports", "@glimmer/util"], function (_exports, _
       this.lastChecked = INITIAL;
       this.lastValue = INITIAL;
       this.isUpdating = false;
-      this.subtag = null;
       this.subtags = null;
+      this.subtag = null;
+      this.subtagBufferCache = null;
       this[TYPE] = type;
     }
 
@@ -49230,11 +48030,21 @@ define("@glimmer/reference", ["exports", "@glimmer/util"], function (_exports, _
           var {
             subtags,
             subtag,
+            subtagBufferCache,
+            lastValue,
             revision
           } = this;
 
           if (subtag !== null) {
-            revision = Math.max(revision, subtag[COMPUTE]());
+            var subtagValue = subtag[COMPUTE]();
+
+            if (subtagValue === subtagBufferCache) {
+              revision = Math.max(revision, lastValue);
+            } else {
+              // Clear the temporary buffer cache
+              this.subtagBufferCache = null;
+              revision = Math.max(revision, subtagValue);
+            }
           }
 
           if (subtags !== null) {
@@ -49258,19 +48068,34 @@ define("@glimmer/reference", ["exports", "@glimmer/util"], function (_exports, _
       return this.lastValue;
     }
 
-    static update(_tag, subtag) {
+    static update(_tag, _subtag) {
       // TODO: TS 3.7 should allow us to do this via assertion
       var tag = _tag;
+      var subtag = _subtag;
 
       if (subtag === CONSTANT_TAG) {
         tag.subtag = null;
       } else {
-        tag.subtag = subtag; // subtag could be another type of tag, e.g. CURRENT_TAG or VOLATILE_TAG.
-        // If so, lastChecked/lastValue will be undefined, result in these being
-        // NaN. This is fine, it will force the system to recompute.
-
-        tag.lastChecked = Math.min(tag.lastChecked, subtag.lastChecked);
-        tag.lastValue = Math.max(tag.lastValue, subtag.lastValue);
+        // There are two different possibilities when updating a subtag:
+        //
+        // 1. subtag[COMPUTE]() <= tag[COMPUTE]();
+        // 2. subtag[COMPUTE]() > tag[COMPUTE]();
+        //
+        // The first possibility is completely fine within our caching model, but
+        // the second possibility presents a problem. If the parent tag has
+        // already been read, then it's value is cached and will not update to
+        // reflect the subtag's greater value. Next time the cache is busted, the
+        // subtag's value _will_ be read, and it's value will be _greater_ than
+        // the saved snapshot of the parent, causing the resulting calculation to
+        // be rerun erroneously.
+        //
+        // In order to prevent this, when we first update to a new subtag we store
+        // its computed value, and then check against that computed value on
+        // subsequent updates. If its value hasn't changed, then we return the
+        // parent's previous value. Once the subtag changes for the first time,
+        // we clear the cache and everything is finally in sync with the parent.
+        tag.subtagBufferCache = subtag[COMPUTE]();
+        tag.subtag = subtag;
       }
     }
 
@@ -59569,8 +58394,20 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.getOwner = _owner.getOwner;
   Ember.setOwner = _owner.setOwner;
   Ember.Application = _application.default;
-  Ember.DefaultResolver = Ember.Resolver = _globalsResolver.default;
-  Ember.ApplicationInstance = _instance.default; // ****@ember/engine****
+  Ember.ApplicationInstance = _instance.default;
+  Object.defineProperty(Ember, 'Resolver', {
+    get() {
+      
+      return _globalsResolver.default;
+    }
+
+  });
+  Object.defineProperty(Ember, 'DefaultResolver', {
+    get() {
+      return Ember.Resolver;
+    }
+
+  }); // ****@ember/engine****
 
   Ember.Engine = _engine.default;
   Ember.EngineInstance = _instance2.default; // ****@ember/polyfills****
@@ -59682,7 +58519,6 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.isBlank = metal.isBlank;
   Ember.isPresent = metal.isPresent;
   Ember.notifyPropertyChange = metal.notifyPropertyChange;
-  Ember.overrideChains = metal.overrideChains;
   Ember.beginPropertyChanges = metal.beginPropertyChanges;
   Ember.endPropertyChanges = metal.endPropertyChanges;
   Ember.changeProperties = metal.changeProperties;
@@ -59691,16 +58527,6 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
     hasPropertyAccessors: true
   };
   Ember.defineProperty = metal.defineProperty;
-  Ember.watchKey = metal.watchKey;
-  Ember.unwatchKey = metal.unwatchKey;
-  Ember.removeChainWatcher = metal.removeChainWatcher;
-  Ember._ChainNode = metal.ChainNode;
-  Ember.finishChains = metal.finishChains;
-  Ember.watchPath = metal.watchPath;
-  Ember.unwatchPath = metal.unwatchPath;
-  Ember.watch = metal.watch;
-  Ember.isWatching = metal.isWatching;
-  Ember.unwatch = metal.unwatch;
   Ember.destroy = _meta.deleteMeta;
   Ember.libraries = metal.libraries;
   Ember.getProperties = metal.getProperties;
@@ -60050,7 +58876,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.15.0";
+  var _default = "3.16.1";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
