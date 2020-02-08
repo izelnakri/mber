@@ -4,7 +4,7 @@ import express from 'express';
 import morgan from 'morgan';
 
 export default function(port=3000) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     const app = express();
 
     app.use(cors());
@@ -36,7 +36,7 @@ export default function(port=3000) {
       });
     });
 
-    let server = require('http').createServer(app);
+    let server = (await import('http')).createServer(app);
 
     server.listen(port, () => {
       console.log(`BACKEND API Server listening on ${port}`);
