@@ -1,6 +1,6 @@
 import users from './fixtures/users';
 import User from './models/user';
 
-export default function() { // eslint-disable-line
+export default function() {
   User.resetDatabase(users);
 }

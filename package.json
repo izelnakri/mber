@@ -16,7 +16,7 @@
     "build:loader": "cp ./node_modules/loader.js/dist/loader/loader.js ./vendor",
     "build:ember-source": "cp ./node_modules/ember-source/dist/ember-template-compiler.js ./vendor && cp ./node_modules/ember-source/dist/ember-testing.js ./vendor",
     "build:full-ember": "node scripts/build-ember-base.js",
-    "build:no-ember-data": "node  cripts/build-ember-base.js --exclude-ember-data",
+    "build:no-ember-data": "node scripts/build-ember-base.js --exclude-ember-data",
     "build:test-support": "node scripts/build-test-support.js",
     "build:memserver": "node scripts/build-memserver.js",
     "build:fastboot-modules": "node scripts/transpile-fastboot-modules.js",
