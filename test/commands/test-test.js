@@ -58,7 +58,7 @@ test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
 
   await createDummyApp();
   await fs.writeFile(
-    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.ts`,
     `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
@@ -145,7 +145,6 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   );
 
   childProcess.stdout.on('data', (data) => console.log(data));
-1
   await waitForRecompile(2000);
 
   const { browser, QUNIT_RESULT } = await runTestsInBrowser(`http://localhost:${HTTP_PORT}`);
@@ -159,7 +158,7 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   await browser.close();
 
   await fs.writeFile(
-    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.ts`,
     `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
@@ -187,7 +186,7 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   t.true(secondVisit.QUNIT_RESULT.runtime < 1000);
 
   await fs.writeFile(
-    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+    `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.ts`,
     `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
@@ -228,7 +227,7 @@ test.serial(
 
     await createDummyApp();
     await fs.writeFile(
-      `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+      `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.ts`,
       `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
@@ -270,7 +269,7 @@ test.serial(
     await browser.close();
 
     await fs.writeFile(
-      `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.js`,
+      `${PROJECT_ROOT}/src/ui/routes/index/acceptance-test.ts`,
       `
     import { module, test } from 'qunit';
     import { visit, currentURL } from '@ember/test-helpers';
