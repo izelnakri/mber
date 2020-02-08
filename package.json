@@ -1,13 +1,13 @@
 {
   "name": "mber",
-  "version": "0.10.0",
+  "version": "0.10.2",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
   "license": "MIT",
   "main": "index.js",
   "engines": {
-    "node": ">=12.4.0"
+    "node": "12.5.0"
   },
   "bin": {
     "mber": "cli.js"
@@ -26,6 +26,7 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.8.3",
     "@ember-data/adapter": "3.16.0",
     "@ember-data/debug": "^3.16.0",
     "@ember-data/model": "3.16.0",
@@ -93,7 +94,7 @@
     "jquery": "^3.4.1",
     "jsdom": "^16.1.0",
     "klaw": "^3.0.0",
-    "memserver": "^1.2.10",
+    "memserver": "^2.0.0-alpha12",
     "mustache": "^4.0.0",
     "node-fetch": "^2.6.0",
     "ora": "^4.0.2",
@@ -129,6 +130,9 @@
     "failFast": true
   },
   "volta": {
-    "node": "12.4.0"
-  }
+    "node": "12.5.0"
+  },
+  "browserslist": [
+    "last 1 chrome version"
+  ]
 }
