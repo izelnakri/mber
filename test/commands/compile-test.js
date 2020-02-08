@@ -7,7 +7,7 @@ const shell = promisify(exec);
 test('$ mber c src/router.js works', async (t) => {
   t.true(true);
   // const { stdout } = await shell(
-  //   `node --experimental-modules ${process.cwd()}/cli.js c ember-app-boilerplate/src/router.js`
+  //   `node ${process.cwd()}/cli.js c ember-app-boilerplate/src/router.js`
   // );
 
   // console.log(stdout);
