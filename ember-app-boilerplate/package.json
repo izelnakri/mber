@@ -45,7 +45,7 @@
     "node-fetch": "2.6.0"
   },
   "volta": {
-    "node": "12.5.0"
+    "node": "13.8.0"
   },
   "ember": {
     "edition": "octane"

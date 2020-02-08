@@ -3,11 +3,11 @@ import findProjectRoot from '../lib/utils/find-project-root.js';
 import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd.js';
 import transpileNPMImport from '../lib/transpilers/transpile-npm-imports.js';
 
-const removeFetch = `
-  (function() {
-    window.fetch = undefined;
-  })();
-`;
+// const removeFetch = `
+//   (function() {
+//     window.fetch = undefined;
+//   })();
+// `;
 
 async function build() {
   const PROJECT_PATH = await findProjectRoot();
@@ -15,10 +15,10 @@ async function build() {
   const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
 
   return Promise.all([
-    fs.readFile(`${MODULE_PATH}/whatwg-fetch/dist/fetch.umd.js`),
+    // fs.readFile(`${MODULE_PATH}/whatwg-fetch/dist/fetch.umd.js`),
     transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),
-    transpileNPMImport('memserver', `${MODULE_PATH}/memserver/lib/mem-server-cjs.js`)
-  ]).then(async ([fetchReplacement, memServerModelModule, memServerModule]) => {
+    transpileNPMImport('memserver/server', `${MODULE_PATH}/memserver/server.js`)
+  ]).then(async ([memServerModelModule, memServerServerModule]) => {
     const memserverResponseModule = await convertESModuletoAMD(`
       export default function(statusCode=200, data={}, headers={}) {
         return [
@@ -33,24 +33,14 @@ async function build() {
     return Promise.all([
       fs.copy(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
       fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
-        ${removeFetch}
-
-        ${fetchReplacement}
-
         ${memServerModelModule}
 
         ${memserverResponseModule}
 
-        ${memServerModule}
+        ${memServerServerModule}
       `)
     ])
   });
 }
 
 build().then(() => console.log('memserver.js built'));
-
-// NOTE: chalk adds thousands lines of code that isnt used
-// NOTE: node util adds strange code via browserify
-// NOTE: chalk gets add up twice
-// NOTE: node util, 'inflections' shit again
-// TODO: maybe minify this
