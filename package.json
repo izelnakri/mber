@@ -131,6 +131,7 @@
       "esm",
       "./vendor/disable-colors"
     ],
+    "timeout": "10m",
     "concurrency": 1,
     "failFast": true
   },

@@ -48,12 +48,13 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
 
     if (options.fastboot) {
       const FastBoot = (await import('fastboot')).default;
+      const sandboxGlobals = options.memserver ? await assignSandboxGlobals() : {};
 
       const fastboot = new FastBoot({
         distPath: DIST_ROOT,
         resilient: true,
         shouldRender: true,
-        sandboxGlobals: options.memserver ? assignSandboxGlobals() : {}
+        sandboxGlobals: sandboxGlobals
       });
 
       app.use((req, res, next) => {
@@ -91,10 +92,7 @@ async function assignSandboxGlobals() { // TODO: maybe add PORT as argument
   global.document = dom.window.document;
   global.self = dom.window.self;
 
-  const MemServer = (await import('memserver')).default;
   const $ = (await import('jquery')).default;
-
-  MemServer.start();
 
   return {
     global: global,
