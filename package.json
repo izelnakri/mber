@@ -26,6 +26,7 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
+    "@ava/babel": "^1.0.0",
     "@babel/preset-typescript": "^7.8.3",
     "@ember-data/adapter": "3.16.0",
     "@ember-data/debug": "^3.16.0",
@@ -119,7 +120,10 @@
     "babel": {
       "testOptions": {
         "inputSourceMap": false,
-        "sourceMaps": false
+        "sourceMaps": false,
+        "presets": [
+					["module:@ava/babel/stage-4", {"modules": false}]
+				]
       }
     },
     "require": [
