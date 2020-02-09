@@ -17,34 +17,30 @@ import {
 const DEFAULT_SOCKET_PORT = 65511;
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/dummyapp`;
-const DEFAULT_COMPONENT_JS = `
-  import Ember from 'ember';
-  import Component from '@ember/component';
-  import { computed } from '@ember/object';
+const defaultComponentContent = (className) => `
+  import Component from '@glimmer/component';
 
-  export default Component.extend({
-    init() {
-      this._super(...args);
+  export default class ${className} extends Component {
+    constructor() {
+      super(...arguments);
     }
-  });`;
-const DEFAULT_EDITED_COMPONENT_JS = `
-import Ember from 'ember';
-import Component from '@ember/component';
-import { computed } from '@ember/object';
+  }`;
+const defaultEditedComponentContent = (className) => `
+import Component from '@glimmer/component';
 
-export default Component.extend({
-  init() {
-    this._super(...args);
+export default class ${className} extends Component {
+  constructor() {
+    super(...arguments);
     console.log('there is edited code');
   }
-});`;
+}`;
 const DEFAULT_TEMPLATE_HBS = `<h1>Find this edit on application.js</h1>`;
-const DEFAULT_EDITED_MEMSERVER_MODEL_JS = `
+const defaultEditedMemserverModelContent = (modelName) => `
 import Model from 'memserver/model';
 
-export default Model({
-  modelEditPlaceholder: true
-});`;
+export default class ${modelName} extends Model {
+  static modelEditPlaceholder = true;
+}`;
 const DEFAULT_ACCEPTANCE_TEST_TO_ADD = `
 import { module, test } from 'qunit';
 import { visit, currentURL } from '@ember/test-helpers';
@@ -71,7 +67,7 @@ module('Integration | Component | welcome-page', function(hooks) {
   test('should render correctly', async function(assert) {
     assert.expect(1);
     console.log('this is added by this test');
-    await render(hbs\`{{welcome-page}}\`);
+    await render(hbs\`<WelcomePage/>\`);
 
     assert.ok(this.element.querySelector('#ember-welcome-page-id-selector'));
  });
@@ -165,20 +161,20 @@ test.serial('it watches memserver files correctly', async (t) => {
 
   await new Promise((resolve) => setTimeout(() => resolve(), 2000));
 
-  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 0);
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.ts') === 0);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 0);
 
   await fs.mkdirp(`${PROJECT_ROOT}/memserver/models`);
-  await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+  await writeMemServerCode('/models/email.ts', defaultEditedMemserverModelContent('Email'));
 
-  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 1);
 
   const firstContent = await readMemServerJS();
 
   t.true(codeIncludesAMDModule(firstContent, 'dummyapp/memserver/models/email'));
-  t.true(occurrenceCount(firstContent, /modelEditPlaceholder: true/g) === 1);
+  t.true(occurrenceCount(firstContent, /modelEditPlaceholder = true/g) === 1);
 
   const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
@@ -186,24 +182,24 @@ test.serial('it watches memserver files correctly', async (t) => {
   assertThatSocketReceivesMessage(firstSocket, t);
   assertThatSocketReceivesMessage(secondSocket, t);
 
-  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 0);
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.ts') === 0);
 
-  await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+  await writeMemServerCode('/models/user.ts', defaultEditedMemserverModelContent('User'));
 
-  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 1);
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 2);
 
-  await removeFile(`${PROJECT_ROOT}/memserver/models/email.js`);
+  await removeFile(`${PROJECT_ROOT}/memserver/models/email.ts`);
 
-  t.true(getRemovalNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getRemovalNotificationCount(stdout, '/memserver/models/email.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 3);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
 
-  await removeFile(`${PROJECT_ROOT}/memserver/models/user.js`);
+  await removeFile(`${PROJECT_ROOT}/memserver/models/user.ts`);
 
-  t.true(getRemovalNotificationCount(stdout, '/memserver/models/user.js') === 1);
+  t.true(getRemovalNotificationCount(stdout, '/memserver/models/user.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 4);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'memserver') === 4);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/user'));
@@ -253,20 +249,20 @@ test.serial('it watches test files correctly', async (t) => {
 
   await applicationFileWatcherTests(t, stdout, 'test');
 
-  await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+  await writeMemServerCode('/models/email.ts', defaultEditedMemserverModelContent('Email'));
 
-  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'test') === 1);
 
   const firstContent = await readMemServerJS();
 
   t.true(codeIncludesAMDModule(firstContent, 'dummyapp/memserver/models/email'));
-  t.true(occurrenceCount(firstContent, /modelEditPlaceholder: true/g) === 1);
+  t.true(occurrenceCount(firstContent, /modelEditPlaceholder = true/g) === 1);
 
-  await removeFile(`${PROJECT_ROOT}/memserver/models/email.js`);
+  await removeFile(`${PROJECT_ROOT}/memserver/models/email.ts`);
 
-  t.true(getRemovalNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getRemovalNotificationCount(stdout, '/memserver/models/email.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'test') === 2);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
@@ -334,7 +330,7 @@ function writeCSSCode(path, content) {
 
 function writeComponentCode(
   path = '/dummy-component/component.ts',
-  content = DEFAULT_COMPONENT_JS
+  content = ''
 ) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
@@ -351,7 +347,7 @@ function removeFile(codePath) {
   });
 }
 
-function writeMemServerCode(path, content = DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
+function writeMemServerCode(path, content = '') {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/memserver${path}`, content);
 
@@ -441,7 +437,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
   t.true(occurrenceCount(cssContent, /\.awesomeness {/g) === 1);
 
   await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
-  await writeComponentCode('/dummy-component/component.ts');
+  await writeComponentCode('/dummy-component/component.ts', defaultComponentContent('DummyComponent'));
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
@@ -454,7 +450,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
   );
   t.true(!firstContent.includes(`console.log('there is edited code');`));
 
-  await writeComponentCode('/dummy-component/component.ts', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/dummy-component/component.ts', defaultEditedComponentContent('DummyComponent'));
 
   t.true(
     getChangeNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1
@@ -471,7 +467,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 0);
 
-  await writeComponentCode('/welcome-page/component.ts', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/welcome-page/component.ts', defaultEditedComponentContent('WelcomePage'));
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 3);
