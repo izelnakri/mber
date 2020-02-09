@@ -1,0 +1,8 @@
+<div class="docs-viewer">
+  {{yield (hash
+    navigation=(component 'docs-viewer/navigation')
+    page=(component 'docs-viewer/page')
+  )}}
+
+  <DocsViewer::PageIndex @pageIndex={{this.pageIndex}}/>
+</div>

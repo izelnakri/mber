@@ -1,0 +1,16 @@
+.docs-color {
+  display: inline-block;
+  width: 150px;
+  height: 150px;
+  margin: 15px;
+
+  span {
+    display: inline-block;
+    color: #3d4852;
+    width: 150px;
+    font: 15px Helvetica;
+    font-weight: 600;
+    text-align: center;
+    line-height: 150px;
+  }
+}

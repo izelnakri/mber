@@ -1,0 +1,52 @@
+.docs-demo {
+  border: solid 1px #dae1e7;
+  border-radius: .25rem;
+  margin-bottom: 25px;
+
+  pre {
+    font-family: monospace,monospace;
+    font-size: 16px;
+    overflow-y: scroll;
+  }
+
+  .docs-demo-example {
+    padding: 16px;
+  }
+
+  .docs-demo-snippet-titles {
+    background: #f1f5f8;
+    padding: 12px 16px;
+
+    button {
+      padding: 0;
+      padding-right: 15px;
+      background: none;
+      border: none;
+      color: #8795a1;
+      font-size: 14px;
+      text-decoration: none;
+      outline: none;
+      cursor: pointer;
+
+      &.active, &:hover {
+        color: #3d4852;
+      }
+    }
+  }
+
+  .docs-demo-not-active-snippet {
+    display: none;
+  }
+
+  .docs-demo-active-snippet pre {
+    margin-bottom: 0;
+  }
+
+  div.docs-snippet-code-block {
+    margin-bottom: 0;
+
+    pre {
+      margin: 0;
+    }
+  }
+}

@@ -1,0 +1,15 @@
+<div class="docs-bottom-links {{unless (docs-and this.docsRoute.previousRoute this.docsRoute.nextRoute) 'docs-bottom-full-length'}}">
+  {{#if this.docsRoute.previousRoute}}
+    <LinkTo @route={{this.docsRoute.previousRoute.route}}>
+      Previous
+      <h4>{{this.docsRoute.previousRoute.label}}</h4>
+    </LinkTo>
+  {{/if}}
+
+  {{#if this.docsRoute.nextRoute}}
+    <LinkTo @route={{this.docsRoute.nextRoute.route}} class="docs-bottom-links-right">
+      Next
+      <h4>{{this.docsRoute.nextRoute.label}}</h4>
+    </LinkTo>
+  {{/if}}
+</div>

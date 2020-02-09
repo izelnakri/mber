@@ -1,0 +1,9 @@
+{{#if this.href}}
+  <a href={{this.href}} class="docs-header-link {{class}}">
+    {{yield}}
+  </a>
+{{else}}
+  <LinkTo @route={{this.route}} class={{concat "docs-header-link " class}}>
+    {{yield}}
+  </LinkTo>
+{{/if}}

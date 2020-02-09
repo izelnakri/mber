@@ -1,0 +1,15 @@
+<nav class="docs-viewer-navigation">
+  {{#if this.docsRoute.isMobile}}
+    <header class="docs-viewer-navigation-mobile-toggle" {{action "toggleMobileNavigation"}}>
+      <h6>{{if this.docsRoute.currentRoute.label this.docsRoute.currentRoute.label "Click to navigate"}}</h6>
+      <img src="/images/caret.svg" height="25" />
+    </header>
+  {{/if}}
+
+  <ul class="{{this.navigationClass}}">
+    {{yield (hash
+      title=(component 'docs-viewer/navigation/title')
+      link=(component 'docs-viewer/navigation/link')
+    )}}
+  </ul>
+</nav>
