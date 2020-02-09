@@ -2,18 +2,18 @@ import { exec } from 'child_process';
 import cheerio from 'cheerio';
 import fs from 'fs-extra';
 import test from 'ava';
-import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import http from '../helpers/http';
-import killProcessOnPort from '../helpers/kill-process-on-port';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import startBackendAPIServer from '../helpers/start-backend-api-server';
-import injectTestContentToHTML from '../helpers/inject-test-content-to-hbs';
+import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app.js';
+import http from '../helpers/http.js';
+import killProcessOnPort from '../helpers/kill-process-on-port.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import startBackendAPIServer from '../helpers/start-backend-api-server.js';
+import injectTestContentToHTML from '../helpers/inject-test-content-to-hbs.js';
 import {
   getTimeTakenForApplicationCSS,
   getTimeTakenForApplicationJS,
   getTimeTakenForVendorJS,
   getTimeTakenForMemServerJS
-} from '../helpers/parse-time-taken-for-build';
+} from '../helpers/parse-time-taken-for-build.js';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD,
@@ -22,8 +22,8 @@ import {
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_COMPRESSED_BUILD_TIME_THRESHOLD,
   MEMSERVER_JS_BUILD_TIME_THRESHOLD
-} from '../helpers/asset-build-thresholds';
-import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
+} from '../helpers/asset-build-thresholds.js';
+import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${process.cwd()}/dummyapp`;

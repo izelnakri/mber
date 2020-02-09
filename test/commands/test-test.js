@@ -3,10 +3,10 @@ import { promisify } from 'util';
 import fs from 'fs-extra';
 import test from 'ava';
 import Puppeteer from 'puppeteer';
-import countTime from '../../lib/utils/count-time';
-import createDummyApp from '../helpers/create-dummy-app';
-import killProcessOnPort from '../helpers/kill-process-on-port';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import countTime from '../../lib/utils/count-time.js';
+import createDummyApp from '../helpers/create-dummy-app.js';
+import killProcessOnPort from '../helpers/kill-process-on-port.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 
 const CWD = process.cwd();
 const shell = promisify(exec);

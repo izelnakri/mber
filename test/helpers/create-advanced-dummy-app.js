@@ -62,8 +62,8 @@ export default async function(appName = 'dummyapp', options = { memserver: false
                   `
           import Model from 'memserver/model';
 
-          export default Model({
-          });
+          export default class User extends Model {
+          }
         `
                 ),
                 fs.writeFile(
@@ -91,6 +91,30 @@ export default async function(appName = 'dummyapp', options = { memserver: false
           ];
         `
                 ),
+                fs.writeFile(`${APP_ROOT}/memserver/initializer.ts`, `
+          import users from './fixtures/users';
+          import User from './models/user';
+
+          export default function() {
+            User.resetDatabase(users);
+          }
+                `),
+                fs.writeFile(`${APP_ROOT}/memserver/index.ts`, `
+          import Memserver from "memserver/server";
+          import initializer from "./initializer";
+          import routes from "./routes";
+
+          const MemServer = new Memserver({
+            globalizeModels: true,
+            initializer: initializer,
+            routes: routes
+          });
+
+          window.Memserver = Memserver;
+          window.MemServer = MemServer;
+
+          export default MemServer;
+                `),
                 fs.writeFile(
                   `${APP_ROOT}/memserver/routes.ts`,
                   `

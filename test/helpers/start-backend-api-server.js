@@ -2,6 +2,7 @@ import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
 import morgan from 'morgan';
+import http from 'http';
 
 export default function(port=3000) {
   return new Promise((resolve) => {
@@ -36,7 +37,7 @@ export default function(port=3000) {
       });
     });
 
-    let server = require('http').createServer(app);
+    let server = http.createServer(app);
 
     server.listen(port, () => {
       console.log(`BACKEND API Server listening on ${port}`);
