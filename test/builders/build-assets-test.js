@@ -39,7 +39,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
   t.plan(2);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`).default;
+  const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
   const result = await Promise.all([
     fs.exists(APPLICATION_JS_OUTPUT_PATH),
     fs.exists(VENDOR_JS_OUTPUT_PATH),
@@ -76,7 +76,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
   t.plan(2);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`).default;
+  const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
   await fs.remove(`${PROJECT_ROOT}/tmp`);
 
@@ -105,7 +105,7 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
   t.plan(2);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`).default;
+  const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
   await fs.remove(`${PROJECT_ROOT}/tmp`);
 
@@ -133,7 +133,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
   t.plan(10);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const environmentFunction = require(`${PROJECT_ROOT}/config/environment.js`).default;
+  const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
   await fs.remove(`${PROJECT_ROOT}/tmp`);
 
