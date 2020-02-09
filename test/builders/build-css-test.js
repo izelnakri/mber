@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import buildCSS from '../../lib/builders/build-css.js';
-import { APPLICATION_CSS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds';
-import { formatSize } from '../../lib/utils/asset-reporter';
+import { APPLICATION_CSS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds.js';
+import { formatSize } from '../../lib/utils/asset-reporter.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;

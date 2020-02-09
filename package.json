@@ -112,7 +112,8 @@
       "--experimental-modules"
     ],
     "files": [
-      "test/**/*"
+      "test/**/*",
+      "!test/helpers/**/*"
     ],
     "babel": {
       "testOptions": {

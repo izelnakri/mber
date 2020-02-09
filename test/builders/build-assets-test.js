@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import createDummyApp from '../helpers/create-dummy-app';
-import buildAssets from '../../lib/builders/build-assets';
-import WorkerPool from '../../lib/worker-pool';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import createDummyApp from '../helpers/create-dummy-app.js';
+import buildAssets from '../../lib/builders/build-assets.js';
+import WorkerPool from '../../lib/worker-pool/index.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/myapp`;

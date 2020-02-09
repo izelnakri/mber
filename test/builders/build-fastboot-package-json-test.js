@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import createExampleENV from '../helpers/create-example-env';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import createExampleENV from '../helpers/create-example-env.js';
 import buildFastbootPackageJSON from '../../lib/builders/build-fastboot-package-json.js';
 
 const CWD = process.cwd();

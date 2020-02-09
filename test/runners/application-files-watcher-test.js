@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import test from 'ava';
 import WebSocket from 'ws';
-import applicationFilesWatcher from '../../lib/runners/application-files-watcher';
-import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import listenCurrentStdout from '../helpers/listen-current-stdout';
-import WorkerPool from '../../lib/worker-pool';
+import applicationFilesWatcher from '../../lib/runners/application-files-watcher.js';
+import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app.js';
+import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import listenCurrentStdout from '../helpers/listen-current-stdout.js';
+import WorkerPool from '../../lib/worker-pool/index.js';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_BUILD_TIME_THRESHOLD,

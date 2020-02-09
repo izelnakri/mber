@@ -1,14 +1,14 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import buildApplication from '../../lib/builders/build-application.js';
-import WorkerPool from '../../lib/worker-pool';
-import { APPLICATION_JS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds';
+import WorkerPool from '../../lib/worker-pool/index.js';
+import { APPLICATION_JS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds.js';
 import {
   APPLICATION_JS_TARGET_BYTE_SIZE,
   APPLICATION_JS_COMPRESSED_TARGET_BYTE_SIZE
-} from '../helpers/asset-sizes';
+} from '../helpers/asset-sizes.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;

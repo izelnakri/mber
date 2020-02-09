@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import createDummyApp from '../helpers/create-dummy-app';
-import buildAssets from '../../lib/builders/build-assets';
-import buildDistFolder from '../../lib/builders/build-dist-folder';
-import countTime from '../../lib/utils/count-time';
-import WorkerPool from '../../lib/worker-pool';
-import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import createDummyApp from '../helpers/create-dummy-app.js';
+import buildAssets from '../../lib/builders/build-assets.js';
+import buildDistFolder from '../../lib/builders/build-dist-folder.js';
+import countTime from '../../lib/utils/count-time.js';
+import WorkerPool from '../../lib/worker-pool/index.js';
+import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/some-app`;

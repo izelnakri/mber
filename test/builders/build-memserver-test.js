@@ -1,9 +1,9 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
 import buildMemserver from '../../lib/builders/build-memserver.js';
-import WorkerPool from '../../lib/worker-pool';
+import WorkerPool from '../../lib/worker-pool/index.js';
 import {
   MEMSERVER_JS_BUILD_TIME_THRESHOLD,
   MEMSERVER_JS_COMPRESSED_BUILD_THRESHOLD
