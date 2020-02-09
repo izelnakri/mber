@@ -1,5 +1,5 @@
 import test from 'ava';
-import countTime from '../../lib/utils/count-time';
+import countTime from '../../lib/utils/count-time.js';
 
 test('countTime() works', async (t) => {
   const currentTime = +(new Date());

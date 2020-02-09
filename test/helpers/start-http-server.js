@@ -1,12 +1,12 @@
 import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
-import fastbootMiddleware from '../../lib/utils/fastboot-express-middleware';
+import fastbootMiddleware from '../../lib/utils/fastboot-express-middleware.js';
 import morgan from 'morgan';
 
 // NOTE: express.static() gets index.html by default
 export default function(entrypoint, port=3000, options={ fastboot: true, memserver: false }) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     const DIST_ROOT = entrypoint.replace('/index.html', '');
     const app = express();
 
@@ -47,7 +47,7 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
     }
 
     if (options.fastboot) {
-      const FastBoot = require('fastboot');
+      const FastBoot = (await import('fastboot')).default;
 
       const fastboot = new FastBoot({
         distPath: DIST_ROOT,
@@ -74,7 +74,7 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
       app.get('/*', (req, res) => res.sendFile(entrypoint));
     }
 
-    let server = require('http').createServer(app);
+    let server = (await import('http')).default.createServer(app);
 
     server.listen(port, () => {
       console.log(`HTTP Server listening on ${port}`);
@@ -83,16 +83,16 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
   });
 }
 
-function assignSandboxGlobals() { // TODO: maybe add PORT as argument
-  const JSDOM = require('jsdom').JSDOM;
+async function assignSandboxGlobals() { // TODO: maybe add PORT as argument
+  const JSDOM = (await import('jsdom')).default.JSDOM;
   const dom = new JSDOM('<p>Hello</p>', { url: 'http://localhost:3000' });
 
   global.window = dom.window;
   global.document = dom.window.document;
   global.self = dom.window.self;
 
-  const MemServer = require('memserver');
-  const $ = require('jquery');
+  const MemServer = (await import('memserver')).default;
+  const $ = (await import('jquery')).default;
 
   MemServer.start();
 

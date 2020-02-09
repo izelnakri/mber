@@ -3,15 +3,15 @@ import fs from 'fs-extra';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 import test from 'ava';
-import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import http from '../helpers/http';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app.js';
+import http from '../helpers/http.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import {
   getTimeTakenForApplicationCSS,
   getTimeTakenForApplicationJS,
   getTimeTakenForVendorJS,
   getTimeTakenForMemServerJS
-} from '../helpers/parse-time-taken-for-build';
+} from '../helpers/parse-time-taken-for-build.js';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD,
@@ -20,9 +20,9 @@ import {
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_COMPRESSED_BUILD_TIME_THRESHOLD,
   MEMSERVER_JS_BUILD_TIME_THRESHOLD
-} from '../helpers/asset-build-thresholds';
-import startHTTPServer from '../helpers/start-http-server';
-import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
+} from '../helpers/asset-build-thresholds.js';
+import startHTTPServer from '../helpers/start-http-server.js';
+import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
 
 const shell = promisify(exec);
 const CWD = process.cwd();
