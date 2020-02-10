@@ -27,9 +27,6 @@ I've never benchmarked this against ember-cli, but my observation is, mber is at
 
 ## Installation
 
-Required: node.js v12.4 -> also pinned with [volta](https://volta.sh/).
-Currenty node.js and npm package releases are very unstable for projects that use es modules like this one, so its strongly suggested to use node v12.4 for now.
-
 Make sure you have node.js v12.4+ installed. `mber` uses the latest native nodejs `worker_thread` to achive multithreading. Then install mber CLI:
 
 ```
