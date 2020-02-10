@@ -1,1 +1,9 @@
 test
+scripts
+.eslintrc.js
+.prettierrc
+Dockerfile
+npm-import-explanation.md
+README.md
+TODO
+

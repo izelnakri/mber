@@ -19545,6 +19545,8 @@ var server = createCommonjsModule(function (module, exports) {
     constructor(options = {
       logging: true
     }) {
+      this.Models = {};
+
       const initializer = options.initializer || async function () {};
 
       const routes = options.routes || function () {};
@@ -19553,29 +19555,28 @@ var server = createCommonjsModule(function (module, exports) {
       const initializerReturn = initializer();
       const Model = window.MemserverModel || model_1.default;
       window.MemserverModel = Model;
-      window.MemServer = this;
 
       if (initializerReturn instanceof Promise) {
         initializerReturn.then(() => {
           if (options.globalizeModels) {
-            window.MemServer.Models = {};
             Object.keys(Model._modelDefinitions).forEach(modelName => {
-              window.MemServer.Models[modelName] = Model._modelDefinitions[modelName];
+              this.Models[modelName] = Model._modelDefinitions[modelName];
             });
           }
         });
       } else {
         if (options.globalizeModels) {
-          window.MemServer.Models = {};
           Object.keys(Model._modelDefinitions).forEach(modelName => {
-            window.MemServer.Models[modelName] = Model._modelDefinitions[modelName];
+            this.Models[modelName] = Model._modelDefinitions[modelName];
           });
         }
       }
 
-      return startPretender(routes, Object.assign(options, {
+      window.MemServer = startPretender(routes, Object.assign(options, {
         logging
       }));
+      window.Memserver.Models = this.Models;
+      return window.MemServer;
     }
 
   }
