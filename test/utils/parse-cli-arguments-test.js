@@ -1,5 +1,5 @@
 import test from 'ava';
-import parseCLIArguments from '../../lib/utils/parse-cli-arguments';
+import parseCLIArguments from '../../lib/utils/parse-cli-arguments.js';
 
 test('--env argument could be read', (t) => {
   t.plan(3);

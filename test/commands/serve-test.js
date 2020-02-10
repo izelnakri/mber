@@ -2,18 +2,18 @@ import { exec } from 'child_process';
 import cheerio from 'cheerio';
 import fs from 'fs-extra';
 import test from 'ava';
-import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import http from '../helpers/http';
-import killProcessOnPort from '../helpers/kill-process-on-port';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import startBackendAPIServer from '../helpers/start-backend-api-server';
-import injectTestContentToHTML from '../helpers/inject-test-content-to-hbs';
+import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app.js';
+import http from '../helpers/http.js';
+import killProcessOnPort from '../helpers/kill-process-on-port.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import startBackendAPIServer from '../helpers/start-backend-api-server.js';
+import injectTestContentToHTML from '../helpers/inject-test-content-to-hbs.js';
 import {
   getTimeTakenForApplicationCSS,
   getTimeTakenForApplicationJS,
   getTimeTakenForVendorJS,
   getTimeTakenForMemServerJS
-} from '../helpers/parse-time-taken-for-build';
+} from '../helpers/parse-time-taken-for-build.js';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD,
@@ -22,8 +22,8 @@ import {
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_COMPRESSED_BUILD_TIME_THRESHOLD,
   MEMSERVER_JS_BUILD_TIME_THRESHOLD
-} from '../helpers/asset-build-thresholds';
-import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
+} from '../helpers/asset-build-thresholds.js';
+import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${process.cwd()}/dummyapp`;
@@ -56,7 +56,7 @@ test.serial('$ mber serve -> builds and watches successfully', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js serve`, {
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve`, {
     cwd: PROJECT_ROOT
   });
 
@@ -100,7 +100,7 @@ test.serial('$ mber serve --env=production -> serves successfully', async (t) =>
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js serve --env=production`, {
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=production`, {
     cwd: PROJECT_ROOT
   });
 
@@ -134,7 +134,7 @@ test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js s --env=memserver`, {
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js s --env=memserver`, {
     cwd: PROJECT_ROOT
   });
 
@@ -180,7 +180,7 @@ test.serial('$ mber serve --env=custom -> serves successfully', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js serve --env=custom`, {
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=custom`, {
     cwd: PROJECT_ROOT
   });
 
@@ -224,7 +224,7 @@ test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) =>
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js serve --fastboot=false`, {
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
 
@@ -267,7 +267,7 @@ test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfull
   t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(`node --experimental-modules ${CWD}/cli.js serve --env=memserver --fastboot=false`, {
+  const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=memserver --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
 

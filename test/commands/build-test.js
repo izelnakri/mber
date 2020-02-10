@@ -3,15 +3,15 @@ import fs from 'fs-extra';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 import test from 'ava';
-import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import http from '../helpers/http';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app.js';
+import http from '../helpers/http.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import {
   getTimeTakenForApplicationCSS,
   getTimeTakenForApplicationJS,
   getTimeTakenForVendorJS,
   getTimeTakenForMemServerJS
-} from '../helpers/parse-time-taken-for-build';
+} from '../helpers/parse-time-taken-for-build.js';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD,
@@ -20,9 +20,9 @@ import {
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_COMPRESSED_BUILD_TIME_THRESHOLD,
   MEMSERVER_JS_BUILD_TIME_THRESHOLD
-} from '../helpers/asset-build-thresholds';
-import startHTTPServer from '../helpers/start-http-server';
-import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
+} from '../helpers/asset-build-thresholds.js';
+import startHTTPServer from '../helpers/start-http-server.js';
+import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
 
 const shell = promisify(exec);
 const CWD = process.cwd();
@@ -47,7 +47,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node  ${CWD}/cli.js build`, { cwd: PROJECT_ROOT });
 
   console.log('stdout is', stdout);
 
@@ -75,7 +75,7 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=production`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node  ${CWD}/cli.js build --env=production`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
   t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_COMPRESSED_BUILD_TIME_THRESHOLD);
@@ -101,7 +101,7 @@ test.serial('$ mber build --env=memserver -> builds successfully', async (t) => 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=memserver`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node  ${CWD}/cli.js build --env=memserver`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
   t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
@@ -130,7 +130,7 @@ test.serial('$ mber build --env=custom -> builds successfully', async (t) => {
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=custom`, { cwd: PROJECT_ROOT });
+  const { stdout } = await shell(`node  ${CWD}/cli.js build --env=custom`, { cwd: PROJECT_ROOT });
 
   t.true(stdout.includes('ember BUILDING: application.css...'));
   t.true(getTimeTakenForApplicationCSS(stdout) < APPLICATION_CSS_BUILD_TIME_THRESHOLD);
@@ -156,7 +156,7 @@ test.serial('$ mber build --fastboot=false -> builds successfully', async (t) =>
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --fastboot=false`, {
+  const { stdout } = await shell(`node  ${CWD}/cli.js build --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
 
@@ -184,7 +184,7 @@ test.serial('$ mber build --env=memserver --fastboot=false -> builds successfull
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js build --env=memserver --fastboot=false`, {
+  const { stdout } = await shell(`node  ${CWD}/cli.js build --env=memserver --fastboot=false`, {
     cwd: PROJECT_ROOT
   });
 

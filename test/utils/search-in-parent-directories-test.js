@@ -1,7 +1,7 @@
 import test from 'ava';
 import fs from 'fs-extra';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import searchInParentDirectories from '../../lib/utils/search-in-parent-directories';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import searchInParentDirectories from '../../lib/utils/search-in-parent-directories.js';
 
 const CWD = process.cwd();
 

@@ -1,13 +1,13 @@
 {
   "name": "mber",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
   "license": "MIT",
   "main": "index.js",
   "engines": {
-    "node": ">=12.4.0"
+    "node": ">=13.8.0"
   },
   "bin": {
     "mber": "cli.js"
@@ -15,14 +15,14 @@
   "scripts": {
     "build:loader": "cp ./node_modules/loader.js/dist/loader/loader.js ./vendor",
     "build:ember-source": "cp ./node_modules/ember-source/dist/ember-template-compiler.js ./vendor && cp ./node_modules/ember-source/dist/ember-testing.js ./vendor",
-    "build:full-ember": "node --experimental-modules scripts/build-ember-base.js",
-    "build:no-ember-data": "node --experimental-modules scripts/build-ember-base.js --exclude-ember-data",
-    "build:test-support": "node --experimental-modules scripts/build-test-support.js",
-    "build:memserver": "node --experimental-modules scripts/build-memserver.js",
-    "build:fastboot-modules": "node --experimental-modules scripts/transpile-fastboot-modules.js",
+    "build:full-ember": "node scripts/build-ember-base.js",
+    "build:no-ember-data": "node scripts/build-ember-base.js --exclude-ember-data",
+    "build:test-support": "node scripts/build-test-support.js",
+    "build:memserver": "node scripts/build-memserver.js",
+    "build:fastboot-modules": "node scripts/transpile-fastboot-modules.js",
     "build": "npm run build:loader && npm run build:ember-source && npm run build:full-ember && npm run build:no-ember-data && npm run build:test-support && npm run build:memserver && npm run build:fastboot-modules",
     "prepack": "npm run build",
-    "bin": "node --experimental-modules cli.js",
+    "bin": "node cli.js",
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
@@ -34,8 +34,9 @@
     "@ember-data/serializer": "3.16.0",
     "@ember-data/store": "3.16.0",
     "@ember/test-helpers": "1.7.1",
+    "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
-    "ava": "^2.4.0",
+    "ava": "^3.3.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.1",
     "ember-cli-test-loader": "^3.0.0",
@@ -46,7 +47,6 @@
     "ember-resolver": "^6.0.0",
     "ember-source": "3.16.1",
     "ember-test-waiters": "1.2.0",
-    "esm": "^3.2.25",
     "intercept-stdout": "^0.1.2",
     "loader.js": "^4.7.0",
     "mber-head": "^0.1.0",
@@ -93,7 +93,7 @@
     "jquery": "^3.4.1",
     "jsdom": "^16.1.0",
     "klaw": "^3.0.0",
-    "memserver": "^1.2.10",
+    "memserver": "^2.0.0-alpha12",
     "mustache": "^4.0.0",
     "node-fetch": "^2.6.0",
     "ora": "^4.0.2",
@@ -105,30 +105,24 @@
     "ws": "^7.2.1"
   },
   "ava": {
+    "nodeArguments": [
+      "--experimental-modules"
+    ],
     "files": [
-      "test/commands/*",
-      "test/runners/*",
-      "test/utils/*",
-      "test/builders/*",
-      "test/transpilers/*"
+      "test/**/*",
+      "!test/helpers/**/*"
     ],
-    "helpers": [
-      "test/helpers/*"
-    ],
-    "babel": {
-      "testOptions": {
-        "inputSourceMap": false,
-        "sourceMaps": false
-      }
-    },
     "require": [
-      "esm",
-      "./disable-colors"
+      "./vendor/disable-colors"
     ],
+    "timeout": "10m",
     "concurrency": 1,
     "failFast": true
   },
   "volta": {
-    "node": "12.4.0"
-  }
+    "node": "13.8.0"
+  },
+  "browserslist": [
+    "last 1 chrome version"
+  ]
 }

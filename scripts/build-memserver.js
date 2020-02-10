@@ -17,8 +17,8 @@ async function build() {
   return Promise.all([
     fs.readFile(`${MODULE_PATH}/whatwg-fetch/dist/fetch.umd.js`),
     transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),
-    transpileNPMImport('memserver', `${MODULE_PATH}/memserver/lib/mem-server-cjs.js`)
-  ]).then(async ([fetchReplacement, memServerModelModule, memServerModule]) => {
+    transpileNPMImport('memserver/server', `${MODULE_PATH}/memserver/server.js`)
+  ]).then(async ([fetchReplacement, memServerModelModule, memServerServerModule]) => {
     const memserverResponseModule = await convertESModuletoAMD(`
       export default function(statusCode=200, data={}, headers={}) {
         return [
@@ -29,7 +29,6 @@ async function build() {
       }
     `, { moduleName: 'memserver/response' });
 
-    // NOTE: cant remove fetch replacements because ember-fetch injection doesnt take into account the possiblity of fetch mocking in node.js
     return Promise.all([
       fs.copy(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
       fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
@@ -41,16 +40,10 @@ async function build() {
 
         ${memserverResponseModule}
 
-        ${memServerModule}
+        ${memServerServerModule}
       `)
     ])
   });
 }
 
 build().then(() => console.log('memserver.js built'));
-
-// NOTE: chalk adds thousands lines of code that isnt used
-// NOTE: node util adds strange code via browserify
-// NOTE: chalk gets add up twice
-// NOTE: node util, 'inflections' shit again
-// TODO: maybe minify this

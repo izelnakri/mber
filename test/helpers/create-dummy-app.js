@@ -1,13 +1,16 @@
 import fs from 'fs-extra';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const shell = promisify(exec);
 const CWD = process.cwd();
 
 // TODO: reset tmp and dist folders
 export default async function(appName = 'dummyapp') {
-  await shell(`node --experimental-modules ${CWD}/cli.js new ${appName}`);
+  await shell(`node ${CWD}/cli.js new ${appName}`);
 
   const TARGET_PROJECT_PATH = `${CWD}/${appName}`;
 

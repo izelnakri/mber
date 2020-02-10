@@ -1,12 +1,12 @@
 import fs from 'fs-extra';
 import test from 'ava';
 import WebSocket from 'ws';
-import applicationFilesWatcher from '../../lib/runners/application-files-watcher';
-import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app';
-import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
-import listenCurrentStdout from '../helpers/listen-current-stdout';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import WorkerPool from '../../lib/worker-pool';
+import applicationFilesWatcher from '../../lib/runners/application-files-watcher.js';
+import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app.js';
+import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
+import listenCurrentStdout from '../helpers/listen-current-stdout.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import WorkerPool from '../../lib/worker-pool/index.js';
 import {
   APPLICATION_CSS_BUILD_TIME_THRESHOLD,
   APPLICATION_JS_BUILD_TIME_THRESHOLD,
@@ -17,31 +17,31 @@ import {
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/dummyapp`;
 const DEFAULT_SOCKET_PORT = 65511;
-const DEFAULT_COMPONENT_JS = `
-  import Component from '@ember/component';
-  import { computed } from '@ember/object';
+const defaultComponentContent = (className) => `
+  import Component from '@glimmer/component';
 
-  export default Component.extend({
-    init() {
-      this._super(...args);
+  export default class ${className} extends Component {
+    constructor() {
+      super(...arguments);
     }
-  });`;
-const DEFAULT_EDITED_COMPONENT_JS = `
-import Component from '@ember/component';
+  }`;
+const defaultEditedComponentContent = (className) => `
+import Component from '@glimmer/component';
 
-export default Component.extend({
-  init() {
-    this._super(...args);
+export default class ${className} extends Component {
+  constructor() {
+    super(...arguments);
     console.log('there is edited code');
   }
-});`;
+}`;
 const DEFAULT_TEMPLATE_HBS = `<h1>in component template.hbs for test</h1>`;
-const DEFAULT_EDITED_MEMSERVER_MODEL_JS = `
+const defaultEditedMemserverModelContent = (modelName) => `
 import Model from 'memserver/model';
 
-export default Model({
-  modelEditPlaceholder: true
-});`;
+export default class ${modelName} extends Model {
+  static modelEditPlaceholder = true;
+}`;
+
 const DEFAULT_ACCEPTANCE_TEST_TO_ADD = `
 import { module, test } from 'qunit';
 import { visit, currentURL } from '@ember/test-helpers';
@@ -68,7 +68,7 @@ module('Integration | Component | welcome-page', function(hooks) {
   test('should render correctly', async function(assert) {
     assert.expect(1);
     console.log('this is added by this test');
-    await render(hbs\`{{welcome-page}}\`);
+    await render(hbs\`<WelcomePage/>\`);
 
     assert.ok(this.element.querySelector('#ember-welcome-page-id-selector'));
  });
@@ -88,11 +88,11 @@ ASLDASmdasmd{E{!R!@R}}
 `;
 const HBS_TYPO_ERROR = `
 <h1>This is mee
-{{another-component}}
+<AnotherComponent/>
 `;
 const HBS_SYNTAX_ERROR = `
 <h1>This is mee</h1>
-{{/another-component}}
+<AnotherComponent>
 `;
 
 test.beforeEach(async () => {
@@ -279,7 +279,7 @@ async function testCSSErrorHandlingWorks(t, stdout, environment) {
 }
 
 async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
-  await writeComponentCode('/welcome-page/component.ts', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/welcome-page/component.ts', defaultEditedComponentContent('WelcomePage'));
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 1);
@@ -309,8 +309,8 @@ async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
 
   t.true(firstContent === (await readApplicationJS()));
 
-  await writeComponentCode('/dummy-component/component.ts', DEFAULT_EDITED_COMPONENT_JS);
-  await writeComponentCode('/welcome-page/component.ts', DEFAULT_EDITED_COMPONENT_JS);
+  await writeComponentCode('/dummy-component/component.ts', defaultEditedComponentContent('DummyComponent'));
+  await writeComponentCode('/welcome-page/component.ts', defaultEditedComponentContent('WelcomePage'));
 
   t.true(getChangeNotificationCount(stdout, '/src/ui/components/welcome-page/component.ts') === 3);
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 5);
@@ -371,19 +371,19 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
 }
 
 async function testMemserverJSErrorHandlingWorks(t, stdout, environment) {
-  await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+  await writeMemServerCode('/models/user.ts', defaultEditedMemserverModelContent('User'));
 
-  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 1);
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 1);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
 
   const firstContent = await readMemServerJS();
 
-  t.true(occurrenceCount(firstContent, /modelEditPlaceholder: true/g) === 1);
+  t.true(occurrenceCount(firstContent, /modelEditPlaceholder = true/g) === 1);
 
-  await writeMemServerCode('/models/email.js', JS_TYPO_ERROR);
+  await writeMemServerCode('/models/email.ts', JS_TYPO_ERROR);
 
-  t.true(getAddNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getAddNotificationCount(stdout, '/memserver/models/email.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 2);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
 
@@ -395,9 +395,9 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment) {
 
   t.true(firstContent === (await readMemServerJS()));
 
-  await writeMemServerCode('/models/user.js', JS_FILE_ERROR);
+  await writeMemServerCode('/models/user.ts', JS_FILE_ERROR);
 
-  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.js') === 2);
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/user.ts') === 2);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 3);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 1);
   // t.true(stdoutOccurenceCount(stdout, /memserver\.js build error!/g) === 4);
@@ -405,16 +405,16 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment) {
 
   t.true(firstContent === (await readMemServerJS()));
 
-  await writeMemServerCode('/models/email.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
-  await writeMemServerCode('/models/user.js', DEFAULT_EDITED_MEMSERVER_MODEL_JS);
+  await writeMemServerCode('/models/email.ts', defaultEditedMemserverModelContent('Email'));
+  await writeMemServerCode('/models/user.ts', defaultEditedMemserverModelContent('User'));
 
-  t.true(getChangeNotificationCount(stdout, '/memserver/models/email.js') === 1);
+  t.true(getChangeNotificationCount(stdout, '/memserver/models/email.ts') === 1);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 5);
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', environment) === 2);
 
   const lastContent = await readMemServerJS();
 
-  t.true(occurrenceCount(lastContent, /modelEditPlaceholder: true/g) === 2);
+  t.true(occurrenceCount(lastContent, /modelEditPlaceholder = true/g) === 2);
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/memserver/models/email'));
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/memserver/models/user'));
 }
@@ -512,7 +512,7 @@ function writeCSSCode(path, content) {
 
 function writeComponentCode(
   path = '/dummy-component/component.ts',
-  content = DEFAULT_COMPONENT_JS
+  content = ''
 ) {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/src/ui/components${path}`, content);
@@ -521,7 +521,7 @@ function writeComponentCode(
   });
 }
 
-function writeMemServerCode(path, content = DEFAULT_EDITED_MEMSERVER_MODEL_JS) {
+function writeMemServerCode(path, content = '') {
   return new Promise(async (resolve) => {
     await fs.writeFile(`${PROJECT_ROOT}/memserver${path}`, content);
 

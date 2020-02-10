@@ -1,4 +1,4 @@
-#! /usr/bin/env -S node --experimental-modules
+#! /usr/bin/env node
 
 import chalk from 'ansi-colors';
 import Console from './lib/utils/console.js';

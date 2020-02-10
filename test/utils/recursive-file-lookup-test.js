@@ -1,6 +1,6 @@
 import test from 'ava';
 import fs from 'fs-extra';
-import lookup from '../../lib/utils/recursive-file-lookup';
+import lookup from '../../lib/utils/recursive-file-lookup.js';
 
 const CWD = process.cwd();
 

@@ -3,10 +3,10 @@ import { promisify } from 'util';
 import fs from 'fs-extra';
 import test from 'ava';
 import Puppeteer from 'puppeteer';
-import countTime from '../../lib/utils/count-time';
-import createDummyApp from '../helpers/create-dummy-app';
-import killProcessOnPort from '../helpers/kill-process-on-port';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import countTime from '../../lib/utils/count-time.js';
+import createDummyApp from '../helpers/create-dummy-app.js';
+import killProcessOnPort from '../helpers/kill-process-on-port.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 
 const CWD = process.cwd();
 const shell = promisify(exec);
@@ -37,7 +37,7 @@ test.serial('$ mber test -> runs successfully on ci mode', async (t) => {
   await createDummyApp();
 
   const counter = countTime();
-  const { stdout } = await shell(`node --experimental-modules ${CWD}/cli.js test`, {
+  const { stdout } = await shell(`node ${CWD}/cli.js test`, {
     cwd: PROJECT_ROOT
   });
   const timeTakenForTests = counter.stop();
@@ -80,7 +80,7 @@ test.serial('$ mber test -> fails successfully on ci mode', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
   const counter = countTime();
   const { exitCode, stdout, childProcess } = await spawnProcess(
-    `node --experimental-modules ${CWD}/cli.js test`,
+    `node ${CWD}/cli.js test`,
     {
       cwd: PROJECT_ROOT
     }
@@ -107,7 +107,7 @@ test.serial('$ mber test --server -> builds test files successfully', async (t) 
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout, childProcess } = await spawnProcess(
-    `node --experimental-modules ${CWD}/cli.js test --server`,
+    `node ${CWD}/cli.js test --server`,
     {
       cwd: PROJECT_ROOT
     }
@@ -138,7 +138,7 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout, childProcess } = await spawnProcess(
-    `node --experimental-modules ${CWD}/cli.js test --server`,
+    `node ${CWD}/cli.js test --server`,
     {
       cwd: PROJECT_ROOT
     }
@@ -249,7 +249,7 @@ test.serial(
 
     const mock = mockProcessCWD(PROJECT_ROOT);
     const { stdout, childProcess } = await spawnProcess(
-      `node --experimental-modules ${CWD}/cli.js test --server`,
+      `node ${CWD}/cli.js test --server`,
       {
         cwd: PROJECT_ROOT
       }

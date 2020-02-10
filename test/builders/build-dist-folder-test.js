@@ -1,16 +1,19 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import createDummyApp from '../helpers/create-dummy-app';
-import buildAssets from '../../lib/builders/build-assets';
-import buildDistFolder from '../../lib/builders/build-dist-folder';
-import countTime from '../../lib/utils/count-time';
-import WorkerPool from '../../lib/worker-pool';
-import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import createDummyApp from '../helpers/create-dummy-app.js';
+import buildAssets from '../../lib/builders/build-assets.js';
+import buildDistFolder from '../../lib/builders/build-dist-folder.js';
+import countTime from '../../lib/utils/count-time.js';
+import WorkerPool from '../../lib/worker-pool/index.js';
+import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/some-app`;
-const environmentFunc = require(`${CWD}/ember-app-boilerplate/config/environment.js`).default;
+const environmentFunc = async function(environment) {
+  const ENV = await import(`${CWD}/ember-app-boilerplate/config/environment.js`);
+  return ENV.default(environment);
+};
 const INITIAL_BUILD_FILES = ['application.css', 'application.js', 'vendor.js'];
 const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/index.html`;
 const TEST_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/tests.html`;
@@ -41,7 +44,7 @@ test.serial('buildDistFolder() works', async (t) => {
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
-  const ENV = environmentFunc('development');
+  const ENV = await environmentFunc('development');
 
   await buildAssets({
     applicationName: 'some-app',
@@ -126,7 +129,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   t.plan(50);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const ENV = environmentFunc('memserver');
+  const ENV = await environmentFunc('memserver');
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
@@ -220,7 +223,7 @@ test.serial('buildDistFolder() works for production', async (t) => {
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
-  const ENV = environmentFunc('production');
+  const ENV = await environmentFunc('production');
 
   await buildAssets({
     applicationName: 'some-app',
@@ -295,7 +298,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
 
   t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
 
-  const ENV = Object.assign({}, environmentFunc('memserver'), { modulePrefix: 'some-app' });
+  const ENV = Object.assign({}, await environmentFunc('memserver'), { modulePrefix: 'some-app' });
 
   await buildAssets({
     applicationName: 'some-app',
@@ -370,7 +373,7 @@ test.serial('buildDistFolder() resets dist', async (t) => {
   t.plan(3);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const ENV = environmentFunc('memserver');
+  const ENV = await environmentFunc('memserver');
 
   await fs.mkdirp(`${PROJECT_ROOT}/dist/assets`);
   await fs.writeFile(`${PROJECT_ROOT}/dist/assets/izel.js`, 'console.log("hello")');
