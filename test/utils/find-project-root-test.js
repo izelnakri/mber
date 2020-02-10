@@ -1,6 +1,10 @@
 import test from 'ava';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import findProjectRoot from '../../lib/utils/find-project-root';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import findProjectRoot from '../../lib/utils/find-project-root.js';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 test('findProjectRoot() works for current directory project', async (t) => {
   const currentDirectory = `${__dirname}/../../ember-app-boilerplate`;

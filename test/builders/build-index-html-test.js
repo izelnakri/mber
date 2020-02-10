@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import test from 'ava';
-import buildIndexHTML from '../../lib/builders/build-index-html';
-import mockProcessCWD from '../helpers/mock-process-cwd';
+import buildIndexHTML from '../../lib/builders/build-index-html.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;

@@ -26,7 +26,6 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.8.3",
     "@ember-data/adapter": "3.16.0",
     "@ember-data/debug": "^3.16.0",
     "@ember-data/model": "3.16.0",
@@ -36,7 +35,7 @@
     "@ember-data/store": "3.16.0",
     "@ember/test-helpers": "1.7.1",
     "@glimmer/resolver": "^0.4.3",
-    "ava": "^2.4.0",
+    "ava": "^3.3.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.1",
     "ember-cli-test-loader": "^3.0.0",
@@ -47,7 +46,6 @@
     "ember-resolver": "^6.0.0",
     "ember-source": "3.16.1",
     "ember-test-waiters": "1.2.0",
-    "esm": "^3.2.25",
     "intercept-stdout": "^0.1.2",
     "loader.js": "^4.7.0",
     "mber-head": "^0.1.0",
@@ -106,26 +104,17 @@
     "ws": "^7.2.1"
   },
   "ava": {
+    "nodeArguments": [
+      "--experimental-modules"
+    ],
     "files": [
-      "test/commands/*",
-      "test/runners/*",
-      "test/utils/*",
-      "test/builders/*",
-      "test/transpilers/*"
+      "test/**/*",
+      "!test/helpers/**/*"
     ],
-    "helpers": [
-      "test/helpers/*"
-    ],
-    "babel": {
-      "testOptions": {
-        "inputSourceMap": false,
-        "sourceMaps": false
-      }
-    },
     "require": [
-      "esm",
       "./vendor/disable-colors"
     ],
+    "timeout": "10m",
     "concurrency": 1,
     "failFast": true
   },

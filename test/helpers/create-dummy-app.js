@@ -1,7 +1,10 @@
 import fs from 'fs-extra';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const shell = promisify(exec);
 const CWD = process.cwd();
 

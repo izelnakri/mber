@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
-import findProjectRoot from '../../lib/utils/find-project-root';
-import createDummyApp from './create-dummy-app';
+import findProjectRoot from '../../lib/utils/find-project-root.js';
+import createDummyApp from './create-dummy-app.js';
 
 export default async function(appName = 'dummyapp', options = { memserver: false }) {
   const PROJECT_ROOT = await findProjectRoot();
@@ -58,16 +58,16 @@ export default async function(appName = 'dummyapp', options = { memserver: false
           options.memserver
             ? [
                 fs.writeFile(
-                  `${APP_ROOT}/memserver/models/user.js`,
+                  `${APP_ROOT}/memserver/models/user.ts`,
                   `
           import Model from 'memserver/model';
 
-          export default Model({
-          });
+          export default class User extends Model {
+          }
         `
                 ),
                 fs.writeFile(
-                  `${APP_ROOT}/memserver/fixtures/users.js`,
+                  `${APP_ROOT}/memserver/fixtures/users.ts`,
                   `
           export default [
             {
@@ -91,15 +91,38 @@ export default async function(appName = 'dummyapp', options = { memserver: false
           ];
         `
                 ),
+                fs.writeFile(`${APP_ROOT}/memserver/initializer.ts`, `
+          import users from './fixtures/users';
+          import User from './models/user';
+
+          export default function() {
+            User.resetDatabase(users);
+          }
+                `),
+                fs.writeFile(`${APP_ROOT}/memserver/index.ts`, `
+          import Memserver from "memserver/server";
+          import initializer from "./initializer";
+          import routes from "./routes";
+
+          const MemServer = new Memserver({
+            globalizeModels: true,
+            initializer: initializer,
+            routes: routes
+          });
+
+          window.Memserver = Memserver;
+          window.MemServer = MemServer;
+
+          export default MemServer;
+                `),
                 fs.writeFile(
-                  `${APP_ROOT}/memserver/server.js`,
+                  `${APP_ROOT}/memserver/routes.ts`,
                   `
           import ENV from '../config/environment';
+          import User from './models/user';
           import Response from 'memserver/response';
 
-          export default function(Models) {
-            const { User } = Models;
-
+          export default function() {
             this.urlPrefix = ENV.APP ? ENV.APP.API_HOST : 'http://localhost:3000';
 
             this.get('/users', ({ queryParams }) => {

@@ -1,15 +1,15 @@
 import test from 'ava';
 import fs from 'fs-extra';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import codeIncludesAMDModule from '../helpers/code-includes-amd-module';
-import codeHasWatchSocket from '../helpers/code-has-watch-socket';
-import buildVendor from '../../lib/builders/build-vendor';
-import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
-import WorkerPool from '../../lib/worker-pool';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
+import codeHasWatchSocket from '../helpers/code-has-watch-socket.js';
+import buildVendor from '../../lib/builders/build-vendor.js';
+import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
+import WorkerPool from '../../lib/worker-pool/index.js';
 import {
   VENDOR_JS_BUILD_TIME_THRESHOLD,
   VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD
-} from '../helpers/asset-build-thresholds';
+} from '../helpers/asset-build-thresholds.js';
 import {
   DEFAULT_VENDOR_JS_TARGET_BYTE_SIZE,
   DEFAULT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE,
@@ -19,7 +19,7 @@ import {
   NO_EMBER_DATA_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE,
   NO_EMBER_DATA_FASTBOOT_VENDOR_JS_TARGET_BYTE_SIZE,
   NO_EMBER_DATA_FASTBOOT_VENDOR_JS_COMPRESSED_TARGET_BYTE_SIZE
-} from '../helpers/asset-sizes';
+} from '../helpers/asset-sizes.js';
 
 const CWD = process.cwd();
 const VENDOR_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/vendor.js`;

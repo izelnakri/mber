@@ -1,12 +1,12 @@
 import test from 'ava';
 import fs from 'fs-extra';
-import injectBrowserToNode from '../../lib/utils/inject-browser-to-node';
-import mockProcessCWD from '../helpers/mock-process-cwd';
-import buildApplication from '../../lib/builders/build-application';
-import buildVendor from '../../lib/builders/build-vendor';
-import buildCSS from '../../lib/builders/build-css';
-import startHTTPServer from '../../lib/runners/start-http-server';
-import WorkerPool from '../../lib/worker-pool';
+import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
+import mockProcessCWD from '../helpers/mock-process-cwd.js';
+import buildApplication from '../../lib/builders/build-application.js';
+import buildVendor from '../../lib/builders/build-vendor.js';
+import buildCSS from '../../lib/builders/build-css.js';
+import startHTTPServer from '../../lib/runners/start-http-server.js';
+import WorkerPool from '../../lib/worker-pool/index.js';
 
 const CWD = process.cwd();
 
