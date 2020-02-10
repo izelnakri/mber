@@ -19462,7 +19462,7 @@ var pretenderHacks = createCommonjsModule(function (module, exports) {
   ["get", "put", "post", "delete"].forEach(verb => {
     window.Pretender.prototype[verb] = function (path, handler, async) {
       const fullPath = (this.urlPrefix || "") + (this.namespace ? "/" + this.namespace : "") + path;
-      const targetHandler = handler || getDefaultRouteHandler(verb.toUpperCase(), fullPath);
+      const targetHandler = handler || getDefaultRouteHandler(verb.toUpperCase(), fullPath, this);
       const timing = async ? async.timing || this.timing : this.timing; // console.log('timing is', timing);
       // console.log('async is', async);
 
@@ -19470,13 +19470,13 @@ var pretenderHacks = createCommonjsModule(function (module, exports) {
     };
   }); // END: Pretender REST default hack: For better UX
 
-  function getDefaultRouteHandler(verb, path) {
+  function getDefaultRouteHandler(verb, path, context) {
     const paths = path.split(/\//g);
     const lastPath = paths[paths.length - 1];
     const pluralResourceName = lastPath.includes(":") ? paths[paths.length - 2] : lastPath;
     const resourceName = emberInflector.singularize(pluralResourceName);
-
-    const ResourceModel = model_1.default._modelDefinitions[string$1.classify(resourceName)];
+    const resourceClassName = string$1.classify(resourceName);
+    const ResourceModel = model_1.default._modelDefinitions[resourceClassName] || context.Models[resourceClassName];
 
     if (!ResourceModel) {
       throw new Error(ansi_colors_1.default.red(`[Memserver] ${verb} ${path} route handler cannot be generated automatically: ${string$1.classify(resourceName)} is not on your window.${string$1.classify(resourceName)}, also please check that your route name matches the model reference or create a custom handler function`));
@@ -19545,6 +19545,8 @@ var server = createCommonjsModule(function (module, exports) {
     constructor(options = {
       logging: true
     }) {
+      this.Models = {};
+
       const initializer = options.initializer || async function () {};
 
       const routes = options.routes || function () {};
@@ -19553,29 +19555,28 @@ var server = createCommonjsModule(function (module, exports) {
       const initializerReturn = initializer();
       const Model = window.MemserverModel || model_1.default;
       window.MemserverModel = Model;
-      window.MemServer = this;
 
       if (initializerReturn instanceof Promise) {
         initializerReturn.then(() => {
           if (options.globalizeModels) {
-            window.MemServer.Models = {};
             Object.keys(Model._modelDefinitions).forEach(modelName => {
-              window.MemServer.Models[modelName] = Model._modelDefinitions[modelName];
+              this.Models[modelName] = Model._modelDefinitions[modelName];
             });
           }
         });
       } else {
         if (options.globalizeModels) {
-          window.MemServer.Models = {};
           Object.keys(Model._modelDefinitions).forEach(modelName => {
-            window.MemServer.Models[modelName] = Model._modelDefinitions[modelName];
+            this.Models[modelName] = Model._modelDefinitions[modelName];
           });
         }
       }
 
-      return startPretender(routes, Object.assign(options, {
+      window.MemServer = startPretender(routes, Object.assign(options, {
         logging
       }));
+      window.MemServer.Models = this.Models;
+      return window.MemServer;
     }
 
   }
