@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -93,7 +93,7 @@
     "jquery": "^3.4.1",
     "jsdom": "^16.1.0",
     "klaw": "^3.0.0",
-    "memserver": "^2.0.0-alpha12",
+    "memserver": "^2.0.1",
     "mustache": "^4.0.0",
     "node-fetch": "^2.6.0",
     "ora": "^4.0.2",

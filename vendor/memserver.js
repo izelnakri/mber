@@ -19551,20 +19551,24 @@ var server = createCommonjsModule(function (module, exports) {
 
       const logging = options.hasOwnProperty("logging") ? options.logging : true;
       const initializerReturn = initializer();
-      window.MemserverModel = model_1.default;
+      const Model = window.MemserverModel || model_1.default;
+      window.MemserverModel = Model;
+      window.MemServer = this;
 
       if (initializerReturn instanceof Promise) {
         initializerReturn.then(() => {
           if (options.globalizeModels) {
-            Object.keys(model_1.default._modelDefinitions).forEach(modelName => {
-              window[modelName] = model_1.default._modelDefinitions[modelName];
+            window.MemServer.Models = {};
+            Object.keys(Model._modelDefinitions).forEach(modelName => {
+              window.MemServer.Models[modelName] = Model._modelDefinitions[modelName];
             });
           }
         });
       } else {
         if (options.globalizeModels) {
-          Object.keys(model_1.default._modelDefinitions).forEach(modelName => {
-            window[modelName] = model_1.default._modelDefinitions[modelName];
+          window.MemServer.Models = {};
+          Object.keys(Model._modelDefinitions).forEach(modelName => {
+            window.MemServer.Models[modelName] = Model._modelDefinitions[modelName];
           });
         }
       }
