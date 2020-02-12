@@ -10441,793 +10441,6 @@ function createCommonjsModule(fn, module) {
   }, fn(module, module.exports), module.exports;
 }
 
-var symbols = createCommonjsModule(function (module) {
-  const isHyper = process.env.TERM_PROGRAM === 'Hyper';
-  const isWindows = process.platform === 'win32';
-  const isLinux = process.platform === 'linux';
-  const common = {
-    ballotDisabled: '☒',
-    ballotOff: '☐',
-    ballotOn: '☑',
-    bullet: '•',
-    bulletWhite: '◦',
-    fullBlock: '█',
-    heart: '❤',
-    identicalTo: '≡',
-    line: '─',
-    mark: '※',
-    middot: '·',
-    minus: '－',
-    multiplication: '×',
-    obelus: '÷',
-    pencilDownRight: '✎',
-    pencilRight: '✏',
-    pencilUpRight: '✐',
-    percent: '%',
-    pilcrow2: '❡',
-    pilcrow: '¶',
-    plusMinus: '±',
-    section: '§',
-    starsOff: '☆',
-    starsOn: '★',
-    upDownArrow: '↕'
-  };
-  const windows = Object.assign({}, common, {
-    check: '√',
-    cross: '×',
-    ellipsisLarge: '...',
-    ellipsis: '...',
-    info: 'i',
-    question: '?',
-    questionSmall: '?',
-    pointer: '>',
-    pointerSmall: '»',
-    radioOff: '( )',
-    radioOn: '(*)',
-    warning: '‼'
-  });
-  const other = Object.assign({}, common, {
-    ballotCross: '✘',
-    check: '✔',
-    cross: '✖',
-    ellipsisLarge: '⋯',
-    ellipsis: '…',
-    info: 'ℹ',
-    question: '?',
-    questionFull: '？',
-    questionSmall: '﹖',
-    pointer: isLinux ? '▸' : '❯',
-    pointerSmall: isLinux ? '‣' : '›',
-    radioOff: '◯',
-    radioOn: '◉',
-    warning: '⚠'
-  });
-  module.exports = isWindows && !isHyper ? windows : other;
-  Reflect.defineProperty(module.exports, 'common', {
-    enumerable: false,
-    value: common
-  });
-  Reflect.defineProperty(module.exports, 'windows', {
-    enumerable: false,
-    value: windows
-  });
-  Reflect.defineProperty(module.exports, 'other', {
-    enumerable: false,
-    value: other
-  });
-});
-
-const isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
-/* eslint-disable no-control-regex */
-// this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
-
-
-const ANSI_REGEX = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g;
-
-const create = () => {
-  const colors = {
-    enabled: true,
-    visible: true,
-    styles: {},
-    keys: {}
-  };
-
-  if ('FORCE_COLOR' in process.env) {
-    colors.enabled = process.env.FORCE_COLOR !== '0';
-  }
-
-  const ansi = style => {
-    let open = style.open = `\u001b[${style.codes[0]}m`;
-    let close = style.close = `\u001b[${style.codes[1]}m`;
-    let regex = style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
-
-    style.wrap = (input, newline) => {
-      if (input.includes(close)) input = input.replace(regex, close + open);
-      let output = open + input + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
-      // chalk contributors for this fix. However, we've confirmed that
-      // this issue is also present in Windows terminals
-
-      return newline ? output.replace(/\r*\n/g, `${close}$&${open}`) : output;
-    };
-
-    return style;
-  };
-
-  const wrap = (style, input, newline) => {
-    return typeof style === 'function' ? style(input) : style.wrap(input, newline);
-  };
-
-  const style = (input, stack) => {
-    if (input === '' || input == null) return '';
-    if (colors.enabled === false) return input;
-    if (colors.visible === false) return '';
-    let str = '' + input;
-    let nl = str.includes('\n');
-    let n = stack.length;
-
-    if (n > 0 && stack.includes('unstyle')) {
-      stack = [...new Set(['unstyle', ...stack])].reverse();
-    }
-
-    while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
-
-    return str;
-  };
-
-  const define = (name, codes, type) => {
-    colors.styles[name] = ansi({
-      name,
-      codes
-    });
-    let keys = colors.keys[type] || (colors.keys[type] = []);
-    keys.push(name);
-    Reflect.defineProperty(colors, name, {
-      configurable: true,
-      enumerable: true,
-
-      set(value) {
-        colors.alias(name, value);
-      },
-
-      get() {
-        let color = input => style(input, color.stack);
-
-        Reflect.setPrototypeOf(color, colors);
-        color.stack = this.stack ? this.stack.concat(name) : [name];
-        return color;
-      }
-
-    });
-  };
-
-  define('reset', [0, 0], 'modifier');
-  define('bold', [1, 22], 'modifier');
-  define('dim', [2, 22], 'modifier');
-  define('italic', [3, 23], 'modifier');
-  define('underline', [4, 24], 'modifier');
-  define('inverse', [7, 27], 'modifier');
-  define('hidden', [8, 28], 'modifier');
-  define('strikethrough', [9, 29], 'modifier');
-  define('black', [30, 39], 'color');
-  define('red', [31, 39], 'color');
-  define('green', [32, 39], 'color');
-  define('yellow', [33, 39], 'color');
-  define('blue', [34, 39], 'color');
-  define('magenta', [35, 39], 'color');
-  define('cyan', [36, 39], 'color');
-  define('white', [37, 39], 'color');
-  define('gray', [90, 39], 'color');
-  define('grey', [90, 39], 'color');
-  define('bgBlack', [40, 49], 'bg');
-  define('bgRed', [41, 49], 'bg');
-  define('bgGreen', [42, 49], 'bg');
-  define('bgYellow', [43, 49], 'bg');
-  define('bgBlue', [44, 49], 'bg');
-  define('bgMagenta', [45, 49], 'bg');
-  define('bgCyan', [46, 49], 'bg');
-  define('bgWhite', [47, 49], 'bg');
-  define('blackBright', [90, 39], 'bright');
-  define('redBright', [91, 39], 'bright');
-  define('greenBright', [92, 39], 'bright');
-  define('yellowBright', [93, 39], 'bright');
-  define('blueBright', [94, 39], 'bright');
-  define('magentaBright', [95, 39], 'bright');
-  define('cyanBright', [96, 39], 'bright');
-  define('whiteBright', [97, 39], 'bright');
-  define('bgBlackBright', [100, 49], 'bgBright');
-  define('bgRedBright', [101, 49], 'bgBright');
-  define('bgGreenBright', [102, 49], 'bgBright');
-  define('bgYellowBright', [103, 49], 'bgBright');
-  define('bgBlueBright', [104, 49], 'bgBright');
-  define('bgMagentaBright', [105, 49], 'bgBright');
-  define('bgCyanBright', [106, 49], 'bgBright');
-  define('bgWhiteBright', [107, 49], 'bgBright');
-  colors.ansiRegex = ANSI_REGEX;
-
-  colors.hasColor = colors.hasAnsi = str => {
-    colors.ansiRegex.lastIndex = 0;
-    return typeof str === 'string' && str !== '' && colors.ansiRegex.test(str);
-  };
-
-  colors.alias = (name, color) => {
-    let fn = typeof color === 'string' ? colors[color] : color;
-
-    if (typeof fn !== 'function') {
-      throw new TypeError('Expected alias to be the name of an existing color (string) or a function');
-    }
-
-    if (!fn.stack) {
-      Reflect.defineProperty(fn, 'name', {
-        value: name
-      });
-      colors.styles[name] = fn;
-      fn.stack = [name];
-    }
-
-    Reflect.defineProperty(colors, name, {
-      configurable: true,
-      enumerable: true,
-
-      set(value) {
-        colors.alias(name, value);
-      },
-
-      get() {
-        let color = input => style(input, color.stack);
-
-        Reflect.setPrototypeOf(color, colors);
-        color.stack = this.stack ? this.stack.concat(fn.stack) : fn.stack;
-        return color;
-      }
-
-    });
-  };
-
-  colors.theme = custom => {
-    if (!isObject(custom)) throw new TypeError('Expected theme to be an object');
-
-    for (let name of Object.keys(custom)) {
-      colors.alias(name, custom[name]);
-    }
-
-    return colors;
-  };
-
-  colors.alias('unstyle', str => {
-    if (typeof str === 'string' && str !== '') {
-      colors.ansiRegex.lastIndex = 0;
-      return str.replace(colors.ansiRegex, '');
-    }
-
-    return '';
-  });
-  colors.alias('noop', str => str);
-  colors.none = colors.clear = colors.noop;
-  colors.stripColor = colors.unstyle;
-  colors.symbols = symbols;
-  colors.define = define;
-  return colors;
-};
-
-var ansiColors = create();
-var create_1 = create;
-ansiColors.create = create_1;
-var fake_xml_http_request = createCommonjsModule(function (module, exports) {
-  (function (global, factory) {
-    module.exports = factory();
-  })(commonjsGlobal, function () {
-    /**
-     * Minimal Event interface implementation
-     *
-     * Original implementation by Sven Fuchs: https://gist.github.com/995028
-     * Modifications and tests by Christian Johansen.
-     *
-     * @author Sven Fuchs (svenfuchs@artweb-design.de)
-     * @author Christian Johansen (christian@cjohansen.no)
-     * @license BSD
-     *
-     * Copyright (c) 2011 Sven Fuchs, Christian Johansen
-     */
-    var _Event = function Event(type, bubbles, cancelable, target) {
-      this.type = type;
-      this.bubbles = bubbles;
-      this.cancelable = cancelable;
-      this.target = target;
-    };
-
-    _Event.prototype = {
-      stopPropagation: function () {},
-      preventDefault: function () {
-        this.defaultPrevented = true;
-      }
-    };
-    /*
-      Used to set the statusText property of an xhr object
-    */
-
-    var httpStatusCodes = {
-      100: "Continue",
-      101: "Switching Protocols",
-      200: "OK",
-      201: "Created",
-      202: "Accepted",
-      203: "Non-Authoritative Information",
-      204: "No Content",
-      205: "Reset Content",
-      206: "Partial Content",
-      300: "Multiple Choice",
-      301: "Moved Permanently",
-      302: "Found",
-      303: "See Other",
-      304: "Not Modified",
-      305: "Use Proxy",
-      307: "Temporary Redirect",
-      400: "Bad Request",
-      401: "Unauthorized",
-      402: "Payment Required",
-      403: "Forbidden",
-      404: "Not Found",
-      405: "Method Not Allowed",
-      406: "Not Acceptable",
-      407: "Proxy Authentication Required",
-      408: "Request Timeout",
-      409: "Conflict",
-      410: "Gone",
-      411: "Length Required",
-      412: "Precondition Failed",
-      413: "Request Entity Too Large",
-      414: "Request-URI Too Long",
-      415: "Unsupported Media Type",
-      416: "Requested Range Not Satisfiable",
-      417: "Expectation Failed",
-      422: "Unprocessable Entity",
-      500: "Internal Server Error",
-      501: "Not Implemented",
-      502: "Bad Gateway",
-      503: "Service Unavailable",
-      504: "Gateway Timeout",
-      505: "HTTP Version Not Supported"
-    };
-    /*
-      Cross-browser XML parsing. Used to turn
-      XML responses into Document objects
-      Borrowed from JSpec
-    */
-
-    function parseXML(text) {
-      var xmlDoc;
-
-      if (typeof DOMParser != "undefined") {
-        var parser = new DOMParser();
-        xmlDoc = parser.parseFromString(text, "text/xml");
-      } else {
-        xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
-        xmlDoc.async = "false";
-        xmlDoc.loadXML(text);
-      }
-
-      return xmlDoc;
-    }
-    /*
-      Without mocking, the native XMLHttpRequest object will throw
-      an error when attempting to set these headers. We match this behavior.
-    */
-
-
-    var unsafeHeaders = {
-      "Accept-Charset": true,
-      "Accept-Encoding": true,
-      "Connection": true,
-      "Content-Length": true,
-      "Cookie": true,
-      "Cookie2": true,
-      "Content-Transfer-Encoding": true,
-      "Date": true,
-      "Expect": true,
-      "Host": true,
-      "Keep-Alive": true,
-      "Referer": true,
-      "TE": true,
-      "Trailer": true,
-      "Transfer-Encoding": true,
-      "Upgrade": true,
-      "User-Agent": true,
-      "Via": true
-    };
-    /*
-      Adds an "event" onto the fake xhr object
-      that just calls the same-named method. This is
-      in case a library adds callbacks for these events.
-    */
-
-    function _addEventListener(eventName, xhr) {
-      xhr.addEventListener(eventName, function (event) {
-        var listener = xhr["on" + eventName];
-
-        if (listener && typeof listener == "function") {
-          listener.call(event.target, event);
-        }
-      });
-    }
-
-    function EventedObject() {
-      this._eventListeners = {};
-      var events = ["loadstart", "progress", "load", "abort", "loadend"];
-
-      for (var i = events.length - 1; i >= 0; i--) {
-        _addEventListener(events[i], this);
-      }
-    }
-
-    EventedObject.prototype = {
-      /*
-        Duplicates the behavior of native XMLHttpRequest's addEventListener function
-      */
-      addEventListener: function addEventListener(event, listener) {
-        this._eventListeners[event] = this._eventListeners[event] || [];
-
-        this._eventListeners[event].push(listener);
-      },
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's removeEventListener function
-      */
-      removeEventListener: function removeEventListener(event, listener) {
-        var listeners = this._eventListeners[event] || [];
-
-        for (var i = 0, l = listeners.length; i < l; ++i) {
-          if (listeners[i] == listener) {
-            return listeners.splice(i, 1);
-          }
-        }
-      },
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's dispatchEvent function
-      */
-      dispatchEvent: function dispatchEvent(event) {
-        var type = event.type;
-        var listeners = this._eventListeners[type] || [];
-
-        for (var i = 0; i < listeners.length; i++) {
-          if (typeof listeners[i] == "function") {
-            listeners[i].call(this, event);
-          } else {
-            listeners[i].handleEvent(event);
-          }
-        }
-
-        return !!event.defaultPrevented;
-      },
-
-      /*
-        Triggers an `onprogress` event with the given parameters.
-      */
-      _progress: function _progress(lengthComputable, loaded, total) {
-        var event = new _Event('progress');
-        event.target = this;
-        event.lengthComputable = lengthComputable;
-        event.loaded = loaded;
-        event.total = total;
-        this.dispatchEvent(event);
-      }
-    };
-    /*
-      Constructor for a fake window.XMLHttpRequest
-    */
-
-    function FakeXMLHttpRequest() {
-      EventedObject.call(this);
-      this.readyState = FakeXMLHttpRequest.UNSENT;
-      this.requestHeaders = {};
-      this.requestBody = null;
-      this.status = 0;
-      this.statusText = "";
-      this.upload = new EventedObject();
-    }
-
-    FakeXMLHttpRequest.prototype = new EventedObject(); // These status codes are available on the native XMLHttpRequest
-    // object, so we match that here in case a library is relying on them.
-
-    FakeXMLHttpRequest.UNSENT = 0;
-    FakeXMLHttpRequest.OPENED = 1;
-    FakeXMLHttpRequest.HEADERS_RECEIVED = 2;
-    FakeXMLHttpRequest.LOADING = 3;
-    FakeXMLHttpRequest.DONE = 4;
-    var FakeXMLHttpRequestProto = {
-      UNSENT: 0,
-      OPENED: 1,
-      HEADERS_RECEIVED: 2,
-      LOADING: 3,
-      DONE: 4,
-      async: true,
-      withCredentials: false,
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's open function
-      */
-      open: function open(method, url, async, username, password) {
-        this.method = method;
-        this.url = url;
-        this.async = typeof async == "boolean" ? async : true;
-        this.username = username;
-        this.password = password;
-        this.responseText = null;
-        this.response = this.responseText;
-        this.responseXML = null;
-        this.responseURL = url;
-        this.requestHeaders = {};
-        this.sendFlag = false;
-
-        this._readyStateChange(FakeXMLHttpRequest.OPENED);
-      },
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's setRequestHeader function
-      */
-      setRequestHeader: function setRequestHeader(header, value) {
-        verifyState(this);
-
-        if (unsafeHeaders[header] || /^(Sec-|Proxy-)/.test(header)) {
-          throw new Error("Refused to set unsafe header \"" + header + "\"");
-        }
-
-        if (this.requestHeaders[header]) {
-          this.requestHeaders[header] += "," + value;
-        } else {
-          this.requestHeaders[header] = value;
-        }
-      },
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's send function
-      */
-      send: function send(data) {
-        verifyState(this);
-
-        if (!/^(get|head)$/i.test(this.method)) {
-          var hasContentTypeHeader = false;
-          Object.keys(this.requestHeaders).forEach(function (key) {
-            if (key.toLowerCase() === 'content-type') {
-              hasContentTypeHeader = true;
-            }
-          });
-
-          if (!hasContentTypeHeader && !(data || '').toString().match('FormData')) {
-            this.requestHeaders["Content-Type"] = "text/plain;charset=UTF-8";
-          }
-
-          this.requestBody = data;
-        }
-
-        this.errorFlag = false;
-        this.sendFlag = this.async;
-
-        this._readyStateChange(FakeXMLHttpRequest.OPENED);
-
-        if (typeof this.onSend == "function") {
-          this.onSend(this);
-        }
-
-        this.dispatchEvent(new _Event("loadstart", false, false, this));
-      },
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's abort function
-      */
-      abort: function abort() {
-        this.aborted = true;
-        this.responseText = null;
-        this.response = this.responseText;
-        this.errorFlag = true;
-        this.requestHeaders = {};
-        this.dispatchEvent(new _Event("abort", false, false, this));
-
-        if (this.readyState > FakeXMLHttpRequest.UNSENT && this.sendFlag) {
-          this._readyStateChange(FakeXMLHttpRequest.UNSENT);
-
-          this.sendFlag = false;
-        }
-
-        if (typeof this.onerror === "function") {
-          this.onerror();
-        }
-      },
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's getResponseHeader function
-      */
-      getResponseHeader: function getResponseHeader(header) {
-        if (this.readyState < FakeXMLHttpRequest.HEADERS_RECEIVED) {
-          return null;
-        }
-
-        if (/^Set-Cookie2?$/i.test(header)) {
-          return null;
-        }
-
-        header = header.toLowerCase();
-
-        for (var h in this.responseHeaders) {
-          if (h.toLowerCase() == header) {
-            return this.responseHeaders[h];
-          }
-        }
-
-        return null;
-      },
-
-      /*
-        Duplicates the behavior of native XMLHttpRequest's getAllResponseHeaders function
-      */
-      getAllResponseHeaders: function getAllResponseHeaders() {
-        if (this.readyState < FakeXMLHttpRequest.HEADERS_RECEIVED) {
-          return "";
-        }
-
-        var headers = "";
-
-        for (var header in this.responseHeaders) {
-          if (this.responseHeaders.hasOwnProperty(header) && !/^Set-Cookie2?$/i.test(header)) {
-            headers += header + ": " + this.responseHeaders[header] + "\r\n";
-          }
-        }
-
-        return headers;
-      },
-
-      /*
-       Duplicates the behavior of native XMLHttpRequest's overrideMimeType function
-       */
-      overrideMimeType: function overrideMimeType(mimeType) {
-        if (typeof mimeType === "string") {
-          this.forceMimeType = mimeType.toLowerCase();
-        }
-      },
-
-      /*
-        Places a FakeXMLHttpRequest object into the passed
-        state.
-      */
-      _readyStateChange: function _readyStateChange(state) {
-        this.readyState = state;
-
-        if (typeof this.onreadystatechange == "function") {
-          this.onreadystatechange(new _Event("readystatechange"));
-        }
-
-        this.dispatchEvent(new _Event("readystatechange"));
-
-        if (this.readyState == FakeXMLHttpRequest.DONE) {
-          this.dispatchEvent(new _Event("load", false, false, this));
-        }
-
-        if (this.readyState == FakeXMLHttpRequest.UNSENT || this.readyState == FakeXMLHttpRequest.DONE) {
-          this.dispatchEvent(new _Event("loadend", false, false, this));
-        }
-      },
-
-      /*
-        Sets the FakeXMLHttpRequest object's response headers and
-        places the object into readyState 2
-      */
-      _setResponseHeaders: function _setResponseHeaders(headers) {
-        this.responseHeaders = {};
-
-        for (var header in headers) {
-          if (headers.hasOwnProperty(header)) {
-            this.responseHeaders[header] = headers[header];
-          }
-        }
-
-        if (this.forceMimeType) {
-          this.responseHeaders['Content-Type'] = this.forceMimeType;
-        }
-
-        if (this.async) {
-          this._readyStateChange(FakeXMLHttpRequest.HEADERS_RECEIVED);
-        } else {
-          this.readyState = FakeXMLHttpRequest.HEADERS_RECEIVED;
-        }
-      },
-
-      /*
-        Sets the FakeXMLHttpRequest object's response body and
-        if body text is XML, sets responseXML to parsed document
-        object
-      */
-      _setResponseBody: function _setResponseBody(body) {
-        verifyRequestSent(this);
-        verifyHeadersReceived(this);
-        verifyResponseBodyType(body);
-        var chunkSize = this.chunkSize || 10;
-        var index = 0;
-        this.responseText = "";
-        this.response = this.responseText;
-
-        do {
-          if (this.async) {
-            this._readyStateChange(FakeXMLHttpRequest.LOADING);
-          }
-
-          this.responseText += body.substring(index, index + chunkSize);
-          this.response = this.responseText;
-          index += chunkSize;
-        } while (index < body.length);
-
-        var type = this.getResponseHeader("Content-Type");
-
-        if (this.responseText && (!type || /(text\/xml)|(application\/xml)|(\+xml)/.test(type))) {
-          try {
-            this.responseXML = parseXML(this.responseText);
-          } catch (e) {// Unable to parse XML - no biggie
-          }
-        }
-
-        if (this.async) {
-          this._readyStateChange(FakeXMLHttpRequest.DONE);
-        } else {
-          this.readyState = FakeXMLHttpRequest.DONE;
-        }
-      },
-
-      /*
-        Forces a response on to the FakeXMLHttpRequest object.
-         This is the public API for faking responses. This function
-        takes a number status, headers object, and string body:
-         ```
-        xhr.respond(404, {Content-Type: 'text/plain'}, "Sorry. This object was not found.")
-         ```
-      */
-      respond: function respond(status, headers, body) {
-        this._setResponseHeaders(headers || {});
-
-        this.status = typeof status == "number" ? status : 200;
-        this.statusText = httpStatusCodes[this.status];
-
-        this._setResponseBody(body || "");
-      }
-    };
-
-    for (var property in FakeXMLHttpRequestProto) {
-      FakeXMLHttpRequest.prototype[property] = FakeXMLHttpRequestProto[property];
-    }
-
-    function verifyState(xhr) {
-      if (xhr.readyState !== FakeXMLHttpRequest.OPENED) {
-        throw new Error("INVALID_STATE_ERR");
-      }
-
-      if (xhr.sendFlag) {
-        throw new Error("INVALID_STATE_ERR");
-      }
-    }
-
-    function verifyRequestSent(xhr) {
-      if (xhr.readyState == FakeXMLHttpRequest.DONE) {
-        throw new Error("Request done");
-      }
-    }
-
-    function verifyHeadersReceived(xhr) {
-      if (xhr.async && xhr.readyState != FakeXMLHttpRequest.HEADERS_RECEIVED) {
-        throw new Error("No headers received");
-      }
-    }
-
-    function verifyResponseBodyType(body) {
-      if (typeof body != "string") {
-        var error = new Error("Attempted to respond to fake XMLHttpRequest with " + body + ", which is not a string.");
-        error.name = "InvalidBodyException";
-        throw error;
-      }
-    }
-
-    var fake_xml_http_request = FakeXMLHttpRequest;
-    return fake_xml_http_request;
-  });
-});
-
 var isBuffer = function isBuffer(arg) {
   return arg instanceof Buffer;
 };
@@ -11879,6 +11092,277 @@ var util_19 = util.isBuffer;
 var util_20 = util.log;
 var util_21 = util.inherits;
 var util_22 = util._extend;
+var symbols = createCommonjsModule(function (module) {
+  const isHyper = process.env.TERM_PROGRAM === 'Hyper';
+  const isWindows = process.platform === 'win32';
+  const isLinux = process.platform === 'linux';
+  const common = {
+    ballotDisabled: '☒',
+    ballotOff: '☐',
+    ballotOn: '☑',
+    bullet: '•',
+    bulletWhite: '◦',
+    fullBlock: '█',
+    heart: '❤',
+    identicalTo: '≡',
+    line: '─',
+    mark: '※',
+    middot: '·',
+    minus: '－',
+    multiplication: '×',
+    obelus: '÷',
+    pencilDownRight: '✎',
+    pencilRight: '✏',
+    pencilUpRight: '✐',
+    percent: '%',
+    pilcrow2: '❡',
+    pilcrow: '¶',
+    plusMinus: '±',
+    section: '§',
+    starsOff: '☆',
+    starsOn: '★',
+    upDownArrow: '↕'
+  };
+  const windows = Object.assign({}, common, {
+    check: '√',
+    cross: '×',
+    ellipsisLarge: '...',
+    ellipsis: '...',
+    info: 'i',
+    question: '?',
+    questionSmall: '?',
+    pointer: '>',
+    pointerSmall: '»',
+    radioOff: '( )',
+    radioOn: '(*)',
+    warning: '‼'
+  });
+  const other = Object.assign({}, common, {
+    ballotCross: '✘',
+    check: '✔',
+    cross: '✖',
+    ellipsisLarge: '⋯',
+    ellipsis: '…',
+    info: 'ℹ',
+    question: '?',
+    questionFull: '？',
+    questionSmall: '﹖',
+    pointer: isLinux ? '▸' : '❯',
+    pointerSmall: isLinux ? '‣' : '›',
+    radioOff: '◯',
+    radioOn: '◉',
+    warning: '⚠'
+  });
+  module.exports = isWindows && !isHyper ? windows : other;
+  Reflect.defineProperty(module.exports, 'common', {
+    enumerable: false,
+    value: common
+  });
+  Reflect.defineProperty(module.exports, 'windows', {
+    enumerable: false,
+    value: windows
+  });
+  Reflect.defineProperty(module.exports, 'other', {
+    enumerable: false,
+    value: other
+  });
+});
+
+const isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
+/* eslint-disable no-control-regex */
+// this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
+
+
+const ANSI_REGEX = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g;
+
+const create = () => {
+  const colors = {
+    enabled: true,
+    visible: true,
+    styles: {},
+    keys: {}
+  };
+
+  if ('FORCE_COLOR' in process.env) {
+    colors.enabled = process.env.FORCE_COLOR !== '0';
+  }
+
+  const ansi = style => {
+    let open = style.open = `\u001b[${style.codes[0]}m`;
+    let close = style.close = `\u001b[${style.codes[1]}m`;
+    let regex = style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
+
+    style.wrap = (input, newline) => {
+      if (input.includes(close)) input = input.replace(regex, close + open);
+      let output = open + input + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
+      // chalk contributors for this fix. However, we've confirmed that
+      // this issue is also present in Windows terminals
+
+      return newline ? output.replace(/\r*\n/g, `${close}$&${open}`) : output;
+    };
+
+    return style;
+  };
+
+  const wrap = (style, input, newline) => {
+    return typeof style === 'function' ? style(input) : style.wrap(input, newline);
+  };
+
+  const style = (input, stack) => {
+    if (input === '' || input == null) return '';
+    if (colors.enabled === false) return input;
+    if (colors.visible === false) return '';
+    let str = '' + input;
+    let nl = str.includes('\n');
+    let n = stack.length;
+
+    if (n > 0 && stack.includes('unstyle')) {
+      stack = [...new Set(['unstyle', ...stack])].reverse();
+    }
+
+    while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
+
+    return str;
+  };
+
+  const define = (name, codes, type) => {
+    colors.styles[name] = ansi({
+      name,
+      codes
+    });
+    let keys = colors.keys[type] || (colors.keys[type] = []);
+    keys.push(name);
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+
+      set(value) {
+        colors.alias(name, value);
+      },
+
+      get() {
+        let color = input => style(input, color.stack);
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(name) : [name];
+        return color;
+      }
+
+    });
+  };
+
+  define('reset', [0, 0], 'modifier');
+  define('bold', [1, 22], 'modifier');
+  define('dim', [2, 22], 'modifier');
+  define('italic', [3, 23], 'modifier');
+  define('underline', [4, 24], 'modifier');
+  define('inverse', [7, 27], 'modifier');
+  define('hidden', [8, 28], 'modifier');
+  define('strikethrough', [9, 29], 'modifier');
+  define('black', [30, 39], 'color');
+  define('red', [31, 39], 'color');
+  define('green', [32, 39], 'color');
+  define('yellow', [33, 39], 'color');
+  define('blue', [34, 39], 'color');
+  define('magenta', [35, 39], 'color');
+  define('cyan', [36, 39], 'color');
+  define('white', [37, 39], 'color');
+  define('gray', [90, 39], 'color');
+  define('grey', [90, 39], 'color');
+  define('bgBlack', [40, 49], 'bg');
+  define('bgRed', [41, 49], 'bg');
+  define('bgGreen', [42, 49], 'bg');
+  define('bgYellow', [43, 49], 'bg');
+  define('bgBlue', [44, 49], 'bg');
+  define('bgMagenta', [45, 49], 'bg');
+  define('bgCyan', [46, 49], 'bg');
+  define('bgWhite', [47, 49], 'bg');
+  define('blackBright', [90, 39], 'bright');
+  define('redBright', [91, 39], 'bright');
+  define('greenBright', [92, 39], 'bright');
+  define('yellowBright', [93, 39], 'bright');
+  define('blueBright', [94, 39], 'bright');
+  define('magentaBright', [95, 39], 'bright');
+  define('cyanBright', [96, 39], 'bright');
+  define('whiteBright', [97, 39], 'bright');
+  define('bgBlackBright', [100, 49], 'bgBright');
+  define('bgRedBright', [101, 49], 'bgBright');
+  define('bgGreenBright', [102, 49], 'bgBright');
+  define('bgYellowBright', [103, 49], 'bgBright');
+  define('bgBlueBright', [104, 49], 'bgBright');
+  define('bgMagentaBright', [105, 49], 'bgBright');
+  define('bgCyanBright', [106, 49], 'bgBright');
+  define('bgWhiteBright', [107, 49], 'bgBright');
+  colors.ansiRegex = ANSI_REGEX;
+
+  colors.hasColor = colors.hasAnsi = str => {
+    colors.ansiRegex.lastIndex = 0;
+    return typeof str === 'string' && str !== '' && colors.ansiRegex.test(str);
+  };
+
+  colors.alias = (name, color) => {
+    let fn = typeof color === 'string' ? colors[color] : color;
+
+    if (typeof fn !== 'function') {
+      throw new TypeError('Expected alias to be the name of an existing color (string) or a function');
+    }
+
+    if (!fn.stack) {
+      Reflect.defineProperty(fn, 'name', {
+        value: name
+      });
+      colors.styles[name] = fn;
+      fn.stack = [name];
+    }
+
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+
+      set(value) {
+        colors.alias(name, value);
+      },
+
+      get() {
+        let color = input => style(input, color.stack);
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(fn.stack) : fn.stack;
+        return color;
+      }
+
+    });
+  };
+
+  colors.theme = custom => {
+    if (!isObject(custom)) throw new TypeError('Expected theme to be an object');
+
+    for (let name of Object.keys(custom)) {
+      colors.alias(name, custom[name]);
+    }
+
+    return colors;
+  };
+
+  colors.alias('unstyle', str => {
+    if (typeof str === 'string' && str !== '') {
+      colors.ansiRegex.lastIndex = 0;
+      return str.replace(colors.ansiRegex, '');
+    }
+
+    return '';
+  });
+  colors.alias('noop', str => str);
+  colors.none = colors.clear = colors.noop;
+  colors.stripColor = colors.unstyle;
+  colors.symbols = symbols;
+  colors.define = define;
+  return colors;
+};
+
+var ansiColors = create();
+var create_1 = create;
+ansiColors.create = create_1;
 var string_registry = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -16568,7 +16052,812 @@ var model = createCommonjsModule(function (module, exports) {
     return false;
   }
 });
-unwrapExports(model);
+var model$1 = unwrapExports(model);
+module.exports = model$1;
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
+},{"_process":6,"buffer":2}],5:[function(require,module,exports){
+(function (process,global){
+'use strict';
+
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function unwrapExports(x) {
+  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
+function createCommonjsModule(fn, module) {
+  return module = {
+    exports: {}
+  }, fn(module, module.exports), module.exports;
+}
+
+var symbols = createCommonjsModule(function (module) {
+  const isHyper = process.env.TERM_PROGRAM === 'Hyper';
+  const isWindows = process.platform === 'win32';
+  const isLinux = process.platform === 'linux';
+  const common = {
+    ballotDisabled: '☒',
+    ballotOff: '☐',
+    ballotOn: '☑',
+    bullet: '•',
+    bulletWhite: '◦',
+    fullBlock: '█',
+    heart: '❤',
+    identicalTo: '≡',
+    line: '─',
+    mark: '※',
+    middot: '·',
+    minus: '－',
+    multiplication: '×',
+    obelus: '÷',
+    pencilDownRight: '✎',
+    pencilRight: '✏',
+    pencilUpRight: '✐',
+    percent: '%',
+    pilcrow2: '❡',
+    pilcrow: '¶',
+    plusMinus: '±',
+    section: '§',
+    starsOff: '☆',
+    starsOn: '★',
+    upDownArrow: '↕'
+  };
+  const windows = Object.assign({}, common, {
+    check: '√',
+    cross: '×',
+    ellipsisLarge: '...',
+    ellipsis: '...',
+    info: 'i',
+    question: '?',
+    questionSmall: '?',
+    pointer: '>',
+    pointerSmall: '»',
+    radioOff: '( )',
+    radioOn: '(*)',
+    warning: '‼'
+  });
+  const other = Object.assign({}, common, {
+    ballotCross: '✘',
+    check: '✔',
+    cross: '✖',
+    ellipsisLarge: '⋯',
+    ellipsis: '…',
+    info: 'ℹ',
+    question: '?',
+    questionFull: '？',
+    questionSmall: '﹖',
+    pointer: isLinux ? '▸' : '❯',
+    pointerSmall: isLinux ? '‣' : '›',
+    radioOff: '◯',
+    radioOn: '◉',
+    warning: '⚠'
+  });
+  module.exports = isWindows && !isHyper ? windows : other;
+  Reflect.defineProperty(module.exports, 'common', {
+    enumerable: false,
+    value: common
+  });
+  Reflect.defineProperty(module.exports, 'windows', {
+    enumerable: false,
+    value: windows
+  });
+  Reflect.defineProperty(module.exports, 'other', {
+    enumerable: false,
+    value: other
+  });
+});
+
+const isObject = val => val !== null && typeof val === 'object' && !Array.isArray(val);
+/* eslint-disable no-control-regex */
+// this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
+
+
+const ANSI_REGEX = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g;
+
+const create = () => {
+  const colors = {
+    enabled: true,
+    visible: true,
+    styles: {},
+    keys: {}
+  };
+
+  if ('FORCE_COLOR' in process.env) {
+    colors.enabled = process.env.FORCE_COLOR !== '0';
+  }
+
+  const ansi = style => {
+    let open = style.open = `\u001b[${style.codes[0]}m`;
+    let close = style.close = `\u001b[${style.codes[1]}m`;
+    let regex = style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g');
+
+    style.wrap = (input, newline) => {
+      if (input.includes(close)) input = input.replace(regex, close + open);
+      let output = open + input + close; // see https://github.com/chalk/chalk/pull/92, thanks to the
+      // chalk contributors for this fix. However, we've confirmed that
+      // this issue is also present in Windows terminals
+
+      return newline ? output.replace(/\r*\n/g, `${close}$&${open}`) : output;
+    };
+
+    return style;
+  };
+
+  const wrap = (style, input, newline) => {
+    return typeof style === 'function' ? style(input) : style.wrap(input, newline);
+  };
+
+  const style = (input, stack) => {
+    if (input === '' || input == null) return '';
+    if (colors.enabled === false) return input;
+    if (colors.visible === false) return '';
+    let str = '' + input;
+    let nl = str.includes('\n');
+    let n = stack.length;
+
+    if (n > 0 && stack.includes('unstyle')) {
+      stack = [...new Set(['unstyle', ...stack])].reverse();
+    }
+
+    while (n-- > 0) str = wrap(colors.styles[stack[n]], str, nl);
+
+    return str;
+  };
+
+  const define = (name, codes, type) => {
+    colors.styles[name] = ansi({
+      name,
+      codes
+    });
+    let keys = colors.keys[type] || (colors.keys[type] = []);
+    keys.push(name);
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+
+      set(value) {
+        colors.alias(name, value);
+      },
+
+      get() {
+        let color = input => style(input, color.stack);
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(name) : [name];
+        return color;
+      }
+
+    });
+  };
+
+  define('reset', [0, 0], 'modifier');
+  define('bold', [1, 22], 'modifier');
+  define('dim', [2, 22], 'modifier');
+  define('italic', [3, 23], 'modifier');
+  define('underline', [4, 24], 'modifier');
+  define('inverse', [7, 27], 'modifier');
+  define('hidden', [8, 28], 'modifier');
+  define('strikethrough', [9, 29], 'modifier');
+  define('black', [30, 39], 'color');
+  define('red', [31, 39], 'color');
+  define('green', [32, 39], 'color');
+  define('yellow', [33, 39], 'color');
+  define('blue', [34, 39], 'color');
+  define('magenta', [35, 39], 'color');
+  define('cyan', [36, 39], 'color');
+  define('white', [37, 39], 'color');
+  define('gray', [90, 39], 'color');
+  define('grey', [90, 39], 'color');
+  define('bgBlack', [40, 49], 'bg');
+  define('bgRed', [41, 49], 'bg');
+  define('bgGreen', [42, 49], 'bg');
+  define('bgYellow', [43, 49], 'bg');
+  define('bgBlue', [44, 49], 'bg');
+  define('bgMagenta', [45, 49], 'bg');
+  define('bgCyan', [46, 49], 'bg');
+  define('bgWhite', [47, 49], 'bg');
+  define('blackBright', [90, 39], 'bright');
+  define('redBright', [91, 39], 'bright');
+  define('greenBright', [92, 39], 'bright');
+  define('yellowBright', [93, 39], 'bright');
+  define('blueBright', [94, 39], 'bright');
+  define('magentaBright', [95, 39], 'bright');
+  define('cyanBright', [96, 39], 'bright');
+  define('whiteBright', [97, 39], 'bright');
+  define('bgBlackBright', [100, 49], 'bgBright');
+  define('bgRedBright', [101, 49], 'bgBright');
+  define('bgGreenBright', [102, 49], 'bgBright');
+  define('bgYellowBright', [103, 49], 'bgBright');
+  define('bgBlueBright', [104, 49], 'bgBright');
+  define('bgMagentaBright', [105, 49], 'bgBright');
+  define('bgCyanBright', [106, 49], 'bgBright');
+  define('bgWhiteBright', [107, 49], 'bgBright');
+  colors.ansiRegex = ANSI_REGEX;
+
+  colors.hasColor = colors.hasAnsi = str => {
+    colors.ansiRegex.lastIndex = 0;
+    return typeof str === 'string' && str !== '' && colors.ansiRegex.test(str);
+  };
+
+  colors.alias = (name, color) => {
+    let fn = typeof color === 'string' ? colors[color] : color;
+
+    if (typeof fn !== 'function') {
+      throw new TypeError('Expected alias to be the name of an existing color (string) or a function');
+    }
+
+    if (!fn.stack) {
+      Reflect.defineProperty(fn, 'name', {
+        value: name
+      });
+      colors.styles[name] = fn;
+      fn.stack = [name];
+    }
+
+    Reflect.defineProperty(colors, name, {
+      configurable: true,
+      enumerable: true,
+
+      set(value) {
+        colors.alias(name, value);
+      },
+
+      get() {
+        let color = input => style(input, color.stack);
+
+        Reflect.setPrototypeOf(color, colors);
+        color.stack = this.stack ? this.stack.concat(fn.stack) : fn.stack;
+        return color;
+      }
+
+    });
+  };
+
+  colors.theme = custom => {
+    if (!isObject(custom)) throw new TypeError('Expected theme to be an object');
+
+    for (let name of Object.keys(custom)) {
+      colors.alias(name, custom[name]);
+    }
+
+    return colors;
+  };
+
+  colors.alias('unstyle', str => {
+    if (typeof str === 'string' && str !== '') {
+      colors.ansiRegex.lastIndex = 0;
+      return str.replace(colors.ansiRegex, '');
+    }
+
+    return '';
+  });
+  colors.alias('noop', str => str);
+  colors.none = colors.clear = colors.noop;
+  colors.stripColor = colors.unstyle;
+  colors.symbols = symbols;
+  colors.define = define;
+  return colors;
+};
+
+var ansiColors = create();
+var create_1 = create;
+ansiColors.create = create_1;
+var fake_xml_http_request = createCommonjsModule(function (module, exports) {
+  (function (global, factory) {
+    module.exports = factory();
+  })(commonjsGlobal, function () {
+    /**
+     * Minimal Event interface implementation
+     *
+     * Original implementation by Sven Fuchs: https://gist.github.com/995028
+     * Modifications and tests by Christian Johansen.
+     *
+     * @author Sven Fuchs (svenfuchs@artweb-design.de)
+     * @author Christian Johansen (christian@cjohansen.no)
+     * @license BSD
+     *
+     * Copyright (c) 2011 Sven Fuchs, Christian Johansen
+     */
+    var _Event = function Event(type, bubbles, cancelable, target) {
+      this.type = type;
+      this.bubbles = bubbles;
+      this.cancelable = cancelable;
+      this.target = target;
+    };
+
+    _Event.prototype = {
+      stopPropagation: function () {},
+      preventDefault: function () {
+        this.defaultPrevented = true;
+      }
+    };
+    /*
+      Used to set the statusText property of an xhr object
+    */
+
+    var httpStatusCodes = {
+      100: "Continue",
+      101: "Switching Protocols",
+      200: "OK",
+      201: "Created",
+      202: "Accepted",
+      203: "Non-Authoritative Information",
+      204: "No Content",
+      205: "Reset Content",
+      206: "Partial Content",
+      300: "Multiple Choice",
+      301: "Moved Permanently",
+      302: "Found",
+      303: "See Other",
+      304: "Not Modified",
+      305: "Use Proxy",
+      307: "Temporary Redirect",
+      400: "Bad Request",
+      401: "Unauthorized",
+      402: "Payment Required",
+      403: "Forbidden",
+      404: "Not Found",
+      405: "Method Not Allowed",
+      406: "Not Acceptable",
+      407: "Proxy Authentication Required",
+      408: "Request Timeout",
+      409: "Conflict",
+      410: "Gone",
+      411: "Length Required",
+      412: "Precondition Failed",
+      413: "Request Entity Too Large",
+      414: "Request-URI Too Long",
+      415: "Unsupported Media Type",
+      416: "Requested Range Not Satisfiable",
+      417: "Expectation Failed",
+      422: "Unprocessable Entity",
+      500: "Internal Server Error",
+      501: "Not Implemented",
+      502: "Bad Gateway",
+      503: "Service Unavailable",
+      504: "Gateway Timeout",
+      505: "HTTP Version Not Supported"
+    };
+    /*
+      Cross-browser XML parsing. Used to turn
+      XML responses into Document objects
+      Borrowed from JSpec
+    */
+
+    function parseXML(text) {
+      var xmlDoc;
+
+      if (typeof DOMParser != "undefined") {
+        var parser = new DOMParser();
+        xmlDoc = parser.parseFromString(text, "text/xml");
+      } else {
+        xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+        xmlDoc.async = "false";
+        xmlDoc.loadXML(text);
+      }
+
+      return xmlDoc;
+    }
+    /*
+      Without mocking, the native XMLHttpRequest object will throw
+      an error when attempting to set these headers. We match this behavior.
+    */
+
+
+    var unsafeHeaders = {
+      "Accept-Charset": true,
+      "Accept-Encoding": true,
+      "Connection": true,
+      "Content-Length": true,
+      "Cookie": true,
+      "Cookie2": true,
+      "Content-Transfer-Encoding": true,
+      "Date": true,
+      "Expect": true,
+      "Host": true,
+      "Keep-Alive": true,
+      "Referer": true,
+      "TE": true,
+      "Trailer": true,
+      "Transfer-Encoding": true,
+      "Upgrade": true,
+      "User-Agent": true,
+      "Via": true
+    };
+    /*
+      Adds an "event" onto the fake xhr object
+      that just calls the same-named method. This is
+      in case a library adds callbacks for these events.
+    */
+
+    function _addEventListener(eventName, xhr) {
+      xhr.addEventListener(eventName, function (event) {
+        var listener = xhr["on" + eventName];
+
+        if (listener && typeof listener == "function") {
+          listener.call(event.target, event);
+        }
+      });
+    }
+
+    function EventedObject() {
+      this._eventListeners = {};
+      var events = ["loadstart", "progress", "load", "abort", "loadend"];
+
+      for (var i = events.length - 1; i >= 0; i--) {
+        _addEventListener(events[i], this);
+      }
+    }
+
+    EventedObject.prototype = {
+      /*
+        Duplicates the behavior of native XMLHttpRequest's addEventListener function
+      */
+      addEventListener: function addEventListener(event, listener) {
+        this._eventListeners[event] = this._eventListeners[event] || [];
+
+        this._eventListeners[event].push(listener);
+      },
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's removeEventListener function
+      */
+      removeEventListener: function removeEventListener(event, listener) {
+        var listeners = this._eventListeners[event] || [];
+
+        for (var i = 0, l = listeners.length; i < l; ++i) {
+          if (listeners[i] == listener) {
+            return listeners.splice(i, 1);
+          }
+        }
+      },
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's dispatchEvent function
+      */
+      dispatchEvent: function dispatchEvent(event) {
+        var type = event.type;
+        var listeners = this._eventListeners[type] || [];
+
+        for (var i = 0; i < listeners.length; i++) {
+          if (typeof listeners[i] == "function") {
+            listeners[i].call(this, event);
+          } else {
+            listeners[i].handleEvent(event);
+          }
+        }
+
+        return !!event.defaultPrevented;
+      },
+
+      /*
+        Triggers an `onprogress` event with the given parameters.
+      */
+      _progress: function _progress(lengthComputable, loaded, total) {
+        var event = new _Event('progress');
+        event.target = this;
+        event.lengthComputable = lengthComputable;
+        event.loaded = loaded;
+        event.total = total;
+        this.dispatchEvent(event);
+      }
+    };
+    /*
+      Constructor for a fake window.XMLHttpRequest
+    */
+
+    function FakeXMLHttpRequest() {
+      EventedObject.call(this);
+      this.readyState = FakeXMLHttpRequest.UNSENT;
+      this.requestHeaders = {};
+      this.requestBody = null;
+      this.status = 0;
+      this.statusText = "";
+      this.upload = new EventedObject();
+    }
+
+    FakeXMLHttpRequest.prototype = new EventedObject(); // These status codes are available on the native XMLHttpRequest
+    // object, so we match that here in case a library is relying on them.
+
+    FakeXMLHttpRequest.UNSENT = 0;
+    FakeXMLHttpRequest.OPENED = 1;
+    FakeXMLHttpRequest.HEADERS_RECEIVED = 2;
+    FakeXMLHttpRequest.LOADING = 3;
+    FakeXMLHttpRequest.DONE = 4;
+    var FakeXMLHttpRequestProto = {
+      UNSENT: 0,
+      OPENED: 1,
+      HEADERS_RECEIVED: 2,
+      LOADING: 3,
+      DONE: 4,
+      async: true,
+      withCredentials: false,
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's open function
+      */
+      open: function open(method, url, async, username, password) {
+        this.method = method;
+        this.url = url;
+        this.async = typeof async == "boolean" ? async : true;
+        this.username = username;
+        this.password = password;
+        this.responseText = null;
+        this.response = this.responseText;
+        this.responseXML = null;
+        this.responseURL = url;
+        this.requestHeaders = {};
+        this.sendFlag = false;
+
+        this._readyStateChange(FakeXMLHttpRequest.OPENED);
+      },
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's setRequestHeader function
+      */
+      setRequestHeader: function setRequestHeader(header, value) {
+        verifyState(this);
+
+        if (unsafeHeaders[header] || /^(Sec-|Proxy-)/.test(header)) {
+          throw new Error("Refused to set unsafe header \"" + header + "\"");
+        }
+
+        if (this.requestHeaders[header]) {
+          this.requestHeaders[header] += "," + value;
+        } else {
+          this.requestHeaders[header] = value;
+        }
+      },
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's send function
+      */
+      send: function send(data) {
+        verifyState(this);
+
+        if (!/^(get|head)$/i.test(this.method)) {
+          var hasContentTypeHeader = false;
+          Object.keys(this.requestHeaders).forEach(function (key) {
+            if (key.toLowerCase() === 'content-type') {
+              hasContentTypeHeader = true;
+            }
+          });
+
+          if (!hasContentTypeHeader && !(data || '').toString().match('FormData')) {
+            this.requestHeaders["Content-Type"] = "text/plain;charset=UTF-8";
+          }
+
+          this.requestBody = data;
+        }
+
+        this.errorFlag = false;
+        this.sendFlag = this.async;
+
+        this._readyStateChange(FakeXMLHttpRequest.OPENED);
+
+        if (typeof this.onSend == "function") {
+          this.onSend(this);
+        }
+
+        this.dispatchEvent(new _Event("loadstart", false, false, this));
+      },
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's abort function
+      */
+      abort: function abort() {
+        this.aborted = true;
+        this.responseText = null;
+        this.response = this.responseText;
+        this.errorFlag = true;
+        this.requestHeaders = {};
+        this.dispatchEvent(new _Event("abort", false, false, this));
+
+        if (this.readyState > FakeXMLHttpRequest.UNSENT && this.sendFlag) {
+          this._readyStateChange(FakeXMLHttpRequest.UNSENT);
+
+          this.sendFlag = false;
+        }
+
+        if (typeof this.onerror === "function") {
+          this.onerror();
+        }
+      },
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's getResponseHeader function
+      */
+      getResponseHeader: function getResponseHeader(header) {
+        if (this.readyState < FakeXMLHttpRequest.HEADERS_RECEIVED) {
+          return null;
+        }
+
+        if (/^Set-Cookie2?$/i.test(header)) {
+          return null;
+        }
+
+        header = header.toLowerCase();
+
+        for (var h in this.responseHeaders) {
+          if (h.toLowerCase() == header) {
+            return this.responseHeaders[h];
+          }
+        }
+
+        return null;
+      },
+
+      /*
+        Duplicates the behavior of native XMLHttpRequest's getAllResponseHeaders function
+      */
+      getAllResponseHeaders: function getAllResponseHeaders() {
+        if (this.readyState < FakeXMLHttpRequest.HEADERS_RECEIVED) {
+          return "";
+        }
+
+        var headers = "";
+
+        for (var header in this.responseHeaders) {
+          if (this.responseHeaders.hasOwnProperty(header) && !/^Set-Cookie2?$/i.test(header)) {
+            headers += header + ": " + this.responseHeaders[header] + "\r\n";
+          }
+        }
+
+        return headers;
+      },
+
+      /*
+       Duplicates the behavior of native XMLHttpRequest's overrideMimeType function
+       */
+      overrideMimeType: function overrideMimeType(mimeType) {
+        if (typeof mimeType === "string") {
+          this.forceMimeType = mimeType.toLowerCase();
+        }
+      },
+
+      /*
+        Places a FakeXMLHttpRequest object into the passed
+        state.
+      */
+      _readyStateChange: function _readyStateChange(state) {
+        this.readyState = state;
+
+        if (typeof this.onreadystatechange == "function") {
+          this.onreadystatechange(new _Event("readystatechange"));
+        }
+
+        this.dispatchEvent(new _Event("readystatechange"));
+
+        if (this.readyState == FakeXMLHttpRequest.DONE) {
+          this.dispatchEvent(new _Event("load", false, false, this));
+        }
+
+        if (this.readyState == FakeXMLHttpRequest.UNSENT || this.readyState == FakeXMLHttpRequest.DONE) {
+          this.dispatchEvent(new _Event("loadend", false, false, this));
+        }
+      },
+
+      /*
+        Sets the FakeXMLHttpRequest object's response headers and
+        places the object into readyState 2
+      */
+      _setResponseHeaders: function _setResponseHeaders(headers) {
+        this.responseHeaders = {};
+
+        for (var header in headers) {
+          if (headers.hasOwnProperty(header)) {
+            this.responseHeaders[header] = headers[header];
+          }
+        }
+
+        if (this.forceMimeType) {
+          this.responseHeaders['Content-Type'] = this.forceMimeType;
+        }
+
+        if (this.async) {
+          this._readyStateChange(FakeXMLHttpRequest.HEADERS_RECEIVED);
+        } else {
+          this.readyState = FakeXMLHttpRequest.HEADERS_RECEIVED;
+        }
+      },
+
+      /*
+        Sets the FakeXMLHttpRequest object's response body and
+        if body text is XML, sets responseXML to parsed document
+        object
+      */
+      _setResponseBody: function _setResponseBody(body) {
+        verifyRequestSent(this);
+        verifyHeadersReceived(this);
+        verifyResponseBodyType(body);
+        var chunkSize = this.chunkSize || 10;
+        var index = 0;
+        this.responseText = "";
+        this.response = this.responseText;
+
+        do {
+          if (this.async) {
+            this._readyStateChange(FakeXMLHttpRequest.LOADING);
+          }
+
+          this.responseText += body.substring(index, index + chunkSize);
+          this.response = this.responseText;
+          index += chunkSize;
+        } while (index < body.length);
+
+        var type = this.getResponseHeader("Content-Type");
+
+        if (this.responseText && (!type || /(text\/xml)|(application\/xml)|(\+xml)/.test(type))) {
+          try {
+            this.responseXML = parseXML(this.responseText);
+          } catch (e) {// Unable to parse XML - no biggie
+          }
+        }
+
+        if (this.async) {
+          this._readyStateChange(FakeXMLHttpRequest.DONE);
+        } else {
+          this.readyState = FakeXMLHttpRequest.DONE;
+        }
+      },
+
+      /*
+        Forces a response on to the FakeXMLHttpRequest object.
+         This is the public API for faking responses. This function
+        takes a number status, headers object, and string body:
+         ```
+        xhr.respond(404, {Content-Type: 'text/plain'}, "Sorry. This object was not found.")
+         ```
+      */
+      respond: function respond(status, headers, body) {
+        this._setResponseHeaders(headers || {});
+
+        this.status = typeof status == "number" ? status : 200;
+        this.statusText = httpStatusCodes[this.status];
+
+        this._setResponseBody(body || "");
+      }
+    };
+
+    for (var property in FakeXMLHttpRequestProto) {
+      FakeXMLHttpRequest.prototype[property] = FakeXMLHttpRequestProto[property];
+    }
+
+    function verifyState(xhr) {
+      if (xhr.readyState !== FakeXMLHttpRequest.OPENED) {
+        throw new Error("INVALID_STATE_ERR");
+      }
+
+      if (xhr.sendFlag) {
+        throw new Error("INVALID_STATE_ERR");
+      }
+    }
+
+    function verifyRequestSent(xhr) {
+      if (xhr.readyState == FakeXMLHttpRequest.DONE) {
+        throw new Error("Request done");
+      }
+    }
+
+    function verifyHeadersReceived(xhr) {
+      if (xhr.async && xhr.readyState != FakeXMLHttpRequest.HEADERS_RECEIVED) {
+        throw new Error("No headers received");
+      }
+    }
+
+    function verifyResponseBodyType(body) {
+      if (typeof body != "string") {
+        var error = new Error("Attempted to respond to fake XMLHttpRequest with " + body + ", which is not a string.");
+        error.name = "InvalidBodyException";
+        throw error;
+      }
+    }
+
+    var fake_xml_http_request = FakeXMLHttpRequest;
+    return fake_xml_http_request;
+  });
+});
 var routeRecognizer = createCommonjsModule(function (module, exports) {
   (function (global, factory) {
     module.exports = factory();
@@ -18788,7 +19077,7 @@ var isRegExp = function isRegExp(obj) {
   return Object.prototype.toString.call(obj) === '[object RegExp]';
 };
 
-var isBuffer$1 = function isBuffer(obj) {
+var isBuffer = function isBuffer(obj) {
   if (!obj || typeof obj !== 'object') {
     return false;
   }
@@ -18800,14 +19089,14 @@ var combine = function combine(a, b) {
   return [].concat(a, b);
 };
 
-var utils$2 = {
+var utils = {
   arrayToObject: arrayToObject,
   assign: assign,
   combine: combine,
   compact: compact,
   decode: decode,
   encode: encode,
-  isBuffer: isBuffer$1,
+  isBuffer: isBuffer,
   isRegExp: isRegExp,
   merge: merge
 };
@@ -18817,7 +19106,7 @@ var Format = {
   RFC1738: 'RFC1738',
   RFC3986: 'RFC3986'
 };
-var formats = utils$2.assign({
+var formats = utils.assign({
   'default': Format.RFC3986,
   formatters: {
     RFC1738: function (value) {
@@ -18857,7 +19146,7 @@ var defaults = {
   charsetSentinel: false,
   delimiter: '&',
   encode: true,
-  encoder: utils$2.encode,
+  encoder: utils.encode,
   encodeValuesOnly: false,
   format: defaultFormat,
   formatter: formats.formatters[defaultFormat],
@@ -18893,7 +19182,7 @@ var stringify = function stringify(object, prefix, generateArrayPrefix, strictNu
     obj = '';
   }
 
-  if (isNonNullishPrimitive(obj) || utils$2.isBuffer(obj)) {
+  if (isNonNullishPrimitive(obj) || utils.isBuffer(obj)) {
     if (encoder) {
       var keyValue = encodeValuesOnly ? prefix : encoder(prefix, defaults.encoder, charset, 'key');
       return [formatter(keyValue) + '=' + formatter(encoder(obj, defaults.encoder, charset, 'value'))];
@@ -19059,7 +19348,7 @@ var defaults$1 = {
   charset: 'utf-8',
   charsetSentinel: false,
   comma: false,
-  decoder: utils$2.decode,
+  decoder: utils.decode,
   delimiter: '&',
   depth: 5,
   ignoreQueryPrefix: false,
@@ -19142,7 +19431,7 @@ var parseValues = function parseQueryStringValues(str, options) {
     }
 
     if (has$2.call(obj, key)) {
-      obj[key] = utils$2.combine(obj[key], val);
+      obj[key] = utils.combine(obj[key], val);
     } else {
       obj[key] = val;
     }
@@ -19255,7 +19544,7 @@ var normalizeParseOptions = function normalizeParseOptions(opts) {
     charsetSentinel: typeof opts.charsetSentinel === 'boolean' ? opts.charsetSentinel : defaults$1.charsetSentinel,
     comma: typeof opts.comma === 'boolean' ? opts.comma : defaults$1.comma,
     decoder: typeof opts.decoder === 'function' ? opts.decoder : defaults$1.decoder,
-    delimiter: typeof opts.delimiter === 'string' || utils$2.isRegExp(opts.delimiter) ? opts.delimiter : defaults$1.delimiter,
+    delimiter: typeof opts.delimiter === 'string' || utils.isRegExp(opts.delimiter) ? opts.delimiter : defaults$1.delimiter,
     // eslint-disable-next-line no-implicit-coercion, no-extra-parens
     depth: typeof opts.depth === 'number' || opts.depth === false ? +opts.depth : defaults$1.depth,
     ignoreQueryPrefix: opts.ignoreQueryPrefix === true,
@@ -19282,10 +19571,10 @@ var parse = function (str, opts) {
   for (var i = 0; i < keys.length; ++i) {
     var key = keys[i];
     var newObj = parseKeys(key, tempObj[key], options);
-    obj = utils$2.merge(obj, newObj, options);
+    obj = utils.merge(obj, newObj, options);
   }
 
-  return utils$2.compact(obj);
+  return utils.compact(obj);
 };
 
 var lib = {
@@ -19293,6 +19582,4311 @@ var lib = {
   parse: parse,
   stringify: stringify_1
 };
+var string_registry = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.setStrings = setStrings;
+  exports.getStrings = getStrings;
+  exports.getString = getString; // STATE within a module is frowned upon, this exists
+  // to support Ember.STRINGS but shield ember internals from this legacy global
+  // API.
+
+  let STRINGS = {};
+
+  function setStrings(strings) {
+    STRINGS = strings;
+  }
+
+  function getStrings() {
+    return STRINGS;
+  }
+
+  function getString(name) {
+    return STRINGS[name];
+  }
+});
+unwrapExports(string_registry);
+var string_registry_1 = string_registry.setStrings;
+var string_registry_2 = string_registry.getStrings;
+var string_registry_3 = string_registry.getString;
+var browserEnvironment = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
+
+  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
+  exports.hasDOM = hasDom;
+  const window = hasDom ? self : null;
+  exports.window = window;
+  const location$1 = hasDom ? self.location : null;
+  exports.location = location$1;
+  const history$1 = hasDom ? self.history : null;
+  exports.history = history$1;
+  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
+  exports.userAgent = userAgent;
+  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
+  exports.isChrome = isChrome;
+  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
+  exports.isFirefox = isFirefox;
+});
+unwrapExports(browserEnvironment);
+var browserEnvironment_1 = browserEnvironment.hasDOM;
+var browserEnvironment_2 = browserEnvironment.isFirefox;
+var browserEnvironment_3 = browserEnvironment.isChrome;
+var browserEnvironment_4 = browserEnvironment.userAgent;
+var browserEnvironment_5 = browserEnvironment.history;
+var browserEnvironment_6 = browserEnvironment.window;
+var error = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /**
+   @module @ember/error
+  */
+
+  /**
+    The JavaScript Error object used by Ember.assert.
+  
+    @class Error
+    @namespace Ember
+    @extends Error
+    @constructor
+    @public
+  */
+
+  var _default = Error;
+  exports.default = _default;
+});
+unwrapExports(error);
+var es5 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  var DEBUG = exports.DEBUG = false;
+  var CI = exports.CI = false;
+});
+unwrapExports(es5);
+var es5_1 = es5.DEBUG;
+var es5_2 = es5.CI;
+var handlers = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
+  let HANDLERS = {};
+  exports.HANDLERS = HANDLERS;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let invoke = () => {};
+
+  exports.invoke = invoke;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+      let nextHandler = HANDLERS[type] || (() => {});
+
+      HANDLERS[type] = (message, options) => {
+        callback(message, options, nextHandler);
+      };
+    };
+
+    exports.invoke = invoke = function invoke(type, message, test, options) {
+      if (test) {
+        return;
+      }
+
+      let handlerForType = HANDLERS[type];
+
+      if (handlerForType) {
+        handlerForType(message, options);
+      }
+    };
+  }
+});
+unwrapExports(handlers);
+var handlers_1 = handlers.invoke;
+var handlers_2 = handlers.registerHandler;
+var handlers_3 = handlers.HANDLERS;
+var deprecate_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
+  /**
+   @module @ember/debug
+   @public
+  */
+
+  /**
+    Allows for runtime registration of handler functions that override the default deprecation behavior.
+    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
+    The following example demonstrates its usage by registering a handler that throws an error if the
+    message contains the word "should", otherwise defers to the default handler.
+  
+    ```javascript
+    import { registerDeprecationHandler } from '@ember/debug';
+  
+    registerDeprecationHandler((message, options, next) => {
+      if (message.indexOf('should') !== -1) {
+        throw new Error(`Deprecation message with should: ${message}`);
+      } else {
+        // defer to whatever handler was registered before this one
+        next(message, options);
+      }
+    });
+    ```
+  
+    The handler function takes the following arguments:
+  
+    <ul>
+      <li> <code>message</code> - The message received from the deprecation call.</li>
+      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
+        <ul>
+          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
+          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
+        </ul>
+      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+    </ul>
+  
+    @public
+    @static
+    @method registerDeprecationHandler
+    @for @ember/debug
+    @param handler {Function} A function to handle deprecation calls.
+    @since 2.1.0
+  */
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  let missingOptionsUntilDeprecation;
+  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
+
+  let deprecate = () => {};
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('deprecate', handler);
+    };
+
+    let formatMessage = function formatMessage(_message, options) {
+      let message = _message;
+
+      if (options && options.id) {
+        message = message + ` [deprecation id: ${options.id}]`;
+      }
+
+      if (options && options.url) {
+        message += ` See ${options.url} for more details.`;
+      }
+
+      return message;
+    };
+
+    registerHandler(function logDeprecationToConsole(message, options) {
+      let updatedMessage = formatMessage(message, options);
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+    });
+    let captureErrorForStack;
+
+    if (new Error().stack) {
+      captureErrorForStack = () => new Error();
+    } else {
+      captureErrorForStack = () => {
+        try {
+          __fail__.fail();
+        } catch (e) {
+          return e;
+        }
+      };
+    }
+
+    registerHandler(function logDeprecationStackTrace(message, options, next) {
+      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+        let stackStr = '';
+        let error = captureErrorForStack();
+        let stack;
+
+        if (error.stack) {
+          if (error['arguments']) {
+            // Chrome
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^\(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^\)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack.shift();
+          } else {
+            // Firefox
+            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+          }
+
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+        }
+
+        let updatedMessage = formatMessage(message, options);
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+      } else {
+        next(message, options);
+      }
+    });
+    registerHandler(function raiseOnDeprecation(message, options, next) {
+      if (environment.ENV.RAISE_ON_DEPRECATION) {
+        let updatedMessage = formatMessage(message);
+        throw new Error(updatedMessage);
+      } else {
+        next(message, options);
+      }
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+    /**
+     @module @ember/debug
+     @public
+     */
+
+    /**
+      Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only).
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         @method deprecate
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+      @param {Object} options
+      @param {String} options.id A unique id for this deprecation. The id can be
+        used by Ember debugging tools to change the behavior (raise, log or silence)
+        for that specific deprecation. The id should be namespaced by dots, e.g.
+        "view.helper.select".
+      @param {string} options.until The version of Ember when this deprecation
+        warning will be removed.
+      @param {String} [options.url] An optional url to the transition guide on the
+        emberjs.com website.
+      @static
+      @public
+      @since 1.0.0
+    */
+
+    deprecate = function deprecate(message, test, options) {
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
+      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+      (0, handlers.invoke)('deprecate', message, test, options);
+    };
+  }
+
+  var _default = deprecate;
+  exports.default = _default;
+});
+unwrapExports(deprecate_1);
+var deprecate_2 = deprecate_1.missingOptionsUntilDeprecation;
+var deprecate_3 = deprecate_1.missingOptionsIdDeprecation;
+var deprecate_4 = deprecate_1.missingOptionsDeprecation;
+var deprecate_5 = deprecate_1.registerHandler;
+var testing_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.isTesting = isTesting;
+  exports.setTesting = setTesting;
+  let testing = false;
+
+  function isTesting() {
+    return testing;
+  }
+
+  function setTesting(value) {
+    testing = Boolean(value);
+  }
+});
+unwrapExports(testing_1);
+var testing_2 = testing_1.isTesting;
+var testing_3 = testing_1.setTesting;
+var warn_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let warn = () => {};
+
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+
+  if (es5.DEBUG) {
+    /**
+      Allows for runtime registration of handler functions that override the default warning behavior.
+      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+      default warning behavior.
+         ```javascript
+      import { registerWarnHandler } from '@ember/debug';
+         // next is not called, so no warnings get the default behavior
+      registerWarnHandler(() => {});
+      ```
+         The handler function takes the following arguments:
+         <ul>
+        <li> <code>message</code> - The message received from the warn call. </li>
+        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+          <ul>
+            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+          </ul>
+        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+      </ul>
+         @public
+      @static
+      @method registerWarnHandler
+      @for @ember/debug
+      @param handler {Function} A function to handle warnings.
+      @since 2.1.0
+    */
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('warn', handler);
+    };
+
+    registerHandler(function logWarning(message) {
+      /* eslint-disable no-console */
+      console.warn(`WARNING: ${message}`);
+      /* eslint-enable no-console */
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+    /**
+      Display a warning with the provided message.
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         ```javascript
+      import { warn } from '@ember/debug';
+      import tomsterCount from './tomster-counter'; // a module in my project
+         // Log a warning if we have more than 3 tomsters
+      warn('Too many tomsters!', tomsterCount <= 3, {
+        id: 'ember-debug.too-many-tomsters'
+      });
+      ```
+         @method warn
+      @for @ember/debug
+      @static
+      @param {String} message A warning to display.
+      @param {Boolean} test An optional boolean. If falsy, the warning
+        will be displayed.
+      @param {Object} options An object that can be used to pass a unique
+        `id` for this warning.  The `id` can be used by Ember debugging tools
+        to change the behavior (raise, log, or silence) for that specific warning.
+        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+      @public
+      @since 1.0.0
+    */
+
+    warn = function warn(message, test, options) {
+      if (arguments.length === 2 && typeof test === 'object') {
+        options = test;
+        test = false;
+      }
+
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
+      (0, handlers.invoke)('warn', message, test, options);
+    };
+  }
+
+  var _default = warn;
+  exports.default = _default;
+});
+unwrapExports(warn_1);
+var warn_2 = warn_1.missingOptionsDeprecation;
+var warn_3 = warn_1.missingOptionsIdDeprecation;
+var warn_4 = warn_1.registerHandler;
+var arrayUtils = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  var EMPTY_ARRAY = exports.EMPTY_ARRAY = Object.freeze([]);
+});
+unwrapExports(arrayUtils);
+var arrayUtils_1 = arrayUtils.EMPTY_ARRAY;
+var assert = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.debugAssert = debugAssert;
+  exports.prodAssert = prodAssert;
+  exports.deprecate = deprecate; // import Logger from './logger';
+  // let alreadyWarned = false;
+
+  function debugAssert(test, msg) {
+    // if (!alreadyWarned) {
+    //   alreadyWarned = true;
+    //   Logger.warn("Don't leave debug assertions on in public builds");
+    // }
+    if (!test) {
+      throw new Error(msg || 'assertion failure');
+    }
+  }
+
+  function prodAssert() {}
+
+  function deprecate(desc) {
+    console.warn('DEPRECATION: ' + desc);
+  }
+
+  exports.default = debugAssert;
+});
+unwrapExports(assert);
+var assert_1 = assert.debugAssert;
+var assert_2 = assert.prodAssert;
+var assert_3 = assert.deprecate;
+var guid = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.initializeGuid = initializeGuid;
+  exports.ensureGuid = ensureGuid;
+  var GUID = 0;
+
+  function initializeGuid(object) {
+    return object._guid = ++GUID;
+  }
+
+  function ensureGuid(object) {
+    return object._guid || initializeGuid(object);
+  }
+});
+unwrapExports(guid);
+var guid_1 = guid.initializeGuid;
+var guid_2 = guid.ensureGuid;
+var collections = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.StackImpl = exports.DictSet = undefined;
+  exports.dict = dict;
+  exports.isDict = isDict;
+  exports.isObject = isObject;
+
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function dict() {
+    return Object.create(null);
+  }
+
+  function isDict(u) {
+    return u !== null && u !== undefined;
+  }
+
+  function isObject(u) {
+    return typeof u === 'object' && u !== null;
+  }
+
+  var DictSet = exports.DictSet = function () {
+    function DictSet() {
+      _classCallCheck(this, DictSet);
+
+      this.dict = dict();
+    }
+
+    DictSet.prototype.add = function add(obj) {
+      if (typeof obj === 'string') this.dict[obj] = obj;else this.dict[(0, guid.ensureGuid)(obj)] = obj;
+      return this;
+    };
+
+    DictSet.prototype.delete = function _delete(obj) {
+      if (typeof obj === 'string') delete this.dict[obj];else if (obj._guid) delete this.dict[obj._guid];
+    };
+
+    return DictSet;
+  }();
+
+  var StackImpl = exports.StackImpl = function () {
+    function StackImpl() {
+      _classCallCheck(this, StackImpl);
+
+      this.stack = [];
+      this.current = null;
+    }
+
+    StackImpl.prototype.push = function push(item) {
+      this.current = item;
+      this.stack.push(item);
+    };
+
+    StackImpl.prototype.pop = function pop() {
+      var item = this.stack.pop();
+      var len = this.stack.length;
+      this.current = len === 0 ? null : this.stack[len - 1];
+      return item === undefined ? null : item;
+    };
+
+    StackImpl.prototype.nth = function nth(from) {
+      var len = this.stack.length;
+      return len < from ? null : this.stack[len - from];
+    };
+
+    StackImpl.prototype.isEmpty = function isEmpty() {
+      return this.stack.length === 0;
+    };
+
+    StackImpl.prototype.toArray = function toArray() {
+      return this.stack;
+    };
+
+    _createClass(StackImpl, [{
+      key: 'size',
+      get: function get() {
+        return this.stack.length;
+      }
+    }]);
+
+    return StackImpl;
+  }();
+});
+unwrapExports(collections);
+var collections_1 = collections.StackImpl;
+var collections_2 = collections.DictSet;
+var collections_3 = collections.dict;
+var collections_4 = collections.isDict;
+var collections_5 = collections.isObject;
+var destroy = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.isDestroyable = isDestroyable;
+  exports.isStringDestroyable = isStringDestroyable;
+  var DESTROY = exports.DESTROY = 'DESTROY [fc611582-3742-4845-88e1-971c3775e0b8]';
+
+  function isDestroyable(value) {
+    return !!(value && DESTROY in value);
+  }
+
+  function isStringDestroyable(value) {
+    return !!(value && typeof value === 'object' && typeof value.destroy === 'function');
+  }
+});
+unwrapExports(destroy);
+var destroy_1 = destroy.isDestroyable;
+var destroy_2 = destroy.isStringDestroyable;
+var destroy_3 = destroy.DESTROY;
+var dom = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.clearElement = clearElement;
+
+  function clearElement(parent) {
+    var current = parent.firstChild;
+
+    while (current) {
+      var next = current.nextSibling;
+      parent.removeChild(current);
+      current = next;
+    }
+  }
+});
+unwrapExports(dom);
+var dom_1 = dom.clearElement;
+var isSerializationFirstNode_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.isSerializationFirstNode = isSerializationFirstNode;
+  var SERIALIZATION_FIRST_NODE_STRING = exports.SERIALIZATION_FIRST_NODE_STRING = '%+b:0%';
+
+  function isSerializationFirstNode(node) {
+    return node.nodeValue === SERIALIZATION_FIRST_NODE_STRING;
+  }
+});
+unwrapExports(isSerializationFirstNode_1);
+var isSerializationFirstNode_2 = isSerializationFirstNode_1.isSerializationFirstNode;
+var isSerializationFirstNode_3 = isSerializationFirstNode_1.SERIALIZATION_FIRST_NODE_STRING;
+var lifetimes = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.ListContentsDestructor = exports.DESTRUCTORS = exports.CHILDREN = exports.DROP = exports.LINKED = undefined;
+  exports.isDrop = isDrop;
+  exports.associate = associate;
+  exports.associateDestructor = associateDestructor;
+  exports.takeAssociated = takeAssociated;
+  exports.destroyAssociated = destroyAssociated;
+  exports.destructor = destructor;
+  exports.snapshot = snapshot;
+  exports.debugDropTree = debugDropTree;
+  exports.printDropTree = printDropTree;
+  exports.printDrop = printDrop;
+
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var LINKED = exports.LINKED = new WeakMap();
+  var DROP = exports.DROP = 'DROP [94d46cf3-3974-435d-b278-3e60d1155290]';
+  var CHILDREN = exports.CHILDREN = 'CHILDREN [7142e52a-8600-4e01-a773-42055b96630d]';
+  var DESTRUCTORS = exports.DESTRUCTORS = new WeakMap();
+
+  function isDrop(value) {
+    if (value === null || typeof value !== 'object') return false;
+    return DROP in value;
+  }
+
+  function associate(parent, child) {
+    associateDestructor(parent, destructor(child));
+  }
+
+  function associateDestructor(parent, child) {
+    var associated = LINKED.get(parent);
+
+    if (!associated) {
+      associated = new Set();
+      LINKED.set(parent, associated);
+    }
+
+    associated.add(child);
+  }
+
+  function takeAssociated(parent) {
+    var linked = LINKED.get(parent);
+
+    if (linked && linked.size > 0) {
+      LINKED.delete(parent);
+      return linked;
+    } else {
+      return null;
+    }
+  }
+
+  function destroyAssociated(parent) {
+    var associated = LINKED.get(parent);
+
+    if (associated) {
+      associated.forEach(function (item) {
+        item[DROP]();
+        associated.delete(item);
+      });
+    }
+  }
+
+  function destructor(value) {
+    var d = DESTRUCTORS.get(value);
+
+    if (!d) {
+      if ((0, destroy.isDestroyable)(value)) {
+        d = new DestroyableDestructor(value);
+      } else if ((0, destroy.isStringDestroyable)(value)) {
+        d = new StringDestroyableDestructor(value);
+      } else {
+        d = new SimpleDestructor(value);
+      }
+
+      DESTRUCTORS.set(value, d);
+    }
+
+    return d;
+  }
+
+  function snapshot(values) {
+    return new SnapshotDestructor(values);
+  }
+
+  var SnapshotDestructor = function () {
+    function SnapshotDestructor(destructors) {
+      _classCallCheck(this, SnapshotDestructor);
+
+      this.destructors = destructors;
+    }
+
+    SnapshotDestructor.prototype[DROP] = function () {
+      this.destructors.forEach(function (item) {
+        return item[DROP]();
+      });
+    };
+
+    SnapshotDestructor.prototype.toString = function toString() {
+      return 'SnapshotDestructor';
+    };
+
+    _createClass(SnapshotDestructor, [{
+      key: CHILDREN,
+      get: function get() {
+        return this.destructors;
+      }
+    }]);
+
+    return SnapshotDestructor;
+  }();
+
+  var DestroyableDestructor = function () {
+    function DestroyableDestructor(inner) {
+      _classCallCheck(this, DestroyableDestructor);
+
+      this.inner = inner;
+    }
+
+    DestroyableDestructor.prototype[DROP] = function () {
+      this.inner[destroy.DESTROY]();
+      destroyAssociated(this.inner);
+    };
+
+    DestroyableDestructor.prototype.toString = function toString() {
+      return 'DestroyableDestructor';
+    };
+
+    _createClass(DestroyableDestructor, [{
+      key: CHILDREN,
+      get: function get() {
+        return LINKED.get(this.inner) || [];
+      }
+    }]);
+
+    return DestroyableDestructor;
+  }();
+
+  var StringDestroyableDestructor = function () {
+    function StringDestroyableDestructor(inner) {
+      _classCallCheck(this, StringDestroyableDestructor);
+
+      this.inner = inner;
+    }
+
+    StringDestroyableDestructor.prototype[DROP] = function () {
+      this.inner.destroy();
+      destroyAssociated(this.inner);
+    };
+
+    StringDestroyableDestructor.prototype.toString = function toString() {
+      return 'StringDestroyableDestructor';
+    };
+
+    _createClass(StringDestroyableDestructor, [{
+      key: CHILDREN,
+      get: function get() {
+        return LINKED.get(this.inner) || [];
+      }
+    }]);
+
+    return StringDestroyableDestructor;
+  }();
+
+  var SimpleDestructor = function () {
+    function SimpleDestructor(inner) {
+      _classCallCheck(this, SimpleDestructor);
+
+      this.inner = inner;
+    }
+
+    SimpleDestructor.prototype[DROP] = function () {
+      destroyAssociated(this.inner);
+    };
+
+    SimpleDestructor.prototype.toString = function toString() {
+      return 'SimpleDestructor';
+    };
+
+    _createClass(SimpleDestructor, [{
+      key: CHILDREN,
+      get: function get() {
+        return LINKED.get(this.inner) || [];
+      }
+    }]);
+
+    return SimpleDestructor;
+  }();
+
+  var ListContentsDestructor = exports.ListContentsDestructor = function () {
+    function ListContentsDestructor(inner) {
+      _classCallCheck(this, ListContentsDestructor);
+
+      this.inner = inner;
+    }
+
+    ListContentsDestructor.prototype[DROP] = function () {
+      this.inner.forEachNode(function (d) {
+        return destructor(d)[DROP]();
+      });
+    };
+
+    ListContentsDestructor.prototype.toString = function toString() {
+      return 'ListContentsDestructor';
+    };
+
+    _createClass(ListContentsDestructor, [{
+      key: CHILDREN,
+      get: function get() {
+        var out = [];
+        this.inner.forEachNode(function (d) {
+          return out.push.apply(out, destructor(d)[CHILDREN]);
+        });
+        return out;
+      }
+    }]);
+
+    return ListContentsDestructor;
+  }();
+
+  function debugDropTree(inner) {
+    var hasDrop = isDrop(inner);
+    var rawChildren = LINKED.get(inner) || null;
+    var children = null;
+
+    if (rawChildren) {
+      children = [];
+
+      for (var _iterator = rawChildren, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+        var _ref;
+
+        if (_isArray) {
+          if (_i >= _iterator.length) break;
+          _ref = _iterator[_i++];
+        } else {
+          _i = _iterator.next();
+          if (_i.done) break;
+          _ref = _i.value;
+        }
+
+        var child = _ref;
+        children.push(debugDropTree(child));
+      }
+    }
+
+    var obj = Object.create(null);
+    obj.inner = inner;
+
+    if (children) {
+      obj.children = children;
+    }
+
+    obj.hasDrop = hasDrop;
+    return obj;
+  }
+
+  function printDropTree(inner) {
+    printDrop(destructor(inner));
+  }
+
+  function printDrop(inner) {
+    console.group(String(inner));
+    console.log(inner);
+    var children = inner[CHILDREN] || null;
+
+    if (children) {
+      for (var _iterator2 = children, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+        var _ref2;
+
+        if (_isArray2) {
+          if (_i2 >= _iterator2.length) break;
+          _ref2 = _iterator2[_i2++];
+        } else {
+          _i2 = _iterator2.next();
+          if (_i2.done) break;
+          _ref2 = _i2.value;
+        }
+
+        var child = _ref2;
+        printDrop(child);
+      }
+    }
+
+    console.groupEnd();
+  }
+});
+unwrapExports(lifetimes);
+var lifetimes_1 = lifetimes.ListContentsDestructor;
+var lifetimes_2 = lifetimes.DESTRUCTORS;
+var lifetimes_3 = lifetimes.CHILDREN;
+var lifetimes_4 = lifetimes.DROP;
+var lifetimes_5 = lifetimes.LINKED;
+var lifetimes_6 = lifetimes.isDrop;
+var lifetimes_7 = lifetimes.associate;
+var lifetimes_8 = lifetimes.associateDestructor;
+var lifetimes_9 = lifetimes.takeAssociated;
+var lifetimes_10 = lifetimes.destroyAssociated;
+var lifetimes_11 = lifetimes.destructor;
+var lifetimes_12 = lifetimes.snapshot;
+var lifetimes_13 = lifetimes.debugDropTree;
+var lifetimes_14 = lifetimes.printDropTree;
+var lifetimes_15 = lifetimes.printDrop;
+var listUtils = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.EMPTY_SLICE = exports.ListSlice = exports.LinkedList = exports.ListNode = undefined;
+
+  var _createClass = function () {
+    function defineProperties(target, props) {
+      for (var i = 0; i < props.length; i++) {
+        var descriptor = props[i];
+        descriptor.enumerable = descriptor.enumerable || false;
+        descriptor.configurable = true;
+        if ("value" in descriptor) descriptor.writable = true;
+        Object.defineProperty(target, descriptor.key, descriptor);
+      }
+    }
+
+    return function (Constructor, protoProps, staticProps) {
+      if (protoProps) defineProperties(Constructor.prototype, protoProps);
+      if (staticProps) defineProperties(Constructor, staticProps);
+      return Constructor;
+    };
+  }();
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  var ListNode = exports.ListNode = function ListNode(value) {
+    _classCallCheck(this, ListNode);
+
+    this.next = null;
+    this.prev = null;
+    this.value = value;
+  };
+
+  var LinkedList = exports.LinkedList = function () {
+    function LinkedList() {
+      _classCallCheck(this, LinkedList);
+
+      this.clear();
+    }
+
+    LinkedList.prototype.head = function head() {
+      return this._head;
+    };
+
+    LinkedList.prototype.tail = function tail() {
+      return this._tail;
+    };
+
+    LinkedList.prototype.clear = function clear() {
+      this._head = this._tail = null;
+    };
+
+    LinkedList.prototype.toArray = function toArray() {
+      var out = [];
+      this.forEachNode(function (n) {
+        return out.push(n);
+      });
+      return out;
+    };
+
+    LinkedList.prototype.nextNode = function nextNode(node) {
+      return node.next;
+    };
+
+    LinkedList.prototype.forEachNode = function forEachNode(callback) {
+      var node = this._head;
+
+      while (node !== null) {
+        callback(node);
+        node = node.next;
+      }
+    };
+
+    LinkedList.prototype.insertBefore = function insertBefore(node) {
+      var reference = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+      if (reference === null) return this.append(node);
+      if (reference.prev) reference.prev.next = node;else this._head = node;
+      node.prev = reference.prev;
+      node.next = reference;
+      reference.prev = node;
+      return node;
+    };
+
+    LinkedList.prototype.append = function append(node) {
+      var tail = this._tail;
+
+      if (tail) {
+        tail.next = node;
+        node.prev = tail;
+        node.next = null;
+      } else {
+        this._head = node;
+      }
+
+      return this._tail = node;
+    };
+
+    LinkedList.prototype.remove = function remove(node) {
+      if (node.prev) node.prev.next = node.next;else this._head = node.next;
+      if (node.next) node.next.prev = node.prev;else this._tail = node.prev;
+      return node;
+    };
+
+    LinkedList.prototype[lifetimes.DROP] = function () {
+      this.forEachNode(function (d) {
+        return (0, lifetimes.destructor)(d)[lifetimes.DROP]();
+      });
+    };
+
+    _createClass(LinkedList, [{
+      key: lifetimes.CHILDREN,
+      get: function get() {
+        var out = [];
+        this.forEachNode(function (d) {
+          return out.push.apply(out, (0, lifetimes.destructor)(d)[lifetimes.CHILDREN]);
+        });
+        return out;
+      }
+    }]);
+
+    return LinkedList;
+  }();
+
+  var ListSlice = exports.ListSlice = function () {
+    function ListSlice(head, tail) {
+      _classCallCheck(this, ListSlice);
+
+      this._head = head;
+      this._tail = tail;
+    }
+
+    ListSlice.prototype.forEachNode = function forEachNode(callback) {
+      var node = this._head;
+
+      while (node !== null) {
+        callback(node);
+        node = this.nextNode(node);
+      }
+    };
+
+    ListSlice.prototype.head = function head() {
+      return this._head;
+    };
+
+    ListSlice.prototype.tail = function tail() {
+      return this._tail;
+    };
+
+    ListSlice.prototype.toArray = function toArray() {
+      var out = [];
+      this.forEachNode(function (n) {
+        return out.push(n);
+      });
+      return out;
+    };
+
+    ListSlice.prototype.nextNode = function nextNode(node) {
+      if (node === this._tail) return null;
+      return node.next;
+    };
+
+    return ListSlice;
+  }();
+
+  var EMPTY_SLICE = exports.EMPTY_SLICE = new ListSlice(null, null);
+});
+unwrapExports(listUtils);
+var listUtils_1 = listUtils.EMPTY_SLICE;
+var listUtils_2 = listUtils.ListSlice;
+var listUtils_3 = listUtils.LinkedList;
+var listUtils_4 = listUtils.ListNode;
+var objectUtils = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.assign = assign;
+  exports.fillNulls = fillNulls;
+  exports.values = values;
+  var objKeys = Object.keys;
+
+  function assign(obj) {
+    for (var i = 1; i < arguments.length; i++) {
+      var assignment = arguments[i];
+      if (assignment === null || typeof assignment !== 'object') continue;
+      var keys = objKeys(assignment);
+
+      for (var j = 0; j < keys.length; j++) {
+        var key = keys[j];
+        obj[key] = assignment[key];
+      }
+    }
+
+    return obj;
+  }
+
+  function fillNulls(count) {
+    var arr = new Array(count);
+
+    for (var i = 0; i < count; i++) {
+      arr[i] = null;
+    }
+
+    return arr;
+  }
+
+  function values(obj) {
+    var vals = [];
+
+    for (var key in obj) {
+      vals.push(obj[key]);
+    }
+
+    return vals;
+  }
+});
+unwrapExports(objectUtils);
+var objectUtils_1 = objectUtils.assign;
+var objectUtils_2 = objectUtils.fillNulls;
+var objectUtils_3 = objectUtils.values;
+var platformUtils = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.keys = keys;
+  exports.unwrap = unwrap;
+  exports.expect = expect;
+  exports.unreachable = unreachable;
+  exports.exhausted = exhausted;
+
+  function keys(obj) {
+    return Object.keys(obj);
+  }
+
+  function unwrap(val) {
+    if (val === null || val === undefined) throw new Error('Expected value to be present');
+    return val;
+  }
+
+  function expect(val, message) {
+    if (val === null || val === undefined) throw new Error(message);
+    return val;
+  }
+
+  function unreachable() {
+    var message = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'unreachable';
+    return new Error(message);
+  }
+
+  function exhausted(value) {
+    throw new Error('Exhausted ' + value);
+  }
+
+  var tuple = exports.tuple = function tuple() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return args;
+  };
+});
+unwrapExports(platformUtils);
+var platformUtils_1 = platformUtils.keys;
+var platformUtils_2 = platformUtils.unwrap;
+var platformUtils_3 = platformUtils.expect;
+var platformUtils_4 = platformUtils.unreachable;
+var platformUtils_5 = platformUtils.exhausted;
+var platformUtils_6 = platformUtils.tuple;
+var string = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.strip = strip;
+
+  function strip(strings) {
+    var out = '';
+
+    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    for (var i = 0; i < strings.length; i++) {
+      var string = strings[i];
+      var dynamic = args[i] !== undefined ? String(args[i]) : '';
+      out += '' + string + dynamic;
+    }
+
+    var lines = out.split('\n');
+
+    while (lines.length && lines[0].match(/^\s*$/)) {
+      lines.shift();
+    }
+
+    while (lines.length && lines[lines.length - 1].match(/^\s*$/)) {
+      lines.pop();
+    }
+
+    var min = Infinity;
+
+    for (var _iterator = lines, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+      var _ref;
+
+      if (_isArray) {
+        if (_i >= _iterator.length) break;
+        _ref = _iterator[_i++];
+      } else {
+        _i = _iterator.next();
+        if (_i.done) break;
+        _ref = _i.value;
+      }
+
+      var line = _ref;
+      var leading = line.match(/^\s*/)[0].length;
+      min = Math.min(min, leading);
+    }
+
+    var stripped = [];
+
+    for (var _iterator2 = lines, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+      var _ref2;
+
+      if (_isArray2) {
+        if (_i2 >= _iterator2.length) break;
+        _ref2 = _iterator2[_i2++];
+      } else {
+        _i2 = _iterator2.next();
+        if (_i2.done) break;
+        _ref2 = _i2.value;
+      }
+
+      var _line = _ref2;
+      stripped.push(_line.slice(min));
+    }
+
+    return stripped.join('\n');
+  }
+});
+unwrapExports(string);
+var string_1 = string.strip;
+var es5$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, 'EMPTY_ARRAY', {
+    enumerable: true,
+    get: function () {
+      return arrayUtils.EMPTY_ARRAY;
+    }
+  });
+  Object.defineProperty(exports, 'assert', {
+    enumerable: true,
+    get: function () {
+      return _interopRequireDefault(assert).default;
+    }
+  });
+  Object.defineProperty(exports, 'deprecate', {
+    enumerable: true,
+    get: function () {
+      return assert.deprecate;
+    }
+  });
+  Object.defineProperty(exports, 'dict', {
+    enumerable: true,
+    get: function () {
+      return collections.dict;
+    }
+  });
+  Object.defineProperty(exports, 'DictSet', {
+    enumerable: true,
+    get: function () {
+      return collections.DictSet;
+    }
+  });
+  Object.defineProperty(exports, 'isDict', {
+    enumerable: true,
+    get: function () {
+      return collections.isDict;
+    }
+  });
+  Object.defineProperty(exports, 'isObject', {
+    enumerable: true,
+    get: function () {
+      return collections.isObject;
+    }
+  });
+  Object.defineProperty(exports, 'Stack', {
+    enumerable: true,
+    get: function () {
+      return collections.StackImpl;
+    }
+  });
+  Object.keys(destroy).forEach(function (key) {
+    if (key === "default" || key === "__esModule") return;
+    Object.defineProperty(exports, key, {
+      enumerable: true,
+      get: function () {
+        return destroy[key];
+      }
+    });
+  });
+  Object.keys(dom).forEach(function (key) {
+    if (key === "default" || key === "__esModule") return;
+    Object.defineProperty(exports, key, {
+      enumerable: true,
+      get: function () {
+        return dom[key];
+      }
+    });
+  });
+  Object.defineProperty(exports, 'ensureGuid', {
+    enumerable: true,
+    get: function () {
+      return guid.ensureGuid;
+    }
+  });
+  Object.defineProperty(exports, 'initializeGuid', {
+    enumerable: true,
+    get: function () {
+      return guid.initializeGuid;
+    }
+  });
+  Object.defineProperty(exports, 'isSerializationFirstNode', {
+    enumerable: true,
+    get: function () {
+      return isSerializationFirstNode_1.isSerializationFirstNode;
+    }
+  });
+  Object.defineProperty(exports, 'SERIALIZATION_FIRST_NODE_STRING', {
+    enumerable: true,
+    get: function () {
+      return isSerializationFirstNode_1.SERIALIZATION_FIRST_NODE_STRING;
+    }
+  });
+  Object.keys(lifetimes).forEach(function (key) {
+    if (key === "default" || key === "__esModule") return;
+    Object.defineProperty(exports, key, {
+      enumerable: true,
+      get: function () {
+        return lifetimes[key];
+      }
+    });
+  });
+  Object.defineProperty(exports, 'EMPTY_SLICE', {
+    enumerable: true,
+    get: function () {
+      return listUtils.EMPTY_SLICE;
+    }
+  });
+  Object.defineProperty(exports, 'LinkedList', {
+    enumerable: true,
+    get: function () {
+      return listUtils.LinkedList;
+    }
+  });
+  Object.defineProperty(exports, 'ListNode', {
+    enumerable: true,
+    get: function () {
+      return listUtils.ListNode;
+    }
+  });
+  Object.defineProperty(exports, 'ListSlice', {
+    enumerable: true,
+    get: function () {
+      return listUtils.ListSlice;
+    }
+  });
+  Object.defineProperty(exports, 'assign', {
+    enumerable: true,
+    get: function () {
+      return objectUtils.assign;
+    }
+  });
+  Object.defineProperty(exports, 'fillNulls', {
+    enumerable: true,
+    get: function () {
+      return objectUtils.fillNulls;
+    }
+  });
+  Object.defineProperty(exports, 'values', {
+    enumerable: true,
+    get: function () {
+      return objectUtils.values;
+    }
+  });
+  Object.keys(platformUtils).forEach(function (key) {
+    if (key === "default" || key === "__esModule") return;
+    Object.defineProperty(exports, key, {
+      enumerable: true,
+      get: function () {
+        return platformUtils[key];
+      }
+    });
+  });
+  Object.keys(string).forEach(function (key) {
+    if (key === "default" || key === "__esModule") return;
+    Object.defineProperty(exports, key, {
+      enumerable: true,
+      get: function () {
+        return string[key];
+      }
+    });
+  });
+  exports.assertNever = assertNever;
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  function assertNever(value) {
+    var desc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'unexpected unreachable branch';
+    console.log('unreachable', value);
+    console.trace(desc + ' :: ' + JSON.stringify(value) + ' (' + value + ')');
+  }
+});
+unwrapExports(es5$1);
+var es5_1$1 = es5$1.assertNever;
+var captureRenderTree_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = captureRenderTree;
+  /**
+    @module @ember/debug
+  */
+
+  /**
+    Ember Inspector calls this function to capture the current render tree.
+  
+    In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
+    before loading Ember.
+  
+    @private
+    @static
+    @method captureRenderTree
+    @for @ember/debug
+    @param app {ApplicationInstance} An `ApplicationInstance`.
+    @since 3.14.0
+  */
+
+  function captureRenderTree(app) {
+    let env = (0, es5$1.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
+    return env.debugRenderTree.capture();
+  }
+});
+unwrapExports(captureRenderTree_1);
+var debug_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, "registerDeprecationHandler", {
+    enumerable: true,
+    get: function () {
+      return _deprecate2.registerHandler;
+    }
+  });
+  Object.defineProperty(exports, "isTesting", {
+    enumerable: true,
+    get: function () {
+      return testing_1.isTesting;
+    }
+  });
+  Object.defineProperty(exports, "setTesting", {
+    enumerable: true,
+    get: function () {
+      return testing_1.setTesting;
+    }
+  });
+  Object.defineProperty(exports, "registerWarnHandler", {
+    enumerable: true,
+    get: function () {
+      return _warn2.registerHandler;
+    }
+  });
+  Object.defineProperty(exports, "captureRenderTree", {
+    enumerable: true,
+    get: function () {
+      return _captureRenderTree.default;
+    }
+  });
+  exports._warnIfUsingStrippedFeatureFlags = exports.getDebugFunction = exports.setDebugFunction = exports.deprecateFunc = exports.runInDebug = exports.debugFreeze = exports.debugSeal = exports.deprecate = exports.debug = exports.warn = exports.info = exports.assert = void 0;
+
+  var _error = _interopRequireDefault(error);
+
+  var _deprecate2 = _interopRequireWildcard(deprecate_1);
+
+  var _warn2 = _interopRequireWildcard(warn_1);
+
+  var _captureRenderTree = _interopRequireDefault(captureRenderTree_1);
+
+  function _getRequireWildcardCache() {
+    if (typeof WeakMap !== "function") return null;
+    var cache = new WeakMap();
+
+    _getRequireWildcardCache = function () {
+      return cache;
+    };
+
+    return cache;
+  }
+
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    }
+
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+      return {
+        default: obj
+      };
+    }
+
+    var cache = _getRequireWildcardCache();
+
+    if (cache && cache.has(obj)) {
+      return cache.get(obj);
+    }
+
+    var newObj = {};
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+
+        if (desc && (desc.get || desc.set)) {
+          Object.defineProperty(newObj, key, desc);
+        } else {
+          newObj[key] = obj[key];
+        }
+      }
+    }
+
+    newObj.default = obj;
+
+    if (cache) {
+      cache.set(obj, newObj);
+    }
+
+    return newObj;
+  }
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  } // These are the default production build versions:
+
+
+  const noop = () => {};
+
+  let assert = noop;
+  exports.assert = assert;
+  let info = noop;
+  exports.info = info;
+  let warn = noop;
+  exports.warn = warn;
+  let debug = noop;
+  exports.debug = debug;
+  let deprecate = noop;
+  exports.deprecate = deprecate;
+  let debugSeal = noop;
+  exports.debugSeal = debugSeal;
+  let debugFreeze = noop;
+  exports.debugFreeze = debugFreeze;
+  let runInDebug = noop;
+  exports.runInDebug = runInDebug;
+  let setDebugFunction = noop;
+  exports.setDebugFunction = setDebugFunction;
+  let getDebugFunction = noop;
+  exports.getDebugFunction = getDebugFunction;
+
+  let deprecateFunc = function () {
+    return arguments[arguments.length - 1];
+  };
+
+  exports.deprecateFunc = deprecateFunc;
+
+  if (es5.DEBUG) {
+    exports.setDebugFunction = setDebugFunction = function (type, callback) {
+      switch (type) {
+        case 'assert':
+          return exports.assert = assert = callback;
+
+        case 'info':
+          return exports.info = info = callback;
+
+        case 'warn':
+          return exports.warn = warn = callback;
+
+        case 'debug':
+          return exports.debug = debug = callback;
+
+        case 'deprecate':
+          return exports.deprecate = deprecate = callback;
+
+        case 'debugSeal':
+          return exports.debugSeal = debugSeal = callback;
+
+        case 'debugFreeze':
+          return exports.debugFreeze = debugFreeze = callback;
+
+        case 'runInDebug':
+          return exports.runInDebug = runInDebug = callback;
+
+        case 'deprecateFunc':
+          return exports.deprecateFunc = deprecateFunc = callback;
+      }
+    };
+
+    exports.getDebugFunction = getDebugFunction = function (type) {
+      switch (type) {
+        case 'assert':
+          return assert;
+
+        case 'info':
+          return info;
+
+        case 'warn':
+          return warn;
+
+        case 'debug':
+          return debug;
+
+        case 'deprecate':
+          return deprecate;
+
+        case 'debugSeal':
+          return debugSeal;
+
+        case 'debugFreeze':
+          return debugFreeze;
+
+        case 'runInDebug':
+          return runInDebug;
+
+        case 'deprecateFunc':
+          return deprecateFunc;
+      }
+    };
+  }
+  /**
+  @module @ember/debug
+  */
+
+
+  if (es5.DEBUG) {
+    /**
+      Verify that a certain expectation is met, or throw a exception otherwise.
+         This is useful for communicating assumptions in the code to other human
+      readers as well as catching bugs that accidentally violates these
+      expectations.
+         Assertions are removed from production builds, so they can be freely added
+      for documentation and debugging purposes without worries of incuring any
+      performance penalty. However, because of that, they should not be used for
+      checks that could reasonably fail during normal usage. Furthermore, care
+      should be taken to avoid accidentally relying on side-effects produced from
+      evaluating the condition itself, since the code will not run in production.
+         ```javascript
+      import { assert } from '@ember/debug';
+         // Test for truthiness
+      assert('Must pass a string', typeof str === 'string');
+         // Fail unconditionally
+      assert('This code path should never be run');
+      ```
+         @method assert
+      @static
+      @for @ember/debug
+      @param {String} description Describes the expectation. This will become the
+        text of the Error thrown if the assertion fails.
+      @param {any} condition Must be truthy for the assertion to pass. If
+        falsy, an exception will be thrown.
+      @public
+      @since 1.0.0
+    */
+    setDebugFunction('assert', function assert(desc, test) {
+      if (!test) {
+        throw new _error.default(`Assertion Failed: ${desc}`);
+      }
+    });
+    /**
+      Display a debug notice.
+         Calls to this function are removed from production builds, so they can be
+      freely added for documentation and debugging purposes without worries of
+      incuring any performance penalty.
+         ```javascript
+      import { debug } from '@ember/debug';
+         debug('I\'m a debug notice!');
+      ```
+         @method debug
+      @for @ember/debug
+      @static
+      @param {String} message A debug message to display.
+      @public
+    */
+
+    setDebugFunction('debug', function debug(message) {
+      /* eslint-disable no-console */
+      if (console.debug) {
+        console.debug(`DEBUG: ${message}`);
+      } else {
+        console.log(`DEBUG: ${message}`);
+      }
+      /* eslint-ensable no-console */
+
+    });
+    /**
+      Display an info notice.
+         Calls to this function are removed from production builds, so they can be
+      freely added for documentation and debugging purposes without worries of
+      incuring any performance penalty.
+         @method info
+      @private
+    */
+
+    setDebugFunction('info', function info() {
+      console.info(...arguments);
+      /* eslint-disable-line no-console */
+    });
+    /**
+     @module @ember/debug
+     @public
+    */
+
+    /**
+      Alias an old, deprecated method with its new counterpart.
+         Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only) when the assigned method is called.
+         Calls to this function are removed from production builds, so they can be
+      freely added for documentation and debugging purposes without worries of
+      incuring any performance penalty.
+         ```javascript
+      import { deprecateFunc } from '@ember/debug';
+         Ember.oldMethod = deprecateFunc('Please use the new, updated method', options, Ember.newMethod);
+      ```
+         @method deprecateFunc
+      @static
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Object} [options] The options object for `deprecate`.
+      @param {Function} func The new function called to replace its deprecated counterpart.
+      @return {Function} A new function that wraps the original function with a deprecation warning
+      @private
+    */
+
+    setDebugFunction('deprecateFunc', function deprecateFunc(...args) {
+      if (args.length === 3) {
+        let [message, options, func] = args;
+        return function (...args) {
+          deprecate(message, false, options);
+          return func.apply(this, args);
+        };
+      } else {
+        let [message, func] = args;
+        return function () {
+          deprecate(message);
+          return func.apply(this, arguments);
+        };
+      }
+    });
+    /**
+     @module @ember/debug
+     @public
+    */
+
+    /**
+      Run a function meant for debugging.
+         Calls to this function are removed from production builds, so they can be
+      freely added for documentation and debugging purposes without worries of
+      incuring any performance penalty.
+         ```javascript
+      import Component from '@ember/component';
+      import { runInDebug } from '@ember/debug';
+         runInDebug(() => {
+        Component.reopen({
+          didInsertElement() {
+            console.log("I'm happy");
+          }
+        });
+      });
+      ```
+         @method runInDebug
+      @for @ember/debug
+      @static
+      @param {Function} func The function to be executed.
+      @since 1.5.0
+      @public
+    */
+
+    setDebugFunction('runInDebug', function runInDebug(func) {
+      func();
+    });
+    setDebugFunction('debugSeal', function debugSeal(obj) {
+      Object.seal(obj);
+    });
+    setDebugFunction('debugFreeze', function debugFreeze(obj) {
+      // re-freezing an already frozen object introduces a significant
+      // performance penalty on Chrome (tested through 59).
+      //
+      // See: https://bugs.chromium.org/p/v8/issues/detail?id=6450
+      if (!Object.isFrozen(obj)) {
+        Object.freeze(obj);
+      }
+    });
+    setDebugFunction('deprecate', _deprecate2.default);
+    setDebugFunction('warn', _warn2.default);
+  }
+
+  let _warnIfUsingStrippedFeatureFlags;
+
+  exports._warnIfUsingStrippedFeatureFlags = _warnIfUsingStrippedFeatureFlags;
+
+  if (es5.DEBUG && !(0, testing_1.isTesting)()) {
+    if (typeof window !== 'undefined' && (browserEnvironment.isFirefox || browserEnvironment.isChrome) && window.addEventListener) {
+      window.addEventListener('load', () => {
+        if (document.documentElement && document.documentElement.dataset && !document.documentElement.dataset.emberExtension) {
+          let downloadURL;
+
+          if (browserEnvironment.isChrome) {
+            downloadURL = 'https://chrome.google.com/webstore/detail/ember-inspector/bmdblncegkenkacieihfhpjfppoconhi';
+          } else if (browserEnvironment.isFirefox) {
+            downloadURL = 'https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/';
+          }
+
+          debug(`For more advanced debugging, install the Ember Inspector from ${downloadURL}`);
+        }
+      }, false);
+    }
+  }
+});
+unwrapExports(debug_1);
+var debug_2 = debug_1._warnIfUsingStrippedFeatureFlags;
+var debug_3 = debug_1.getDebugFunction;
+var debug_4 = debug_1.setDebugFunction;
+var debug_5 = debug_1.deprecateFunc;
+var debug_6 = debug_1.runInDebug;
+var debug_7 = debug_1.debugFreeze;
+var debug_8 = debug_1.debugSeal;
+var debug_9 = debug_1.deprecate;
+var debug_10 = debug_1.debug;
+var debug_11 = debug_1.warn;
+var debug_12 = debug_1.info;
+var debug_13 = debug_1.assert;
+var deprecatedFeatures = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.GLOBALS_RESOLVER = exports.PARTIALS = exports.EMBER_COMPONENT_IS_VISIBLE = exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = exports.FUNCTION_PROTOTYPE_EXTENSIONS = exports.APP_CTRL_ROUTER_PROPS = exports.ALIAS_METHOD = exports.JQUERY_INTEGRATION = exports.COMPONENT_MANAGER_STRING_LOOKUP = exports.ROUTER_EVENTS = exports.MERGE = exports.LOGGER = exports.EMBER_EXTEND_PROTOTYPES = exports.SEND_ACTION = void 0;
+  /* eslint-disable no-implicit-coercion */
+  // These versions should be the version that the deprecation was _introduced_,
+  // not the version that the feature will be removed.
+
+  const SEND_ACTION = !!'3.4.0';
+  exports.SEND_ACTION = SEND_ACTION;
+  const EMBER_EXTEND_PROTOTYPES = !!'3.2.0-beta.5';
+  exports.EMBER_EXTEND_PROTOTYPES = EMBER_EXTEND_PROTOTYPES;
+  const LOGGER = !!'3.2.0-beta.1';
+  exports.LOGGER = LOGGER;
+  const MERGE = !!'3.6.0-beta.1';
+  exports.MERGE = MERGE;
+  const ROUTER_EVENTS = !!'4.0.0';
+  exports.ROUTER_EVENTS = ROUTER_EVENTS;
+  const COMPONENT_MANAGER_STRING_LOOKUP = !!'3.8.0';
+  exports.COMPONENT_MANAGER_STRING_LOOKUP = COMPONENT_MANAGER_STRING_LOOKUP;
+  const JQUERY_INTEGRATION = !!'3.9.0';
+  exports.JQUERY_INTEGRATION = JQUERY_INTEGRATION;
+  const ALIAS_METHOD = !!'3.9.0';
+  exports.ALIAS_METHOD = ALIAS_METHOD;
+  const APP_CTRL_ROUTER_PROPS = !!'3.10.0-beta.1';
+  exports.APP_CTRL_ROUTER_PROPS = APP_CTRL_ROUTER_PROPS;
+  const FUNCTION_PROTOTYPE_EXTENSIONS = !!'3.11.0-beta.1';
+  exports.FUNCTION_PROTOTYPE_EXTENSIONS = FUNCTION_PROTOTYPE_EXTENSIONS;
+  const MOUSE_ENTER_LEAVE_MOVE_EVENTS = !!'3.13.0-beta.1';
+  exports.MOUSE_ENTER_LEAVE_MOVE_EVENTS = MOUSE_ENTER_LEAVE_MOVE_EVENTS;
+  const EMBER_COMPONENT_IS_VISIBLE = !!'3.15.0-beta.1';
+  exports.EMBER_COMPONENT_IS_VISIBLE = EMBER_COMPONENT_IS_VISIBLE;
+  const PARTIALS = !!'3.15.0-beta.1';
+  exports.PARTIALS = PARTIALS;
+  const GLOBALS_RESOLVER = !!'3.16.0-beta.1';
+  exports.GLOBALS_RESOLVER = GLOBALS_RESOLVER;
+});
+unwrapExports(deprecatedFeatures);
+var deprecatedFeatures_1 = deprecatedFeatures.GLOBALS_RESOLVER;
+var deprecatedFeatures_2 = deprecatedFeatures.PARTIALS;
+var deprecatedFeatures_3 = deprecatedFeatures.EMBER_COMPONENT_IS_VISIBLE;
+var deprecatedFeatures_4 = deprecatedFeatures.MOUSE_ENTER_LEAVE_MOVE_EVENTS;
+var deprecatedFeatures_5 = deprecatedFeatures.FUNCTION_PROTOTYPE_EXTENSIONS;
+var deprecatedFeatures_6 = deprecatedFeatures.APP_CTRL_ROUTER_PROPS;
+var deprecatedFeatures_7 = deprecatedFeatures.ALIAS_METHOD;
+var deprecatedFeatures_8 = deprecatedFeatures.JQUERY_INTEGRATION;
+var deprecatedFeatures_9 = deprecatedFeatures.COMPONENT_MANAGER_STRING_LOOKUP;
+var deprecatedFeatures_10 = deprecatedFeatures.ROUTER_EVENTS;
+var deprecatedFeatures_11 = deprecatedFeatures.MERGE;
+var deprecatedFeatures_12 = deprecatedFeatures.LOGGER;
+var deprecatedFeatures_13 = deprecatedFeatures.EMBER_EXTEND_PROTOTYPES;
+var deprecatedFeatures_14 = deprecatedFeatures.SEND_ACTION;
+var environment = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.getLookup = getLookup;
+  exports.setLookup = setLookup;
+  exports.getENV = getENV;
+  exports.ENV = exports.context = exports.global = void 0; // from lodash to catch fake globals
+
+  function checkGlobal(value) {
+    return value && value.Object === Object ? value : undefined;
+  } // element ids can ruin global miss checks
+
+
+  function checkElementIdShadowing(value) {
+    return value && value.nodeType === undefined ? value : undefined;
+  } // export real global
+
+
+  var global$1 = checkGlobal(checkElementIdShadowing(typeof commonjsGlobal === 'object' && commonjsGlobal)) || checkGlobal(typeof self === 'object' && self) || checkGlobal(typeof window === 'object' && window) || typeof mainContext !== 'undefined' && mainContext || // set before strict mode in Ember loader/wrapper
+  new Function('return this')(); // eval outside of strict mode
+
+  exports.global = global$1;
+
+  const context = function (global, Ember) {
+    return Ember === undefined ? {
+      imports: global,
+      exports: global,
+      lookup: global
+    } : {
+      // import jQuery
+      imports: Ember.imports || global,
+      // export Ember
+      exports: Ember.exports || global,
+      // search for Namespaces
+      lookup: Ember.lookup || global
+    };
+  }(global$1, global$1.Ember);
+
+  exports.context = context;
+
+  function getLookup() {
+    return context.lookup;
+  }
+
+  function setLookup(value) {
+    context.lookup = value;
+  }
+  /**
+    The hash of environment variables used to control various configuration
+    settings. To specify your own or override default settings, add the
+    desired properties to a global hash named `EmberENV` (or `ENV` for
+    backwards compatibility with earlier versions of Ember). The `EmberENV`
+    hash must be created before loading Ember.
+  
+    @class EmberENV
+    @type Object
+    @public
+  */
+
+
+  const ENV = {
+    ENABLE_OPTIONAL_FEATURES: false,
+
+    /**
+      Determines whether Ember should add to `Array`, `Function`, and `String`
+      native object prototypes, a few extra methods in order to provide a more
+      friendly API.
+         We generally recommend leaving this option set to true however, if you need
+      to turn it off, you can add the configuration property
+      `EXTEND_PROTOTYPES` to `EmberENV` and set it to `false`.
+         Note, when disabled (the default configuration for Ember Addons), you will
+      instead have to access all methods and functions from the Ember
+      namespace.
+         @property EXTEND_PROTOTYPES
+      @type Boolean
+      @default true
+      @for EmberENV
+      @public
+    */
+    EXTEND_PROTOTYPES: {
+      Array: true,
+      Function: true,
+      String: true
+    },
+
+    /**
+      The `LOG_STACKTRACE_ON_DEPRECATION` property, when true, tells Ember to log
+      a full stack trace during deprecation warnings.
+         @property LOG_STACKTRACE_ON_DEPRECATION
+      @type Boolean
+      @default true
+      @for EmberENV
+      @public
+    */
+    LOG_STACKTRACE_ON_DEPRECATION: true,
+
+    /**
+      The `LOG_VERSION` property, when true, tells Ember to log versions of all
+      dependent libraries in use.
+         @property LOG_VERSION
+      @type Boolean
+      @default true
+      @for EmberENV
+      @public
+    */
+    LOG_VERSION: true,
+    RAISE_ON_DEPRECATION: false,
+    STRUCTURED_PROFILE: false,
+
+    /**
+      Whether to insert a `<div class="ember-view" />` wrapper around the
+      application template. See RFC #280.
+         This is not intended to be set directly, as the implementation may change in
+      the future. Use `@ember/optional-features` instead.
+         @property _APPLICATION_TEMPLATE_WRAPPER
+      @for EmberENV
+      @type Boolean
+      @default true
+      @private
+    */
+    _APPLICATION_TEMPLATE_WRAPPER: true,
+
+    /**
+      Whether to use Glimmer Component semantics (as opposed to the classic "Curly"
+      components semantics) for template-only components. See RFC #278.
+         This is not intended to be set directly, as the implementation may change in
+      the future. Use `@ember/optional-features` instead.
+         @property _TEMPLATE_ONLY_GLIMMER_COMPONENTS
+      @for EmberENV
+      @type Boolean
+      @default false
+      @private
+    */
+    _TEMPLATE_ONLY_GLIMMER_COMPONENTS: false,
+
+    /**
+      Whether to perform extra bookkeeping needed to make the `captureRenderTree`
+      API work.
+         This has to be set before the ember JavaScript code is evaluated. This is
+      usually done by setting `window.EmberENV = { _DEBUG_RENDER_TREE: true };`
+      or `window.ENV = { _DEBUG_RENDER_TREE: true };` before the "vendor"
+      `<script>` tag in `index.html`.
+         Setting the flag after Ember is already loaded will not work correctly. It
+      may appear to work somewhat, but fundamentally broken.
+         This is not intended to be set directly. Ember Inspector will enable the
+      flag on behalf of the user as needed.
+         This flag is always on in development mode.
+         The flag is off by default in production mode, due to the cost associated
+      with the the bookkeeping work.
+         The expected flow is that Ember Inspector will ask the user to refresh the
+      page after enabling the feature. It could also offer a feature where the
+      user add some domains to the "always on" list. In either case, Ember
+      Inspector will inject the code on the page to set the flag if needed.
+         @property _DEBUG_RENDER_TREE
+      @for EmberENV
+      @type Boolean
+      @default false
+      @private
+    */
+    _DEBUG_RENDER_TREE: es5.DEBUG,
+
+    /**
+      Whether the app is using jQuery. See RFC #294.
+         This is not intended to be set directly, as the implementation may change in
+      the future. Use `@ember/optional-features` instead.
+         @property _JQUERY_INTEGRATION
+      @for EmberENV
+      @type Boolean
+      @default true
+      @private
+    */
+    _JQUERY_INTEGRATION: true,
+
+    /**
+      Whether the app defaults to using async observers.
+         This is not intended to be set directly, as the implementation may change in
+      the future. Use `@ember/optional-features` instead.
+         @property _DEFAULT_ASYNC_OBSERVERS
+      @for EmberENV
+      @type Boolean
+      @default false
+      @private
+    */
+    _DEFAULT_ASYNC_OBSERVERS: false,
+
+    /**
+      Controls the maximum number of scheduled rerenders without "settling". In general,
+      applications should not need to modify this environment variable, but please
+      open an issue so that we can determine if a better default value is needed.
+         @property _RERENDER_LOOP_LIMIT
+      @for EmberENV
+      @type number
+      @default 1000
+      @private
+     */
+    _RERENDER_LOOP_LIMIT: 1000,
+    EMBER_LOAD_HOOKS: {},
+    FEATURES: {}
+  };
+  exports.ENV = ENV;
+  let providedEnv = global$1.EmberENV;
+
+  if (providedEnv === undefined) {
+    providedEnv = global$1.ENV;
+    (0, debug_1.deprecate)("Configuring Ember's boot options via `window.ENV` is deprecated, please migrate to `window.EmberENV` instead.", providedEnv === undefined, {
+      id: 'ember-environment.window.env',
+      until: '3.17.0'
+    });
+  }
+
+  (EmberENV => {
+    if (typeof EmberENV !== 'object' || EmberENV === null) return;
+
+    for (let flag in EmberENV) {
+      if (!EmberENV.hasOwnProperty(flag) || flag === 'EXTEND_PROTOTYPES' || flag === 'EMBER_LOAD_HOOKS') continue;
+      let defaultValue = ENV[flag];
+
+      if (defaultValue === true) {
+        ENV[flag] = EmberENV[flag] !== false;
+      } else if (defaultValue === false) {
+        ENV[flag] = EmberENV[flag] === true;
+      }
+    }
+
+    let {
+      EXTEND_PROTOTYPES
+    } = EmberENV;
+
+    if (EXTEND_PROTOTYPES !== undefined) {
+      if (typeof EXTEND_PROTOTYPES === 'object' && EXTEND_PROTOTYPES !== null) {
+        ENV.EXTEND_PROTOTYPES.String = EXTEND_PROTOTYPES.String !== false;
+
+        if (deprecatedFeatures.FUNCTION_PROTOTYPE_EXTENSIONS) {
+          ENV.EXTEND_PROTOTYPES.Function = EXTEND_PROTOTYPES.Function !== false;
+        }
+
+        ENV.EXTEND_PROTOTYPES.Array = EXTEND_PROTOTYPES.Array !== false;
+      } else {
+        let isEnabled = EXTEND_PROTOTYPES !== false;
+        ENV.EXTEND_PROTOTYPES.String = isEnabled;
+
+        if (deprecatedFeatures.FUNCTION_PROTOTYPE_EXTENSIONS) {
+          ENV.EXTEND_PROTOTYPES.Function = isEnabled;
+        }
+
+        ENV.EXTEND_PROTOTYPES.Array = isEnabled;
+      }
+    } // TODO this does not seem to be used by anything,
+    //      can we remove it? do we need to deprecate it?
+
+
+    let {
+      EMBER_LOAD_HOOKS
+    } = EmberENV;
+
+    if (typeof EMBER_LOAD_HOOKS === 'object' && EMBER_LOAD_HOOKS !== null) {
+      for (let hookName in EMBER_LOAD_HOOKS) {
+        if (!EMBER_LOAD_HOOKS.hasOwnProperty(hookName)) continue;
+        let hooks = EMBER_LOAD_HOOKS[hookName];
+
+        if (Array.isArray(hooks)) {
+          ENV.EMBER_LOAD_HOOKS[hookName] = hooks.filter(hook => typeof hook === 'function');
+        }
+      }
+    }
+
+    let {
+      FEATURES
+    } = EmberENV;
+
+    if (typeof FEATURES === 'object' && FEATURES !== null) {
+      for (let feature in FEATURES) {
+        if (!FEATURES.hasOwnProperty(feature)) continue;
+        ENV.FEATURES[feature] = FEATURES[feature] === true;
+      }
+    }
+
+    if (es5.DEBUG) {
+      ENV._DEBUG_RENDER_TREE = true;
+    }
+  })(providedEnv);
+
+  function getENV() {
+    return ENV;
+  }
+});
+unwrapExports(environment);
+var environment_1 = environment.getLookup;
+var environment_2 = environment.setLookup;
+var environment_3 = environment.getENV;
+var environment_4 = environment.ENV;
+var environment_5 = environment.context;
+var environment_6 = environment.global;
+var merge_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = merge;
+  /**
+    Merge the contents of two objects together into the first object.
+  
+    ```javascript
+    import { merge } from '@ember/polyfills';
+  
+    merge({ first: 'Tom' }, { last: 'Dale' }); // { first: 'Tom', last: 'Dale' }
+    var a = { first: 'Yehuda' };
+    var b = { last: 'Katz' };
+    merge(a, b); // a == { first: 'Yehuda', last: 'Katz' }, b == { last: 'Katz' }
+    ```
+  
+    @method merge
+    @static
+    @for @ember/polyfills
+    @param {Object} original The object to merge into
+    @param {Object} updates The object to copy properties from
+    @return {Object}
+    @deprecated
+    @public
+  */
+
+  function merge(original, updates) {
+    (0, debug_1.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
+      id: 'ember-polyfills.deprecate-merge',
+      until: '4.0.0',
+      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
+    });
+
+    if (updates === null || typeof updates !== 'object') {
+      return original;
+    }
+
+    let props = Object.keys(updates);
+    let prop;
+
+    for (let i = 0; i < props.length; i++) {
+      prop = props[i];
+      original[prop] = updates[prop];
+    }
+
+    return original;
+  }
+});
+unwrapExports(merge_1);
+var assign_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.assign = assign;
+  exports.default = void 0;
+  /**
+   @module @ember/polyfills
+  */
+
+  /**
+    Copy properties from a source object to a target object. Source arguments remain unchanged.
+  
+    ```javascript
+    import { assign } from '@ember/polyfills';
+  
+    var a = { first: 'Yehuda' };
+    var b = { last: 'Katz' };
+    var c = { company: 'Other Company' };
+    var d = { company: 'Tilde Inc.' };
+    assign(a, b, c, d); // a === { first: 'Yehuda', last: 'Katz', company: 'Tilde Inc.' };
+    ```
+  
+    @method assign
+    @for @ember/polyfills
+    @param {Object} target The object to assign into
+    @param {Object} ...args The objects to copy properties from
+    @return {Object}
+    @public
+    @static
+  */
+
+  function assign(target) {
+    for (let i = 1; i < arguments.length; i++) {
+      let arg = arguments[i];
+
+      if (!arg) {
+        continue;
+      }
+
+      let updates = Object.keys(arg);
+
+      for (let i = 0; i < updates.length; i++) {
+        let prop = updates[i];
+        target[prop] = arg[prop];
+      }
+    }
+
+    return target;
+  } // Note: We use the bracket notation so
+  //       that the babel plugin does not
+  //       transform it.
+  // https://www.npmjs.com/package/babel-plugin-transform-object-assign
+
+
+  const {
+    assign: _assign
+  } = Object;
+
+  var _default = _assign || assign;
+
+  exports.default = _default;
+});
+unwrapExports(assign_1);
+var assign_2 = assign_1.assign;
+var weak_set = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /* globals WeakSet */
+
+  var _default = typeof WeakSet === 'function' ? WeakSet : class WeakSetPolyFill {
+    constructor() {
+      this._map = new WeakMap();
+    }
+
+    add(val) {
+      this._map.set(val, true);
+
+      return this;
+    }
+
+    delete(val) {
+      return this._map.delete(val);
+    }
+
+    has(val) {
+      return this._map.has(val);
+    }
+
+  };
+
+  exports.default = _default;
+});
+unwrapExports(weak_set);
+var polyfills = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, "assign", {
+    enumerable: true,
+    get: function () {
+      return _assign.default;
+    }
+  });
+  Object.defineProperty(exports, "assignPolyfill", {
+    enumerable: true,
+    get: function () {
+      return _assign.assign;
+    }
+  });
+  Object.defineProperty(exports, "_WeakSet", {
+    enumerable: true,
+    get: function () {
+      return _weak_set.default;
+    }
+  });
+  exports.merge = void 0;
+
+  var _merge = _interopRequireDefault(merge_1);
+
+  var _assign = _interopRequireWildcard(assign_1);
+
+  var _weak_set = _interopRequireDefault(weak_set);
+
+  function _getRequireWildcardCache() {
+    if (typeof WeakMap !== "function") return null;
+    var cache = new WeakMap();
+
+    _getRequireWildcardCache = function () {
+      return cache;
+    };
+
+    return cache;
+  }
+
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    }
+
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+      return {
+        default: obj
+      };
+    }
+
+    var cache = _getRequireWildcardCache();
+
+    if (cache && cache.has(obj)) {
+      return cache.get(obj);
+    }
+
+    var newObj = {};
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+
+        if (desc && (desc.get || desc.set)) {
+          Object.defineProperty(newObj, key, desc);
+        } else {
+          newObj[key] = obj[key];
+        }
+      }
+    }
+
+    newObj.default = obj;
+
+    if (cache) {
+      cache.set(obj, newObj);
+    }
+
+    return newObj;
+  }
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  let merge = deprecatedFeatures.MERGE ? _merge.default : undefined; // Export `assignPolyfill` for testing
+
+  exports.merge = merge;
+});
+unwrapExports(polyfills);
+var polyfills_1 = polyfills.merge;
+var utils$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.symbol = symbol;
+  exports.isInternalSymbol = isInternalSymbol;
+  exports.dictionary = makeDictionary;
+  exports.uuid = uuid;
+  exports.generateGuid = generateGuid;
+  exports.guidFor = guidFor;
+  exports.intern = intern;
+  exports.wrap = wrap;
+  exports.getObservers = getObservers;
+  exports.getListeners = getListeners;
+  exports.setObservers = setObservers;
+  exports.setListeners = setListeners;
+  exports.inspect = inspect;
+  exports.lookupDescriptor = lookupDescriptor;
+  exports.canInvoke = canInvoke;
+  exports.tryInvoke = tryInvoke;
+  exports.makeArray = makeArray;
+  exports.getName = getName;
+  exports.setName = setName;
+  exports.toString = toString;
+  exports.isProxy = isProxy;
+  exports.setProxy = setProxy;
+  exports.isEmberArray = isEmberArray;
+  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.EMBER_ARRAY = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getOwnPropertyDescriptors = exports.getDebugName = void 0;
+  /**
+    Strongly hint runtimes to intern the provided string.
+  
+    When do I need to use this function?
+  
+    For the most part, never. Pre-mature optimization is bad, and often the
+    runtime does exactly what you need it to, and more often the trade-off isn't
+    worth it.
+  
+    Why?
+  
+    Runtimes store strings in at least 2 different representations:
+    Ropes and Symbols (interned strings). The Rope provides a memory efficient
+    data-structure for strings created from concatenation or some other string
+    manipulation like splitting.
+  
+    Unfortunately checking equality of different ropes can be quite costly as
+    runtimes must resort to clever string comparison algorithms. These
+    algorithms typically cost in proportion to the length of the string.
+    Luckily, this is where the Symbols (interned strings) shine. As Symbols are
+    unique by their string content, equality checks can be done by pointer
+    comparison.
+  
+    How do I know if my string is a rope or symbol?
+  
+    Typically (warning general sweeping statement, but truthy in runtimes at
+    present) static strings created as part of the JS source are interned.
+    Strings often used for comparisons can be interned at runtime if some
+    criteria are met.  One of these criteria can be the size of the entire rope.
+    For example, in chrome 38 a rope longer then 12 characters will not
+    intern, nor will segments of that rope.
+  
+    Some numbers: http://jsperf.com/eval-vs-keys/8
+  
+    Known Trick™
+  
+    @private
+    @return {String} interned version of the provided string
+  */
+
+  function intern(str) {
+    let obj = {};
+    obj[str] = 1;
+
+    for (let key in obj) {
+      if (key === str) {
+        return key;
+      }
+    }
+
+    return str;
+  }
+  /**
+    Returns whether Type(value) is Object.
+  
+    Useful for checking whether a value is a valid WeakMap key.
+  
+    Refs: https://tc39.github.io/ecma262/#sec-typeof-operator-runtime-semantics-evaluation
+          https://tc39.github.io/ecma262/#sec-weakmap.prototype.set
+  
+    @private
+    @function isObject
+  */
+
+
+  function isObject(value) {
+    return value !== null && (typeof value === 'object' || typeof value === 'function');
+  }
+  /**
+   @module @ember/object
+  */
+
+  /**
+   Previously we used `Ember.$.uuid`, however `$.uuid` has been removed from
+   jQuery master. We'll just bootstrap our own uuid now.
+  
+   @private
+   @return {Number} the uuid
+   */
+
+
+  let _uuid = 0;
+  /**
+   Generates a universally unique identifier. This method
+   is used internally by Ember for assisting with
+   the generation of GUID's and other unique identifiers.
+  
+   @public
+   @return {Number} [description]
+   */
+
+  function uuid() {
+    return ++_uuid;
+  }
+  /**
+   Prefix used for guids through out Ember.
+   @private
+   @property GUID_PREFIX
+   @for Ember
+   @type String
+   @final
+   */
+
+
+  const GUID_PREFIX = 'ember'; // Used for guid generation...
+
+  const OBJECT_GUIDS = new WeakMap();
+  const NON_OBJECT_GUIDS = new Map();
+  /**
+    A unique key used to assign guids and other private metadata to objects.
+    If you inspect an object in your browser debugger you will often see these.
+    They can be safely ignored.
+  
+    On browsers that support it, these properties are added with enumeration
+    disabled so they won't show up when you iterate over your properties.
+  
+    @private
+    @property GUID_KEY
+    @for Ember
+    @type String
+    @final
+  */
+
+  const GUID_KEY = intern(`__ember${Date.now()}`);
+  /**
+    Generates a new guid, optionally saving the guid to the object that you
+    pass in. You will rarely need to use this method. Instead you should
+    call `guidFor(obj)`, which return an existing guid if available.
+  
+    @private
+    @method generateGuid
+    @static
+    @for @ember/object/internals
+    @param {Object} [obj] Object the guid will be used for. If passed in, the guid will
+      be saved on the object and reused whenever you pass the same object
+      again.
+  
+      If no object is passed, just generate a new guid.
+    @param {String} [prefix] Prefix to place in front of the guid. Useful when you want to
+      separate the guid into separate namespaces.
+    @return {String} the guid
+  */
+
+  exports.GUID_KEY = GUID_KEY;
+
+  function generateGuid(obj, prefix = GUID_PREFIX) {
+    let guid = prefix + uuid();
+
+    if (isObject(obj)) {
+      OBJECT_GUIDS.set(obj, guid);
+    }
+
+    return guid;
+  }
+  /**
+    Returns a unique id for the object. If the object does not yet have a guid,
+    one will be assigned to it. You can call this on any object,
+    `EmberObject`-based or not.
+  
+    You can also use this method on DOM Element objects.
+  
+    @public
+    @static
+    @method guidFor
+    @for @ember/object/internals
+    @param {Object} obj any object, string, number, Element, or primitive
+    @return {String} the unique guid for this instance.
+  */
+
+
+  function guidFor(value) {
+    let guid;
+
+    if (isObject(value)) {
+      guid = OBJECT_GUIDS.get(value);
+
+      if (guid === undefined) {
+        guid = GUID_PREFIX + uuid();
+        OBJECT_GUIDS.set(value, guid);
+      }
+    } else {
+      guid = NON_OBJECT_GUIDS.get(value);
+
+      if (guid === undefined) {
+        let type = typeof value;
+
+        if (type === 'string') {
+          guid = 'st' + uuid();
+        } else if (type === 'number') {
+          guid = 'nu' + uuid();
+        } else if (type === 'symbol') {
+          guid = 'sy' + uuid();
+        } else {
+          guid = '(' + value + ')';
+        }
+
+        NON_OBJECT_GUIDS.set(value, guid);
+      }
+    }
+
+    return guid;
+  }
+
+  const GENERATED_SYMBOLS = [];
+
+  function isInternalSymbol(possibleSymbol) {
+    return GENERATED_SYMBOLS.indexOf(possibleSymbol) !== -1;
+  }
+
+  function symbol(debugName) {
+    // TODO: Investigate using platform symbols, but we do not
+    // want to require non-enumerability for this API, which
+    // would introduce a large cost.
+    let id = GUID_KEY + Math.floor(Math.random() * Date.now());
+    let symbol = intern(`__${debugName}${id}__`);
+    GENERATED_SYMBOLS.push(symbol);
+    return symbol;
+  } // the delete is meant to hint at runtimes that this object should remain in
+  // dictionary mode. This is clearly a runtime specific hack, but currently it
+  // appears worthwhile in some usecases. Please note, these deletes do increase
+  // the cost of creation dramatically over a plain Object.create. And as this
+  // only makes sense for long-lived dictionaries that aren't instantiated often.
+
+
+  function makeDictionary(parent) {
+    let dict = Object.create(parent);
+    dict['_dict'] = null;
+    delete dict['_dict'];
+    return dict;
+  }
+
+  let getDebugName;
+
+  if (es5.DEBUG) {
+    let getFunctionName = fn => {
+      let functionName = fn.name;
+
+      if (functionName === undefined) {
+        let match = Function.prototype.toString.call(fn).match(/function (\w+)\s*\(/);
+        functionName = match && match[1] || '';
+      }
+
+      return functionName;
+    };
+
+    let getObjectName = obj => {
+      let name;
+      let className;
+
+      if (obj.constructor && obj.constructor !== Object) {
+        className = getFunctionName(obj.constructor);
+      }
+
+      if ('toString' in obj && obj.toString !== Object.prototype.toString && obj.toString !== Function.prototype.toString) {
+        name = obj.toString();
+      } // If the class has a decent looking name, and the `toString` is one of the
+      // default Ember toStrings, replace the constructor portion of the toString
+      // with the class name. We check the length of the class name to prevent doing
+      // this when the value is minified.
+
+
+      if (name && name.match(/<.*:ember\d+>/) && className && className[0] !== '_' && className.length > 2 && className !== 'Class') {
+        return name.replace(/<.*:/, `<${className}:`);
+      }
+
+      return name || className;
+    };
+
+    let getPrimitiveName = value => {
+      return String(value);
+    };
+
+    getDebugName = value => {
+      if (typeof value === 'function') {
+        return getFunctionName(value) || `(unknown function)`;
+      } else if (typeof value === 'object' && value !== null) {
+        return getObjectName(value) || `(unknown object)`;
+      } else {
+        return getPrimitiveName(value);
+      }
+    };
+  }
+
+  var getDebugName$1 = getDebugName;
+  exports.getDebugName = getDebugName$1;
+  let getOwnPropertyDescriptors;
+
+  if (Object.getOwnPropertyDescriptors !== undefined) {
+    getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
+  } else {
+    getOwnPropertyDescriptors = function (obj) {
+      let descriptors = {};
+      Object.keys(obj).forEach(key => {
+        descriptors[key] = Object.getOwnPropertyDescriptor(obj, key);
+      });
+      return descriptors;
+    };
+  }
+
+  var getOwnPropertyDescriptors$1 = getOwnPropertyDescriptors;
+  exports.getOwnPropertyDescriptors = getOwnPropertyDescriptors$1;
+  const HAS_SUPER_PATTERN = /\.(_super|call\(this|apply\(this)/;
+  const fnToString = Function.prototype.toString;
+
+  const checkHasSuper = (() => {
+    let sourceAvailable = fnToString.call(function () {
+      return this;
+    }).indexOf('return this') > -1;
+
+    if (sourceAvailable) {
+      return function checkHasSuper(func) {
+        return HAS_SUPER_PATTERN.test(fnToString.call(func));
+      };
+    }
+
+    return function checkHasSuper() {
+      return true;
+    };
+  })();
+
+  exports.checkHasSuper = checkHasSuper;
+  const HAS_SUPER_MAP = new WeakMap();
+  const ROOT = Object.freeze(function () {});
+  exports.ROOT = ROOT;
+  HAS_SUPER_MAP.set(ROOT, false);
+
+  function hasSuper(func) {
+    let hasSuper = HAS_SUPER_MAP.get(func);
+
+    if (hasSuper === undefined) {
+      hasSuper = checkHasSuper(func);
+      HAS_SUPER_MAP.set(func, hasSuper);
+    }
+
+    return hasSuper;
+  }
+
+  const OBSERVERS_MAP = new WeakMap();
+
+  function setObservers(func, observers) {
+    OBSERVERS_MAP.set(func, observers);
+  }
+
+  function getObservers(func) {
+    return OBSERVERS_MAP.get(func);
+  }
+
+  const LISTENERS_MAP = new WeakMap();
+
+  function setListeners(func, listeners) {
+    if (listeners) {
+      LISTENERS_MAP.set(func, listeners);
+    }
+  }
+
+  function getListeners(func) {
+    return LISTENERS_MAP.get(func);
+  }
+
+  const IS_WRAPPED_FUNCTION_SET = new polyfills._WeakSet();
+  /**
+    Wraps the passed function so that `this._super` will point to the superFunc
+    when the function is invoked. This is the primitive we use to implement
+    calls to super.
+  
+    @private
+    @method wrap
+    @for Ember
+    @param {Function} func The function to call
+    @param {Function} superFunc The super function.
+    @return {Function} wrapped function.
+  */
+
+  function wrap(func, superFunc) {
+    if (!hasSuper(func)) {
+      return func;
+    } // ensure an unwrapped super that calls _super is wrapped with a terminal _super
+
+
+    if (!IS_WRAPPED_FUNCTION_SET.has(superFunc) && hasSuper(superFunc)) {
+      return _wrap(func, _wrap(superFunc, ROOT));
+    }
+
+    return _wrap(func, superFunc);
+  }
+
+  function _wrap(func, superFunc) {
+    function superWrapper() {
+      let orig = this._super;
+      this._super = superFunc;
+      let ret = func.apply(this, arguments);
+      this._super = orig;
+      return ret;
+    }
+
+    IS_WRAPPED_FUNCTION_SET.add(superWrapper);
+    setObservers(superWrapper, getObservers(func));
+    setListeners(superWrapper, getListeners(func));
+    return superWrapper;
+  }
+
+  const {
+    toString: objectToString
+  } = Object.prototype;
+  const {
+    toString: functionToString
+  } = Function.prototype;
+  const {
+    isArray
+  } = Array;
+  const {
+    keys: objectKeys
+  } = Object;
+  const {
+    stringify
+  } = JSON;
+  const LIST_LIMIT = 100;
+  const DEPTH_LIMIT = 4;
+  const SAFE_KEY = /^[\w$]+$/;
+  /**
+   @module @ember/debug
+  */
+
+  /**
+    Convenience method to inspect an object. This method will attempt to
+    convert the object into a useful string description.
+  
+    It is a pretty simple implementation. If you want something more robust,
+    use something like JSDump: https://github.com/NV/jsDump
+  
+    @method inspect
+    @static
+    @param {Object} obj The object you want to inspect.
+    @return {String} A description of the object
+    @since 1.4.0
+    @private
+  */
+
+  function inspect(obj) {
+    // detect Node util.inspect call inspect(depth: number, opts: object)
+    if (typeof obj === 'number' && arguments.length === 2) {
+      return this;
+    }
+
+    return inspectValue(obj, 0);
+  }
+
+  function inspectValue(value, depth, seen) {
+    let valueIsArray = false;
+
+    switch (typeof value) {
+      case 'undefined':
+        return 'undefined';
+
+      case 'object':
+        if (value === null) return 'null';
+
+        if (isArray(value)) {
+          valueIsArray = true;
+          break;
+        } // is toString Object.prototype.toString or undefined then traverse
+
+
+        if (value.toString === objectToString || value.toString === undefined) {
+          break;
+        } // custom toString
+
+
+        return value.toString();
+
+      case 'function':
+        return value.toString === functionToString ? value.name ? `[Function:${value.name}]` : `[Function]` : value.toString();
+
+      case 'string':
+        return stringify(value);
+
+      case 'symbol':
+      case 'boolean':
+      case 'number':
+      default:
+        return value.toString();
+    }
+
+    if (seen === undefined) {
+      seen = new polyfills._WeakSet();
+    } else {
+      if (seen.has(value)) return `[Circular]`;
+    }
+
+    seen.add(value);
+    return valueIsArray ? inspectArray(value, depth + 1, seen) : inspectObject(value, depth + 1, seen);
+  }
+
+  function inspectKey(key) {
+    return SAFE_KEY.test(key) ? key : stringify(key);
+  }
+
+  function inspectObject(obj, depth, seen) {
+    if (depth > DEPTH_LIMIT) {
+      return '[Object]';
+    }
+
+    let s = '{';
+    let keys = objectKeys(obj);
+
+    for (let i = 0; i < keys.length; i++) {
+      s += i === 0 ? ' ' : ', ';
+
+      if (i >= LIST_LIMIT) {
+        s += `... ${keys.length - LIST_LIMIT} more keys`;
+        break;
+      }
+
+      let key = keys[i];
+      s += inspectKey(key) + ': ' + inspectValue(obj[key], depth, seen);
+    }
+
+    s += ' }';
+    return s;
+  }
+
+  function inspectArray(arr, depth, seen) {
+    if (depth > DEPTH_LIMIT) {
+      return '[Array]';
+    }
+
+    let s = '[';
+
+    for (let i = 0; i < arr.length; i++) {
+      s += i === 0 ? ' ' : ', ';
+
+      if (i >= LIST_LIMIT) {
+        s += `... ${arr.length - LIST_LIMIT} more items`;
+        break;
+      }
+
+      s += inspectValue(arr[i], depth, seen);
+    }
+
+    s += ' ]';
+    return s;
+  }
+
+  function lookupDescriptor(obj, keyName) {
+    let current = obj;
+
+    do {
+      let descriptor = Object.getOwnPropertyDescriptor(current, keyName);
+
+      if (descriptor !== undefined) {
+        return descriptor;
+      }
+
+      current = Object.getPrototypeOf(current);
+    } while (current !== null);
+
+    return null;
+  }
+  /**
+    Checks to see if the `methodName` exists on the `obj`.
+  
+    ```javascript
+    let foo = { bar: function() { return 'bar'; }, baz: null };
+  
+    Ember.canInvoke(foo, 'bar'); // true
+    Ember.canInvoke(foo, 'baz'); // false
+    Ember.canInvoke(foo, 'bat'); // false
+    ```
+  
+    @method canInvoke
+    @for Ember
+    @param {Object} obj The object to check for the method
+    @param {String} methodName The method name to check for
+    @return {Boolean}
+    @private
+  */
+
+
+  function canInvoke(obj, methodName) {
+    return obj !== null && obj !== undefined && typeof obj[methodName] === 'function';
+  }
+  /**
+    @module @ember/utils
+  */
+
+  /**
+    Checks to see if the `methodName` exists on the `obj`,
+    and if it does, invokes it with the arguments passed.
+  
+    ```javascript
+    import { tryInvoke } from '@ember/utils';
+  
+    let d = new Date('03/15/2013');
+  
+    tryInvoke(d, 'getTime');              // 1363320000000
+    tryInvoke(d, 'setFullYear', [2014]);  // 1394856000000
+    tryInvoke(d, 'noSuchMethod', [2014]); // undefined
+    ```
+  
+    @method tryInvoke
+    @for @ember/utils
+    @static
+    @param {Object} obj The object to check for the method
+    @param {String} methodName The method name to check for
+    @param {Array} [args] The arguments to pass to the method
+    @return {*} the return value of the invoked method or undefined if it cannot be invoked
+    @public
+  */
+
+
+  function tryInvoke(obj, methodName, args) {
+    if (canInvoke(obj, methodName)) {
+      let method = obj[methodName];
+      return method.apply(obj, args);
+    }
+  }
+
+  const {
+    isArray: isArray$1
+  } = Array;
+
+  function makeArray(obj) {
+    if (obj === null || obj === undefined) {
+      return [];
+    }
+
+    return isArray$1(obj) ? obj : [obj];
+  }
+
+  const NAMES = new WeakMap();
+
+  function setName(obj, name) {
+    if (isObject(obj)) NAMES.set(obj, name);
+  }
+
+  function getName(obj) {
+    return NAMES.get(obj);
+  }
+
+  const objectToString$1 = Object.prototype.toString;
+
+  function isNone(obj) {
+    return obj === null || obj === undefined;
+  }
+  /*
+   A `toString` util function that supports objects without a `toString`
+   method, e.g. an object created with `Object.create(null)`.
+  */
+
+
+  function toString(obj) {
+    if (typeof obj === 'string') {
+      return obj;
+    }
+
+    if (null === obj) return 'null';
+    if (undefined === obj) return 'undefined';
+
+    if (Array.isArray(obj)) {
+      // Reimplement Array.prototype.join according to spec (22.1.3.13)
+      // Changing ToString(element) with this safe version of ToString.
+      let r = '';
+
+      for (let k = 0; k < obj.length; k++) {
+        if (k > 0) {
+          r += ',';
+        }
+
+        if (!isNone(obj[k])) {
+          r += toString(obj[k]);
+        }
+      }
+
+      return r;
+    }
+
+    if (typeof obj.toString === 'function') {
+      return obj.toString();
+    }
+
+    return objectToString$1.call(obj);
+  }
+
+  const HAS_NATIVE_SYMBOL = function () {
+    if (typeof Symbol !== 'function') {
+      return false;
+    }
+
+    return typeof Symbol() === 'symbol';
+  }();
+
+  exports.HAS_NATIVE_SYMBOL = HAS_NATIVE_SYMBOL;
+  const HAS_NATIVE_PROXY = typeof Proxy === 'function';
+  exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
+  const PROXIES = new polyfills._WeakSet();
+
+  function isProxy(value) {
+    if (isObject(value)) {
+      return PROXIES.has(value);
+    }
+
+    return false;
+  }
+
+  function setProxy(object) {
+    if (isObject(object)) {
+      PROXIES.add(object);
+    }
+  }
+
+  class Cache {
+    constructor(limit, func, store) {
+      this.limit = limit;
+      this.func = func;
+      this.store = store;
+      this.size = 0;
+      this.misses = 0;
+      this.hits = 0;
+      this.store = store || new Map();
+    }
+
+    get(key) {
+      if (this.store.has(key)) {
+        this.hits++;
+        return this.store.get(key);
+      } else {
+        this.misses++;
+        return this.set(key, this.func(key));
+      }
+    }
+
+    set(key, value) {
+      if (this.limit > this.size) {
+        this.size++;
+        this.store.set(key, value);
+      }
+
+      return value;
+    }
+
+    purge() {
+      this.store.clear();
+      this.size = 0;
+      this.hits = 0;
+      this.misses = 0;
+    }
+
+  }
+
+  exports.Cache = Cache;
+  const EMBER_ARRAY = symbol('EMBER_ARRAY');
+  exports.EMBER_ARRAY = EMBER_ARRAY;
+
+  function isEmberArray(obj) {
+    return obj && obj[EMBER_ARRAY];
+  }
+
+  let setupMandatorySetter;
+  exports.setupMandatorySetter = setupMandatorySetter;
+  let teardownMandatorySetter;
+  exports.teardownMandatorySetter = teardownMandatorySetter;
+  let setWithMandatorySetter;
+  exports.setWithMandatorySetter = setWithMandatorySetter;
+
+  if (es5.DEBUG) {
+    let MANDATORY_SETTERS = new WeakMap();
+
+    let propertyIsEnumerable = function (obj, key) {
+      return Object.prototype.propertyIsEnumerable.call(obj, key);
+    };
+
+    exports.setupMandatorySetter = setupMandatorySetter = function (obj, keyName) {
+      let desc = lookupDescriptor(obj, keyName) || {};
+
+      if (desc.get || desc.set) {
+        // if it has a getter or setter, we can't install the mandatory setter.
+        // native setters are allowed, we have to assume that they will resolve
+        // to tracked properties.
+        return;
+      }
+
+      if (desc && (!desc.configurable || !desc.writable)) {
+        // if it isn't writable anyways, so we shouldn't provide the setter.
+        // if it isn't configurable, we can't overwrite it anyways.
+        return;
+      }
+
+      let setters = MANDATORY_SETTERS.get(obj);
+
+      if (setters === undefined) {
+        setters = {};
+        MANDATORY_SETTERS.set(obj, setters);
+      }
+
+      desc.hadOwnProperty = Object.hasOwnProperty.call(obj, keyName);
+      setters[keyName] = desc;
+      Object.defineProperty(obj, keyName, {
+        configurable: true,
+        enumerable: propertyIsEnumerable(obj, keyName),
+
+        get() {
+          if (desc.get) {
+            return desc.get.call(this);
+          } else {
+            return desc.value;
+          }
+        },
+
+        set(value) {
+          (0, debug_1.assert)(`You attempted to update ${this}.${String(keyName)} to "${String(value)}", but it is being tracked by a tracking context, such as a template, computed property, or observer. In order to make sure the context updates properly, you must invalidate the property when updating it. You can mark the property as \`@tracked\`, or use \`@ember/object#set\` to do this.`);
+        }
+
+      });
+    };
+
+    exports.teardownMandatorySetter = teardownMandatorySetter = function (obj, keyName) {
+      let setters = MANDATORY_SETTERS.get(obj);
+
+      if (setters !== undefined && setters[keyName] !== undefined) {
+        Object.defineProperty(obj, keyName, setters[keyName]);
+        setters[keyName] = undefined;
+      }
+    };
+
+    exports.setWithMandatorySetter = setWithMandatorySetter = function (obj, keyName, value) {
+      let setters = MANDATORY_SETTERS.get(obj);
+
+      if (setters !== undefined && setters[keyName] !== undefined) {
+        let setter = setters[keyName];
+
+        if (setter.set) {
+          setter.set.call(obj, value);
+        } else {
+          setter.value = value; // If the object didn't have own property before, it would have changed
+          // the enumerability after setting the value the first time.
+
+          if (!setter.hadOwnProperty) {
+            let desc = lookupDescriptor(obj, keyName);
+            desc.enumerable = true;
+            Object.defineProperty(obj, keyName, desc);
+          }
+        }
+      } else {
+        obj[keyName] = value;
+      }
+    };
+  }
+  /*
+   This package will be eagerly parsed and should have no dependencies on external
+   packages.
+  
+   It is intended to be used to share utility methods that will be needed
+   by every Ember application (and is **not** a dumping ground of useful utilities).
+  
+   Utility methods that are needed in < 80% of cases should be placed
+   elsewhere (so they can be lazily evaluated / parsed).
+  */
+
+});
+unwrapExports(utils$1);
+var utils_1 = utils$1.symbol;
+var utils_2 = utils$1.isInternalSymbol;
+var utils_3 = utils$1.dictionary;
+var utils_4 = utils$1.uuid;
+var utils_5 = utils$1.generateGuid;
+var utils_6 = utils$1.guidFor;
+var utils_7 = utils$1.intern;
+var utils_8 = utils$1.wrap;
+var utils_9 = utils$1.getObservers;
+var utils_10 = utils$1.getListeners;
+var utils_11 = utils$1.setObservers;
+var utils_12 = utils$1.setListeners;
+var utils_13 = utils$1.inspect;
+var utils_14 = utils$1.lookupDescriptor;
+var utils_15 = utils$1.canInvoke;
+var utils_16 = utils$1.tryInvoke;
+var utils_17 = utils$1.makeArray;
+var utils_18 = utils$1.getName;
+var utils_19 = utils$1.setName;
+var utils_20 = utils$1.isProxy;
+var utils_21 = utils$1.setProxy;
+var utils_22 = utils$1.isEmberArray;
+var utils_23 = utils$1.setWithMandatorySetter;
+var utils_24 = utils$1.teardownMandatorySetter;
+var utils_25 = utils$1.setupMandatorySetter;
+var utils_26 = utils$1.EMBER_ARRAY;
+var utils_27 = utils$1.Cache;
+var utils_28 = utils$1.HAS_NATIVE_PROXY;
+var utils_29 = utils$1.HAS_NATIVE_SYMBOL;
+var utils_30 = utils$1.ROOT;
+var utils_31 = utils$1.checkHasSuper;
+var utils_32 = utils$1.GUID_KEY;
+var utils_33 = utils$1.getOwnPropertyDescriptors;
+var utils_34 = utils$1.getDebugName;
+var string$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.loc = loc;
+  exports.w = w;
+  exports.decamelize = decamelize;
+  exports.dasherize = dasherize;
+  exports.camelize = camelize;
+  exports.classify = classify;
+  exports.underscore = underscore;
+  exports.capitalize = capitalize;
+  Object.defineProperty(exports, "_getStrings", {
+    enumerable: true,
+    get: function () {
+      return string_registry.getStrings;
+    }
+  });
+  Object.defineProperty(exports, "_setStrings", {
+    enumerable: true,
+    get: function () {
+      return string_registry.setStrings;
+    }
+  });
+  /**
+  @module @ember/string
+  */
+
+  const STRING_DASHERIZE_REGEXP = /[ _]/g;
+  const STRING_DASHERIZE_CACHE = new utils$1.Cache(1000, key => decamelize(key).replace(STRING_DASHERIZE_REGEXP, '-'));
+  const STRING_CAMELIZE_REGEXP_1 = /(\-|\_|\.|\s)+(.)?/g;
+  const STRING_CAMELIZE_REGEXP_2 = /(^|\/)([A-Z])/g;
+  const CAMELIZE_CACHE = new utils$1.Cache(1000, key => key.replace(STRING_CAMELIZE_REGEXP_1, (_match, _separator, chr) => chr ? chr.toUpperCase() : '').replace(STRING_CAMELIZE_REGEXP_2, (match
+  /*, separator, chr */
+  ) => match.toLowerCase()));
+  const STRING_CLASSIFY_REGEXP_1 = /^(\-|_)+(.)?/;
+  const STRING_CLASSIFY_REGEXP_2 = /(.)(\-|\_|\.|\s)+(.)?/g;
+  const STRING_CLASSIFY_REGEXP_3 = /(^|\/|\.)([a-z])/g;
+  const CLASSIFY_CACHE = new utils$1.Cache(1000, str => {
+    let replace1 = (_match, _separator, chr) => chr ? `_${chr.toUpperCase()}` : '';
+
+    let replace2 = (_match, initialChar, _separator, chr) => initialChar + (chr ? chr.toUpperCase() : '');
+
+    let parts = str.split('/');
+
+    for (let i = 0; i < parts.length; i++) {
+      parts[i] = parts[i].replace(STRING_CLASSIFY_REGEXP_1, replace1).replace(STRING_CLASSIFY_REGEXP_2, replace2);
+    }
+
+    return parts.join('/').replace(STRING_CLASSIFY_REGEXP_3, (match
+    /*, separator, chr */
+    ) => match.toUpperCase());
+  });
+  const STRING_UNDERSCORE_REGEXP_1 = /([a-z\d])([A-Z]+)/g;
+  const STRING_UNDERSCORE_REGEXP_2 = /\-|\s+/g;
+  const UNDERSCORE_CACHE = new utils$1.Cache(1000, str => str.replace(STRING_UNDERSCORE_REGEXP_1, '$1_$2').replace(STRING_UNDERSCORE_REGEXP_2, '_').toLowerCase());
+  const STRING_CAPITALIZE_REGEXP = /(^|\/)([a-z\u00C0-\u024F])/g;
+  const CAPITALIZE_CACHE = new utils$1.Cache(1000, str => str.replace(STRING_CAPITALIZE_REGEXP, (match
+  /*, separator, chr */
+  ) => match.toUpperCase()));
+  const STRING_DECAMELIZE_REGEXP = /([a-z\d])([A-Z])/g;
+  const DECAMELIZE_CACHE = new utils$1.Cache(1000, str => str.replace(STRING_DECAMELIZE_REGEXP, '$1_$2').toLowerCase());
+  /**
+    Defines string helper methods including string formatting and localization.
+    Unless `EmberENV.EXTEND_PROTOTYPES.String` is `false` these methods will also be
+    added to the `String.prototype` as well.
+  
+    @class String
+    @public
+  */
+
+  function _fmt(str, formats) {
+    // first, replace any ORDERED replacements.
+    let idx = 0; // the current index for non-numerical replacements
+
+    return str.replace(/%@([0-9]+)?/g, (_s, argIndex) => {
+      let i = argIndex ? parseInt(argIndex, 10) - 1 : idx++;
+      let r = i < formats.length ? formats[i] : undefined;
+      return typeof r === 'string' ? r : r === null ? '(null)' : r === undefined ? '' : String(r);
+    });
+  }
+  /**
+    Formats the passed string, but first looks up the string in the localized
+    strings hash. This is a convenient way to localize text.
+  
+    Note that it is traditional but not required to prefix localized string
+    keys with an underscore or other character so you can easily identify
+    localized strings.
+  
+    ```javascript
+    import { loc } from '@ember/string';
+  
+    Ember.STRINGS = {
+      '_Hello World': 'Bonjour le monde',
+      '_Hello %@ %@': 'Bonjour %@ %@'
+    };
+  
+    loc("_Hello World");  // 'Bonjour le monde';
+    loc("_Hello %@ %@", ["John", "Smith"]);  // "Bonjour John Smith";
+    ```
+  
+    @method loc
+    @param {String} str The string to format
+    @param {Array} formats Optional array of parameters to interpolate into string.
+    @return {String} formatted string
+    @public
+  */
+
+
+  function loc(str, formats) {
+    if (!Array.isArray(formats) || arguments.length > 2) {
+      formats = Array.prototype.slice.call(arguments, 1);
+    }
+
+    str = (0, string_registry.getString)(str) || str;
+    return _fmt(str, formats);
+  }
+  /**
+    Splits a string into separate units separated by spaces, eliminating any
+    empty strings in the process. This is a convenience method for split that
+    is mostly useful when applied to the `String.prototype`.
+  
+    ```javascript
+    import { w } from '@ember/string';
+  
+    w("alpha beta gamma").forEach(function(key) {
+      console.log(key);
+    });
+  
+    // > alpha
+    // > beta
+    // > gamma
+    ```
+  
+    @method w
+    @param {String} str The string to split
+    @return {Array} array containing the split strings
+    @public
+  */
+
+
+  function w(str) {
+    return str.split(/\s+/);
+  }
+  /**
+    Converts a camelized string into all lower case separated by underscores.
+  
+    ```javascript
+    import { decamelize } from '@ember/string';
+  
+    decamelize('innerHTML');          // 'inner_html'
+    decamelize('action_name');        // 'action_name'
+    decamelize('css-class-name');     // 'css-class-name'
+    decamelize('my favorite items');  // 'my favorite items'
+    ```
+  
+    @method decamelize
+    @param {String} str The string to decamelize.
+    @return {String} the decamelized string.
+    @public
+  */
+
+
+  function decamelize(str) {
+    return DECAMELIZE_CACHE.get(str);
+  }
+  /**
+    Replaces underscores, spaces, or camelCase with dashes.
+  
+    ```javascript
+    import { dasherize } from '@ember/string';
+  
+    dasherize('innerHTML');                // 'inner-html'
+    dasherize('action_name');              // 'action-name'
+    dasherize('css-class-name');           // 'css-class-name'
+    dasherize('my favorite items');        // 'my-favorite-items'
+    dasherize('privateDocs/ownerInvoice';  // 'private-docs/owner-invoice'
+    ```
+  
+    @method dasherize
+    @param {String} str The string to dasherize.
+    @return {String} the dasherized string.
+    @public
+  */
+
+
+  function dasherize(str) {
+    return STRING_DASHERIZE_CACHE.get(str);
+  }
+  /**
+    Returns the lowerCamelCase form of a string.
+  
+    ```javascript
+    import { camelize } from '@ember/string';
+  
+    camelize('innerHTML');                   // 'innerHTML'
+    camelize('action_name');                 // 'actionName'
+    camelize('css-class-name');              // 'cssClassName'
+    camelize('my favorite items');           // 'myFavoriteItems'
+    camelize('My Favorite Items');           // 'myFavoriteItems'
+    camelize('private-docs/owner-invoice');  // 'privateDocs/ownerInvoice'
+    ```
+  
+    @method camelize
+    @param {String} str The string to camelize.
+    @return {String} the camelized string.
+    @public
+  */
+
+
+  function camelize(str) {
+    return CAMELIZE_CACHE.get(str);
+  }
+  /**
+    Returns the UpperCamelCase form of a string.
+  
+    ```javascript
+    import { classify } from '@ember/string';
+  
+    classify('innerHTML');                   // 'InnerHTML'
+    classify('action_name');                 // 'ActionName'
+    classify('css-class-name');              // 'CssClassName'
+    classify('my favorite items');           // 'MyFavoriteItems'
+    classify('private-docs/owner-invoice');  // 'PrivateDocs/OwnerInvoice'
+    ```
+  
+    @method classify
+    @param {String} str the string to classify
+    @return {String} the classified string
+    @public
+  */
+
+
+  function classify(str) {
+    return CLASSIFY_CACHE.get(str);
+  }
+  /**
+    More general than decamelize. Returns the lower\_case\_and\_underscored
+    form of a string.
+  
+    ```javascript
+    import { underscore } from '@ember/string';
+  
+    underscore('innerHTML');                 // 'inner_html'
+    underscore('action_name');               // 'action_name'
+    underscore('css-class-name');            // 'css_class_name'
+    underscore('my favorite items');         // 'my_favorite_items'
+    underscore('privateDocs/ownerInvoice');  // 'private_docs/owner_invoice'
+    ```
+  
+    @method underscore
+    @param {String} str The string to underscore.
+    @return {String} the underscored string.
+    @public
+  */
+
+
+  function underscore(str) {
+    return UNDERSCORE_CACHE.get(str);
+  }
+  /**
+    Returns the Capitalized form of a string
+  
+    ```javascript
+    import { capitalize } from '@ember/string';
+  
+    capitalize('innerHTML')                 // 'InnerHTML'
+    capitalize('action_name')               // 'Action_name'
+    capitalize('css-class-name')            // 'Css-class-name'
+    capitalize('my favorite items')         // 'My favorite items'
+    capitalize('privateDocs/ownerInvoice'); // 'PrivateDocs/ownerInvoice'
+    ```
+  
+    @method capitalize
+    @param {String} str The string to capitalize.
+    @return {String} The capitalized string.
+    @public
+  */
+
+
+  function capitalize(str) {
+    return CAPITALIZE_CACHE.get(str);
+  }
+
+  if (environment.ENV.EXTEND_PROTOTYPES.String) {
+    Object.defineProperties(String.prototype, {
+      /**
+        See [String.w](/ember/release/classes/String/methods/w?anchor=w).
+             @method w
+        @for @ember/string
+        @static
+        @private
+      */
+      w: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value() {
+          return w(this);
+        }
+
+      },
+
+      /**
+        See [String.loc](/ember/release/classes/String/methods/loc?anchor=loc).
+             @method loc
+        @for @ember/string
+        @static
+        @private
+      */
+      loc: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value(...args) {
+          return loc(this, args);
+        }
+
+      },
+
+      /**
+        See [String.camelize](/ember/release/classes/String/methods/camelize?anchor=camelize).
+             @method camelize
+        @for @ember/string
+        @static
+        @private
+      */
+      camelize: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value() {
+          return camelize(this);
+        }
+
+      },
+
+      /**
+        See [String.decamelize](/ember/release/classes/String/methods/decamelize?anchor=decamelize).
+             @method decamelize
+        @for @ember/string
+        @static
+        @private
+      */
+      decamelize: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value() {
+          return decamelize(this);
+        }
+
+      },
+
+      /**
+        See [String.dasherize](/ember/release/classes/String/methods/dasherize?anchor=dasherize).
+             @method dasherize
+        @for @ember/string
+        @static
+        @private
+      */
+      dasherize: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value() {
+          return dasherize(this);
+        }
+
+      },
+
+      /**
+        See [String.underscore](/ember/release/classes/String/methods/underscore?anchor=underscore).
+             @method underscore
+        @for @ember/string
+        @static
+        @private
+      */
+      underscore: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value() {
+          return underscore(this);
+        }
+
+      },
+
+      /**
+        See [String.classify](/ember/release/classes/String/methods/classify?anchor=classify).
+             @method classify
+        @for @ember/string
+        @static
+        @private
+      */
+      classify: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value() {
+          return classify(this);
+        }
+
+      },
+
+      /**
+        See [String.capitalize](/ember/release/classes/String/methods/capitalize?anchor=capitalize).
+             @method capitalize
+        @for @ember/string
+        @static
+        @private
+      */
+      capitalize: {
+        configurable: true,
+        enumerable: false,
+        writeable: true,
+
+        value() {
+          return capitalize(this);
+        }
+
+      }
+    });
+  }
+});
+unwrapExports(string$1);
+var string_1$1 = string$1.loc;
+var string_2 = string$1.w;
+var string_3 = string$1.decamelize;
+var string_4 = string$1.dasherize;
+var string_5 = string$1.camelize;
+var string_6 = string$1.classify;
+var string_7 = string$1.underscore;
+var string_8 = string$1.capitalize;
+var inflections = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  var _default = {
+    plurals: [[/$/, "s"], [/s$/i, "s"], [/^(ax|test)is$/i, "$1es"], [/(octop|vir)us$/i, "$1i"], [/(octop|vir)i$/i, "$1i"], [/(alias|status|bonus)$/i, "$1es"], [/(bu)s$/i, "$1ses"], [/(buffal|tomat)o$/i, "$1oes"], [/([ti])um$/i, "$1a"], [/([ti])a$/i, "$1a"], [/sis$/i, "ses"], [/(?:([^f])fe|([lr])f)$/i, "$1$2ves"], [/(hive)$/i, "$1s"], [/([^aeiouy]|qu)y$/i, "$1ies"], [/(x|ch|ss|sh)$/i, "$1es"], [/(matr|vert|ind)(?:ix|ex)$/i, "$1ices"], [/^(m|l)ouse$/i, "$1ice"], [/^(m|l)ice$/i, "$1ice"], [/^(ox)$/i, "$1en"], [/^(oxen)$/i, "$1"], [/(quiz)$/i, "$1zes"]],
+    singular: [[/s$/i, ""], [/(ss)$/i, "$1"], [/(n)ews$/i, "$1ews"], [/([ti])a$/i, "$1um"], [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)(sis|ses)$/i, "$1sis"], [/(^analy)(sis|ses)$/i, "$1sis"], [/([^f])ves$/i, "$1fe"], [/(hive)s$/i, "$1"], [/(tive)s$/i, "$1"], [/([lr])ves$/i, "$1f"], [/([^aeiouy]|qu)ies$/i, "$1y"], [/(s)eries$/i, "$1eries"], [/(m)ovies$/i, "$1ovie"], [/(x|ch|ss|sh)es$/i, "$1"], [/^(m|l)ice$/i, "$1ouse"], [/(bus)(es)?$/i, "$1"], [/(o)es$/i, "$1"], [/(shoe)s$/i, "$1"], [/(cris|test)(is|es)$/i, "$1is"], [/^(a)x[ie]s$/i, "$1xis"], [/(octop|vir)(us|i)$/i, "$1us"], [/(alias|status|bonus)(es)?$/i, "$1"], [/^(ox)en/i, "$1"], [/(vert|ind)ices$/i, "$1ex"], [/(matr)ices$/i, "$1ix"], [/(quiz)zes$/i, "$1"], [/(database)s$/i, "$1"]],
+    irregularPairs: [["person", "people"], ["man", "men"], ["child", "children"], ["sex", "sexes"], ["move", "moves"], ["cow", "kine"], ["zombie", "zombies"]],
+    uncountable: ["equipment", "information", "rice", "money", "species", "series", "fish", "sheep", "jeans", "police"]
+  };
+  exports.default = _default;
+});
+unwrapExports(inflections);
+var inflector = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+
+  var _inflections = _interopRequireDefault(inflections);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  const BLANK_REGEX = /^\s*$/;
+  const LAST_WORD_DASHED_REGEX = /([\w/-]+[_/\s-])([a-z\d]+$)/;
+  const LAST_WORD_CAMELIZED_REGEX = /([\w/\s-]+)([A-Z][a-z\d]*$)/;
+  const CAMELIZED_REGEX = /[A-Z][a-z\d]*$/;
+
+  function loadUncountable(rules, uncountable) {
+    for (let i = 0, length = uncountable.length; i < length; i++) {
+      rules.uncountable[uncountable[i].toLowerCase()] = true;
+    }
+  }
+
+  function loadIrregular(rules, irregularPairs) {
+    let pair;
+
+    for (let i = 0, length = irregularPairs.length; i < length; i++) {
+      pair = irregularPairs[i]; //pluralizing
+
+      rules.irregular[pair[0].toLowerCase()] = pair[1];
+      rules.irregular[pair[1].toLowerCase()] = pair[1]; //singularizing
+
+      rules.irregularInverse[pair[1].toLowerCase()] = pair[0];
+      rules.irregularInverse[pair[0].toLowerCase()] = pair[0];
+    }
+  }
+  /**
+    Inflector.Ember provides a mechanism for supplying inflection rules for your
+    application. Ember includes a default set of inflection rules, and provides an
+    API for providing additional rules.
+  
+    Examples:
+  
+    Creating an inflector with no rules.
+  
+    ```js
+    var inflector = new Ember.Inflector();
+    ```
+  
+    Creating an inflector with the default ember ruleset.
+  
+    ```js
+    var inflector = new Ember.Inflector(Ember.Inflector.defaultRules);
+  
+    inflector.pluralize('cow'); //=> 'kine'
+    inflector.singularize('kine'); //=> 'cow'
+    ```
+  
+    Creating an inflector and adding rules later.
+  
+    ```javascript
+    var inflector = Ember.Inflector.inflector;
+  
+    inflector.pluralize('advice'); // => 'advices'
+    inflector.uncountable('advice');
+    inflector.pluralize('advice'); // => 'advice'
+  
+    inflector.pluralize('formula'); // => 'formulas'
+    inflector.irregular('formula', 'formulae');
+    inflector.pluralize('formula'); // => 'formulae'
+  
+    // you would not need to add these as they are the default rules
+    inflector.plural(/$/, 's');
+    inflector.singular(/s$/i, '');
+    ```
+  
+    Creating an inflector with a nondefault ruleset.
+  
+    ```javascript
+    var rules = {
+      plurals:  [
+        [ /$/, 's' ]
+      ],
+      singular: [
+        [ /\s$/, '' ]
+      ],
+      irregularPairs: [
+        [ 'cow', 'kine' ]
+      ],
+      uncountable: [ 'fish' ]
+    };
+  
+    var inflector = new Ember.Inflector(rules);
+    ```
+  
+    @class Inflector
+    @namespace Ember
+  */
+
+
+  function Inflector(ruleSet) {
+    ruleSet = ruleSet || {};
+    ruleSet.uncountable = ruleSet.uncountable || makeDictionary();
+    ruleSet.irregularPairs = ruleSet.irregularPairs || makeDictionary();
+    const rules = this.rules = {
+      plurals: ruleSet.plurals || [],
+      singular: ruleSet.singular || [],
+      irregular: makeDictionary(),
+      irregularInverse: makeDictionary(),
+      uncountable: makeDictionary()
+    };
+    loadUncountable(rules, ruleSet.uncountable);
+    loadIrregular(rules, ruleSet.irregularPairs);
+    this.enableCache();
+  }
+
+  if (!Object.create && !Object.create(null).hasOwnProperty) {
+    throw new Error("This browser does not support Object.create(null), please polyfil with es5-sham: http://git.io/yBU2rg");
+  }
+
+  function makeDictionary() {
+    var cache = Object.create(null);
+    cache["_dict"] = null;
+    delete cache["_dict"];
+    return cache;
+  }
+
+  Inflector.prototype = {
+    /**
+      @public
+       As inflections can be costly, and commonly the same subset of words are repeatedly
+      inflected an optional cache is provided.
+       @method enableCache
+    */
+    enableCache() {
+      this.purgeCache();
+
+      this.singularize = function (word) {
+        this._cacheUsed = true;
+        return this._sCache[word] || (this._sCache[word] = this._singularize(word));
+      };
+
+      this.pluralize = function (numberOrWord, word, options = {}) {
+        this._cacheUsed = true;
+        var cacheKey = [numberOrWord, word, options.withoutCount];
+        return this._pCache[cacheKey] || (this._pCache[cacheKey] = this._pluralize(numberOrWord, word, options));
+      };
+    },
+
+    /**
+      @public
+       @method purgeCache
+    */
+    purgeCache() {
+      this._cacheUsed = false;
+      this._sCache = makeDictionary();
+      this._pCache = makeDictionary();
+    },
+
+    /**
+      @public
+      disable caching
+       @method disableCache;
+    */
+    disableCache() {
+      this._sCache = null;
+      this._pCache = null;
+
+      this.singularize = function (word) {
+        return this._singularize(word);
+      };
+
+      this.pluralize = function () {
+        return this._pluralize(...arguments);
+      };
+    },
+
+    /**
+      @method plural
+      @param {RegExp} regex
+      @param {String} string
+    */
+    plural(regex, string) {
+      if (this._cacheUsed) {
+        this.purgeCache();
+      }
+
+      this.rules.plurals.push([regex, string.toLowerCase()]);
+    },
+
+    /**
+      @method singular
+      @param {RegExp} regex
+      @param {String} string
+    */
+    singular(regex, string) {
+      if (this._cacheUsed) {
+        this.purgeCache();
+      }
+
+      this.rules.singular.push([regex, string.toLowerCase()]);
+    },
+
+    /**
+      @method uncountable
+      @param {String} regex
+    */
+    uncountable(string) {
+      if (this._cacheUsed) {
+        this.purgeCache();
+      }
+
+      loadUncountable(this.rules, [string.toLowerCase()]);
+    },
+
+    /**
+      @method irregular
+      @param {String} singular
+      @param {String} plural
+    */
+    irregular(singular, plural) {
+      if (this._cacheUsed) {
+        this.purgeCache();
+      }
+
+      loadIrregular(this.rules, [[singular, plural]]);
+    },
+
+    /**
+      @method pluralize
+      @param {String} word
+    */
+    pluralize() {
+      return this._pluralize(...arguments);
+    },
+
+    _pluralize(wordOrCount, word, options = {}) {
+      if (word === undefined) {
+        return this.inflect(wordOrCount, this.rules.plurals, this.rules.irregular);
+      }
+
+      if (parseFloat(wordOrCount) !== 1) {
+        word = this.inflect(word, this.rules.plurals, this.rules.irregular);
+      }
+
+      return options.withoutCount ? word : `${wordOrCount} ${word}`;
+    },
+
+    /**
+      @method singularize
+      @param {String} word
+    */
+    singularize(word) {
+      return this._singularize(word);
+    },
+
+    _singularize(word) {
+      return this.inflect(word, this.rules.singular, this.rules.irregularInverse);
+    },
+
+    /**
+      @protected
+       @method inflect
+      @param {String} word
+      @param {Object} typeRules
+      @param {Object} irregular
+    */
+    inflect(word, typeRules, irregular) {
+      let inflection, substitution, result, lowercase, wordSplit, lastWord, isBlank, isCamelized, rule, isUncountable;
+      isBlank = !word || BLANK_REGEX.test(word);
+      isCamelized = CAMELIZED_REGEX.test(word);
+
+      if (isBlank) {
+        return word;
+      }
+
+      lowercase = word.toLowerCase();
+      wordSplit = LAST_WORD_DASHED_REGEX.exec(word) || LAST_WORD_CAMELIZED_REGEX.exec(word);
+
+      if (wordSplit) {
+        lastWord = wordSplit[2].toLowerCase();
+      }
+
+      isUncountable = this.rules.uncountable[lowercase] || this.rules.uncountable[lastWord];
+
+      if (isUncountable) {
+        return word;
+      }
+
+      for (rule in irregular) {
+        if (lowercase.match(rule + "$")) {
+          substitution = irregular[rule];
+
+          if (isCamelized && irregular[lastWord]) {
+            substitution = (0, string$1.capitalize)(substitution);
+            rule = (0, string$1.capitalize)(rule);
+          }
+
+          return word.replace(new RegExp(rule, "i"), substitution);
+        }
+      }
+
+      for (var i = typeRules.length, min = 0; i > min; i--) {
+        inflection = typeRules[i - 1];
+        rule = inflection[0];
+
+        if (rule.test(word)) {
+          break;
+        }
+      }
+
+      inflection = inflection || [];
+      rule = inflection[0];
+      substitution = inflection[1];
+      result = word.replace(rule, substitution);
+      return result;
+    }
+
+  };
+  Inflector.defaultRules = _inflections.default;
+  Inflector.inflector = new Inflector(_inflections.default);
+  var _default = Inflector;
+  exports.default = _default;
+});
+unwrapExports(inflector);
+var string$2 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.pluralize = pluralize;
+  exports.singularize = singularize;
+
+  var _inflector = _interopRequireDefault(inflector);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  function pluralize() {
+    return _inflector.default.inflector.pluralize(...arguments);
+  }
+
+  function singularize(word) {
+    return _inflector.default.inflector.singularize(word);
+  }
+});
+unwrapExports(string$2);
+var string_1$2 = string$2.pluralize;
+var string_2$1 = string$2.singularize;
+var system = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, "Inflector", {
+    enumerable: true,
+    get: function () {
+      return _inflector.default;
+    }
+  });
+  Object.defineProperty(exports, "pluralize", {
+    enumerable: true,
+    get: function () {
+      return string$2.pluralize;
+    }
+  });
+  Object.defineProperty(exports, "singularize", {
+    enumerable: true,
+    get: function () {
+      return string$2.singularize;
+    }
+  });
+
+  var _inflector = _interopRequireDefault(inflector);
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+});
+unwrapExports(system);
+var emberInflector = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, "defaultRules", {
+    enumerable: true,
+    get: function () {
+      return system.defaultRules;
+    }
+  });
+  Object.defineProperty(exports, "pluralize", {
+    enumerable: true,
+    get: function () {
+      return system.pluralize;
+    }
+  });
+  Object.defineProperty(exports, "singularize", {
+    enumerable: true,
+    get: function () {
+      return system.singularize;
+    }
+  });
+  exports.default = void 0;
+  var _default = system.Inflector;
+  exports.default = _default;
+});
+unwrapExports(emberInflector);
 var pretenderHacks = createCommonjsModule(function (module, exports) {
   var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
     return mod && mod.__esModule ? mod : {
@@ -19308,7 +23902,7 @@ var pretenderHacks = createCommonjsModule(function (module, exports) {
 
   const ansi_colors_1 = __importDefault(ansiColors);
 
-  const model_1 = __importDefault(model); // HACK START: Pretender Request Parameter Type Casting Hack: Because types are important.
+  const model_1 = __importDefault(require("./model")); // HACK START: Pretender Request Parameter Type Casting Hack: Because types are important.
 
 
   window.Pretender.prototype._handlerFor = function (verb, url, request) {
@@ -19462,21 +24056,21 @@ var pretenderHacks = createCommonjsModule(function (module, exports) {
   ["get", "put", "post", "delete"].forEach(verb => {
     window.Pretender.prototype[verb] = function (path, handler, async) {
       const fullPath = (this.urlPrefix || "") + (this.namespace ? "/" + this.namespace : "") + path;
-      const targetHandler = handler || getDefaultRouteHandler(verb.toUpperCase(), fullPath, this);
-      const timing = async ? async.timing || this.timing : this.timing; // console.log('timing is', timing);
-      // console.log('async is', async);
-
+      const MemServerModel = window.MemServerModel || model_1.default;
+      const defaultResourceDefinition = MemServerModel.isPrototypeOf(handler) ? handler : null;
+      const targetHandler = handler || getDefaultRouteHandler(verb.toUpperCase(), fullPath, this, defaultResourceDefinition);
+      const timing = async ? async.timing || this.timing : this.timing;
       return this.register(verb.toUpperCase(), fullPath, targetHandler, timing);
     };
   }); // END: Pretender REST default hack: For better UX
 
-  function getDefaultRouteHandler(verb, path, context) {
+  function getDefaultRouteHandler(verb, path, serverContext, defaultResourceDefinition) {
     const paths = path.split(/\//g);
     const lastPath = paths[paths.length - 1];
     const pluralResourceName = lastPath.includes(":") ? paths[paths.length - 2] : lastPath;
     const resourceName = emberInflector.singularize(pluralResourceName);
     const resourceClassName = string$1.classify(resourceName);
-    const ResourceModel = model_1.default._modelDefinitions[resourceClassName] || context.Models[resourceClassName];
+    const ResourceModel = defaultResourceDefinition || model_1.default._modelDefinitions[resourceClassName] || serverContext.Models[resourceClassName];
 
     if (!ResourceModel) {
       throw new Error(ansi_colors_1.default.red(`[Memserver] ${verb} ${path} route handler cannot be generated automatically: ${string$1.classify(resourceName)} is not on your window.${string$1.classify(resourceName)}, also please check that your route name matches the model reference or create a custom handler function`));
@@ -19533,7 +24127,7 @@ var server = createCommonjsModule(function (module, exports) {
 
   const fake_xml_http_request_1 = __importDefault(fake_xml_http_request);
 
-  const model_1 = __importDefault(model);
+  const model_1 = __importDefault(require("./model"));
 
   const route_recognizer_1 = __importDefault(routeRecognizer); // NOTE: check this
   // NOTE: check this
@@ -19553,28 +24147,11 @@ var server = createCommonjsModule(function (module, exports) {
 
       const logging = options.hasOwnProperty("logging") ? options.logging : true;
       const initializerReturn = initializer();
-      const Model = window.MemserverModel || model_1.default;
-      window.MemserverModel = Model;
-
-      if (initializerReturn instanceof Promise) {
-        initializerReturn.then(() => {
-          if (options.globalizeModels) {
-            Object.keys(Model._modelDefinitions).forEach(modelName => {
-              this.Models[modelName] = Model._modelDefinitions[modelName];
-            });
-          }
-        });
-      } else {
-        if (options.globalizeModels) {
-          Object.keys(Model._modelDefinitions).forEach(modelName => {
-            this.Models[modelName] = Model._modelDefinitions[modelName];
-          });
-        }
-      }
-
+      window.MemserverModel = window.MemserverModel || model_1.default;
+      this.Models = window.MemserverModel._modelDefinitions;
       window.MemServer = startPretender(routes, Object.assign(options, {
         logging
-      }));
+      }), this.Models);
       window.MemServer.Models = this.Models;
       return window.MemServer;
     }
@@ -19583,7 +24160,7 @@ var server = createCommonjsModule(function (module, exports) {
 
   exports.default = Memserver;
 
-  function startPretender(routes, options) {
+  function startPretender(routes, options, Models) {
     window.FakeXMLHttpRequest = fake_xml_http_request_1.default;
     window.RouteRecognizer = route_recognizer_1.default;
     window.Pretender.prototype.namespace = options.namespace;
@@ -19591,6 +24168,7 @@ var server = createCommonjsModule(function (module, exports) {
     window.Pretender.prototype.timing = options.timing;
     let pretender = new window.Pretender(function () {
       const Memserver = ansi_colors_1.default.cyan("[Memserver]");
+      this.Models = Models;
 
       if (options.logging) {
         this.handledRequest = function (verb, path, request) {
@@ -19653,8 +24231,8 @@ var server = createCommonjsModule(function (module, exports) {
 var server$1 = unwrapExports(server);
 module.exports = server$1;
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":5,"buffer":2}],5:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./model":4,"_process":6}],6:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -19840,7 +24418,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[4])(4)
+},{}]},{},[5])(5)
 });
 
 

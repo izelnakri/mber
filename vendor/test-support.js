@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.16.1
+ * @version   3.16.2
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js

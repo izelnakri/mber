@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.16.1
+ * @version   3.16.2
  */
 
 /*globals process */
@@ -1231,13 +1231,19 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   if (true
   /* DEBUG */
   ) {
+    var SEEN_TAGS = new _polyfills._WeakSet();
     var MANDATORY_SETTERS = new WeakMap();
 
     var _propertyIsEnumerable = function _propertyIsEnumerable(obj, key) {
       return Object.prototype.propertyIsEnumerable.call(obj, key);
     };
 
-    _exports.setupMandatorySetter = setupMandatorySetter = function setupMandatorySetter(obj, keyName) {
+    _exports.setupMandatorySetter = setupMandatorySetter = function setupMandatorySetter(tag, obj, keyName) {
+      if (SEEN_TAGS.has(tag)) {
+        return;
+      }
+
+      SEEN_TAGS.add(tag);
       var desc = lookupDescriptor(obj, keyName) || {};
 
       if (desc.get || desc.set) {
@@ -8111,7 +8117,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.16.1";
+  var _default = "3.16.2";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {
