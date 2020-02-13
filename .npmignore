@@ -4,6 +4,7 @@ scripts
 .prettierrc
 Dockerfile
 npm-import-explanation.md
+ember-app-boilerplate/node_modules
 README.md
 TODO
 
