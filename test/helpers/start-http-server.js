@@ -54,7 +54,7 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
         distPath: DIST_ROOT,
         resilient: true,
         shouldRender: true,
-        sandboxGlobals: sandboxGlobals
+        buildSandboxGlobals: (defaultGlobals) => Object.assign(defaultGlobals, sandboxGlobals)
       });
 
       app.use((req, res, next) => {
