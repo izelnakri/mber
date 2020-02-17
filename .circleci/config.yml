@@ -31,7 +31,7 @@ jobs:
             DOCKER_TAG=$(echo mber:${CIRCLE_BRANCH} | tr '/' '_')
             docker pull ${HUB_USERNAME}/${DOCKER_TAG}
             docker run -t -d --name="mber" ${HUB_USERNAME}/${DOCKER_TAG} /bin/bash
-      - run: docker exec -it -e NODE_OPTIONS=--experimental-modules mber npm test
+      - run: docker exec -it mber npm test
 
 workflows:
   version: 2
