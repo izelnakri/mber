@@ -37,7 +37,7 @@
   "fastbootDependencies": [
     "crypto",
     "node-fetch",
-    "abortcontroller-polyfill'"
+    "abortcontroller-polyfill"
   ],
   "dependencies": {
     "memserver": "^2.0.10",

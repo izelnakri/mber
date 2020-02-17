@@ -58,7 +58,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
   t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
-    'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+    'crypto', 'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
   ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
@@ -95,7 +95,7 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
   t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
-    'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+    'crypto', 'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
   ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
@@ -133,7 +133,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
   t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
-    'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+    'crypto', 'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
   ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
