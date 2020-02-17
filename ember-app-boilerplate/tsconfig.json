@@ -21,10 +21,10 @@
     "module": "es6",
     "experimentalDecorators": true,
     "paths": {
-      "{{applicationName}}}/tests/*": [
+      "{{applicationName}}/tests/*": [
         "tests/*"
       ],
-      "{{{applicationName}}}/config/*": [
+      "{{applicationName}}/config/*": [
         "config/*"
       ],
       "{{applicationName}}/*": [
