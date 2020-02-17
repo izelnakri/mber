@@ -1,16 +1,22 @@
 export default config;
 
-// Type declarations for
-   // import config from './config/environment'
-
-// For now these need to be managed by the developer
-// since different ember addons can materialize new entries.
+/**
+ * type declarations for
+ *    import config from './config/environment'
+ *
+ * for now these need to be managed by the developer
+ * since different ember addons can materialize new entries.
+ */
 declare const config: {
-  APP: any;
+  app: app;
   environment: any;
-  modulePrefix: string;
-  podModulePrefix: string;
-  locationType: string;
-  rootURL: string;
+  moduleprefix: string;
+  podmoduleprefix: string;
+  locationtype: string;
+  rooturl: string;
+  [propname: string]: any;
 };
 
+interface app {
+  [propname: string]: any;
+}
