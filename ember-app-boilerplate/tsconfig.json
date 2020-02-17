@@ -21,8 +21,11 @@
     "module": "es6",
     "experimentalDecorators": true,
     "paths": {
-      "{{applicationName}}/tests/*": [
+      "{{applicationName}}}/tests/*": [
         "tests/*"
+      ],
+      "{{{applicationName}}}/config/*": [
+        "config/*"
       ],
       "{{applicationName}}/*": [
         "src/*"
@@ -33,8 +36,11 @@
     }
   },
   "include": [
-    "app/**/*",
+    "src/**/*",
     "tests/**/*",
     "types/**/*"
+  ],
+  "exclude": [
+    "node_modules/bip39"
   ]
 }
