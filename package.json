@@ -54,7 +54,7 @@
     "qunit": "2.9.3",
     "strip-ansi": "^6.0.0",
     "whatwg-fetch": "^3.0.0",
-    "@typescript-eslint/parser": "2.19.2",
+    "@typescript-eslint/parser": "2.20.0",
     "typescript": "^3.7.5"
   },
   "repository": {
