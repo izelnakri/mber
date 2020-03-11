@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.16.2
+ * @version   3.17.0
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -286,7 +286,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     */
     setDebugFunction('assert', function assert(desc, test) {
       if (!test) {
-        throw new _error.default("Assertion Failed: " + desc);
+        throw new _error.default(`Assertion Failed: ${desc}`);
       }
     });
     /**
@@ -308,9 +308,9 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     setDebugFunction('debug', function debug(message) {
       /* eslint-disable no-console */
       if (console.debug) {
-        console.debug("DEBUG: " + message);
+        console.debug(`DEBUG: ${message}`);
       } else {
-        console.log("DEBUG: " + message);
+        console.log(`DEBUG: ${message}`);
       }
       /* eslint-ensable no-console */
 
@@ -435,7 +435,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
             downloadURL = 'https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/';
           }
 
-          debug("For more advanced debugging, install the Ember Inspector from " + downloadURL);
+          debug(`For more advanced debugging, install the Ember Inspector from ${downloadURL}`);
         }
       }, false);
     }
@@ -467,8 +467,10 @@ define("@ember/debug/lib/capture-render-tree", ["exports", "@glimmer/util"], fun
     @since 3.14.0
   */
   function captureRenderTree(app) {
-    var env = (0, _util.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
-    return env.debugRenderTree.capture();
+    var env = (0, _util.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+    var rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+    var renderer = (0, _util.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+    return renderer.debugRenderTree.capture();
   }
 });
 define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment", "@ember/debug/index", "@ember/debug/lib/handlers"], function (_exports, _environment, _index, _handlers) {
@@ -545,11 +547,11 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
       var message = _message;
 
       if (options && options.id) {
-        message = message + (" [deprecation id: " + options.id + "]");
+        message = message + ` [deprecation id: ${options.id}]`;
       }
 
       if (options && options.url) {
-        message += " See " + options.url + " for more details.";
+        message += ` See ${options.url} for more details.`;
       }
 
       return message;
@@ -557,7 +559,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
     registerHandler(function logDeprecationToConsole(message, options) {
       var updatedMessage = formatMessage(message, options);
-      console.warn("DEPRECATION: " + updatedMessage); // eslint-disable-line no-console
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
     });
     var captureErrorForStack;
 
@@ -589,11 +591,11 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
             stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
           }
 
-          stackStr = "\n    " + stack.slice(2).join('\n    ');
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
         }
 
         var updatedMessage = formatMessage(message, options);
-        console.warn("DEPRECATION: " + updatedMessage + stackStr); // eslint-disable-line no-console
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
       } else {
         next(message, options);
       }
@@ -766,7 +768,7 @@ define("@ember/debug/lib/warn", ["exports", "@ember/debug/index", "@ember/debug/
 
     registerHandler(function logWarning(message) {
       /* eslint-disable no-console */
-      console.warn("WARNING: " + message);
+      console.warn(`WARNING: ${message}`);
       /* eslint-enable no-console */
     });
     _exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -2437,7 +2439,7 @@ define("ember-testing/lib/test/promise", ["exports", "@ember/-internals/runtime"
   _exports.default = TestPromise;
 
   function promise(resolver, label) {
-    var fullLabel = "Ember.Test.promise: " + (label || '<Unknown Promise>');
+    var fullLabel = `Ember.Test.promise: ${label || '<Unknown Promise>'}`;
     return new TestPromise(resolver, fullLabel);
   }
   /**
@@ -9331,7 +9333,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   QUnit.config.testTimeout = QUnit.urlParams.devmode ? null : 60000; //Default Test Timeout 60 Seconds
 })();
 
-define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters", "ember-test-waiters/noop-test-waiter"], function (_exports, _emberTestWaiters, _noopTestWaiter) {
+define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters/token", "ember-test-waiters/waiter-manager"], function (_exports, _token, _waiterManager) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -9339,497 +9341,25 @@ define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters", "emb
   });
   _exports.default = buildWaiter;
 
-  /**
-   * Builds and returns a test waiter. The type of the
-   * returned waiter is dependent on whether the app or
-   * addon is in `DEBUG` mode or not.
-   *
-   * @param name {string} The name of the test waiter
-   * @returns {ITestWaiter}
-   *
-   * @example
-   *
-   * import Component from '@ember/component';
-   * import { buildWaiter } from 'ember-test-waiters';
-   *
-   * if (DEBUG) {
-   *   let waiter = buildWaiter('friend-waiter');
-   * }
-   *
-   * export default class Friendz extends Component {
-   *   didInsertElement() {
-   *     let token = waiter.beginAsync(this);
-   *
-   *     someAsyncWork().then(() => {
-   *       waiter.endAsync(token);
-   *     });
-   *   }
-   * }
-   */
-  function buildWaiter(name) {
-    if (true
-    /* DEBUG */
-    ) {
-      return new _emberTestWaiters.TestWaiter(name);
-    }
-
-    return new _noopTestWaiter.default(name);
-  }
-});
-define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters", "ember-test-waiters/noop-test-waiter"], function (_exports, _emberTestWaiters, _noopTestWaiter) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = buildWaiter;
-
-  /**
-   * Builds and returns a test waiter. The type of the
-   * returned waiter is dependent on whether the app or
-   * addon is in `DEBUG` mode or not.
-   *
-   * @param name {string} The name of the test waiter
-   * @returns {ITestWaiter}
-   *
-   * @example
-   *
-   * import Component from '@ember/component';
-   * import { buildWaiter } from 'ember-test-waiters';
-   *
-   * if (DEBUG) {
-   *   let waiter = buildWaiter('friend-waiter');
-   * }
-   *
-   * export default class Friendz extends Component {
-   *   didInsertElement() {
-   *     let token = waiter.beginAsync(this);
-   *
-   *     someAsyncWork().then(() => {
-   *       waiter.endAsync(token);
-   *     });
-   *   }
-   * }
-   */
-  function buildWaiter(name) {
-    if (true
-    /* DEBUG */
-    ) {
-      return new _emberTestWaiters.TestWaiter(name);
-    }
-
-    return new _noopTestWaiter.default(name);
-  }
-});
-define("ember-test-waiters/index", ["exports", "ember-test-waiters/waiter-manager", "ember-test-waiters/test-waiter", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _waiterManager, _testWaiter, _buildWaiter, _waitForPromise) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  Object.defineProperty(_exports, "register", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.register;
-    }
-  });
-  Object.defineProperty(_exports, "unregister", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.unregister;
-    }
-  });
-  Object.defineProperty(_exports, "getWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "_reset", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager._reset;
-    }
-  });
-  Object.defineProperty(_exports, "getPendingWaiterState", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getPendingWaiterState;
-    }
-  });
-  Object.defineProperty(_exports, "hasPendingWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.hasPendingWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "TestWaiter", {
-    enumerable: true,
-    get: function () {
-      return _testWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "buildWaiter", {
-    enumerable: true,
-    get: function () {
-      return _buildWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "waitForPromise", {
-    enumerable: true,
-    get: function () {
-      return _waitForPromise.default;
-    }
-  });
-});
-define("ember-test-waiters/index", ["exports", "ember-test-waiters/waiter-manager", "ember-test-waiters/test-waiter", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _waiterManager, _testWaiter, _buildWaiter, _waitForPromise) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  Object.defineProperty(_exports, "register", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.register;
-    }
-  });
-  Object.defineProperty(_exports, "unregister", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.unregister;
-    }
-  });
-  Object.defineProperty(_exports, "getWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "_reset", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager._reset;
-    }
-  });
-  Object.defineProperty(_exports, "getPendingWaiterState", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getPendingWaiterState;
-    }
-  });
-  Object.defineProperty(_exports, "hasPendingWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.hasPendingWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "TestWaiter", {
-    enumerable: true,
-    get: function () {
-      return _testWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "buildWaiter", {
-    enumerable: true,
-    get: function () {
-      return _buildWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "waitForPromise", {
-    enumerable: true,
-    get: function () {
-      return _waitForPromise.default;
-    }
-  });
-});
-define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-
-  /**
-   * A class providing a production, noop replacement for the {TestWaiter<T>} class.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
-  class NoopTestWaiter {
-    constructor(name) {
-      this.name = name;
-    }
-
-    beginAsync() {
-      return this;
-    }
-
-    endAsync() {}
-
-    waitUntil() {
-      return true;
-    }
-
-    debugInfo() {
-      return [];
-    }
-
-    reset() {}
-
-  }
-
-  _exports.default = NoopTestWaiter;
-});
-define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-
-  /**
-   * A class providing a production, noop replacement for the {TestWaiter<T>} class.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
-  class NoopTestWaiter {
-    constructor(name) {
-      this.name = void 0;
-      this.name = name;
-    }
-
-    beginAsync() {
-      return this;
-    }
-
-    endAsync() {}
-
-    waitUntil() {
-      return true;
-    }
-
-    debugInfo() {
-      return [];
-    }
-
-    reset() {}
-
-  }
-
-  _exports.default = NoopTestWaiter;
-});
-define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-manager"], function (_exports, _waiterManager) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  let token = 0;
-
   function getNextToken() {
-    return token++;
-  }
-  /**
-   * A class providing creation, registration and async waiting functionality.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
-
-
-  class TestWaiter {
-    /**
-     * @public
-     * @constructor
-     * @param name {WaiterName} the name of the test waiter
-     */
-    constructor(name, nextToken) {
-      this.isRegistered = false;
-      this.items = new Map();
-      this.name = name; // @ts-ignore
-
-      this.nextToken = nextToken || getNextToken;
-    }
-    /**
-     * Will register the waiter, allowing it to be opted in to pausing async
-     * operations until they're completed within your tests. You should invoke
-     * it after instantiating your `TestWaiter` instance.
-     *
-     * **Note**, if you forget to register your waiter, it will be registered
-     * for you on the first invocation of `beginAsync`.
-     *
-     * @private
-     * @method register
-     */
-
-
-    register() {
-      if (!this.isRegistered) {
-        (0, _waiterManager.register)(this);
-        this.isRegistered = true;
-      }
-    }
-    /**
-     * Should be used to signal the beginning of an async operation that
-     * is to be waited for. Invocation of this method should be paired with a subsequent
-     * `endAsync` call to indicate to the waiter system that the async operation is completed.
-     *
-     * @public
-     * @method beginAsync
-     * @param item {T} The item to register for waiting
-     * @param label {string} An optional label to identify the item
-     */
-
-
-    beginAsync(token = this.nextToken(), label) {
-      this.register();
-
-      if (this.items.has(token)) {
-        throw new Error("beginAsync called for ".concat(token, " but it is already pending."));
-      }
-
-      let error = new Error();
-      this.items.set(token, {
-        get stack() {
-          return error.stack;
-        },
-
-        label
-      });
-      return token;
-    }
-    /**
-     * Should be used to signal the end of an async operation. Invocation of this
-     * method should be paired with a preceeding `beginAsync` call, which would indicate the
-     * beginning of an async operation.
-     *
-     * @public
-     * @method endAsync
-     * @param item {T} The item to that was registered for waiting
-     */
-
-
-    endAsync(token) {
-      if (!this.items.has(token)) {
-        throw new Error("endAsync called for ".concat(token, " but it is not currently pending."));
-      }
-
-      this.items.delete(token);
-    }
-    /**
-     * Used to determine if the waiter system should still wait for async
-     * operations to complete.
-     *
-     * @public
-     * @method waitUntil
-     * @returns {boolean}
-     */
-
-
-    waitUntil() {
-      return this.items.size === 0;
-    }
-    /**
-     * Returns the `debugInfo` for each item tracking async operations in this waiter.
-     *
-     * @public
-     * @method debugInfo
-     * @returns {ITestWaiterDebugInfo}
-     */
-
-
-    debugInfo() {
-      return [...this.items.values()];
-    }
-    /**
-     * Resets the waiter state, clearing items tracking async operations in this waiter.
-     *
-     * @public
-     * @method reset
-     */
-
-
-    reset() {
-      this.items.clear();
-    }
-
+    return new _token.default();
   }
 
-  _exports.default = TestWaiter;
-});
-define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-manager"], function (_exports, _waiterManager) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  let token = 0;
-
-  function getNextToken() {
-    return token++;
-  }
-  /**
-   * A class providing creation, registration and async waiting functionality.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
-
-
-  class TestWaiter {
-    /**
-     * @public
-     * @constructor
-     * @param name {WaiterName} the name of the test waiter
-     */
+  class TestWaiterImpl {
     constructor(name, nextToken) {
       this.name = void 0;
       this.nextToken = void 0;
       this.isRegistered = false;
       this.items = new Map();
+      this.completedOperationsForTokens = new WeakMap();
+      this.completedOperationsForPrimitives = new Map();
       this.name = name; // @ts-ignore
 
       this.nextToken = nextToken || getNextToken;
     }
-    /**
-     * Will register the waiter, allowing it to be opted in to pausing async
-     * operations until they're completed within your tests. You should invoke
-     * it after instantiating your `TestWaiter` instance.
-     *
-     * **Note**, if you forget to register your waiter, it will be registered
-     * for you on the first invocation of `beginAsync`.
-     *
-     * @private
-     * @method register
-     */
-
-
-    register() {
-      if (!this.isRegistered) {
-        (0, _waiterManager.register)(this);
-        this.isRegistered = true;
-      }
-    }
-    /**
-     * Should be used to signal the beginning of an async operation that
-     * is to be waited for. Invocation of this method should be paired with a subsequent
-     * `endAsync` call to indicate to the waiter system that the async operation is completed.
-     *
-     * @public
-     * @method beginAsync
-     * @param item {T} The item to register for waiting
-     * @param label {string} An optional label to identify the item
-     */
-
 
     beginAsync(token = this.nextToken(), label) {
-      this.register();
+      this._register();
 
       if (this.items.has(token)) {
         throw new Error("beginAsync called for ".concat(token, " but it is already pending."));
@@ -9845,122 +9375,231 @@ define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-
       });
       return token;
     }
-    /**
-     * Should be used to signal the end of an async operation. Invocation of this
-     * method should be paired with a preceeding `beginAsync` call, which would indicate the
-     * beginning of an async operation.
-     *
-     * @public
-     * @method endAsync
-     * @param item {T} The item to that was registered for waiting
-     */
-
 
     endAsync(token) {
-      if (!this.items.has(token)) {
-        throw new Error("endAsync called for ".concat(token, " but it is not currently pending."));
+      if (!this.items.has(token) && !this._getCompletedOperations(token).has(token)) {
+        throw new Error("endAsync called with no preceding beginAsync call.");
       }
 
-      this.items.delete(token);
-    }
-    /**
-     * Used to determine if the waiter system should still wait for async
-     * operations to complete.
-     *
-     * @public
-     * @method waitUntil
-     * @returns {boolean}
-     */
+      this.items.delete(token); // Mark when a waiter operation has completed so we can distinguish
+      // whether endAsync is being called before a prior beginAsync call above.
 
+      this._getCompletedOperations(token).set(token, true);
+    }
 
     waitUntil() {
       return this.items.size === 0;
     }
-    /**
-     * Returns the `debugInfo` for each item tracking async operations in this waiter.
-     *
-     * @public
-     * @method debugInfo
-     * @returns {ITestWaiterDebugInfo}
-     */
-
 
     debugInfo() {
       return [...this.items.values()];
     }
-    /**
-     * Resets the waiter state, clearing items tracking async operations in this waiter.
-     *
-     * @public
-     * @method reset
-     */
-
 
     reset() {
       this.items.clear();
     }
 
+    _register() {
+      if (!this.isRegistered) {
+        (0, _waiterManager.register)(this);
+        this.isRegistered = true;
+      }
+    }
+
+    _getCompletedOperations(token) {
+      let type = typeof token;
+      return token !== null || type !== 'function' && type !== 'object' ? this.completedOperationsForPrimitives : this.completedOperationsForTokens;
+    }
+
   }
 
-  _exports.default = TestWaiter;
-});
-define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/test-waiter"], function (_exports, _testWaiter) {
-  "use strict";
+  class NoopTestWaiter {
+    constructor(name) {
+      this.name = void 0;
+      this.name = name;
+    }
 
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = waitForPromise;
-  const PROMISE_WAITER = new _testWaiter.default('promise-waiter');
+    beginAsync() {
+      return this;
+    }
+
+    endAsync() {}
+
+    waitUntil() {
+      return true;
+    }
+
+    debugInfo() {
+      return [];
+    }
+
+    reset() {}
+
+  }
   /**
-   * A convenient utility function to simplify waiting for a promise.
+   * Builds and returns a test waiter. The type of the
+   * returned waiter is dependent on whether the app or
+   * addon is in `DEBUG` mode or not.
    *
    * @public
-   * @param promise {Promise<T>} The promise to track async operations for
-   * @param label {string} An optional string to identify the promise
+   *
+   * @param name {string} The name of the test waiter
+   * @returns {TestWaiter}
    *
    * @example
    *
    * import Component from '@ember/component';
-   * import { waitForPromise } from 'ember-test-waiters';
+   * import { buildWaiter } from 'ember-test-waiters';
+   *
+   * if (DEBUG) {
+   *   let waiter = buildWaiter('friend-waiter');
+   * }
    *
    * export default class Friendz extends Component {
    *   didInsertElement() {
-   *     waitForPromise(new Promise(resolve => {
-   *       doSomeWork();
-   *       resolve();
-   *     }));
+   *     let token = waiter.beginAsync(this);
+   *
+   *     someAsyncWork().then(() => {
+   *       waiter.endAsync(token);
+   *     });
    *   }
    * }
    */
 
-  function waitForPromise(promise, label) {
-    let result = promise;
 
+  function buildWaiter(name) {
     if (true
     /* DEBUG */
     ) {
-      PROMISE_WAITER.beginAsync(promise, label);
-      result = promise.then(value => {
-        PROMISE_WAITER.endAsync(promise);
-        return value;
-      }, error => {
-        PROMISE_WAITER.endAsync(promise);
-        throw error;
-      });
+      return new TestWaiterImpl(name);
     }
 
-    return result;
+    return new NoopTestWaiter(name);
   }
 });
-define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/test-waiter"], function (_exports, _testWaiter) {
+define("ember-test-waiters/index", ["exports", "ember-test-waiters/types", "ember-test-waiters/waiter-manager", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _types, _waiterManager, _buildWaiter, _waitForPromise) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "WaiterName", {
+    enumerable: true,
+    get: function () {
+      return _types.WaiterName;
+    }
+  });
+  Object.defineProperty(_exports, "Token", {
+    enumerable: true,
+    get: function () {
+      return _types.Token;
+    }
+  });
+  Object.defineProperty(_exports, "Primitive", {
+    enumerable: true,
+    get: function () {
+      return _types.Primitive;
+    }
+  });
+  Object.defineProperty(_exports, "Waiter", {
+    enumerable: true,
+    get: function () {
+      return _types.Waiter;
+    }
+  });
+  Object.defineProperty(_exports, "TestWaiter", {
+    enumerable: true,
+    get: function () {
+      return _types.TestWaiter;
+    }
+  });
+  Object.defineProperty(_exports, "TestWaiterDebugInfo", {
+    enumerable: true,
+    get: function () {
+      return _types.TestWaiterDebugInfo;
+    }
+  });
+  Object.defineProperty(_exports, "PendingWaiterState", {
+    enumerable: true,
+    get: function () {
+      return _types.PendingWaiterState;
+    }
+  });
+  Object.defineProperty(_exports, "register", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.register;
+    }
+  });
+  Object.defineProperty(_exports, "unregister", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.unregister;
+    }
+  });
+  Object.defineProperty(_exports, "getWaiters", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.getWaiters;
+    }
+  });
+  Object.defineProperty(_exports, "_reset", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager._reset;
+    }
+  });
+  Object.defineProperty(_exports, "getPendingWaiterState", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.getPendingWaiterState;
+    }
+  });
+  Object.defineProperty(_exports, "hasPendingWaiters", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.hasPendingWaiters;
+    }
+  });
+  Object.defineProperty(_exports, "buildWaiter", {
+    enumerable: true,
+    get: function () {
+      return _buildWaiter.default;
+    }
+  });
+  Object.defineProperty(_exports, "waitForPromise", {
+    enumerable: true,
+    get: function () {
+      return _waitForPromise.default;
+    }
+  });
+});
+define("ember-test-waiters/token", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  /**
+   * A class representing a test waiter token.
+   *
+   * @public
+   * @class
+   */
+  class Token {}
+
+  _exports.default = Token;
+});
+define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/build-waiter"], function (_exports, _buildWaiter) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = waitForPromise;
-  const PROMISE_WAITER = new _testWaiter.default('promise-waiter');
+  const PROMISE_WAITER = (0, _buildWaiter.default)('promise-waiter');
   /**
    * A convenient utility function to simplify waiting for a promise.
    *
@@ -10031,7 +9670,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
    * Registers a waiter.
    *
    * @public
-   * @param waiter {IWaiter} A test waiter instance
+   * @param waiter {Waiter} A test waiter instance
    */
 
 
@@ -10039,10 +9678,10 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
     WAITERS.set(waiter.name, waiter);
   }
   /**
-   * Unregisters a waiter.
+   * Un-registers a waiter.
    *
    * @public
-   * @param waiter {IWaiter} A test waiter instance
+   * @param waiter {Waiter} A test waiter instance
    */
 
 
@@ -10053,7 +9692,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
    * Gets an array of all waiters current registered.
    *
    * @public
-   * @returns {IWaiter[]}
+   * @returns {Waiter[]}
    */
 
 
@@ -10063,7 +9702,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
   /**
    * Clears all waiters.
    *
-   * @public
+   * @private
    */
 
 
@@ -10074,7 +9713,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
    * Gets the current state of all waiters. Any waiters whose
    * `waitUntil` method returns false will be considered `pending`.
    *
-   * @returns {IPendingWaiterState} An object containing a count of all waiters
+   * @returns {PendingWaiterState} An object containing a count of all waiters
    * pending and a `waiters` object containing the name of all pending waiters
    * and their debug info.
    */
@@ -10105,113 +9744,6 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
     let state = getPendingWaiterState();
     return state.pending > 0;
   }
-});
-define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.register = register;
-  _exports.unregister = unregister;
-  _exports.getWaiters = getWaiters;
-  _exports._reset = _reset;
-  _exports.getPendingWaiterState = getPendingWaiterState;
-  _exports.hasPendingWaiters = hasPendingWaiters;
-  const WAITERS = new Map();
-  /**
-   * Backwards compatibility with legacy waiters system.
-   *
-   * We want to always register a waiter using the legacy waiter system, as right
-   * now if consumers are not on the right version of @ember/test-helpers, using
-   * this addon will result in none of these waiters waiting.
-   */
-  // eslint-disable-next-line ember/new-module-imports
-
-  if (Ember.Test) {
-    Ember.Test.registerWaiter(() => !hasPendingWaiters());
-  }
-  /**
-   * Registers a waiter.
-   *
-   * @public
-   * @param waiter {IWaiter} A test waiter instance
-   */
-
-
-  function register(waiter) {
-    WAITERS.set(waiter.name, waiter);
-  }
-  /**
-   * Unregisters a waiter.
-   *
-   * @public
-   * @param waiter {IWaiter} A test waiter instance
-   */
-
-
-  function unregister(waiter) {
-    WAITERS.delete(waiter.name);
-  }
-  /**
-   * Gets an array of all waiters current registered.
-   *
-   * @public
-   * @returns {IWaiter[]}
-   */
-
-
-  function getWaiters() {
-    return [...WAITERS.values()];
-  }
-  /**
-   * Clears all waiters.
-   *
-   * @public
-   */
-
-
-  function _reset() {
-    WAITERS.clear();
-  }
-  /**
-   * Gets the current state of all waiters. Any waiters whose
-   * `waitUntil` method returns false will be considered `pending`.
-   *
-   * @returns {IPendingWaiterState} An object containing a count of all waiters
-   * pending and a `waiters` object containing the name of all pending waiters
-   * and their debug info.
-   */
-
-
-  function getPendingWaiterState() {
-    let result = {
-      pending: 0,
-      waiters: {}
-    };
-    WAITERS.forEach(waiter => {
-      if (!waiter.waitUntil()) {
-        result.pending++;
-        let debugInfo = waiter.debugInfo();
-        result.waiters[waiter.name] = debugInfo || true;
-      }
-    });
-    return result;
-  }
-  /**
-   * Determines if there are any pending waiters.
-   *
-   * @returns {boolean} `true` if there are pending waiters, otherwise `false`.
-   */
-
-
-  function hasPendingWaiters() {
-    let state = getPendingWaiterState();
-    return state.pending > 0;
-  }
-});
-define("ember-test-waiters/types/index", [], function () {
-  "use strict";
 });
 define("ember-test-waiters/types/index", [], function () {
   "use strict";
@@ -11566,8 +11098,8 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
     {{outlet}}
   */
   {
-    id: "JzTwhLU2",
-    block: "{\"symbols\":[],\"statements\":[[1,[22,\"outlet\"],false]],\"hasEval\":false}",
+    id: "rJ/3bpZM",
+    block: "{\"symbols\":[],\"statements\":[[1,0,0,0,[31,0,0,[27,[26,1,\"CallHead\"],[]],[[31,0,0,[27,[26,0,\"CallHead\"],[]],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}",
     meta: {}
   });
   const EMPTY_TEMPLATE = Ember.HTMLBars.template(
@@ -11575,8 +11107,8 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
     
   */
   {
-    id: "xOcW61lH",
-    block: "{\"symbols\":[],\"statements\":[],\"hasEval\":false}",
+    id: "cgf6XJaX",
+    block: "{\"symbols\":[],\"statements\":[],\"hasEval\":false,\"upvars\":[]}",
     meta: {}
   }); // eslint-disable-next-line require-jsdoc
 
