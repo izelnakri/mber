@@ -32,8 +32,8 @@
     "@types/ember__test-helpers": "^0.7.9",
     "@types/qunit": "^2.9.0",
     "@types/rsvp": "^4.0.3",
-    "@typescript-eslint/parser": "^2.19.2",
-    "typescript": "^3.7.5"
+    "@typescript-eslint/parser": "^2.23.0",
+    "typescript": "^3.8.3"
   },
   "fastbootDependencies": [
     "crypto",
@@ -45,16 +45,14 @@
     "abortcontroller-polyfill": "^1.4.0",
     "ember-cli-fastboot": "^2.2.1",
     "ember-data": "3.17.0",
-    "ember-devtools": "^6.0.0",
-    "ember-modifier": "^1.0.2",
+    "ember-modifier": "^1.0.3",
     "fastboot": "^3.0.0",
-    "highlight.js": "^9.15.8",
     "jquery": "^3.4.1",
     "mber-head": "^0.1.0",
     "node-fetch": "2.6.0"
   },
   "volta": {
-    "node": "13.8.0"
+    "node": "13.10.0"
   },
   "ember": {
     "edition": "octane"
