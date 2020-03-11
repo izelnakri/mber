@@ -3,6 +3,13 @@ import Resolver from './resolver';
 import loadInitializers from 'ember-load-initializers';
 import config from '../config/environment';
 
+declare global {
+  interface Window {
+    runningTests: any;
+    Ember: any;
+  }
+}
+
 export default class App extends Application {
   modulePrefix = config.modulePrefix;
   podModulePrefix = config.podModulePrefix;
