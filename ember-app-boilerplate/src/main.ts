@@ -4,9 +4,15 @@ import loadInitializers from 'ember-load-initializers';
 import config from '../config/environment';
 
 declare global {
+  interface FreeObject {
+    [propName: string]: any;
+  }
+
   interface Window {
     runningTests: any;
     Ember: any;
+    DISABLE_MEMSERVER?: boolean;
+    MemServer?: FreeObject;
   }
 }
 

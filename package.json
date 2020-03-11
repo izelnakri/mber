@@ -36,6 +36,7 @@
     "@ember/test-helpers": "1.7.1",
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
+    "@typescript-eslint/parser": "2.23.0",
     "ava": "^3.5.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.1",
@@ -52,10 +53,10 @@
     "mber-head": "^0.1.0",
     "morgan": "^1.9.1",
     "qunit": "2.9.3",
+    "qunit-dom": "^1.1.0",
     "strip-ansi": "^6.0.0",
-    "whatwg-fetch": "^3.0.0",
-    "@typescript-eslint/parser": "2.23.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "whatwg-fetch": "^3.0.0"
   },
   "repository": {
     "type": "git",

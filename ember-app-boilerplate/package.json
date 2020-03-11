@@ -13,9 +13,10 @@
   "repository": "",
   "main": "src/main.js",
   "scripts": {
-    "build": "mber build",
-    "start": "mber server",
-    "test": "mber test"
+    "typecheck": "node_modules/.bin/tsc --project tsconfig.json --noEmit",
+    "build": "node_modules/.bin/mber build",
+    "start": "node_modules/.bin/mber start",
+    "test": "node_modules/.bin/mber test"
   },
   "engines": {
     "node": "^13.*"
@@ -23,8 +24,8 @@
   "devDependencies": {
     "mber": "{{mberVersion}}",
     "eslint": "^6.8.0",
-    "eslint-plugin-ember": "^7.7.2",
-    "qunit-dom": "1.0.0",
+    "eslint-plugin-ember": "^7.10.1",
+    "qunit-dom": "1.1.0",
     "@types/ember": "^3.1.1",
     "@types/ember-data": "^3.1.9",
     "@types/ember-qunit": "^3.4.7",
@@ -43,7 +44,7 @@
     "memserver": "^2.0.10",
     "abortcontroller-polyfill": "^1.4.0",
     "ember-cli-fastboot": "^2.2.1",
-    "ember-data": "3.16.0",
+    "ember-data": "3.17.0",
     "ember-devtools": "^6.0.0",
     "ember-modifier": "^1.0.2",
     "fastboot": "^3.0.0",

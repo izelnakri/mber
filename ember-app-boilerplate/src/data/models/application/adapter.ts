@@ -20,13 +20,13 @@ export default class ApplicationAdapter extends RESTAdapter {
   //     return { Authorization: `Bearer ${this.session.authenticationToken}` };
   //   }
   // }
-  handleResponse(status, headers, payload) {
+  handleResponse(status, headers, payload, requestData) {
     if (this.isInvalid(status, headers, payload)) {
       const errors = errorsHashToArray(payload.errors);
 
       return new InvalidError(errors);
     }
 
-    return super.handleResponse(...arguments);
+    return super.handleResponse(status, headers, payload, requestData);
   }
 }
