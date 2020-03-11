@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.16.2
+ * @version   3.17.0
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -286,7 +286,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     */
     setDebugFunction('assert', function assert(desc, test) {
       if (!test) {
-        throw new _error.default("Assertion Failed: " + desc);
+        throw new _error.default(`Assertion Failed: ${desc}`);
       }
     });
     /**
@@ -308,9 +308,9 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     setDebugFunction('debug', function debug(message) {
       /* eslint-disable no-console */
       if (console.debug) {
-        console.debug("DEBUG: " + message);
+        console.debug(`DEBUG: ${message}`);
       } else {
-        console.log("DEBUG: " + message);
+        console.log(`DEBUG: ${message}`);
       }
       /* eslint-ensable no-console */
 
@@ -435,7 +435,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
             downloadURL = 'https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/';
           }
 
-          debug("For more advanced debugging, install the Ember Inspector from " + downloadURL);
+          debug(`For more advanced debugging, install the Ember Inspector from ${downloadURL}`);
         }
       }, false);
     }
@@ -467,8 +467,10 @@ define("@ember/debug/lib/capture-render-tree", ["exports", "@glimmer/util"], fun
     @since 3.14.0
   */
   function captureRenderTree(app) {
-    var env = (0, _util.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
-    return env.debugRenderTree.capture();
+    var env = (0, _util.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+    var rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+    var renderer = (0, _util.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+    return renderer.debugRenderTree.capture();
   }
 });
 define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment", "@ember/debug/index", "@ember/debug/lib/handlers"], function (_exports, _environment, _index, _handlers) {
@@ -545,11 +547,11 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
       var message = _message;
 
       if (options && options.id) {
-        message = message + (" [deprecation id: " + options.id + "]");
+        message = message + ` [deprecation id: ${options.id}]`;
       }
 
       if (options && options.url) {
-        message += " See " + options.url + " for more details.";
+        message += ` See ${options.url} for more details.`;
       }
 
       return message;
@@ -557,7 +559,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
 
     registerHandler(function logDeprecationToConsole(message, options) {
       var updatedMessage = formatMessage(message, options);
-      console.warn("DEPRECATION: " + updatedMessage); // eslint-disable-line no-console
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
     });
     var captureErrorForStack;
 
@@ -589,11 +591,11 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
             stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
           }
 
-          stackStr = "\n    " + stack.slice(2).join('\n    ');
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
         }
 
         var updatedMessage = formatMessage(message, options);
-        console.warn("DEPRECATION: " + updatedMessage + stackStr); // eslint-disable-line no-console
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
       } else {
         next(message, options);
       }
@@ -766,7 +768,7 @@ define("@ember/debug/lib/warn", ["exports", "@ember/debug/index", "@ember/debug/
 
     registerHandler(function logWarning(message) {
       /* eslint-disable no-console */
-      console.warn("WARNING: " + message);
+      console.warn(`WARNING: ${message}`);
       /* eslint-enable no-console */
     });
     _exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
@@ -2437,7 +2439,7 @@ define("ember-testing/lib/test/promise", ["exports", "@ember/-internals/runtime"
   _exports.default = TestPromise;
 
   function promise(resolver, label) {
-    var fullLabel = "Ember.Test.promise: " + (label || '<Unknown Promise>');
+    var fullLabel = `Ember.Test.promise: ${label || '<Unknown Promise>'}`;
     return new TestPromise(resolver, fullLabel);
   }
   /**
@@ -9331,505 +9333,1422 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   QUnit.config.testTimeout = QUnit.urlParams.devmode ? null : 60000; //Default Test Timeout 60 Seconds
 })();
 
-define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters", "ember-test-waiters/noop-test-waiter"], function (_exports, _emberTestWaiters, _noopTestWaiter) {
-  "use strict";
 
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = buildWaiter;
+      ;(function() {
+        function vendorModule() {
+          'use strict';
 
-  /**
-   * Builds and returns a test waiter. The type of the
-   * returned waiter is dependent on whether the app or
-   * addon is in `DEBUG` mode or not.
-   *
-   * @param name {string} The name of the test waiter
-   * @returns {ITestWaiter}
-   *
-   * @example
-   *
-   * import Component from '@ember/component';
-   * import { buildWaiter } from 'ember-test-waiters';
-   *
-   * if (DEBUG) {
-   *   let waiter = buildWaiter('friend-waiter');
-   * }
-   *
-   * export default class Friendz extends Component {
-   *   didInsertElement() {
-   *     let token = waiter.beginAsync(this);
-   *
-   *     someAsyncWork().then(() => {
-   *       waiter.endAsync(token);
-   *     });
-   *   }
-   * }
-   */
-  function buildWaiter(name) {
-    if (true
-    /* DEBUG */
-    ) {
-      return new _emberTestWaiters.TestWaiter(name);
-    }
+          (function () {
+  'use strict';
 
-    return new _noopTestWaiter.default(name);
-  }
-});
-define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters", "ember-test-waiters/noop-test-waiter"], function (_exports, _emberTestWaiters, _noopTestWaiter) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = buildWaiter;
-
-  /**
-   * Builds and returns a test waiter. The type of the
-   * returned waiter is dependent on whether the app or
-   * addon is in `DEBUG` mode or not.
-   *
-   * @param name {string} The name of the test waiter
-   * @returns {ITestWaiter}
-   *
-   * @example
-   *
-   * import Component from '@ember/component';
-   * import { buildWaiter } from 'ember-test-waiters';
-   *
-   * if (DEBUG) {
-   *   let waiter = buildWaiter('friend-waiter');
-   * }
-   *
-   * export default class Friendz extends Component {
-   *   didInsertElement() {
-   *     let token = waiter.beginAsync(this);
-   *
-   *     someAsyncWork().then(() => {
-   *       waiter.endAsync(token);
-   *     });
-   *   }
-   * }
-   */
-  function buildWaiter(name) {
-    if (true
-    /* DEBUG */
-    ) {
-      return new _emberTestWaiters.TestWaiter(name);
-    }
-
-    return new _noopTestWaiter.default(name);
-  }
-});
-define("ember-test-waiters/index", ["exports", "ember-test-waiters/waiter-manager", "ember-test-waiters/test-waiter", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _waiterManager, _testWaiter, _buildWaiter, _waitForPromise) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  Object.defineProperty(_exports, "register", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.register;
-    }
-  });
-  Object.defineProperty(_exports, "unregister", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.unregister;
-    }
-  });
-  Object.defineProperty(_exports, "getWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "_reset", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager._reset;
-    }
-  });
-  Object.defineProperty(_exports, "getPendingWaiterState", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getPendingWaiterState;
-    }
-  });
-  Object.defineProperty(_exports, "hasPendingWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.hasPendingWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "TestWaiter", {
-    enumerable: true,
-    get: function () {
-      return _testWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "buildWaiter", {
-    enumerable: true,
-    get: function () {
-      return _buildWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "waitForPromise", {
-    enumerable: true,
-    get: function () {
-      return _waitForPromise.default;
-    }
-  });
-});
-define("ember-test-waiters/index", ["exports", "ember-test-waiters/waiter-manager", "ember-test-waiters/test-waiter", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _waiterManager, _testWaiter, _buildWaiter, _waitForPromise) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  Object.defineProperty(_exports, "register", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.register;
-    }
-  });
-  Object.defineProperty(_exports, "unregister", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.unregister;
-    }
-  });
-  Object.defineProperty(_exports, "getWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "_reset", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager._reset;
-    }
-  });
-  Object.defineProperty(_exports, "getPendingWaiterState", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.getPendingWaiterState;
-    }
-  });
-  Object.defineProperty(_exports, "hasPendingWaiters", {
-    enumerable: true,
-    get: function () {
-      return _waiterManager.hasPendingWaiters;
-    }
-  });
-  Object.defineProperty(_exports, "TestWaiter", {
-    enumerable: true,
-    get: function () {
-      return _testWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "buildWaiter", {
-    enumerable: true,
-    get: function () {
-      return _buildWaiter.default;
-    }
-  });
-  Object.defineProperty(_exports, "waitForPromise", {
-    enumerable: true,
-    get: function () {
-      return _waitForPromise.default;
-    }
-  });
-});
-define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-
-  /**
-   * A class providing a production, noop replacement for the {TestWaiter<T>} class.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
-  class NoopTestWaiter {
-    constructor(name) {
-      this.name = name;
-    }
-
-    beginAsync() {
-      return this;
-    }
-
-    endAsync() {}
-
-    waitUntil() {
-      return true;
-    }
-
-    debugInfo() {
-      return [];
-    }
-
-    reset() {}
-
-  }
-
-  _exports.default = NoopTestWaiter;
-});
-define("ember-test-waiters/noop-test-waiter", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-
-  /**
-   * A class providing a production, noop replacement for the {TestWaiter<T>} class.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
-  class NoopTestWaiter {
-    constructor(name) {
-      this.name = void 0;
-      this.name = name;
-    }
-
-    beginAsync() {
-      return this;
-    }
-
-    endAsync() {}
-
-    waitUntil() {
-      return true;
-    }
-
-    debugInfo() {
-      return [];
-    }
-
-    reset() {}
-
-  }
-
-  _exports.default = NoopTestWaiter;
-});
-define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-manager"], function (_exports, _waiterManager) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = void 0;
-  let token = 0;
-
-  function getNextToken() {
-    return token++;
-  }
-  /**
-   * A class providing creation, registration and async waiting functionality.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
-
-
-  class TestWaiter {
-    /**
-     * @public
-     * @constructor
-     * @param name {WaiterName} the name of the test waiter
-     */
-    constructor(name, nextToken) {
-      this.isRegistered = false;
-      this.items = new Map();
-      this.name = name; // @ts-ignore
-
-      this.nextToken = nextToken || getNextToken;
-    }
-    /**
-     * Will register the waiter, allowing it to be opted in to pausing async
-     * operations until they're completed within your tests. You should invoke
-     * it after instantiating your `TestWaiter` instance.
-     *
-     * **Note**, if you forget to register your waiter, it will be registered
-     * for you on the first invocation of `beginAsync`.
-     *
-     * @private
-     * @method register
-     */
-
-
-    register() {
-      if (!this.isRegistered) {
-        (0, _waiterManager.register)(this);
-        this.isRegistered = true;
+  function exists(options, message) {
+      var expectedCount = null;
+      if (typeof options === 'string') {
+          message = options;
       }
-    }
-    /**
-     * Should be used to signal the beginning of an async operation that
-     * is to be waited for. Invocation of this method should be paired with a subsequent
-     * `endAsync` call to indicate to the waiter system that the async operation is completed.
-     *
-     * @public
-     * @method beginAsync
-     * @param item {T} The item to register for waiting
-     * @param label {string} An optional label to identify the item
-     */
-
-
-    beginAsync(token = this.nextToken(), label) {
-      this.register();
-
-      if (this.items.has(token)) {
-        throw new Error("beginAsync called for ".concat(token, " but it is already pending."));
+      else if (options) {
+          expectedCount = options.count;
       }
+      var elements = this.findElements();
+      if (expectedCount === null) {
+          var result = elements.length > 0;
+          var expected = format(this.targetDescription);
+          var actual = result ? expected : format(this.targetDescription, 0);
+          if (!message) {
+              message = expected;
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+      }
+      else if (typeof expectedCount === 'number') {
+          var result = elements.length === expectedCount;
+          var actual = format(this.targetDescription, elements.length);
+          var expected = format(this.targetDescription, expectedCount);
+          if (!message) {
+              message = expected;
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+      }
+      else {
+          throw new TypeError("Unexpected Parameter: " + expectedCount);
+      }
+  }
+  function format(selector, num) {
+      if (num === undefined || num === null) {
+          return "Element " + selector + " exists";
+      }
+      else if (num === 0) {
+          return "Element " + selector + " does not exist";
+      }
+      else if (num === 1) {
+          return "Element " + selector + " exists once";
+      }
+      else if (num === 2) {
+          return "Element " + selector + " exists twice";
+      }
+      else {
+          return "Element " + selector + " exists " + num + " times";
+      }
+  }
 
-      let error = new Error();
-      this.items.set(token, {
-        get stack() {
-          return error.stack;
-        },
-
-        label
+  // imported from https://github.com/nathanboktae/chai-dom
+  function elementToString(el) {
+      if (!el)
+          return '<not found>';
+      var desc;
+      if (el instanceof NodeList) {
+          if (el.length === 0) {
+              return 'empty NodeList';
+          }
+          desc = Array.prototype.slice
+              .call(el, 0, 5)
+              .map(elementToString)
+              .join(', ');
+          return el.length > 5 ? desc + "... (+" + (el.length - 5) + " more)" : desc;
+      }
+      if (!(el instanceof HTMLElement || el instanceof SVGElement)) {
+          return String(el);
+      }
+      desc = el.tagName.toLowerCase();
+      if (el.id) {
+          desc += "#" + el.id;
+      }
+      if (el.className && !(el.className instanceof SVGAnimatedString)) {
+          desc += "." + String(el.className).replace(/\s+/g, '.');
+      }
+      Array.prototype.forEach.call(el.attributes, function (attr) {
+          if (attr.name !== 'class' && attr.name !== 'id') {
+              desc += "[" + attr.name + (attr.value ? "=\"" + attr.value + "\"]" : ']');
+          }
       });
-      return token;
-    }
-    /**
-     * Should be used to signal the end of an async operation. Invocation of this
-     * method should be paired with a preceeding `beginAsync` call, which would indicate the
-     * beginning of an async operation.
-     *
-     * @public
-     * @method endAsync
-     * @param item {T} The item to that was registered for waiting
-     */
-
-
-    endAsync(token) {
-      if (!this.items.has(token)) {
-        throw new Error("endAsync called for ".concat(token, " but it is not currently pending."));
-      }
-
-      this.items.delete(token);
-    }
-    /**
-     * Used to determine if the waiter system should still wait for async
-     * operations to complete.
-     *
-     * @public
-     * @method waitUntil
-     * @returns {boolean}
-     */
-
-
-    waitUntil() {
-      return this.items.size === 0;
-    }
-    /**
-     * Returns the `debugInfo` for each item tracking async operations in this waiter.
-     *
-     * @public
-     * @method debugInfo
-     * @returns {ITestWaiterDebugInfo}
-     */
-
-
-    debugInfo() {
-      return [...this.items.values()];
-    }
-    /**
-     * Resets the waiter state, clearing items tracking async operations in this waiter.
-     *
-     * @public
-     * @method reset
-     */
-
-
-    reset() {
-      this.items.clear();
-    }
-
+      return desc;
   }
 
-  _exports.default = TestWaiter;
-});
-define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-manager"], function (_exports, _waiterManager) {
+  function focused(message) {
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      var result = document.activeElement === element;
+      var actual = elementToString(document.activeElement);
+      var expected = elementToString(this.target);
+      if (!message) {
+          message = "Element " + expected + " is focused";
+      }
+      this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+  }
+
+  function notFocused(message) {
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      var result = document.activeElement !== element;
+      var expected = "Element " + this.targetDescription + " is not focused";
+      var actual = result ? expected : "Element " + this.targetDescription + " is focused";
+      if (!message) {
+          message = expected;
+      }
+      this.pushResult({ result: result, message: message, actual: actual, expected: expected });
+  }
+
+  function checked(message) {
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      var isChecked = element.checked === true;
+      var isNotChecked = element.checked === false;
+      var result = isChecked;
+      var hasCheckedProp = isChecked || isNotChecked;
+      if (!hasCheckedProp) {
+          var ariaChecked = element.getAttribute('aria-checked');
+          if (ariaChecked !== null) {
+              result = ariaChecked === 'true';
+          }
+      }
+      var actual = result ? 'checked' : 'not checked';
+      var expected = 'checked';
+      if (!message) {
+          message = "Element " + elementToString(this.target) + " is checked";
+      }
+      this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+  }
+
+  function notChecked(message) {
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      var isChecked = element.checked === true;
+      var isNotChecked = element.checked === false;
+      var result = !isChecked;
+      var hasCheckedProp = isChecked || isNotChecked;
+      if (!hasCheckedProp) {
+          var ariaChecked = element.getAttribute('aria-checked');
+          if (ariaChecked !== null) {
+              result = ariaChecked !== 'true';
+          }
+      }
+      var actual = result ? 'not checked' : 'checked';
+      var expected = 'not checked';
+      if (!message) {
+          message = "Element " + elementToString(this.target) + " is not checked";
+      }
+      this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+  }
+
+  function required(message) {
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      if (!(element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement ||
+          element instanceof HTMLSelectElement)) {
+          throw new TypeError("Unexpected Element Type: " + element.toString());
+      }
+      var result = element.required === true;
+      var actual = result ? 'required' : 'not required';
+      var expected = 'required';
+      if (!message) {
+          message = "Element " + elementToString(this.target) + " is required";
+      }
+      this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+  }
+
+  function notRequired(message) {
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      if (!(element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement ||
+          element instanceof HTMLSelectElement)) {
+          throw new TypeError("Unexpected Element Type: " + element.toString());
+      }
+      var result = element.required === false;
+      var actual = !result ? 'required' : 'not required';
+      var expected = 'not required';
+      if (!message) {
+          message = "Element " + elementToString(this.target) + " is not required";
+      }
+      this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+  }
+
+  // Visible logic based on jQuery's
+  // https://github.com/jquery/jquery/blob/4a2bcc27f9c3ee24b3effac0fbe1285d1ee23cc5/src/css/hiddenVisibleSelectors.js#L11-L13
+  function visible(el) {
+      if (el === null)
+          return false;
+      if (el.offsetWidth === 0 || el.offsetHeight === 0)
+          return false;
+      var clientRects = el.getClientRects();
+      if (clientRects.length === 0)
+          return false;
+      for (var i = 0; i < clientRects.length; i++) {
+          var rect = clientRects[i];
+          if (rect.width !== 0 && rect.height !== 0)
+              return true;
+      }
+      return false;
+  }
+
+  function isVisible(options, message) {
+      var expectedCount = null;
+      if (typeof options === 'string') {
+          message = options;
+      }
+      else if (options) {
+          expectedCount = options.count;
+      }
+      var elements = this.findElements().filter(visible);
+      if (expectedCount === null) {
+          var result = elements.length > 0;
+          var expected = format$1(this.targetDescription);
+          var actual = result ? expected : format$1(this.targetDescription, 0);
+          if (!message) {
+              message = expected;
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+      }
+      else if (typeof expectedCount === 'number') {
+          var result = elements.length === expectedCount;
+          var actual = format$1(this.targetDescription, elements.length);
+          var expected = format$1(this.targetDescription, expectedCount);
+          if (!message) {
+              message = expected;
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+      }
+      else {
+          throw new TypeError("Unexpected Parameter: " + expectedCount);
+      }
+  }
+  function format$1(selector, num) {
+      if (num === undefined || num === null) {
+          return "Element " + selector + " is visible";
+      }
+      else if (num === 0) {
+          return "Element " + selector + " is not visible";
+      }
+      else if (num === 1) {
+          return "Element " + selector + " is visible once";
+      }
+      else if (num === 2) {
+          return "Element " + selector + " is visible twice";
+      }
+      else {
+          return "Element " + selector + " is visible " + num + " times";
+      }
+  }
+
+  function isDisabled(message, options) {
+      if (options === void 0) { options = {}; }
+      var inverted = options.inverted;
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      if (!(element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement ||
+          element instanceof HTMLSelectElement ||
+          element instanceof HTMLButtonElement ||
+          element instanceof HTMLOptGroupElement ||
+          element instanceof HTMLOptionElement ||
+          element instanceof HTMLFieldSetElement)) {
+          throw new TypeError("Unexpected Element Type: " + element.toString());
+      }
+      var result = element.disabled === !inverted;
+      var actual = element.disabled === false
+          ? "Element " + this.targetDescription + " is not disabled"
+          : "Element " + this.targetDescription + " is disabled";
+      var expected = inverted
+          ? "Element " + this.targetDescription + " is not disabled"
+          : "Element " + this.targetDescription + " is disabled";
+      if (!message) {
+          message = expected;
+      }
+      this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+  }
+
+  function matchesSelector(elements, compareSelector) {
+      var failures = elements.filter(function (it) { return !it.matches(compareSelector); });
+      return failures.length;
+  }
+
+  function collapseWhitespace(string) {
+      return string
+          .replace(/[\t\r\n]/g, ' ')
+          .replace(/ +/g, ' ')
+          .replace(/^ /, '')
+          .replace(/ $/, '');
+  }
+
+  /**
+   * This function can be used to convert a NodeList to a regular array.
+   * We should be using `Array.from()` for this, but IE11 doesn't support that :(
+   *
+   * @private
+   */
+  function toArray(list) {
+      return Array.prototype.slice.call(list);
+  }
+
+  var DOMAssertions = /** @class */ (function () {
+      function DOMAssertions(target, rootElement, testContext) {
+          this.target = target;
+          this.rootElement = rootElement;
+          this.testContext = testContext;
+      }
+      /**
+       * Assert an {@link HTMLElement} (or multiple) matching the `selector` exists.
+       *
+       * @param {object?} options
+       * @param {number?} options.count
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('#title').exists();
+       * assert.dom('.choice').exists({ count: 4 });
+       *
+       * @see {@link #doesNotExist}
+       */
+      DOMAssertions.prototype.exists = function (options, message) {
+          exists.call(this, options, message);
+          return this;
+      };
+      /**
+       * Assert an {@link HTMLElement} matching the `selector` does not exists.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.should-not-exist').doesNotExist();
+       *
+       * @see {@link #exists}
+       */
+      DOMAssertions.prototype.doesNotExist = function (message) {
+          exists.call(this, { count: 0 }, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is currently checked.
+       *
+       * Note: This also supports `aria-checked="true/false"`.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.active').isChecked();
+       *
+       * @see {@link #isNotChecked}
+       */
+      DOMAssertions.prototype.isChecked = function (message) {
+          checked.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is currently unchecked.
+       *
+       * Note: This also supports `aria-checked="true/false"`.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.active').isNotChecked();
+       *
+       * @see {@link #isChecked}
+       */
+      DOMAssertions.prototype.isNotChecked = function (message) {
+          notChecked.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is currently focused.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.email').isFocused();
+       *
+       * @see {@link #isNotFocused}
+       */
+      DOMAssertions.prototype.isFocused = function (message) {
+          focused.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is not currently focused.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input[type="password"]').isNotFocused();
+       *
+       * @see {@link #isFocused}
+       */
+      DOMAssertions.prototype.isNotFocused = function (message) {
+          notFocused.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is currently required.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input[type="text"]').isRequired();
+       *
+       * @see {@link #isNotRequired}
+       */
+      DOMAssertions.prototype.isRequired = function (message) {
+          required.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is currently not required.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input[type="text"]').isNotRequired();
+       *
+       * @see {@link #isRequired}
+       */
+      DOMAssertions.prototype.isNotRequired = function (message) {
+          notRequired.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` exists and is visible.
+       *
+       * Visibility is determined by asserting that:
+       *
+       * - the element's offsetWidth and offsetHeight are non-zero
+       * - any of the element's DOMRect objects have a non-zero size
+       *
+       * Additionally, visibility in this case means that the element is visible on the page,
+       * but not necessarily in the viewport.
+       *
+       * @param {object?} options
+       * @param {number?} options.count
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('#title').isVisible();
+       * assert.dom('.choice').isVisible({ count: 4 });
+       *
+       * @see {@link #isNotVisible}
+       */
+      DOMAssertions.prototype.isVisible = function (options, message) {
+          isVisible.call(this, options, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` does not exist or is not visible on the page.
+       *
+       * Visibility is determined by asserting that:
+       *
+       * - the element's offsetWidth or offsetHeight are zero
+       * - all of the element's DOMRect objects have a size of zero
+       *
+       * Additionally, visibility in this case means that the element is visible on the page,
+       * but not necessarily in the viewport.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.foo').isNotVisible();
+       *
+       * @see {@link #isVisible}
+       */
+      DOMAssertions.prototype.isNotVisible = function (message) {
+          isVisible.call(this, { count: 0 }, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} has an attribute with the provided `name`
+       * and optionally checks if the attribute `value` matches the provided text
+       * or regular expression.
+       *
+       * @param {string} name
+       * @param {string|RegExp|object?} value
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.password-input').hasAttribute('type', 'password');
+       *
+       * @see {@link #doesNotHaveAttribute}
+       */
+      DOMAssertions.prototype.hasAttribute = function (name, value, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          if (arguments.length === 1) {
+              value = { any: true };
+          }
+          var actualValue = element.getAttribute(name);
+          if (value instanceof RegExp) {
+              var result = value.test(actualValue);
+              var expected = "Element " + this.targetDescription + " has attribute \"" + name + "\" with value matching " + value;
+              var actual = actualValue === null
+                  ? "Element " + this.targetDescription + " does not have attribute \"" + name + "\""
+                  : "Element " + this.targetDescription + " has attribute \"" + name + "\" with value " + JSON.stringify(actualValue);
+              if (!message) {
+                  message = expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          else if (value.any === true) {
+              var result = actualValue !== null;
+              var expected = "Element " + this.targetDescription + " has attribute \"" + name + "\"";
+              var actual = result
+                  ? expected
+                  : "Element " + this.targetDescription + " does not have attribute \"" + name + "\"";
+              if (!message) {
+                  message = expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          else {
+              var result = value === actualValue;
+              var expected = "Element " + this.targetDescription + " has attribute \"" + name + "\" with value " + JSON.stringify(value);
+              var actual = actualValue === null
+                  ? "Element " + this.targetDescription + " does not have attribute \"" + name + "\""
+                  : "Element " + this.targetDescription + " has attribute \"" + name + "\" with value " + JSON.stringify(actualValue);
+              if (!message) {
+                  message = expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} has no attribute with the provided `name`.
+       *
+       * **Aliases:** `hasNoAttribute`, `lacksAttribute`
+       *
+       * @param {string} name
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.username').hasNoAttribute('disabled');
+       *
+       * @see {@link #hasAttribute}
+       */
+      DOMAssertions.prototype.doesNotHaveAttribute = function (name, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return;
+          var result = !element.hasAttribute(name);
+          var expected = "Element " + this.targetDescription + " does not have attribute \"" + name + "\"";
+          var actual = expected;
+          if (!result) {
+              var value = element.getAttribute(name);
+              actual = "Element " + this.targetDescription + " has attribute \"" + name + "\" with value " + JSON.stringify(value);
+          }
+          if (!message) {
+              message = expected;
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          return this;
+      };
+      DOMAssertions.prototype.hasNoAttribute = function (name, message) {
+          return this.doesNotHaveAttribute(name, message);
+      };
+      DOMAssertions.prototype.lacksAttribute = function (name, message) {
+          return this.doesNotHaveAttribute(name, message);
+      };
+      /**
+       * Assert that the {@link HTMLElement} has a property with the provided `name`
+       * and checks if the property `value` matches the provided text or regular
+       * expression.
+       *
+       * @param {string} name
+       * @param {string|RegExp} value
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.password-input').hasProperty('type', 'password');
+       *
+       * @see {@link #doesNotHaveProperty}
+       */
+      DOMAssertions.prototype.hasProperty = function (name, value, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          var description = this.targetDescription;
+          var actualValue = element[name];
+          if (value instanceof RegExp) {
+              var result = value.test(String(actualValue));
+              var expected = "Element " + description + " has property \"" + name + "\" with value matching " + value;
+              var actual = "Element " + description + " has property \"" + name + "\" with value " + JSON.stringify(actualValue);
+              if (!message) {
+                  message = expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          else {
+              var result = value === actualValue;
+              var expected = "Element " + description + " has property \"" + name + "\" with value " + JSON.stringify(value);
+              var actual = "Element " + description + " has property \"" + name + "\" with value " + JSON.stringify(actualValue);
+              if (!message) {
+                  message = expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       *  Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is disabled.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.foo').isDisabled();
+       *
+       * @see {@link #isNotDisabled}
+       */
+      DOMAssertions.prototype.isDisabled = function (message) {
+          isDisabled.call(this, message);
+          return this;
+      };
+      /**
+       *  Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
+       * `selector` is not disabled.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.foo').isNotDisabled();
+       *
+       * @see {@link #isDisabled}
+       */
+      DOMAssertions.prototype.isNotDisabled = function (message) {
+          isDisabled.call(this, message, { inverted: true });
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} has the `expected` CSS class using
+       * [`classList`](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList).
+       *
+       * `expected` can also be a regular expression, and the assertion will return
+       * true if any of the element's CSS classes match.
+       *
+       * @param {string|RegExp} expected
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input[type="password"]').hasClass('secret-password-input');
+       *
+       * @example
+       * assert.dom('input[type="password"]').hasClass(/.*password-input/);
+       *
+       * @see {@link #doesNotHaveClass}
+       */
+      DOMAssertions.prototype.hasClass = function (expected, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          var actual = element.classList.toString();
+          if (expected instanceof RegExp) {
+              var classNames = Array.prototype.slice.call(element.classList);
+              var result = classNames.some(function (className) {
+                  return expected.test(className);
+              });
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has CSS class matching " + expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          else {
+              var result = element.classList.contains(expected);
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has CSS class \"" + expected + "\"";
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} does not have the `expected` CSS class using
+       * [`classList`](https://developer.mozilla.org/en-US/docs/Web/API/Element/classList).
+       *
+       * `expected` can also be a regular expression, and the assertion will return
+       * true if none of the element's CSS classes match.
+       *
+       * **Aliases:** `hasNoClass`, `lacksClass`
+       *
+       * @param {string|RegExp} expected
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input[type="password"]').doesNotHaveClass('username-input');
+       *
+       * @example
+       * assert.dom('input[type="password"]').doesNotHaveClass(/username-.*-input/);
+       *
+       * @see {@link #hasClass}
+       */
+      DOMAssertions.prototype.doesNotHaveClass = function (expected, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          var actual = element.classList.toString();
+          if (expected instanceof RegExp) {
+              var classNames = Array.prototype.slice.call(element.classList);
+              var result = classNames.every(function (className) {
+                  return !expected.test(className);
+              });
+              if (!message) {
+                  message = "Element " + this.targetDescription + " does not have CSS class matching " + expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: "not: " + expected, message: message });
+          }
+          else {
+              var result = !element.classList.contains(expected);
+              if (!message) {
+                  message = "Element " + this.targetDescription + " does not have CSS class \"" + expected + "\"";
+              }
+              this.pushResult({ result: result, actual: actual, expected: "not: " + expected, message: message });
+          }
+          return this;
+      };
+      DOMAssertions.prototype.hasNoClass = function (expected, message) {
+          return this.doesNotHaveClass(expected, message);
+      };
+      DOMAssertions.prototype.lacksClass = function (expected, message) {
+          return this.doesNotHaveClass(expected, message);
+      };
+      /**
+       * Assert that the [HTMLElement][] has the `expected` style declarations using
+       * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
+       *
+       * @name hasStyle
+       * @param {object} expected
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.progress-bar').hasStyle({
+       *   opacity: 1,
+       *   display: 'block'
+       * });
+       *
+       * @see {@link #hasClass}
+       */
+      DOMAssertions.prototype.hasStyle = function (expected, message) {
+          return this.hasPseudoElementStyle(null, expected, message);
+      };
+      /**
+       * Assert that the pseudo element for `selector` of the [HTMLElement][] has the `expected` style declarations using
+       * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
+       *
+       * @name hasPseudoElementStyle
+       * @param {string} selector
+       * @param {object} expected
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.progress-bar').hasPseudoElementStyle(':after', {
+       *   content: '";"',
+       * });
+       *
+       * @see {@link #hasClass}
+       */
+      DOMAssertions.prototype.hasPseudoElementStyle = function (selector, expected, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          var computedStyle = window.getComputedStyle(element, selector);
+          var expectedProperties = Object.keys(expected);
+          if (expectedProperties.length <= 0) {
+              throw new TypeError("Missing style expectations. There must be at least one style property in the passed in expectation object.");
+          }
+          var result = expectedProperties.every(function (property) { return computedStyle[property] === expected[property]; });
+          var actual = {};
+          expectedProperties.forEach(function (property) { return (actual[property] = computedStyle[property]); });
+          if (!message) {
+              var normalizedSelector = selector ? selector.replace(/^:{0,2}/, '::') : '';
+              message = "Element " + this.targetDescription + normalizedSelector + " has style \"" + JSON.stringify(expected) + "\"";
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          return this;
+      };
+      /**
+       * Assert that the [HTMLElement][] does not have the `expected` style declarations using
+       * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
+       *
+       * @name doesNotHaveStyle
+       * @param {object} expected
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.progress-bar').doesNotHaveStyle({
+       *   opacity: 1,
+       *   display: 'block'
+       * });
+       *
+       * @see {@link #hasClass}
+       */
+      DOMAssertions.prototype.doesNotHaveStyle = function (expected, message) {
+          return this.doesNotHavePseudoElementStyle(null, expected, message);
+      };
+      /**
+       * Assert that the pseudo element for `selector` of the [HTMLElement][] does not have the `expected` style declarations using
+       * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
+       *
+       * @name doesNotHavePseudoElementStyle
+       * @param {string} selector
+       * @param {object} expected
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.progress-bar').doesNotHavePseudoElementStyle(':after', {
+       *   content: '";"',
+       * });
+       *
+       * @see {@link #hasClass}
+       */
+      DOMAssertions.prototype.doesNotHavePseudoElementStyle = function (selector, expected, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          var computedStyle = window.getComputedStyle(element, selector);
+          var expectedProperties = Object.keys(expected);
+          if (expectedProperties.length <= 0) {
+              throw new TypeError("Missing style expectations. There must be at least one style property in the passed in expectation object.");
+          }
+          var result = expectedProperties.some(function (property) { return computedStyle[property] !== expected[property]; });
+          var actual = {};
+          expectedProperties.forEach(function (property) { return (actual[property] = computedStyle[property]); });
+          if (!message) {
+              var normalizedSelector = selector ? selector.replace(/^:{0,2}/, '::') : '';
+              message = "Element " + this.targetDescription + normalizedSelector + " does not have style \"" + JSON.stringify(expected) + "\"";
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          return this;
+      };
+      /**
+       * Assert that the text of the {@link HTMLElement} or an {@link HTMLElement}
+       * matching the `selector` matches the `expected` text, using the
+       * [`textContent`](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent)
+       * attribute and stripping/collapsing whitespace.
+       *
+       * `expected` can also be a regular expression.
+       *
+       * > Note: This assertion will collapse whitespace if the type you pass in is a string.
+       * > If you are testing specifically for whitespace integrity, pass your expected text
+       * > in as a RegEx pattern.
+       *
+       * **Aliases:** `matchesText`
+       *
+       * @param {string|RegExp} expected
+       * @param {string?} message
+       *
+       * @example
+       * // <h2 id="title">
+       * //   Welcome to <b>QUnit</b>
+       * // </h2>
+       *
+       * assert.dom('#title').hasText('Welcome to QUnit');
+       *
+       * @example
+       * assert.dom('.foo').hasText(/[12]\d{3}/);
+       *
+       * @see {@link #includesText}
+       */
+      DOMAssertions.prototype.hasText = function (expected, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          if (expected instanceof RegExp) {
+              var result = expected.test(element.textContent);
+              var actual = element.textContent;
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has text matching " + expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          else if (expected.any === true) {
+              var result = Boolean(element.textContent);
+              var expected_1 = "Element " + this.targetDescription + " has a text";
+              var actual = result ? expected_1 : "Element " + this.targetDescription + " has no text";
+              if (!message) {
+                  message = expected_1;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected_1, message: message });
+          }
+          else if (typeof expected === 'string') {
+              expected = collapseWhitespace(expected);
+              var actual = collapseWhitespace(element.textContent);
+              var result = actual === expected;
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has text \"" + expected + "\"";
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          else {
+              throw new TypeError("You must pass a string or Regular Expression to \"hasText\". You passed " + expected + ".");
+          }
+          return this;
+      };
+      DOMAssertions.prototype.matchesText = function (expected, message) {
+          return this.hasText(expected, message);
+      };
+      /**
+       * Assert that the `textContent` property of an {@link HTMLElement} is not empty.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('button.share').hasAnyText();
+       *
+       * @see {@link #hasText}
+       */
+      DOMAssertions.prototype.hasAnyText = function (message) {
+          return this.hasText({ any: true }, message);
+      };
+      /**
+       * Assert that the `textContent` property of an {@link HTMLElement} is empty.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('div').hasNoText();
+       *
+       * @see {@link #hasNoText}
+       */
+      DOMAssertions.prototype.hasNoText = function (message) {
+          return this.hasText('', message);
+      };
+      /**
+       * Assert that the text of the {@link HTMLElement} or an {@link HTMLElement}
+       * matching the `selector` contains the given `text`, using the
+       * [`textContent`](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent)
+       * attribute.
+       *
+       * > Note: This assertion will collapse whitespace in `textContent` before searching.
+       * > If you would like to assert on a string that *should* contain line breaks, tabs,
+       * > more than one space in a row, or starting/ending whitespace, use the {@link #hasText}
+       * > selector and pass your expected text in as a RegEx pattern.
+       *
+       * **Aliases:** `containsText`, `hasTextContaining`
+       *
+       * @param {string} text
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('#title').includesText('Welcome');
+       *
+       * @see {@link #hasText}
+       */
+      DOMAssertions.prototype.includesText = function (text, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          var collapsedText = collapseWhitespace(element.textContent);
+          var result = collapsedText.indexOf(text) !== -1;
+          var actual = collapsedText;
+          var expected = text;
+          if (!message) {
+              message = "Element " + this.targetDescription + " has text containing \"" + text + "\"";
+          }
+          if (!result && text !== collapseWhitespace(text)) {
+              console.warn('The `.includesText()`, `.containsText()`, and `.hasTextContaining()` assertions collapse whitespace. The text you are checking for contains whitespace that may have made your test fail incorrectly. Try the `.hasText()` assertion passing in your expected text as a RegExp pattern. Your text:\n' +
+                  text);
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          return this;
+      };
+      DOMAssertions.prototype.containsText = function (expected, message) {
+          return this.includesText(expected, message);
+      };
+      DOMAssertions.prototype.hasTextContaining = function (expected, message) {
+          return this.includesText(expected, message);
+      };
+      /**
+       * Assert that the text of the {@link HTMLElement} or an {@link HTMLElement}
+       * matching the `selector` does not include the given `text`, using the
+       * [`textContent`](https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent)
+       * attribute.
+       *
+       * **Aliases:** `doesNotContainText`, `doesNotHaveTextContaining`
+       *
+       * @param {string} text
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('#title').doesNotIncludeText('Welcome');
+       */
+      DOMAssertions.prototype.doesNotIncludeText = function (text, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          var collapsedText = collapseWhitespace(element.textContent);
+          var result = collapsedText.indexOf(text) === -1;
+          var expected = "Element " + this.targetDescription + " does not include text \"" + text + "\"";
+          var actual = expected;
+          if (!result) {
+              actual = "Element " + this.targetDescription + " includes text \"" + text + "\"";
+          }
+          if (!message) {
+              message = expected;
+          }
+          this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          return this;
+      };
+      DOMAssertions.prototype.doesNotContainText = function (unexpected, message) {
+          return this.doesNotIncludeText(unexpected, message);
+      };
+      DOMAssertions.prototype.doesNotHaveTextContaining = function (unexpected, message) {
+          return this.doesNotIncludeText(unexpected, message);
+      };
+      /**
+       * Assert that the `value` property of an {@link HTMLInputElement} matches
+       * the `expected` text or regular expression.
+       *
+       * If no `expected` value is provided, the assertion will fail if the
+       * `value` is an empty string.
+       *
+       * @param {string|RegExp|object?} expected
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.username').hasValue('HSimpson');
+    
+       * @see {@link #hasAnyValue}
+       * @see {@link #hasNoValue}
+       */
+      DOMAssertions.prototype.hasValue = function (expected, message) {
+          var element = this.findTargetElement();
+          if (!element)
+              return this;
+          if (arguments.length === 0) {
+              expected = { any: true };
+          }
+          var value = element.value;
+          if (expected instanceof RegExp) {
+              var result = expected.test(value);
+              var actual = value;
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has value matching " + expected;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          else if (expected.any === true) {
+              var result = Boolean(value);
+              var expected_2 = "Element " + this.targetDescription + " has a value";
+              var actual = result ? expected_2 : "Element " + this.targetDescription + " has no value";
+              if (!message) {
+                  message = expected_2;
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected_2, message: message });
+          }
+          else {
+              var actual = value;
+              var result = actual === expected;
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has value \"" + expected + "\"";
+              }
+              this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       * Assert that the `value` property of an {@link HTMLInputElement} is not empty.
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.username').hasAnyValue();
+       *
+       * @see {@link #hasValue}
+       * @see {@link #hasNoValue}
+       */
+      DOMAssertions.prototype.hasAnyValue = function (message) {
+          return this.hasValue({ any: true }, message);
+      };
+      /**
+       * Assert that the `value` property of an {@link HTMLInputElement} is empty.
+       *
+       * **Aliases:** `lacksValue`
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input.username').hasNoValue();
+       *
+       * @see {@link #hasValue}
+       * @see {@link #hasAnyValue}
+       */
+      DOMAssertions.prototype.hasNoValue = function (message) {
+          return this.hasValue('', message);
+      };
+      DOMAssertions.prototype.lacksValue = function (message) {
+          return this.hasNoValue(message);
+      };
+      /**
+       * Assert that the target selector selects only Elements that are also selected by
+       * compareSelector.
+       *
+       * @param {string} compareSelector
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('p.red').matchesSelector('div.wrapper p:last-child')
+       */
+      DOMAssertions.prototype.matchesSelector = function (compareSelector, message) {
+          var targetElements = this.target instanceof Element ? [this.target] : this.findElements();
+          var targets = targetElements.length;
+          var matchFailures = matchesSelector(targetElements, compareSelector);
+          var singleElement = targets === 1;
+          var selectedByPart = this.target instanceof Element ? 'passed' : "selected by " + this.target;
+          var actual;
+          var expected;
+          if (matchFailures === 0) {
+              // no failures matching.
+              if (!message) {
+                  message = singleElement
+                      ? "The element " + selectedByPart + " also matches the selector " + compareSelector + "."
+                      : targets + " elements, selected by " + this.target + ", also match the selector " + compareSelector + ".";
+              }
+              actual = expected = message;
+              this.pushResult({ result: true, actual: actual, expected: expected, message: message });
+          }
+          else {
+              var difference = targets - matchFailures;
+              // there were failures when matching.
+              if (!message) {
+                  message = singleElement
+                      ? "The element " + selectedByPart + " did not also match the selector " + compareSelector + "."
+                      : matchFailures + " out of " + targets + " elements selected by " + this.target + " did not also match the selector " + compareSelector + ".";
+              }
+              actual = singleElement ? message : difference + " elements matched " + compareSelector + ".";
+              expected = singleElement
+                  ? "The element should have matched " + compareSelector + "."
+                  : targets + " elements should have matched " + compareSelector + ".";
+              this.pushResult({ result: false, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       * Assert that the target selector selects only Elements that are not also selected by
+       * compareSelector.
+       *
+       * @param {string} compareSelector
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('input').doesNotMatchSelector('input[disabled]')
+       */
+      DOMAssertions.prototype.doesNotMatchSelector = function (compareSelector, message) {
+          var targetElements = this.target instanceof Element ? [this.target] : this.findElements();
+          var targets = targetElements.length;
+          var matchFailures = matchesSelector(targetElements, compareSelector);
+          var singleElement = targets === 1;
+          var selectedByPart = this.target instanceof Element ? 'passed' : "selected by " + this.target;
+          var actual;
+          var expected;
+          if (matchFailures === targets) {
+              // the assertion is successful because no element matched the other selector.
+              if (!message) {
+                  message = singleElement
+                      ? "The element " + selectedByPart + " did not also match the selector " + compareSelector + "."
+                      : targets + " elements, selected by " + this.target + ", did not also match the selector " + compareSelector + ".";
+              }
+              actual = expected = message;
+              this.pushResult({ result: true, actual: actual, expected: expected, message: message });
+          }
+          else {
+              var difference = targets - matchFailures;
+              // the assertion fails because at least one element matched the other selector.
+              if (!message) {
+                  message = singleElement
+                      ? "The element " + selectedByPart + " must not also match the selector " + compareSelector + "."
+                      : difference + " elements out of " + targets + ", selected by " + this.target + ", must not also match the selector " + compareSelector + ".";
+              }
+              actual = singleElement
+                  ? "The element " + selectedByPart + " matched " + compareSelector + "."
+                  : matchFailures + " elements did not match " + compareSelector + ".";
+              expected = singleElement
+                  ? message
+                  : targets + " elements should not have matched " + compareSelector + ".";
+              this.pushResult({ result: false, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       * Assert that the tagName of the {@link HTMLElement} or an {@link HTMLElement}
+       * matching the `selector` matches the `expected` tagName, using the
+       * [`tagName`](https://developer.mozilla.org/en-US/docs/Web/API/Element/tagName)
+       * property of the {@link HTMLElement}.
+       *
+       * @param {string} expected
+       * @param {string?} message
+       *
+       * @example
+       * // <h1 id="title">
+       * //   Title
+       * // </h1>
+       *
+       * assert.dom('#title').hasTagName('h1');
+       */
+      DOMAssertions.prototype.hasTagName = function (tagName, message) {
+          var element = this.findTargetElement();
+          var actual;
+          var expected;
+          if (!element)
+              return this;
+          if (typeof tagName !== 'string') {
+              throw new TypeError("You must pass a string to \"hasTagName\". You passed " + tagName + ".");
+          }
+          actual = element.tagName.toLowerCase();
+          expected = tagName.toLowerCase();
+          if (actual === expected) {
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has tagName " + expected;
+              }
+              this.pushResult({ result: true, actual: actual, expected: expected, message: message });
+          }
+          else {
+              if (!message) {
+                  message = "Element " + this.targetDescription + " does not have tagName " + expected;
+              }
+              this.pushResult({ result: false, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       * Assert that the tagName of the {@link HTMLElement} or an {@link HTMLElement}
+       * matching the `selector` does not match the `expected` tagName, using the
+       * [`tagName`](https://developer.mozilla.org/en-US/docs/Web/API/Element/tagName)
+       * property of the {@link HTMLElement}.
+       *
+       * @param {string} expected
+       * @param {string?} message
+       *
+       * @example
+       * // <section id="block">
+       * //   Title
+       * // </section>
+       *
+       * assert.dom('section#block').doesNotHaveTagName('div');
+       */
+      DOMAssertions.prototype.doesNotHaveTagName = function (tagName, message) {
+          var element = this.findTargetElement();
+          var actual;
+          var expected;
+          if (!element)
+              return this;
+          if (typeof tagName !== 'string') {
+              throw new TypeError("You must pass a string to \"doesNotHaveTagName\". You passed " + tagName + ".");
+          }
+          actual = element.tagName.toLowerCase();
+          expected = tagName.toLowerCase();
+          if (actual !== expected) {
+              if (!message) {
+                  message = "Element " + this.targetDescription + " does not have tagName " + expected;
+              }
+              this.pushResult({ result: true, actual: actual, expected: expected, message: message });
+          }
+          else {
+              if (!message) {
+                  message = "Element " + this.targetDescription + " has tagName " + expected;
+              }
+              this.pushResult({ result: false, actual: actual, expected: expected, message: message });
+          }
+          return this;
+      };
+      /**
+       * @private
+       */
+      DOMAssertions.prototype.pushResult = function (result) {
+          this.testContext.pushResult(result);
+      };
+      /**
+       * Finds a valid HTMLElement from target, or pushes a failing assertion if a valid
+       * element is not found.
+       * @private
+       * @returns (HTMLElement|null) a valid HTMLElement, or null
+       */
+      DOMAssertions.prototype.findTargetElement = function () {
+          var el = this.findElement();
+          if (el === null) {
+              var message = "Element " + (this.target || '<unknown>') + " should exist";
+              this.pushResult({ message: message, result: false, actual: undefined, expected: undefined });
+              return null;
+          }
+          return el;
+      };
+      /**
+       * Finds a valid HTMLElement from target
+       * @private
+       * @returns (HTMLElement|null) a valid HTMLElement, or null
+       * @throws TypeError will be thrown if target is an unrecognized type
+       */
+      DOMAssertions.prototype.findElement = function () {
+          if (this.target === null) {
+              return null;
+          }
+          else if (typeof this.target === 'string') {
+              return this.rootElement.querySelector(this.target);
+          }
+          else if (this.target instanceof Element) {
+              return this.target;
+          }
+          else {
+              throw new TypeError("Unexpected Parameter: " + this.target);
+          }
+      };
+      /**
+       * Finds a collection of Element instances from target using querySelectorAll
+       * @private
+       * @returns (Element[]) an array of Element instances
+       * @throws TypeError will be thrown if target is an unrecognized type
+       */
+      DOMAssertions.prototype.findElements = function () {
+          if (this.target === null) {
+              return [];
+          }
+          else if (typeof this.target === 'string') {
+              return toArray(this.rootElement.querySelectorAll(this.target));
+          }
+          else if (this.target instanceof Element) {
+              return [this.target];
+          }
+          else {
+              throw new TypeError("Unexpected Parameter: " + this.target);
+          }
+      };
+      Object.defineProperty(DOMAssertions.prototype, "targetDescription", {
+          /**
+           * @private
+           */
+          get: function () {
+              return elementToString(this.target);
+          },
+          enumerable: true,
+          configurable: true
+      });
+      return DOMAssertions;
+  }());
+
+  /* global QUnit */
+  QUnit.assert.dom = function (target, rootElement) {
+      if (!isValidRootElement(rootElement)) {
+          throw new Error(rootElement + " is not a valid root element");
+      }
+      rootElement = rootElement || this.dom.rootElement || document;
+      return new DOMAssertions(target || rootElement, rootElement, this);
+  };
+  function isValidRootElement(element) {
+      return (!element ||
+          (typeof element === 'object' &&
+              typeof element.querySelector === 'function' &&
+              typeof element.querySelectorAll === 'function'));
+  }
+
+}());
+//# sourceMappingURL=qunit-dom.js.map
+
+
+          
+      return window['qunit-dom'];
+    
+        }
+
+        define('qunit-dom', [], vendorModule);
+      })();
+    
+define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters/token", "ember-test-waiters/waiter-manager"], function (_exports, _token, _waiterManager) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.default = void 0;
-  let token = 0;
+  _exports.default = buildWaiter;
 
   function getNextToken() {
-    return token++;
+    return new _token.default();
   }
-  /**
-   * A class providing creation, registration and async waiting functionality.
-   *
-   * @public
-   * @class TestWaiter<T>
-   */
 
-
-  class TestWaiter {
-    /**
-     * @public
-     * @constructor
-     * @param name {WaiterName} the name of the test waiter
-     */
+  class TestWaiterImpl {
     constructor(name, nextToken) {
       this.name = void 0;
       this.nextToken = void 0;
       this.isRegistered = false;
       this.items = new Map();
+      this.completedOperationsForTokens = new WeakMap();
+      this.completedOperationsForPrimitives = new Map();
       this.name = name; // @ts-ignore
 
       this.nextToken = nextToken || getNextToken;
     }
-    /**
-     * Will register the waiter, allowing it to be opted in to pausing async
-     * operations until they're completed within your tests. You should invoke
-     * it after instantiating your `TestWaiter` instance.
-     *
-     * **Note**, if you forget to register your waiter, it will be registered
-     * for you on the first invocation of `beginAsync`.
-     *
-     * @private
-     * @method register
-     */
-
-
-    register() {
-      if (!this.isRegistered) {
-        (0, _waiterManager.register)(this);
-        this.isRegistered = true;
-      }
-    }
-    /**
-     * Should be used to signal the beginning of an async operation that
-     * is to be waited for. Invocation of this method should be paired with a subsequent
-     * `endAsync` call to indicate to the waiter system that the async operation is completed.
-     *
-     * @public
-     * @method beginAsync
-     * @param item {T} The item to register for waiting
-     * @param label {string} An optional label to identify the item
-     */
-
 
     beginAsync(token = this.nextToken(), label) {
-      this.register();
+      this._register();
 
       if (this.items.has(token)) {
         throw new Error("beginAsync called for ".concat(token, " but it is already pending."));
@@ -9845,122 +10764,231 @@ define("ember-test-waiters/test-waiter", ["exports", "ember-test-waiters/waiter-
       });
       return token;
     }
-    /**
-     * Should be used to signal the end of an async operation. Invocation of this
-     * method should be paired with a preceeding `beginAsync` call, which would indicate the
-     * beginning of an async operation.
-     *
-     * @public
-     * @method endAsync
-     * @param item {T} The item to that was registered for waiting
-     */
-
 
     endAsync(token) {
-      if (!this.items.has(token)) {
-        throw new Error("endAsync called for ".concat(token, " but it is not currently pending."));
+      if (!this.items.has(token) && !this._getCompletedOperations(token).has(token)) {
+        throw new Error("endAsync called with no preceding beginAsync call.");
       }
 
-      this.items.delete(token);
-    }
-    /**
-     * Used to determine if the waiter system should still wait for async
-     * operations to complete.
-     *
-     * @public
-     * @method waitUntil
-     * @returns {boolean}
-     */
+      this.items.delete(token); // Mark when a waiter operation has completed so we can distinguish
+      // whether endAsync is being called before a prior beginAsync call above.
 
+      this._getCompletedOperations(token).set(token, true);
+    }
 
     waitUntil() {
       return this.items.size === 0;
     }
-    /**
-     * Returns the `debugInfo` for each item tracking async operations in this waiter.
-     *
-     * @public
-     * @method debugInfo
-     * @returns {ITestWaiterDebugInfo}
-     */
-
 
     debugInfo() {
       return [...this.items.values()];
     }
-    /**
-     * Resets the waiter state, clearing items tracking async operations in this waiter.
-     *
-     * @public
-     * @method reset
-     */
-
 
     reset() {
       this.items.clear();
     }
 
+    _register() {
+      if (!this.isRegistered) {
+        (0, _waiterManager.register)(this);
+        this.isRegistered = true;
+      }
+    }
+
+    _getCompletedOperations(token) {
+      let type = typeof token;
+      return token !== null || type !== 'function' && type !== 'object' ? this.completedOperationsForPrimitives : this.completedOperationsForTokens;
+    }
+
   }
 
-  _exports.default = TestWaiter;
-});
-define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/test-waiter"], function (_exports, _testWaiter) {
-  "use strict";
+  class NoopTestWaiter {
+    constructor(name) {
+      this.name = void 0;
+      this.name = name;
+    }
 
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = waitForPromise;
-  const PROMISE_WAITER = new _testWaiter.default('promise-waiter');
+    beginAsync() {
+      return this;
+    }
+
+    endAsync() {}
+
+    waitUntil() {
+      return true;
+    }
+
+    debugInfo() {
+      return [];
+    }
+
+    reset() {}
+
+  }
   /**
-   * A convenient utility function to simplify waiting for a promise.
+   * Builds and returns a test waiter. The type of the
+   * returned waiter is dependent on whether the app or
+   * addon is in `DEBUG` mode or not.
    *
    * @public
-   * @param promise {Promise<T>} The promise to track async operations for
-   * @param label {string} An optional string to identify the promise
+   *
+   * @param name {string} The name of the test waiter
+   * @returns {TestWaiter}
    *
    * @example
    *
    * import Component from '@ember/component';
-   * import { waitForPromise } from 'ember-test-waiters';
+   * import { buildWaiter } from 'ember-test-waiters';
+   *
+   * if (DEBUG) {
+   *   let waiter = buildWaiter('friend-waiter');
+   * }
    *
    * export default class Friendz extends Component {
    *   didInsertElement() {
-   *     waitForPromise(new Promise(resolve => {
-   *       doSomeWork();
-   *       resolve();
-   *     }));
+   *     let token = waiter.beginAsync(this);
+   *
+   *     someAsyncWork().then(() => {
+   *       waiter.endAsync(token);
+   *     });
    *   }
    * }
    */
 
-  function waitForPromise(promise, label) {
-    let result = promise;
 
+  function buildWaiter(name) {
     if (true
     /* DEBUG */
     ) {
-      PROMISE_WAITER.beginAsync(promise, label);
-      result = promise.then(value => {
-        PROMISE_WAITER.endAsync(promise);
-        return value;
-      }, error => {
-        PROMISE_WAITER.endAsync(promise);
-        throw error;
-      });
+      return new TestWaiterImpl(name);
     }
 
-    return result;
+    return new NoopTestWaiter(name);
   }
 });
-define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/test-waiter"], function (_exports, _testWaiter) {
+define("ember-test-waiters/index", ["exports", "ember-test-waiters/types", "ember-test-waiters/waiter-manager", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _types, _waiterManager, _buildWaiter, _waitForPromise) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(_exports, "WaiterName", {
+    enumerable: true,
+    get: function () {
+      return _types.WaiterName;
+    }
+  });
+  Object.defineProperty(_exports, "Token", {
+    enumerable: true,
+    get: function () {
+      return _types.Token;
+    }
+  });
+  Object.defineProperty(_exports, "Primitive", {
+    enumerable: true,
+    get: function () {
+      return _types.Primitive;
+    }
+  });
+  Object.defineProperty(_exports, "Waiter", {
+    enumerable: true,
+    get: function () {
+      return _types.Waiter;
+    }
+  });
+  Object.defineProperty(_exports, "TestWaiter", {
+    enumerable: true,
+    get: function () {
+      return _types.TestWaiter;
+    }
+  });
+  Object.defineProperty(_exports, "TestWaiterDebugInfo", {
+    enumerable: true,
+    get: function () {
+      return _types.TestWaiterDebugInfo;
+    }
+  });
+  Object.defineProperty(_exports, "PendingWaiterState", {
+    enumerable: true,
+    get: function () {
+      return _types.PendingWaiterState;
+    }
+  });
+  Object.defineProperty(_exports, "register", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.register;
+    }
+  });
+  Object.defineProperty(_exports, "unregister", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.unregister;
+    }
+  });
+  Object.defineProperty(_exports, "getWaiters", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.getWaiters;
+    }
+  });
+  Object.defineProperty(_exports, "_reset", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager._reset;
+    }
+  });
+  Object.defineProperty(_exports, "getPendingWaiterState", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.getPendingWaiterState;
+    }
+  });
+  Object.defineProperty(_exports, "hasPendingWaiters", {
+    enumerable: true,
+    get: function () {
+      return _waiterManager.hasPendingWaiters;
+    }
+  });
+  Object.defineProperty(_exports, "buildWaiter", {
+    enumerable: true,
+    get: function () {
+      return _buildWaiter.default;
+    }
+  });
+  Object.defineProperty(_exports, "waitForPromise", {
+    enumerable: true,
+    get: function () {
+      return _waitForPromise.default;
+    }
+  });
+});
+define("ember-test-waiters/token", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  /**
+   * A class representing a test waiter token.
+   *
+   * @public
+   * @class
+   */
+  class Token {}
+
+  _exports.default = Token;
+});
+define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/build-waiter"], function (_exports, _buildWaiter) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = waitForPromise;
-  const PROMISE_WAITER = new _testWaiter.default('promise-waiter');
+  const PROMISE_WAITER = (0, _buildWaiter.default)('promise-waiter');
   /**
    * A convenient utility function to simplify waiting for a promise.
    *
@@ -10031,7 +11059,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
    * Registers a waiter.
    *
    * @public
-   * @param waiter {IWaiter} A test waiter instance
+   * @param waiter {Waiter} A test waiter instance
    */
 
 
@@ -10039,10 +11067,10 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
     WAITERS.set(waiter.name, waiter);
   }
   /**
-   * Unregisters a waiter.
+   * Un-registers a waiter.
    *
    * @public
-   * @param waiter {IWaiter} A test waiter instance
+   * @param waiter {Waiter} A test waiter instance
    */
 
 
@@ -10053,7 +11081,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
    * Gets an array of all waiters current registered.
    *
    * @public
-   * @returns {IWaiter[]}
+   * @returns {Waiter[]}
    */
 
 
@@ -10063,7 +11091,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
   /**
    * Clears all waiters.
    *
-   * @public
+   * @private
    */
 
 
@@ -10074,7 +11102,7 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
    * Gets the current state of all waiters. Any waiters whose
    * `waitUntil` method returns false will be considered `pending`.
    *
-   * @returns {IPendingWaiterState} An object containing a count of all waiters
+   * @returns {PendingWaiterState} An object containing a count of all waiters
    * pending and a `waiters` object containing the name of all pending waiters
    * and their debug info.
    */
@@ -10105,113 +11133,6 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
     let state = getPendingWaiterState();
     return state.pending > 0;
   }
-});
-define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.register = register;
-  _exports.unregister = unregister;
-  _exports.getWaiters = getWaiters;
-  _exports._reset = _reset;
-  _exports.getPendingWaiterState = getPendingWaiterState;
-  _exports.hasPendingWaiters = hasPendingWaiters;
-  const WAITERS = new Map();
-  /**
-   * Backwards compatibility with legacy waiters system.
-   *
-   * We want to always register a waiter using the legacy waiter system, as right
-   * now if consumers are not on the right version of @ember/test-helpers, using
-   * this addon will result in none of these waiters waiting.
-   */
-  // eslint-disable-next-line ember/new-module-imports
-
-  if (Ember.Test) {
-    Ember.Test.registerWaiter(() => !hasPendingWaiters());
-  }
-  /**
-   * Registers a waiter.
-   *
-   * @public
-   * @param waiter {IWaiter} A test waiter instance
-   */
-
-
-  function register(waiter) {
-    WAITERS.set(waiter.name, waiter);
-  }
-  /**
-   * Unregisters a waiter.
-   *
-   * @public
-   * @param waiter {IWaiter} A test waiter instance
-   */
-
-
-  function unregister(waiter) {
-    WAITERS.delete(waiter.name);
-  }
-  /**
-   * Gets an array of all waiters current registered.
-   *
-   * @public
-   * @returns {IWaiter[]}
-   */
-
-
-  function getWaiters() {
-    return [...WAITERS.values()];
-  }
-  /**
-   * Clears all waiters.
-   *
-   * @public
-   */
-
-
-  function _reset() {
-    WAITERS.clear();
-  }
-  /**
-   * Gets the current state of all waiters. Any waiters whose
-   * `waitUntil` method returns false will be considered `pending`.
-   *
-   * @returns {IPendingWaiterState} An object containing a count of all waiters
-   * pending and a `waiters` object containing the name of all pending waiters
-   * and their debug info.
-   */
-
-
-  function getPendingWaiterState() {
-    let result = {
-      pending: 0,
-      waiters: {}
-    };
-    WAITERS.forEach(waiter => {
-      if (!waiter.waitUntil()) {
-        result.pending++;
-        let debugInfo = waiter.debugInfo();
-        result.waiters[waiter.name] = debugInfo || true;
-      }
-    });
-    return result;
-  }
-  /**
-   * Determines if there are any pending waiters.
-   *
-   * @returns {boolean} `true` if there are pending waiters, otherwise `false`.
-   */
-
-
-  function hasPendingWaiters() {
-    let state = getPendingWaiterState();
-    return state.pending > 0;
-  }
-});
-define("ember-test-waiters/types/index", [], function () {
-  "use strict";
 });
 define("ember-test-waiters/types/index", [], function () {
   "use strict";
@@ -11566,8 +12487,8 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
     {{outlet}}
   */
   {
-    id: "JzTwhLU2",
-    block: "{\"symbols\":[],\"statements\":[[1,[22,\"outlet\"],false]],\"hasEval\":false}",
+    id: "rJ/3bpZM",
+    block: "{\"symbols\":[],\"statements\":[[1,0,0,0,[31,0,0,[27,[26,1,\"CallHead\"],[]],[[31,0,0,[27,[26,0,\"CallHead\"],[]],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}",
     meta: {}
   });
   const EMPTY_TEMPLATE = Ember.HTMLBars.template(
@@ -11575,8 +12496,8 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
     
   */
   {
-    id: "xOcW61lH",
-    block: "{\"symbols\":[],\"statements\":[],\"hasEval\":false}",
+    id: "cgf6XJaX",
+    block: "{\"symbols\":[],\"statements\":[],\"hasEval\":false,\"upvars\":[]}",
     meta: {}
   }); // eslint-disable-next-line require-jsdoc
 

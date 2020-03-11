@@ -6,6 +6,7 @@ import Console from '../lib/utils/console.js';
 import countTime from '../lib/utils/count-time.js';
 import findProjectRoot from '../lib/utils/find-project-root.js';
 import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-amd.js';
+import transpileNPMImports from '../lib/transpilers/transpile-npm-imports.js';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter.js';
 
 const compileScssAsync = promisify(sass.render);
@@ -80,6 +81,7 @@ function buildTestVendorJS() {
       fs.readFile(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       fs.readFile(`${MODULE_PATH}/qunit/qunit/qunit.js`),
       fs.readFile(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/qunit-configuration.js`),
+      transpileNPMImports('qunit-dom', 'node_modules/qunit-dom/dist/qunit-dom.js', { transpile: false }),
       importAddonFolderToAMD('ember-test-waiters', 'ember-test-waiters/addon'),
       importAddonFolderToAMD(
         '@ember/test-helpers',

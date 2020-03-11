@@ -1,3 +1,7 @@
+TODO: add ember-test-helpers addon-test-helpers types to tsconfig
+
+
+
 Adapter and Serializer in new ember + documentation expressions
 only Serializer EmbeddedRecordsMixin solution is needed
 

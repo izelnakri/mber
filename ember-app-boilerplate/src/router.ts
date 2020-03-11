@@ -1,3 +1,4 @@
+// @ts-nocheck
 import EmberRouter from '@ember/routing/router';
 import DocumentationRouter from 'mber-documentation';
 import ENV from '../config/environment';

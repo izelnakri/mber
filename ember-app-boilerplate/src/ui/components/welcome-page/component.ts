@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { VERSION } from '@ember/version';
 import Component from '@glimmer/component';
 

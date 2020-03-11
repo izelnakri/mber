@@ -1,25 +1,27 @@
 {
   "compilerOptions": {
     "target": "es2017",
+    "typeRoots" : ["./node_modules/@types"],
     "allowJs": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "noFallthroughCasesInSwitch": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
     "noEmitOnError": false,
-    "noEmit": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
+    "noEmit": false,
+    "inlineSourceMap": false,
+    "inlineSources": false,
     "baseUrl": ".",
     "module": "es6",
     "experimentalDecorators": true,
+    "skipLibCheck": true,
     "paths": {
       "{{applicationName}}/tests/*": [
         "tests/*"
@@ -27,9 +29,16 @@
       "{{applicationName}}/config/*": [
         "config/*"
       ],
-      "{{applicationName}}/*": [
+      "{{applicationName}}/src/*": [
         "src/*"
       ],
+      "{{applicationName}}/memserver/*": [
+        "memserver/*"
+      ],
+      "{{applicationName}}/documentation/*": [
+        "documentation/*"
+      ],
+      "@glimmer": ["node_modules/@glimmer/component/dist/types/src/*"],
       "*": [
         "types/*"
       ]
@@ -38,6 +47,7 @@
   "include": [
     "src/**/*",
     "tests/**/*",
+    "documentation/**/*",
     "types/**/*"
   ],
   "exclude": [
