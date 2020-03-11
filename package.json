@@ -122,7 +122,7 @@
     "failFast": true
   },
   "volta": {
-    "node": "13.8.0"
+    "node": "13.10.1"
   },
   "browserslist": [
     "last 1 chrome version"
