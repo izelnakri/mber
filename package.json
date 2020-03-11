@@ -26,7 +26,7 @@
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
-    "@ember-data/adapter": "3.16.0",
+    "@ember-data/adapter": "3.17.0",
     "@ember-data/debug": "^3.16.0",
     "@ember-data/model": "3.16.0",
     "@ember-data/private-build-infra": "^3.16.0",
