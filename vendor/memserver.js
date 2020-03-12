@@ -5030,8 +5030,10 @@ var captureRenderTree_1 = createCommonjsModule(function (module, exports) {
   */
 
   function captureRenderTree(app) {
-    let env = (0, es5$1.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
-    return env.debugRenderTree.capture();
+    let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+    let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+    let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+    return renderer.debugRenderTree.capture();
   }
 });
 unwrapExports(captureRenderTree_1);
@@ -6043,6 +6045,7 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.getName = getName;
   exports.setName = setName;
   exports.toString = toString;
+  exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
   exports.isEmberArray = isEmberArray;
@@ -6289,7 +6292,7 @@ var utils = createCommonjsModule(function (module, exports) {
         functionName = match && match[1] || '';
       }
 
-      return functionName;
+      return functionName.replace(/^bound /, '');
     };
 
     let getObjectName = obj => {
@@ -6811,6 +6814,19 @@ var utils = createCommonjsModule(function (module, exports) {
   let setWithMandatorySetter;
   exports.setWithMandatorySetter = setWithMandatorySetter;
 
+  function isElementKey(key) {
+    return typeof key === 'number' ? isPositiveInt(key) : isStringInt(key);
+  }
+
+  function isStringInt(str) {
+    let num = parseInt(str, 10);
+    return isPositiveInt(num) && str === String(num);
+  }
+
+  function isPositiveInt(num) {
+    return num >= 0 && num % 1 === 0;
+  }
+
   if (es5.DEBUG) {
     let SEEN_TAGS = new polyfills._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
@@ -6825,6 +6841,11 @@ var utils = createCommonjsModule(function (module, exports) {
       }
 
       SEEN_TAGS.add(tag);
+
+      if (Array.isArray(obj) && isElementKey(keyName)) {
+        return;
+      }
+
       let desc = lookupDescriptor(obj, keyName) || {};
 
       if (desc.get || desc.set) {
@@ -6932,21 +6953,22 @@ var utils_16 = utils.tryInvoke;
 var utils_17 = utils.makeArray;
 var utils_18 = utils.getName;
 var utils_19 = utils.setName;
-var utils_20 = utils.isProxy;
-var utils_21 = utils.setProxy;
-var utils_22 = utils.isEmberArray;
-var utils_23 = utils.setWithMandatorySetter;
-var utils_24 = utils.teardownMandatorySetter;
-var utils_25 = utils.setupMandatorySetter;
-var utils_26 = utils.EMBER_ARRAY;
-var utils_27 = utils.Cache;
-var utils_28 = utils.HAS_NATIVE_PROXY;
-var utils_29 = utils.HAS_NATIVE_SYMBOL;
-var utils_30 = utils.ROOT;
-var utils_31 = utils.checkHasSuper;
-var utils_32 = utils.GUID_KEY;
-var utils_33 = utils.getOwnPropertyDescriptors;
-var utils_34 = utils.getDebugName;
+var utils_20 = utils.isObject;
+var utils_21 = utils.isProxy;
+var utils_22 = utils.setProxy;
+var utils_23 = utils.isEmberArray;
+var utils_24 = utils.setWithMandatorySetter;
+var utils_25 = utils.teardownMandatorySetter;
+var utils_26 = utils.setupMandatorySetter;
+var utils_27 = utils.EMBER_ARRAY;
+var utils_28 = utils.Cache;
+var utils_29 = utils.HAS_NATIVE_PROXY;
+var utils_30 = utils.HAS_NATIVE_SYMBOL;
+var utils_31 = utils.ROOT;
+var utils_32 = utils.checkHasSuper;
+var utils_33 = utils.GUID_KEY;
+var utils_34 = utils.getOwnPropertyDescriptors;
+var utils_35 = utils.getDebugName;
 var string$1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -12908,8 +12930,10 @@ var captureRenderTree_1 = createCommonjsModule(function (module, exports) {
   */
 
   function captureRenderTree(app) {
-    let env = (0, es5$1.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
-    return env.debugRenderTree.capture();
+    let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+    let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+    let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+    return renderer.debugRenderTree.capture();
   }
 });
 unwrapExports(captureRenderTree_1);
@@ -13921,6 +13945,7 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.getName = getName;
   exports.setName = setName;
   exports.toString = toString;
+  exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
   exports.isEmberArray = isEmberArray;
@@ -14167,7 +14192,7 @@ var utils = createCommonjsModule(function (module, exports) {
         functionName = match && match[1] || '';
       }
 
-      return functionName;
+      return functionName.replace(/^bound /, '');
     };
 
     let getObjectName = obj => {
@@ -14689,6 +14714,19 @@ var utils = createCommonjsModule(function (module, exports) {
   let setWithMandatorySetter;
   exports.setWithMandatorySetter = setWithMandatorySetter;
 
+  function isElementKey(key) {
+    return typeof key === 'number' ? isPositiveInt(key) : isStringInt(key);
+  }
+
+  function isStringInt(str) {
+    let num = parseInt(str, 10);
+    return isPositiveInt(num) && str === String(num);
+  }
+
+  function isPositiveInt(num) {
+    return num >= 0 && num % 1 === 0;
+  }
+
   if (es5.DEBUG) {
     let SEEN_TAGS = new polyfills._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
@@ -14703,6 +14741,11 @@ var utils = createCommonjsModule(function (module, exports) {
       }
 
       SEEN_TAGS.add(tag);
+
+      if (Array.isArray(obj) && isElementKey(keyName)) {
+        return;
+      }
+
       let desc = lookupDescriptor(obj, keyName) || {};
 
       if (desc.get || desc.set) {
@@ -14810,21 +14853,22 @@ var utils_16 = utils.tryInvoke;
 var utils_17 = utils.makeArray;
 var utils_18 = utils.getName;
 var utils_19 = utils.setName;
-var utils_20 = utils.isProxy;
-var utils_21 = utils.setProxy;
-var utils_22 = utils.isEmberArray;
-var utils_23 = utils.setWithMandatorySetter;
-var utils_24 = utils.teardownMandatorySetter;
-var utils_25 = utils.setupMandatorySetter;
-var utils_26 = utils.EMBER_ARRAY;
-var utils_27 = utils.Cache;
-var utils_28 = utils.HAS_NATIVE_PROXY;
-var utils_29 = utils.HAS_NATIVE_SYMBOL;
-var utils_30 = utils.ROOT;
-var utils_31 = utils.checkHasSuper;
-var utils_32 = utils.GUID_KEY;
-var utils_33 = utils.getOwnPropertyDescriptors;
-var utils_34 = utils.getDebugName;
+var utils_20 = utils.isObject;
+var utils_21 = utils.isProxy;
+var utils_22 = utils.setProxy;
+var utils_23 = utils.isEmberArray;
+var utils_24 = utils.setWithMandatorySetter;
+var utils_25 = utils.teardownMandatorySetter;
+var utils_26 = utils.setupMandatorySetter;
+var utils_27 = utils.EMBER_ARRAY;
+var utils_28 = utils.Cache;
+var utils_29 = utils.HAS_NATIVE_PROXY;
+var utils_30 = utils.HAS_NATIVE_SYMBOL;
+var utils_31 = utils.ROOT;
+var utils_32 = utils.checkHasSuper;
+var utils_33 = utils.GUID_KEY;
+var utils_34 = utils.getOwnPropertyDescriptors;
+var utils_35 = utils.getDebugName;
 var string$1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -21697,8 +21741,10 @@ var captureRenderTree_1 = createCommonjsModule(function (module, exports) {
   */
 
   function captureRenderTree(app) {
-    let env = (0, es5$1.expect)(app.lookup('service:-glimmer-environment'), 'BUG: owner is missing service:-glimmer-environment');
-    return env.debugRenderTree.capture();
+    let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+    let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+    let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+    return renderer.debugRenderTree.capture();
   }
 });
 unwrapExports(captureRenderTree_1);
@@ -22710,6 +22756,7 @@ var utils$1 = createCommonjsModule(function (module, exports) {
   exports.getName = getName;
   exports.setName = setName;
   exports.toString = toString;
+  exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
   exports.isEmberArray = isEmberArray;
@@ -22956,7 +23003,7 @@ var utils$1 = createCommonjsModule(function (module, exports) {
         functionName = match && match[1] || '';
       }
 
-      return functionName;
+      return functionName.replace(/^bound /, '');
     };
 
     let getObjectName = obj => {
@@ -23478,6 +23525,19 @@ var utils$1 = createCommonjsModule(function (module, exports) {
   let setWithMandatorySetter;
   exports.setWithMandatorySetter = setWithMandatorySetter;
 
+  function isElementKey(key) {
+    return typeof key === 'number' ? isPositiveInt(key) : isStringInt(key);
+  }
+
+  function isStringInt(str) {
+    let num = parseInt(str, 10);
+    return isPositiveInt(num) && str === String(num);
+  }
+
+  function isPositiveInt(num) {
+    return num >= 0 && num % 1 === 0;
+  }
+
   if (es5.DEBUG) {
     let SEEN_TAGS = new polyfills._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
@@ -23492,6 +23552,11 @@ var utils$1 = createCommonjsModule(function (module, exports) {
       }
 
       SEEN_TAGS.add(tag);
+
+      if (Array.isArray(obj) && isElementKey(keyName)) {
+        return;
+      }
+
       let desc = lookupDescriptor(obj, keyName) || {};
 
       if (desc.get || desc.set) {
@@ -23599,21 +23664,22 @@ var utils_16 = utils$1.tryInvoke;
 var utils_17 = utils$1.makeArray;
 var utils_18 = utils$1.getName;
 var utils_19 = utils$1.setName;
-var utils_20 = utils$1.isProxy;
-var utils_21 = utils$1.setProxy;
-var utils_22 = utils$1.isEmberArray;
-var utils_23 = utils$1.setWithMandatorySetter;
-var utils_24 = utils$1.teardownMandatorySetter;
-var utils_25 = utils$1.setupMandatorySetter;
-var utils_26 = utils$1.EMBER_ARRAY;
-var utils_27 = utils$1.Cache;
-var utils_28 = utils$1.HAS_NATIVE_PROXY;
-var utils_29 = utils$1.HAS_NATIVE_SYMBOL;
-var utils_30 = utils$1.ROOT;
-var utils_31 = utils$1.checkHasSuper;
-var utils_32 = utils$1.GUID_KEY;
-var utils_33 = utils$1.getOwnPropertyDescriptors;
-var utils_34 = utils$1.getDebugName;
+var utils_20 = utils$1.isObject;
+var utils_21 = utils$1.isProxy;
+var utils_22 = utils$1.setProxy;
+var utils_23 = utils$1.isEmberArray;
+var utils_24 = utils$1.setWithMandatorySetter;
+var utils_25 = utils$1.teardownMandatorySetter;
+var utils_26 = utils$1.setupMandatorySetter;
+var utils_27 = utils$1.EMBER_ARRAY;
+var utils_28 = utils$1.Cache;
+var utils_29 = utils$1.HAS_NATIVE_PROXY;
+var utils_30 = utils$1.HAS_NATIVE_SYMBOL;
+var utils_31 = utils$1.ROOT;
+var utils_32 = utils$1.checkHasSuper;
+var utils_33 = utils$1.GUID_KEY;
+var utils_34 = utils$1.getOwnPropertyDescriptors;
+var utils_35 = utils$1.getDebugName;
 var string$1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -24650,7 +24716,7 @@ var pretenderHacks = createCommonjsModule(function (module, exports) {
   ["get", "put", "post", "delete"].forEach(verb => {
     window.Pretender.prototype[verb] = function (path, handler, async) {
       const fullPath = (this.urlPrefix || "") + (this.namespace ? "/" + this.namespace : "") + path;
-      const MemServerModel = window.MemServerModel || model_1.default;
+      const MemServerModel = window.MemserverModel || model_1.default;
       const defaultResourceDefinition = MemServerModel.isPrototypeOf(handler) ? handler : null;
       const targetHandler = handler || getDefaultRouteHandler(verb.toUpperCase(), fullPath, this, defaultResourceDefinition);
       const timing = async ? async.timing || this.timing : this.timing;
@@ -24740,8 +24806,8 @@ var server = createCommonjsModule(function (module, exports) {
       const routes = options.routes || function () {};
 
       const logging = options.hasOwnProperty("logging") ? options.logging : true;
-      const initializerReturn = initializer();
       window.MemserverModel = window.MemserverModel || model_1.default;
+      const initializerReturn = initializer();
       this.Models = window.MemserverModel._modelDefinitions;
       window.MemServer = startPretender(routes, Object.assign(options, {
         logging
