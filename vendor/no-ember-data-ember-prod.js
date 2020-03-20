@@ -866,7 +866,7 @@ if(null===l||"object"!==d&&"function"!==d)break
 var p=c+1
 if(-1===(c=r.indexOf(".",p))&&(c=u),"@each"===(i=r.slice(p,c))&&c!==u){p=c+1,-1!==(c=r.indexOf(".",p))&&(0,n.deprecate)("When using @each in a dependent-key or an observer, you can only chain one property level deep after "+`the @each. That is, \`${r.slice(0,c)}\` `+`is allowed but \`${r}\` (which is what you passed) `+"is not.\n\nThis was never supported. Currently, the extra segments "+`are silently ignored, i.e. \`${r}\` behaves exactly `+`the same as \`${r.slice(0,c)}\`. `+"In the future, this will throw an error.\n\nIf the current behavior is acceptable for your use case, please remove the extraneous segments by changing your "+`key to \`${r.slice(0,c)}\`. `+"Otherwise, please create an intermediary computed property or switch to using tracked properties.",-1===c,{until:"3.17.0",id:"ember-metal.computed-deep-each"})
 var h=l.length
-if("number"!=typeof h||!(Array.isArray(l)||"objectAt"in l))break
+if("number"!=typeof h||!Array.isArray(l)&&!("objectAt"in l))break
 if(0===h){o.push(D(l,"[]"))
 break}i=-1===c?r.slice(p):r.slice(p,c)
 for(var m=0;m<h;m++){var f=Y(l,m)
@@ -878,7 +878,7 @@ else{var v=b(l,i)
 if(!(0,a.validate)(g,v)){var _=(0,t.meta)(l).writableLazyChainsFor(i),E=r.substr(c+1),w=_[E]
 void 0===w&&(w=_[E]=(0,a.createUpdatableTag)()),o.push(w)
 break}l=y(l).get(i)}}else if(l=l[i],c===u)break}return o.forEach(e=>a.ALLOW_CYCLES.set(e,!0)),o}function ne(e){var[t,r,n]=e
-return(3===e.length&&("function"==typeof t||"object"==typeof t&&null!==t)&&"string"==typeof r&&("object"==typeof n&&null!==n&&"enumerable"in n&&"configurable"in n||void 0===n))}function ie(e){var t=function(){return e}
+return 3===e.length&&("function"==typeof t||"object"==typeof t&&null!==t)&&"string"==typeof r&&("object"==typeof n&&null!==n&&"enumerable"in n&&"configurable"in n||void 0===n)}function ie(e){var t=function(){return e}
 return Z(t),t}class se{constructor(){this.enumerable=!0,this.configurable=!0,this._dependentKeys=void 0,this._meta=void 0}setup(e,t,r,n){n.writeDescriptors(t,this)}teardown(e,t,r){r.removeDescriptors(t)}}function ae(e,t){return function(){return t.get(this,e)}}function oe(e,t){var r=function(r){return t.set(this,e,r)}
 return le.add(r),r}var le=new o._WeakSet
 function ue(e,r){var i=function(r,i,s,a,o){!o&&s&&s.get&&-1!==s.get.toString().indexOf("CPGETTER_FUNCTION")&&(0,n.assert)(`Only one computed property decorator can be applied to a class field or accessor, but '${i}' was decorated twice. You may have added the decorator to both a getter and setter, which is unnecessary.`,o||!s||!s.get||-1===s.get.toString().indexOf("CPGETTER_FUNCTION"))
@@ -899,7 +899,7 @@ o.isPrototypeMeta(e)||(p=e,x.has(p)&&x.get(p).forEach(e=>{e.tag=(0,a.combine)(re
 function me(e){return"string"==typeof e&&-1!==he.get(e)}var fe,ge=(0,r.symbol)("PROXY_CONTENT")
 function ve(e,t){2!==arguments.length&&(0,n.assert)("Get must be called with two arguments; an object and a property key",2===arguments.length),null==e&&(0,n.assert)(`Cannot call get with '${t}' on an undefined object.`,null!=e),"string"!=typeof t&&("number"!=typeof t||isNaN(t))&&(0,n.assert)(`The key provided to get must be a string or number, you passed ${t}`,"string"==typeof t||"number"==typeof t&&!isNaN(t)),"string"==typeof t&&0===t.lastIndexOf("this.",0)&&(0,n.assert)("'this' in paths is not supported","string"!=typeof t||0!==t.lastIndexOf("this.",0))
 var i,s=typeof e,o="object"===s,l="function"===s,u=o||l
-return me(t)?u?be(e,t):void 0:(void 0===(i=u&&r.HAS_NATIVE_PROXY?fe(e,t):e[t])&&(!o||t in e||"function"!=typeof e.unknownProperty||(0,a.deprecateMutationsInAutotrackingTransaction)(()=>{i=e.unknownProperty(t)})),u&&(0,a.isTracking)()&&((0,a.consume)(D(e,t)),(Array.isArray(i)||(0,r.isEmberArray)(i))&&(0,a.consume)(D(i,"[]")),(0,r.isProxy)(i)&&(0,a.consume)(D(i,"content"))),i)}function be(e,t){for(var r=e,n="string"==typeof t?t.split("."):t,i=0;i<n.length;i++){if(null==r||r.isDestroyed)return
+return me(t)?u?be(e,t):void 0:(void 0===(i=u&&r.HAS_NATIVE_PROXY?fe(e,t):e[t])&&o&&!(t in e)&&"function"==typeof e.unknownProperty&&(0,a.deprecateMutationsInAutotrackingTransaction)(()=>{i=e.unknownProperty(t)}),u&&(0,a.isTracking)()&&((0,a.consume)(D(e,t)),(Array.isArray(i)||(0,r.isEmberArray)(i))&&(0,a.consume)(D(i,"[]")),(0,r.isProxy)(i)&&(0,a.consume)(D(i,"content"))),i)}function be(e,t){for(var r=e,n="string"==typeof t?t.split("."):t,i=0;i<n.length;i++){if(null==r||r.isDestroyed)return
 r=ve(r,n[i])}return r}function ye(e,t,i,s){if(3!==arguments.length&&4!==arguments.length&&(0,n.assert)("Set must be called with three or four arguments; an object, a property key, a value and tolerant true/false",3===arguments.length||4===arguments.length),!(e&&"object"==typeof e||"function"==typeof e)&&(0,n.assert)(`Cannot call set with '${t}' on an undefined object.`,e&&"object"==typeof e||"function"==typeof e),"string"!=typeof t&&("number"!=typeof t||isNaN(t))&&(0,n.assert)(`The key provided to set must be a string or number, you passed ${t}`,"string"==typeof t||"number"==typeof t&&!isNaN(t)),"string"==typeof t&&0===t.lastIndexOf("this.",0)&&(0,n.assert)("'this' in paths is not supported","string"!=typeof t||0!==t.lastIndexOf("this.",0)),!e.isDestroyed){if(me(t))return _e(e,t,i,s)
 var a,o=(0,r.lookupDescriptor)(e,t),l=null===o?void 0:o.set
 return void 0!==l&&le.has(l)?(e[t]=i,i):(void 0!==(a=r.HAS_NATIVE_PROXY?fe(e,t):e[t])||"object"!=typeof e||t in e||"function"!=typeof e.setUnknownProperty?((0,r.setWithMandatorySetter)(e,t,i),a!==i&&U(e,t)):e.setUnknownProperty(t,i),i)}!s&&(0,n.assert)(`calling set on destroyed object: ${(0,r.toString)(e)}.${t} = ${(0,r.toString)(i)}`,s)}function _e(e,t,r,i){var s=t.split("."),a=s.pop()
@@ -1176,7 +1176,7 @@ var s=r.lookup(`route:${t}`)
 if(null!=i){var a=s&&s.routeName||t
 if(i.resolvedModels.hasOwnProperty(a))return i.resolvedModels[a]}return s&&s.currentModel}renderTemplate(e,t){this.render()}render(e,t){var i,s=0===arguments.length
 s||("object"!=typeof e||t?((0,r.isEmpty)(e)&&(0,a.assert)("The name in the given arguments is undefined or empty string",!(0,r.isEmpty)(e)),i=e):(i=this.templateName||this.routeName,t=e))
-var o=function(e,t,i,s){!t&&(s&&"outlet"in s&&void 0===s.outlet)&&(0,a.assert)("You passed undefined as the outlet name.",t||!(s&&"outlet"in s&&void 0===s.outlet))
+var o=function(e,t,i,s){!t&&s&&"outlet"in s&&void 0===s.outlet&&(0,a.assert)("You passed undefined as the outlet name.",t||!(s&&"outlet"in s&&void 0===s.outlet))
 var o,l,u,c,d,p=(0,n.getOwner)(e),h=void 0
 s&&(u=s.into&&s.into.replace(/\//g,"."),c=s.outlet,h=s.controller,d=s.model)
 c=c||"main",t?(o=e.routeName,l=e.templateName||o):(o=i.replace(/\//g,"."),l=o)
@@ -3688,7 +3688,8 @@ return e[e.length-1]},get params(){return o},get queryParams(){return r}}
 return n&&(h=R(h,u)),w.set(i,h),h})}function R(e,r){var n={get attributes(){return r}}
 return Object.isFrozen(e)||e.hasOwnProperty("attributes")?Object.freeze((0,t.assign)({},e,n)):(0,t.assign)(e,n)}function T(e){return null!=e&&void 0!==e.buildRouteInfoMetadata?e.buildRouteInfoMetadata():null}class x{constructor(e,t,r,n){this._routePromise=void 0,this._route=null,this.params={},this.isResolved=!1,this.name=t,this.paramNames=r,this.router=e,n&&this._processRoute(n)}getModel(e){return r.Promise.resolve(this.context)}serialize(e){return this.params||{}}resolve(e,t){return r.Promise.resolve(this.routePromise).then(t=>this.checkForAbort(e,t)).then(()=>this.runBeforeModelHook(t)).then(()=>this.checkForAbort(e,null)).then(()=>this.getModel(t)).then(t=>this.checkForAbort(e,t)).then(e=>this.runAfterModelHook(t,e)).then(e=>this.becomeResolved(t,e))}becomeResolved(e,t){var r,n=this.serialize(t)
 e&&(this.stashResolvedModel(e,t),e[v]=e[v]||{},e[v][this.name]=n)
-var i=t===this.context;("context"in this||!i)&&(r=t)
+var i=t===this.context
+!("context"in this)&&i||(r=t)
 var s=w.get(this),a=new A(this.router,this.name,this.paramNames,n,this.route,r)
 return void 0!==s&&w.set(a,s),a}shouldSupercede(e){if(!e)return!0
 var t=e.context===this.context
