@@ -41,10 +41,12 @@
     "abortcontroller-polyfill"
   ],
   "dependencies": {
+    "@glimmer/tracking": "^1.0.0",
     "memserver": "^2.0.10",
     "abortcontroller-polyfill": "^1.4.0",
     "ember-cli-fastboot": "^2.2.1",
     "ember-data": "3.17.0",
+    "ember-load-initializers": "^2.1.1",
     "ember-modifier": "^1.0.3",
     "fastboot": "^3.0.0",
     "jquery": "^3.4.1",

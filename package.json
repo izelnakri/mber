@@ -36,7 +36,7 @@
     "@ember/test-helpers": "1.7.1",
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
-    "@typescript-eslint/parser": "2.23.0",
+    "@typescript-eslint/parser": "2.24.0",
     "ava": "^3.5.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.1",
@@ -91,19 +91,19 @@
     "eslint": "^6.8.0",
     "eslint-plugin-ember": "^7.10.1",
     "express": "^4.17.1",
-    "fastboot": "^3.0.0",
-    "fs-extra": "^8.1.0",
+    "fastboot": "^3.0.1",
+    "fs-extra": "^9.0.0",
     "jquery": "^3.4.1",
     "jsdom": "^16.2.1",
     "klaw": "^3.0.0",
     "memserver": "^2.0.11",
-    "mustache": "^4.0.0",
+    "mustache": "^4.0.1",
     "node-fetch": "^2.6.0",
     "ora": "^4.0.2",
     "puppeteer": "2.1.1",
     "sass": "1.26.3",
     "say": "^0.16.0",
-    "terser": "4.6.6",
+    "terser": "4.6.7",
     "through2": "^3.0.0",
     "ws": "^7.2.3"
   },
@@ -123,7 +123,7 @@
     "failFast": true
   },
   "volta": {
-    "node": "13.10.1"
+    "node": "13.11.0"
   },
   "browserslist": [
     "last 1 chrome version"
