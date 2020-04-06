@@ -47,7 +47,7 @@
     "ember-qunit": "^4.6.0",
     "ember-resolver": "^6.0.0",
     "ember-source": "3.17.0",
-    "ember-test-waiters": "2.0.0",
+    "ember-test-waiters": "2.0.1",
     "intercept-stdout": "^0.1.2",
     "loader.js": "^4.7.0",
     "mber-head": "^0.1.0",
