@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.17.0
+ * @version   3.18.0
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -9399,10 +9399,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
           if (el.length === 0) {
               return 'empty NodeList';
           }
-          desc = Array.prototype.slice
-              .call(el, 0, 5)
-              .map(elementToString)
-              .join(', ');
+          desc = Array.prototype.slice.call(el, 0, 5).map(elementToString).join(', ');
           return el.length > 5 ? desc + "... (+" + (el.length - 5) + " more)" : desc;
       }
       if (!(el instanceof HTMLElement || el instanceof SVGElement)) {
@@ -9921,6 +9918,38 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
           return this.doesNotHaveAttribute(name, message);
       };
       /**
+       * Assert that the {@link HTMLElement} has an ARIA attribute with the provided
+       * `name` and optionally checks if the attribute `value` matches the provided
+       * text or regular expression.
+       *
+       * @param {string} name
+       * @param {string|RegExp|object?} value
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('button').hasAria('pressed', 'true');
+       *
+       * @see {@link #hasNoAria}
+       */
+      DOMAssertions.prototype.hasAria = function (name, value, message) {
+          return this.hasAttribute("aria-" + name, value, message);
+      };
+      /**
+       * Assert that the {@link HTMLElement} has no ARIA attribute with the
+       * provided `name`.
+       *
+       * @param {string} name
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('button').doesNotHaveAria('pressed');
+       *
+       * @see {@link #hasAria}
+       */
+      DOMAssertions.prototype.doesNotHaveAria = function (name, message) {
+          return this.doesNotHaveAttribute("aria-" + name, message);
+      };
+      /**
        * Assert that the {@link HTMLElement} has a property with the provided `name`
        * and checks if the property `value` matches the provided text or regular
        * expression.
@@ -9979,6 +10008,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
        *  Assert that the {@link HTMLElement} or an {@link HTMLElement} matching the
        * `selector` is not disabled.
        *
+       * **Aliases:** `isEnabled`
+       *
        * @param {string?} message
        *
        * @example
@@ -9989,6 +10020,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
       DOMAssertions.prototype.isNotDisabled = function (message) {
           isDisabled.call(this, message, { inverted: true });
           return this;
+      };
+      DOMAssertions.prototype.isEnabled = function (message) {
+          return this.isNotDisabled(message);
       };
       /**
        * Assert that the {@link HTMLElement} has the `expected` CSS class using
@@ -10989,11 +11023,12 @@ define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/bu
   });
   _exports.default = waitForPromise;
   const PROMISE_WAITER = (0, _buildWaiter.default)('promise-waiter');
+
   /**
    * A convenient utility function to simplify waiting for a promise.
    *
    * @public
-   * @param promise {Promise<T>} The promise to track async operations for
+   * @param promise {Promise<T> | RSVP.Promise<T>} The promise to track async operations for
    * @param label {string} An optional string to identify the promise
    *
    * @example
@@ -11010,7 +11045,6 @@ define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/bu
    *   }
    * }
    */
-
   function waitForPromise(promise, label) {
     let result = promise;
 
@@ -11096,6 +11130,10 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
 
 
   function _reset() {
+    for (let waiter of getWaiters()) {
+      waiter.isRegistered = false;
+    }
+
     WAITERS.clear();
   }
   /**
