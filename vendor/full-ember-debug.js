@@ -1306,7 +1306,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.17.0
+ * @version   3.18.0
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -3809,7 +3809,7 @@ define("@ember/-internals/extension-support/lib/data_adapter", ["exports", "@emb
 
   _exports.default = _default;
 });
-define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glimmer/opcode-compiler", "@ember/-internals/metal", "@ember/-internals/owner", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/-internals/views", "@ember/debug", "@glimmer/reference", "@glimmer/runtime", "@glimmer/validator", "@ember/-internals/browser-environment", "@ember/instrumentation", "@ember/service", "@ember/runloop", "@ember/-internals/environment", "@ember/deprecated-features", "@ember/string", "@ember/-internals/container", "@glimmer/util", "@glimmer/node", "@ember/-internals/routing", "@ember/component/template-only", "@ember/error", "@glimmer/program", "rsvp"], function (_exports, _polyfills, _opcodeCompiler, _metal, _owner, _runtime, _utils, _views, _debug, _reference, _runtime2, _validator, _browserEnvironment, _instrumentation, _service, _runloop, _environment2, _deprecatedFeatures, _string, _container, _util, _node, _routing, _templateOnly, _error, _program, _rsvp) {
+define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glimmer/opcode-compiler", "@ember/-internals/metal", "@ember/-internals/owner", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/-internals/views", "@ember/debug", "@glimmer/reference", "@glimmer/runtime", "@glimmer/validator", "@ember/-internals/browser-environment", "@ember/instrumentation", "@ember/service", "@ember/runloop", "@ember/-internals/environment", "@glimmer/util", "@ember/deprecated-features", "@ember/string", "@ember/-internals/container", "@glimmer/node", "@ember/-internals/routing", "@ember/component/template-only", "@ember/error", "rsvp"], function (_exports, _polyfills, _opcodeCompiler, _metal, _owner, _runtime, _utils, _views, _debug, _reference, _runtime2, _validator, _browserEnvironment, _instrumentation, _service, _runloop, _environment2, _util, _deprecatedFeatures, _string, _container, _node, _routing, _templateOnly, _error, _rsvp) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -4645,12 +4645,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     },
 
     rerender() {
-      (0, _validator.dirty)(this[DIRTY_TAG]);
+      (0, _validator.dirtyTag)(this[DIRTY_TAG]);
 
       this._super();
     },
 
-    [_metal.PROPERTY_DID_CHANGE](key) {
+    [_metal.PROPERTY_DID_CHANGE](key, value) {
       if (this[IS_DISPATCHING_ATTRS]) {
         return;
       }
@@ -4659,7 +4659,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       var reference = args !== undefined ? args[key] : undefined;
 
       if (reference !== undefined && reference[_reference.UPDATE_REFERENCED_VALUE] !== undefined) {
-        reference[_reference.UPDATE_REFERENCED_VALUE]((0, _metal.get)(this, key));
+        reference[_reference.UPDATE_REFERENCED_VALUE](arguments.length === 2 ? value : (0, _metal.get)(this, key));
       }
     },
 
@@ -5134,11 +5134,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         return 'text';
       },
 
-      set(_key, value$$1) {
+      set(_key, value) {
         var type = 'text';
 
-        if (canSetTypeOfInput(value$$1)) {
-          type = value$$1;
+        if (canSetTypeOfInput(value)) {
+          type = value;
         }
 
         return type;
@@ -5844,9 +5844,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         return false;
       },
 
-      set(_key, value$$1) {
-        this._isDisabled = value$$1;
-        return value$$1 ? this.disabledClass : false;
+      set(_key, value) {
+        this._isDisabled = value;
+        return value ? this.disabledClass : false;
       }
 
     }),
@@ -5914,8 +5914,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         _routing: routing
       } = this;
 
-      for (var _i = 0; _i < currentWhen.length; _i++) {
-        if (routing.isActiveForRoute(models, query, currentWhen[_i], routerState, isCurrentWhenSpecified)) {
+      for (var i = 0; i < currentWhen.length; i++) {
+        if (routing.isActiveForRoute(models, query, currentWhen[i], routerState, isCurrentWhenSpecified)) {
           return true;
         }
       }
@@ -6066,8 +6066,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         _models: models
       } = this;
 
-      for (var _i2 = 0; _i2 < models.length; _i2++) {
-        var model = models[_i2];
+      for (var i = 0; i < models.length; i++) {
+        var model = models[i];
 
         if (model === null || model === undefined) {
           return false;
@@ -6164,8 +6164,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     return typeof helper === 'object' && helper !== null && helper.class && helper.class.isHelperFactory;
   }
 
-  function isSimpleHelper(helper) {
-    return helper.destroy === undefined;
+  function isClassHelper(helper) {
+    return helper.destroy !== undefined;
   }
   /**
     Ember Helpers are functions that can compute values, and are used in templates.
@@ -6244,7 +6244,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       @since 1.13.0
     */
     recompute() {
-      (0, _runloop.join)(() => (0, _validator.dirty)(this[RECOMPUTE_TAG]));
+      (0, _runloop.join)(() => (0, _validator.dirtyTag)(this[RECOMPUTE_TAG]));
     }
 
   });
@@ -6570,7 +6570,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       template
     }, _resolver) {
       // The router has already resolved the template
-      return (0, _opcodeCompiler.unwrapTemplate)(template).asLayout();
+      return (0, _util.unwrapTemplate)(template).asLayout();
     }
 
     getCapabilities() {
@@ -6678,7 +6678,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           template
         }) {
           // The router has already resolved the template
-          return (0, _opcodeCompiler.unwrapTemplate)(template).asWrappedLayout();
+          return (0, _util.unwrapTemplate)(template).asWrappedLayout();
         }
 
         getCapabilities() {
@@ -6721,7 +6721,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       this.hasWrappedElement = hasWrappedElement;
       this.classRef = null;
       this.classRef = null;
-      this.argsRevision = args === null ? 0 : (0, _validator.value)(args.tag);
+      this.argsRevision = args === null ? 0 : (0, _validator.valueForTag)(args.tag);
       this.rootRef = new _reference.ComponentRootReference(component, environment);
     }
 
@@ -6783,7 +6783,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         }
 
         if (helper$$1[RECOMPUTE_TAG]) {
-          (0, _validator.consume)(helper$$1[RECOMPUTE_TAG]);
+          (0, _validator.consumeTag)(helper$$1[RECOMPUTE_TAG]);
         }
 
         return ret;
@@ -6792,7 +6792,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       if (true
       /* DEBUG */
       ) {
-        var debugName = isSimpleHelper(helper$$1) ? (0, _utils.getDebugName)(helper$$1.compute) : (0, _utils.getDebugName)(helper$$1);
+        var debugName = isClassHelper(helper$$1) ? (0, _utils.getDebugName)(helper$$1) : (0, _utils.getDebugName)(helper$$1.compute);
         super(fnWrapper, args, env, debugName);
       } else {
         super(fnWrapper, args, env);
@@ -6819,13 +6819,13 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     get(key) {
-      var value$$1 = this.value();
+      var value = this.value();
 
-      if ((0, _utils.isObject)(value$$1)) {
+      if ((0, _utils.isObject)(value)) {
         // root of interop with ember objects
-        return new UnboundPropertyReference(value$$1[key], this.env, this, key);
+        return new UnboundPropertyReference(value[key], this.env, this, key);
       } else {
-        return _runtime2.PrimitiveReference.create(value$$1);
+        return _runtime2.PrimitiveReference.create(value);
       }
     }
 
@@ -6836,8 +6836,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   function referenceFromParts(root, parts) {
     var reference = root;
 
-    for (var _i3 = 0; _i3 < parts.length; _i3++) {
-      reference = reference.get(parts[_i3]);
+    for (var i = 0; i < parts.length; i++) {
+      reference = reference.get(parts[i]);
     }
 
     return reference;
@@ -6925,7 +6925,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       }
 
       value() {
-        var value$$1 = this.inner.value();
+        var value = this.inner.value();
         var isVisible = this.isVisible.value();
 
         if (isVisible !== undefined) {
@@ -6937,12 +6937,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         }
 
         if (isVisible !== false) {
-          return value$$1;
-        } else if (!value$$1) {
+          return value;
+        } else if (!value) {
           return SAFE_DISPLAY_NONE;
         } else {
-          var style = value$$1 + ' ' + DISPLAY_NONE;
-          return isHTMLSafe(value$$1) ? htmlSafe(style) : style;
+          var style = value + ' ' + DISPLAY_NONE;
+          return isHTMLSafe(value) ? htmlSafe(style) : style;
         }
       }
 
@@ -6967,13 +6967,13 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       } else {
         var isPath = prop.indexOf('.') > -1;
         var parts = isPath ? prop.split('.') : [];
-        var value$$1 = isPath ? referenceForParts(rootRef, parts) : referenceForKey(rootRef, prop);
+        var value = isPath ? referenceForParts(rootRef, parts) : referenceForKey(rootRef, prop);
         var ref;
 
         if (truthy === undefined) {
-          ref = new SimpleClassNameBindingReference(value$$1, isPath ? parts[parts.length - 1] : prop);
+          ref = new SimpleClassNameBindingReference(value, isPath ? parts[parts.length - 1] : prop);
         } else {
-          ref = new ColonClassNameBindingReference(value$$1, truthy, falsy);
+          ref = new ColonClassNameBindingReference(value, truthy, falsy);
         }
 
         operations.setAttribute('class', ref, false, null);
@@ -6991,16 +6991,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     value() {
-      var value$$1 = this.inner.value();
+      var value = this.inner.value();
 
-      if (value$$1 === true) {
+      if (value === true) {
         var {
           path,
           dasherizedPath
         } = this;
         return dasherizedPath || (this.dasherizedPath = (0, _string.dasherize)(path));
-      } else if (value$$1 || value$$1 === 0) {
-        return String(value$$1);
+      } else if (value || value === 0) {
+        return String(value);
       } else {
         return null;
       }
@@ -7125,12 +7125,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return this.inner.get(key);
     }
 
-    [_reference.UPDATE_REFERENCED_VALUE](value$$1) {
-      return this.inner[_reference.UPDATE_REFERENCED_VALUE](value$$1);
+    [_reference.UPDATE_REFERENCED_VALUE](value) {
+      return this.inner[_reference.UPDATE_REFERENCED_VALUE](value);
     }
 
-    [INVOKE](value$$1) {
-      return this.inner[_reference.UPDATE_REFERENCED_VALUE](value$$1);
+    [INVOKE](value) {
+      return this.inner[_reference.UPDATE_REFERENCED_VALUE](value);
     }
 
   }
@@ -7554,19 +7554,19 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     var args = Object.create(null);
     props[ARGS] = args;
 
-    for (var _i4 = 0; _i4 < keys.length; _i4++) {
-      var name = keys[_i4];
+    for (var i = 0; i < keys.length; i++) {
+      var name = keys[i];
       var ref = namedArgs.get(name);
-      var value$$1 = attrs[name];
+      var value = attrs[name];
 
-      if (typeof value$$1 === 'function' && value$$1[ACTION]) {
-        attrs[name] = value$$1;
+      if (typeof value === 'function' && value[ACTION]) {
+        attrs[name] = value;
       } else if (ref[_reference.UPDATE_REFERENCED_VALUE]) {
-        attrs[name] = new MutableCell(ref, value$$1);
+        attrs[name] = new MutableCell(ref, value);
       }
 
       args[name] = ref;
-      props[name] = value$$1;
+      props[name] = value;
     }
 
     props.attrs = attrs;
@@ -7576,10 +7576,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   var REF = (0, _utils.symbol)('REF');
 
   class MutableCell {
-    constructor(ref, value$$1) {
+    constructor(ref, value) {
       this[_views.MUTABLE_CELL] = true;
       this[REF] = ref;
-      this.value = value$$1;
+      this.value = value;
     }
 
     update(val) {
@@ -7639,7 +7639,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
   }
 
-  var DEFAULT_LAYOUT = _container.privatize`template:components/-default`;
+  var DEFAULT_LAYOUT = (0, _container.privatize)`template:components/-default`;
   var EMPTY_POSITIONAL_ARGS = [];
   (0, _debug.debugFreeze)(EMPTY_POSITIONAL_ARGS);
 
@@ -7672,7 +7672,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     getJitStaticLayout(state, _resolver) {
-      return (0, _opcodeCompiler.unwrapTemplate)(state.template).asLayout();
+      return (0, _util.unwrapTemplate)(state.template).asLayout();
     }
 
     getJitDynamicLayout(bucket) {
@@ -7739,10 +7739,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         named = {};
         (0, _polyfills.assign)(named, args.named.capture().map);
 
-        for (var _i5 = 0; _i5 < count; _i5++) {
-          var name = positionalParams[_i5];
-          (true && !(!args.named.has(name)) && (0, _debug.assert)(`You cannot specify both a positional param (at position ${_i5}) and the hash argument \`${name}\`.`, !args.named.has(name)));
-          named[name] = args.positional.at(_i5);
+        for (var i = 0; i < count; i++) {
+          var name = positionalParams[i];
+          (true && !(!args.named.has(name)) && (0, _debug.assert)(`You cannot specify both a positional param (at position ${i}) and the hash argument \`${name}\`.`, !args.named.has(name)));
+          named[name] = args.positional.at(i);
         }
       } else {
         return null;
@@ -7955,9 +7955,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
       bucket.finalizer = (0, _instrumentation._instrumentStart)('render.component', rerenderInstrumentDetails, component);
 
-      if (args && !(0, _validator.validate)(args.tag, argsRevision)) {
+      if (args && !(0, _validator.validateTag)(args.tag, argsRevision)) {
         var props = processComponentArgs(args);
-        bucket.argsRevision = (0, _validator.value)(args.tag);
+        bucket.argsRevision = (0, _validator.valueForTag)(args.tag);
         component[IS_DISPATCHING_ATTRS] = true;
         component.setProperties(props);
         component[IS_DISPATCHING_ATTRS] = false;
@@ -8015,8 +8015,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         classNameBindings
       } = component;
 
-      for (var _i6 = 0; _i6 < classNameBindings.length; _i6++) {
-        var binding = classNameBindings[_i6];
+      for (var i = 0; i < classNameBindings.length; i++) {
+        var binding = classNameBindings[i];
 
         if (typeof binding !== 'string' || binding.length === 0) {
           return false;
@@ -8029,8 +8029,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         classNameBindings
       } = component;
 
-      for (var _i6 = 0; _i6 < classNameBindings.length; _i6++) {
-        var binding = classNameBindings[_i6];
+      for (var i = 0; i < classNameBindings.length; i++) {
+        var binding = classNameBindings[i];
 
         if (typeof binding !== 'string' || binding.length === 0) {
           return false;
@@ -8044,8 +8044,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         classNameBindings
       } = component;
 
-      for (var _i7 = 0; _i7 < classNameBindings.length; _i7++) {
-        var binding = classNameBindings[_i7];
+      for (var i = 0; i < classNameBindings.length; i++) {
+        var binding = classNameBindings[i];
 
         if (binding.split(' ').length > 1) {
           return false;
@@ -8058,8 +8058,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         classNameBindings
       } = component;
 
-      for (var _i7 = 0; _i7 < classNameBindings.length; _i7++) {
-        var binding = classNameBindings[_i7];
+      for (var i = 0; i < classNameBindings.length; i++) {
+        var binding = classNameBindings[i];
 
         if (binding.split(' ').length > 1) {
           return false;
@@ -8126,7 +8126,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
     getJitStaticLayout(_state) {
       var template = this.templateFor(this.component);
-      return (0, _opcodeCompiler.unwrapTemplate)(template).asWrappedLayout();
+      return (0, _util.unwrapTemplate)(template).asWrappedLayout();
     }
 
     create(environment, state, _args, dynamicScope) {
@@ -8232,7 +8232,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       // URL globally provided, likely from FastBoot's sandbox
       nodeURL = URL;
       environment.protocolForURL = nodeProtocolForURL;
-    } else if (typeof module !== undefined && typeof module.require === 'function') {
+    } else if (typeof module !== 'undefined' && typeof module.require === 'function') {
       // Otherwise, we need to fall back to our own URL parsing.
       // Global `require` is shadowed by Ember's loader so we have to use the fully
       // qualified `module.require`.
@@ -8270,9 +8270,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   class Ref {
-    constructor(value$$1) {
+    constructor(value) {
       this.id = GUID++;
-      this.value = value$$1;
+      this.value = value;
     }
 
     get() {
@@ -8526,7 +8526,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     captureTemplate({
       template
     }) {
-      return template && (0, _opcodeCompiler.unwrapTemplate)(template).referrer.moduleName || null;
+      return template && (0, _util.unwrapTemplate)(template).referrer.moduleName || null;
     }
 
     captureBounds(node) {
@@ -8706,7 +8706,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         iterable = (0, _runtime._contentFor)(iterable);
       }
 
-      (0, _validator.update)(this.valueTag, tag);
+      (0, _validator.updateTag)(this.valueTag, tag);
       return new EachInWrapper(iterable);
     }
 
@@ -8793,11 +8793,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         return null;
       }
 
-      var value$$1 = this.valueFor(position);
+      var value = this.valueFor(position);
       var memo = this.memoFor(position);
       this.position++;
       return {
-        value: value$$1,
+        value,
         memo
       };
     }
@@ -8860,21 +8860,21 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       } else {
         var values = [];
 
-        for (var _i8 = 0; _i8 < length; _i8++) {
-          var value$$1 = void 0;
-          var key = keys[_i8];
-          value$$1 = obj[key]; // Add the tag of the returned value if it is an array, since arrays
+        for (var i = 0; i < length; i++) {
+          var value = void 0;
+          var key = keys[i];
+          value = obj[key]; // Add the tag of the returned value if it is an array, since arrays
           // should always cause updates if they are consumed and then changed
 
           if ((0, _validator.isTracking)()) {
-            (0, _validator.consume)((0, _metal.tagForProperty)(obj, key));
+            (0, _validator.consumeTag)((0, _metal.tagForProperty)(obj, key));
 
-            if (Array.isArray(value$$1) || (0, _utils.isEmberArray)(value$$1)) {
-              (0, _validator.consume)((0, _metal.tagForProperty)(value$$1, '[]'));
+            if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
+              (0, _validator.consumeTag)((0, _metal.tagForProperty)(value, '[]'));
             }
           }
 
-          values.push(value$$1);
+          values.push(value);
         }
 
         return new this(keys, values);
@@ -8887,14 +8887,14 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       var length = 0;
       var isMapLike = false; // Not using an arrow function here so we can get an accurate `arguments`
 
-      obj.forEach(function (value$$1, key) {
+      obj.forEach(function (value, key) {
         isMapLike = isMapLike || arguments.length >= 2;
 
         if (isMapLike) {
           keys.push(key);
         }
 
-        values.push(value$$1);
+        values.push(value);
         length++;
       });
 
@@ -8953,12 +8953,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         return null;
       }
 
-      var value$$1 = this.valueFor(result, position);
+      var value = this.valueFor(result, position);
       var memo = this.memoFor(result, position);
       this.position++;
       this.result = iterable.next();
       return {
-        value: value$$1,
+        value,
         memo
       };
     }
@@ -8987,16 +8987,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   }
 
-  function hasForEach(value$$1) {
-    return typeof value$$1['forEach'] === 'function';
+  function hasForEach(value) {
+    return typeof value['forEach'] === 'function';
   }
 
-  function isNativeIterable(value$$1) {
-    return typeof value$$1[Symbol.iterator] === 'function';
+  function isNativeIterable(value) {
+    return typeof value[Symbol.iterator] === 'function';
   }
 
-  function isIndexable(value$$1) {
-    return value$$1 !== null && (typeof value$$1 === 'object' || typeof value$$1 === 'function');
+  function isIndexable(value) {
+    return value !== null && (typeof value === 'object' || typeof value === 'function');
   }
 
   function toBool(predicate) {
@@ -9088,9 +9088,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   /* DEBUG */
   ) {
     class StyleAttributeManager extends _runtime2.SimpleDynamicAttribute {
-      set(dom, value$$1, env) {
-        (true && (0, _debug.warn)((0, _views.constructStyleDeprecationMessage)(value$$1), (() => {
-          if (value$$1 === null || value$$1 === undefined || isHTMLSafe(value$$1)) {
+      set(dom, value, env) {
+        (true && (0, _debug.warn)((0, _views.constructStyleDeprecationMessage)(value), (() => {
+          if (value === null || value === undefined || isHTMLSafe(value)) {
             return true;
           }
 
@@ -9098,12 +9098,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         })(), {
           id: 'ember-htmlbars.style-xss-warning'
         }));
-        super.set(dom, value$$1, env);
+        super.set(dom, value, env);
       }
 
-      update(value$$1, env) {
-        (true && (0, _debug.warn)((0, _views.constructStyleDeprecationMessage)(value$$1), (() => {
-          if (value$$1 === null || value$$1 === undefined || isHTMLSafe(value$$1)) {
+      update(value, env) {
+        (true && (0, _debug.warn)((0, _views.constructStyleDeprecationMessage)(value), (() => {
+          if (value === null || value === undefined || isHTMLSafe(value)) {
             return true;
           }
 
@@ -9111,7 +9111,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         })(), {
           id: 'ember-htmlbars.style-xss-warning'
         }));
-        super.update(value$$1, env);
+        super.update(value, env);
       }
 
     }
@@ -9206,7 +9206,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       } = definition;
       var capturedArgs = args.capture();
       var namedArgs = capturedArgs.named;
-      var value$$1;
+      var value;
       var namedArgsProxy = {};
       {
         var getTag = key => {
@@ -9218,7 +9218,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
             get(_target, prop) {
               if (namedArgs.has(prop)) {
                 var ref = namedArgs.get(prop);
-                (0, _validator.consume)(ref.tag);
+                (0, _validator.consumeTag)(ref.tag);
                 return ref.value();
               } else if (prop === _metal.CUSTOM_TAG_FOR) {
                 return getTag;
@@ -9266,7 +9266,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
               get() {
                 var ref = namedArgs.get(name);
-                (0, _validator.consume)(ref.tag);
+                (0, _validator.consumeTag)(ref.tag);
                 return ref.value();
               }
 
@@ -9274,12 +9274,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           });
         }
 
-        value$$1 = {
+        value = {
           named: namedArgsProxy,
           positional: capturedArgs.positional.value()
         };
       }
-      var component = delegate.createComponent(definition.ComponentClass.class, value$$1);
+      var component = delegate.createComponent(definition.ComponentClass.class, value);
       var bucket = new CustomComponentState(delegate, component, capturedArgs, env, namedArgsProxy);
 
       if (_environment2.ENV._DEBUG_RENDER_TREE) {
@@ -9306,16 +9306,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         args,
         namedArgsProxy
       } = bucket;
-      var value$$1;
+      var value;
       {
-        value$$1 = {
+        value = {
           named: namedArgsProxy,
           positional: args.positional.value()
         };
       }
 
       if (hasUpdateHook(delegate)) {
-        delegate.updateComponent(component, value$$1);
+        delegate.updateComponent(component, value);
       }
     }
 
@@ -9408,7 +9408,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     getJitStaticLayout(state) {
-      return (0, _opcodeCompiler.unwrapTemplate)(state.template).asLayout();
+      return (0, _util.unwrapTemplate)(state.template).asLayout();
     }
 
   }
@@ -9477,7 +9477,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     getJitStaticLayout({
       layout: template
     }) {
-      return (0, _opcodeCompiler.unwrapTemplate)(template).asLayout();
+      return (0, _util.unwrapTemplate)(template).asLayout();
     }
 
   }
@@ -9501,7 +9501,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     getJitStaticLayout({
       template
     }) {
-      return (0, _opcodeCompiler.unwrapTemplate)(template).asLayout();
+      return (0, _util.unwrapTemplate)(template).asLayout();
     }
 
     getCapabilities() {
@@ -9604,9 +9604,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       }
 
       value() {
-        var value$$1 = this.component.value();
-        (true && !(typeof value$$1 !== 'string') && (0, _debug.assert)(this.message, typeof value$$1 !== 'string'));
-        return value$$1;
+        var value = this.component.value();
+        (true && !(typeof value !== 'string') && (0, _debug.assert)(this.message, typeof value !== 'string'));
+        return value;
       }
 
       get(property) {
@@ -9621,17 +9621,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   var componentAssertionHelper = helper$1;
-
-  function i({
-    positional
-  }) {
-    (true && !(typeof positional.at(0).value() === 'string') && (0, _debug.assert)('[BUG] -i takes a single string', typeof positional.at(0).value() === 'string'));
-    return parseInt(positional.at(0).value(), 10);
-  }
-
-  function parseIntHelper(args, vm) {
-    return new _reference.HelperRootReference(i, args.capture(), vm.env);
-  }
 
   function inputTypeHelper({
     positional
@@ -9654,14 +9643,14 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }) {
     var classNameParts = positional.at(0).value().split('.');
     var className = classNameParts[classNameParts.length - 1];
-    var value$$1 = positional.at(1).value();
+    var value = positional.at(1).value();
 
-    if (value$$1 === true) {
+    if (value === true) {
       return (0, _string.dasherize)(className);
-    } else if (!value$$1 && value$$1 !== 0) {
+    } else if (!value && value !== 0) {
       return '';
     } else {
-      return String(value$$1);
+      return String(value);
     }
   }
 
@@ -9689,7 +9678,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     value() {
       var iterable = this.inner.value();
       var tag = (0, _metal.tagForProperty)(iterable, '[]');
-      (0, _validator.update)(this.valueTag, tag);
+      (0, _validator.updateTag)(this.valueTag, tag);
       return iterable;
     }
 
@@ -9747,16 +9736,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     return args.positional.capture();
   }
 
-  var isEmpty = value$$1 => {
-    return value$$1 === null || value$$1 === undefined || typeof value$$1.toString !== 'function';
+  var isEmpty = value => {
+    return value === null || value === undefined || typeof value.toString !== 'function';
   };
 
-  var normalizeTextValue = value$$1 => {
-    if (isEmpty(value$$1)) {
+  var normalizeTextValue = value => {
+    if (isEmpty(value)) {
       return '';
     }
 
-    return String(value$$1);
+    return String(value);
   };
   /**
   @module ember
@@ -10054,12 +10043,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       this.pathReference = args.positional.at(1);
     }
 
-    [_reference.UPDATE_REFERENCED_VALUE](value$$1) {
+    [_reference.UPDATE_REFERENCED_VALUE](value) {
       var source = this.sourceReference.value();
 
       if ((0, _utils.isObject)(source)) {
         var path = String(this.pathReference.value());
-        (0, _metal.set)(source, path, value$$1);
+        (0, _metal.set)(source, path, value);
       }
     }
 
@@ -10596,8 +10585,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return true;
     }
 
-    for (var _i9 = 0; _i9 < MODIFIERS.length; _i9++) {
-      if (event[MODIFIERS[_i9] + 'Key'] && allowedKeys.indexOf(MODIFIERS[_i9]) === -1) {
+    for (var i = 0; i < MODIFIERS.length; i++) {
+      if (event[MODIFIERS[i] + 'Key'] && allowedKeys.indexOf(MODIFIERS[i]) === -1) {
         return false;
       }
     }
@@ -10648,8 +10637,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     getActionArgs() {
       var result = new Array(this.actionArgs.length);
 
-      for (var _i10 = 0; _i10 < this.actionArgs.length; _i10++) {
-        result[_i10] = this.actionArgs[_i10].value();
+      for (var i = 0; i < this.actionArgs.length; i++) {
+        result[i] = this.actionArgs[i].value();
       }
 
       return result;
@@ -10766,8 +10755,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       var actionArgs = []; // The first two arguments are (1) `this` and (2) the action name.
       // Everything else is a param.
 
-      for (var _i11 = 2; _i11 < positional.length; _i11++) {
-        actionArgs.push(positional.at(_i11));
+      for (var i = 2; i < positional.length; i++) {
+        actionArgs.push(positional.at(i));
       }
 
       var actionId = (0, _utils.uuid)();
@@ -10946,7 +10935,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         var combinedTrackingTag = (0, _validator.track)(() => delegate.installModifier(modifier, element, args.value()), true
         /* DEBUG */
         && debugRenderMessage$1(`(instance of a \`${(0, _utils.getDebugName)(modifier)}\` modifier)`));
-        (0, _validator.update)(tag, combinedTrackingTag);
+        (0, _validator.updateTag)(tag, combinedTrackingTag);
       }
     }
 
@@ -10967,7 +10956,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         var combinedTrackingTag = (0, _validator.track)(() => delegate.updateModifier(modifier, args.value()), true
         /* DEBUG */
         && debugRenderMessage$1(`(instance of a \`${(0, _utils.getDebugName)(modifier)}\` modifier)`));
-        (0, _validator.update)(tag, combinedTrackingTag);
+        (0, _validator.updateTag)(tag, combinedTrackingTag);
       }
     }
 
@@ -11713,7 +11702,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
     update(state) {
       this.outletState.outlets.main = state;
-      (0, _validator.dirty)(this.tag);
+      (0, _validator.dirtyTag)(this.tag);
     }
 
   }
@@ -11871,7 +11860,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     value() {
       var state = stateFor(this.outletRef);
 
-      if (validate$1(state, this.lastState)) {
+      if (validate(state, this.lastState)) {
         return this.definition;
       }
 
@@ -11961,7 +11950,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     };
   }
 
-  function validate$1(state, lastState) {
+  function validate(state, lastState) {
     if (state === null) {
       return lastState === null;
     }
@@ -12163,7 +12152,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     unless: inlineUnless,
     '-hash': hash,
     '-each-in': eachIn,
-    '-i': parseIntHelper,
     '-input-type': inputTypeHelper$1,
     '-normalize-class': normalizeClassHelper,
     '-track-array': trackArray,
@@ -12322,8 +12310,13 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return (args, vm) => {
         var helper$$1 = factory.create();
 
-        if (!isSimpleHelper(helper$$1)) {
-          vm.associateDestroyable(helper$$1);
+        if (isClassHelper(helper$$1)) {
+          vm.associateDestroyable({
+            destroy() {
+              helper$$1.destroy();
+            }
+
+          });
         } else if (true
         /* DEBUG */
         ) {
@@ -12343,7 +12336,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       var owner = meta.owner;
       var templateFactory$$1 = lookupPartial(name, owner);
       var template = templateFactory$$1(owner);
-      return new _opcodeCompiler.PartialDefinition(name, template);
+      return new _opcodeCompiler.PartialDefinitionImpl(name, template);
     }
 
     _lookupModifier(name, meta) {
@@ -12439,13 +12432,13 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
             (true && !(pair.layout !== null) && (0, _debug.assert)(`missing layout for internal component ${name}`, pair.layout !== null));
             definition = new InternalComponentDefinition(factory(owner), ComponentClass, layout);
           } else {
-            definition = new CustomManagerDefinition(name, pair.component, factory(owner), layout !== undefined ? layout : owner.lookup(_container.privatize`template:components/-default`)(owner));
+            definition = new CustomManagerDefinition(name, pair.component, factory(owner), layout !== undefined ? layout : owner.lookup((0, _container.privatize)`template:components/-default`)(owner));
           }
         }
       }
 
       if (definition === null) {
-        definition = new CurlyComponentDefinition(name, pair.component || owner.factoryFor(_container.privatize`component:-default`), layout);
+        definition = new CurlyComponentDefinition(name, pair.component || owner.factoryFor((0, _container.privatize)`component:-default`), layout);
       }
 
       finalizer();
@@ -12531,8 +12524,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     inlines.addMissing(refineInlineSyntax);
     blocks.addMissing(refineBlockSyntax);
 
-    for (var _i12 = 0; _i12 < experimentalMacros.length; _i12++) {
-      var macro = experimentalMacros[_i12];
+    for (var i = 0; i < experimentalMacros.length; i++) {
+      var macro = experimentalMacros[i];
       macro(blocks, inlines);
     }
 
@@ -12558,11 +12551,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return this.outletState;
     }
 
-    set(key, value$$1) {
+    set(key, value) {
       // tslint:disable-next-line:max-line-length
       (true && !(key === 'outletState') && (0, _debug.assert)(`Using \`-with-dynamic-scope\` is only supported for \`outletState\` (you used \`${key}\`).`, key === 'outletState'));
-      this.outletState = value$$1;
-      return value$$1;
+      this.outletState = value;
+      return value;
     }
 
   }
@@ -12577,12 +12570,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       this.destroyed = false;
 
       this.render = () => {
-        var layout = (0, _opcodeCompiler.unwrapTemplate)(template).asLayout();
+        var layout = (0, _util.unwrapTemplate)(template).asLayout();
         var handle = layout.compile(context);
         var iterator = (0, _runtime2.renderJitMain)(runtime, context, self, builder(runtime.env, {
           element: parentElement,
           nextSibling: null
-        }), (0, _opcodeCompiler.unwrapHandle)(handle), dynamicScope);
+        }), (0, _util.unwrapHandle)(handle), dynamicScope);
         var iteratorResult;
 
         do {
@@ -12647,8 +12640,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   function loopBegin() {
-    for (var _i13 = 0; _i13 < renderers.length; _i13++) {
-      renderers[_i13]._scheduleRevalidate();
+    for (var i = 0; i < renderers.length; i++) {
+      renderers[i]._scheduleRevalidate();
     }
   }
 
@@ -12693,13 +12686,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   var loops = 0;
 
   function loopEnd() {
-    for (var _i14 = 0; _i14 < renderers.length; _i14++) {
-      if (!renderers[_i14]._isValid()) {
+    for (var i = 0; i < renderers.length; i++) {
+      if (!renderers[i]._isValid()) {
         if (loops > _environment2.ENV._RERENDER_LOOP_LIMIT) {
           loops = 0; // TODO: do something better
 
-          renderers[_i14].destroy();
-
+          renderers[i].destroy();
           throw new Error('infinite rendering invalidation detected');
         }
 
@@ -12730,14 +12722,13 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
       var runtimeResolver = this._runtimeResolver = new RuntimeResolver(env.isInteractive);
       var compileTimeResolver = new CompileTimeResolver(runtimeResolver);
-      this._context = (0, _opcodeCompiler.JitContext)(compileTimeResolver);
-      populateMacros(this._context.macros);
-      var program = new _program.RuntimeProgramImpl(this._context.program.constants, this._context.program.heap);
+      var context = this._context = (0, _opcodeCompiler.JitContext)(compileTimeResolver);
+      populateMacros(context.macros);
       var runtimeEnvironmentDelegate = new EmberEnvironmentDelegate(owner, env.isInteractive);
-      this._runtime = (0, _runtime2.JitRuntimeFromProgram)({
+      this._runtime = (0, _runtime2.JitRuntime)({
         appendOperations: env.hasDOM ? new _runtime2.DOMTreeConstruction(document) : new _node.NodeDOMTreeConstruction(document),
         updateOperations: new _runtime2.DOMChanges(document)
-      }, program, runtimeResolver, runtimeEnvironmentDelegate);
+      }, runtimeEnvironmentDelegate, context, runtimeResolver);
     }
 
     get debugRenderTree() {
@@ -12863,8 +12854,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         (0, _runtime2.inTransaction)(runtime.env, () => {
           // ensure that for the first iteration of the loop
           // each root is processed
-          for (var _i15 = 0; _i15 < roots.length; _i15++) {
-            var root = roots[_i15];
+          for (var i = 0; i < roots.length; i++) {
+            var root = roots[i];
 
             if (root.destroyed) {
               // add to the list of roots to be removed
@@ -12876,7 +12867,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
             // do not process more roots than needed
 
 
-            if (_i15 >= initialRootsLength) {
+            if (i >= initialRootsLength) {
               continue;
             }
 
@@ -12892,7 +12883,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
             }
           }
 
-          this._lastRevision = (0, _validator.value)(_validator.CURRENT_TAG);
+          this._lastRevision = (0, _validator.valueForTag)(_validator.CURRENT_TAG);
         });
       } while (roots.length > initialRootsLength); // remove any roots that were destroyed during this transaction
 
@@ -12926,7 +12917,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         completedWithoutError = true;
       } finally {
         if (!completedWithoutError) {
-          this._lastRevision = (0, _validator.value)(_validator.CURRENT_TAG);
+          this._lastRevision = (0, _validator.valueForTag)(_validator.CURRENT_TAG);
         }
 
         this._inRenderTransaction = false;
@@ -12936,8 +12927,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     _clearAllRoots() {
       var roots = this._roots;
 
-      for (var _i16 = 0; _i16 < roots.length; _i16++) {
-        var root = roots[_i16];
+      for (var i = 0; i < roots.length; i++) {
+        var root = roots[i];
         root.destroy();
       }
 
@@ -12955,7 +12946,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     _isValid() {
-      return this._destroyed || this._roots.length === 0 || (0, _validator.validate)(_validator.CURRENT_TAG, this._lastRevision);
+      return this._destroyed || this._roots.length === 0 || (0, _validator.validateTag)(_validator.CURRENT_TAG, this._lastRevision);
     }
 
     _revalidate() {
@@ -13458,8 +13449,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     });
     registry.injection('service:-dom-builder', 'bootOptions', '-environment:main');
     registry.injection('renderer', 'builder', 'service:-dom-builder');
-    registry.register(_container.privatize`template:-root`, RootTemplate);
-    registry.injection('renderer', 'rootTemplate', _container.privatize`template:-root`);
+    registry.register((0, _container.privatize)`template:-root`, RootTemplate);
+    registry.injection('renderer', 'rootTemplate', (0, _container.privatize)`template:-root`);
     registry.register('renderer:-dom', InteractiveRenderer);
     registry.register('renderer:-inert', InertRenderer);
     registry.injection('renderer', 'document', 'service:-document');
@@ -13472,7 +13463,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     registry.register('view:-outlet', OutletView);
     registry.register('template:-outlet', OutletTemplate);
     registry.injection('view:-outlet', 'template', 'template:-outlet');
-    registry.register(_container.privatize`template:components/-default`, ComponentTemplate);
+    registry.register((0, _container.privatize)`template:components/-default`, ComponentTemplate);
     registry.optionsForType('helper', {
       instantiate: false
     });
@@ -13485,7 +13476,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     registry.register('component:textarea', TextArea);
 
     if (!_environment2.ENV._TEMPLATE_ONLY_GLIMMER_COMPONENTS) {
-      registry.register(_container.privatize`component:-default`, Component);
+      registry.register((0, _container.privatize)`component:-default`, Component);
     }
   }
 
@@ -14737,13 +14728,21 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         count: 1,
         path,
         tag,
-        lastRevision: (0, _validator.value)(tag),
+        lastRevision: (0, _validator.valueForTag)(tag),
         suspended: false
       });
     }
   }
 
+  var DEACTIVATE_SUSPENDED = false;
+  var SCHEDULED_DEACTIVATE = [];
+
   function deactivateObserver(target, eventName, sync = false) {
+    if (DEACTIVATE_SUSPENDED === true) {
+      SCHEDULED_DEACTIVATE.push([target, eventName, sync]);
+      return;
+    }
+
     var observerMap = sync === true ? SYNC_OBSERVERS : ASYNC_OBSERVERS;
     var activeObservers = observerMap.get(target);
 
@@ -14761,6 +14760,20 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       }
     }
   }
+
+  function suspendedObserverDeactivation() {
+    DEACTIVATE_SUSPENDED = true;
+  }
+
+  function resumeObserverDeactivation() {
+    DEACTIVATE_SUSPENDED = false;
+
+    for (var [target, eventName, sync] of SCHEDULED_DEACTIVATE) {
+      deactivateObserver(target, eventName, sync);
+    }
+
+    SCHEDULED_DEACTIVATE = [];
+  }
   /**
    * Primarily used for cases where we are redefining a class, e.g. mixins/reopen
    * being applied later. Revalidates all the observers, resetting their tags.
@@ -14774,14 +14787,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     if (ASYNC_OBSERVERS.has(target)) {
       ASYNC_OBSERVERS.get(target).forEach(observer => {
         observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path));
-        observer.lastRevision = (0, _validator.value)(observer.tag);
+        observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
       });
     }
 
     if (SYNC_OBSERVERS.has(target)) {
       SYNC_OBSERVERS.get(target).forEach(observer => {
         observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path));
-        observer.lastRevision = (0, _validator.value)(observer.tag);
+        observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
       });
     }
   }
@@ -14789,7 +14802,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   var lastKnownRevision = 0;
 
   function flushAsyncObservers(shouldSchedule = true) {
-    var currentRevision = (0, _validator.value)(_validator.CURRENT_TAG);
+    var currentRevision = (0, _validator.valueForTag)(_validator.CURRENT_TAG);
 
     if (lastKnownRevision === currentRevision) {
       return;
@@ -14805,13 +14818,13 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       }
 
       activeObservers.forEach((observer, eventName) => {
-        if (!(0, _validator.validate)(observer.tag, observer.lastRevision)) {
+        if (!(0, _validator.validateTag)(observer.tag, observer.lastRevision)) {
           var sendObserver = () => {
             try {
               sendEvent(target, eventName, [target, observer.path], undefined, meta$$1);
             } finally {
               observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path));
-              observer.lastRevision = (0, _validator.value)(observer.tag);
+              observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
             }
           };
 
@@ -14838,13 +14851,13 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       }
 
       activeObservers.forEach((observer, eventName) => {
-        if (!observer.suspended && !(0, _validator.validate)(observer.tag, observer.lastRevision)) {
+        if (!observer.suspended && !(0, _validator.validateTag)(observer.tag, observer.lastRevision)) {
           try {
             observer.suspended = true;
             sendEvent(target, eventName, [target, observer.path], undefined, meta$$1);
           } finally {
             observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path));
-            observer.lastRevision = (0, _validator.value)(observer.tag);
+            observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
             observer.suspended = false;
           }
         }
@@ -14965,13 +14978,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     @for @ember/object
     @param {Object} obj The object with the property that will change
     @param {String} keyName The property key (or path) that will change.
-    @param {Meta} meta The objects meta.
+    @param {Meta} [_meta] The objects meta.
+    @param {unknown} [value] The new value to set for the property
     @return {void}
     @since 3.1.0
     @public
   */
 
-  function notifyPropertyChange(obj, keyName, _meta) {
+  function notifyPropertyChange(obj, keyName, _meta, value) {
     var meta$$1 = _meta === undefined ? (0, _meta2.peekMeta)(obj) : _meta;
 
     if (meta$$1 !== null && (meta$$1.isInitializing() || meta$$1.isPrototypeMeta(obj))) {
@@ -14985,7 +14999,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     }
 
     if (PROPERTY_DID_CHANGE in obj) {
-      obj[PROPERTY_DID_CHANGE](keyName);
+      // we need to check the arguments length here; there's a check in `PROPERTY_DID_CHANGE`
+      // that checks its arguments length, so we have to explicitly not call this with `value`
+      // if it is not passed to `notifyPropertyChange`
+      if (arguments.length === 4) {
+        obj[PROPERTY_DID_CHANGE](keyName, value);
+      } else {
+        obj[PROPERTY_DID_CHANGE](keyName);
+      }
     }
   }
   /**
@@ -14997,6 +15018,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
   function beginPropertyChanges() {
     deferred++;
+    suspendedObserverDeactivation();
   }
   /**
     @method endPropertyChanges
@@ -15009,6 +15031,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
     if (deferred <= 0) {
       flushSyncObservers();
+      resumeObserverDeactivation();
     }
   }
   /**
@@ -15217,11 +15240,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   */
 
 
-  function setClassicDecorator(dec, value$$1 = true) {
-    DECORATOR_DESCRIPTOR_MAP.set(dec, value$$1);
+  function setClassicDecorator(dec, value = true) {
+    DECORATOR_DESCRIPTOR_MAP.set(dec, value);
   }
 
-  function finishLazyChains(obj, key, value$$1) {
+  function finishLazyChains(obj, key, value) {
     var meta$$1 = (0, _meta2.peekMeta)(obj);
     var lazyTags = meta$$1 !== null ? meta$$1.readableLazyChainsFor(key) : undefined;
 
@@ -15229,7 +15252,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       return;
     }
 
-    if (value$$1 === null || typeof value$$1 !== 'object' && typeof value$$1 !== 'function') {
+    if (value === null || typeof value !== 'object' && typeof value !== 'function') {
       for (var path in lazyTags) {
         delete lazyTags[path];
       }
@@ -15239,7 +15262,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
     for (var _path in lazyTags) {
       var tag = lazyTags[_path];
-      (0, _validator.update)(tag, (0, _validator.combine)(getChainTagsForKey(value$$1, _path)));
+      (0, _validator.updateTag)(tag, (0, _validator.combine)(getChainTagsForKey(value, _path)));
       delete lazyTags[_path];
     }
   }
@@ -15363,7 +15386,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         // it will update that lazy chain.
         var lastRevision = getLastRevisionFor(current, segment);
 
-        if ((0, _validator.validate)(propertyTag, lastRevision)) {
+        if ((0, _validator.validateTag)(propertyTag, lastRevision)) {
           current = peekCacheFor(current).get(segment);
         } else {
           var lazyChains = (0, _meta2.meta)(current).writableLazyChainsFor(segment);
@@ -15442,8 +15465,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   }
 
   function DESCRIPTOR_SETTER_FUNCTION(name, descriptor) {
-    var func = function CPSETTER_FUNCTION(value$$1) {
-      return descriptor.set(this, name, value$$1);
+    var func = function CPSETTER_FUNCTION(value) {
+      return descriptor.set(this, name, value);
     };
 
     CP_SETTER_FUNCS.add(func);
@@ -15618,7 +15641,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       enumerable = false;
     }
 
-    var value$$1;
+    var value;
 
     if (isClassicDecorator(desc)) {
       var propertyDesc;
@@ -15633,16 +15656,16 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
       Object.defineProperty(obj, keyName, propertyDesc); // pass the decorator function forward for backwards compat
 
-      value$$1 = desc;
+      value = desc;
     } else if (desc === undefined || desc === null) {
-      value$$1 = data;
+      value = data;
 
       if (wasDescriptor || enumerable === false) {
         Object.defineProperty(obj, keyName, {
           configurable: true,
           enumerable,
           writable: true,
-          value: value$$1
+          value
         });
       } else {
         if (true
@@ -15654,7 +15677,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         }
       }
     } else {
-      value$$1 = desc; // fallback to ES5
+      value = desc; // fallback to ES5
 
       Object.defineProperty(obj, keyName, desc);
     } // if key is being watched, override chains that
@@ -15668,7 +15691,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
 
     if (typeof obj.didDefineProperty === 'function') {
-      obj.didDefineProperty(obj, keyName, value$$1);
+      obj.didDefineProperty(obj, keyName, value);
     }
   }
 
@@ -15753,50 +15776,50 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       return isObjectLike ? _getPath(obj, keyName) : undefined;
     }
 
-    var value$$1;
+    var value;
 
     if (isObjectLike) {
       if (true
       /* DEBUG */
       && _utils.HAS_NATIVE_PROXY) {
-        value$$1 = getPossibleMandatoryProxyValue(obj, keyName);
+        value = getPossibleMandatoryProxyValue(obj, keyName);
       } else {
-        value$$1 = obj[keyName];
+        value = obj[keyName];
       }
     } else {
-      value$$1 = obj[keyName];
+      value = obj[keyName];
     }
 
-    if (value$$1 === undefined) {
+    if (value === undefined) {
       if (isObject$$1 && !(keyName in obj) && typeof obj.unknownProperty === 'function') {
         if (true
         /* DEBUG */
         ) {
           (0, _validator.deprecateMutationsInAutotrackingTransaction)(() => {
-            value$$1 = obj.unknownProperty(keyName);
+            value = obj.unknownProperty(keyName);
           });
         } else {
-          value$$1 = obj.unknownProperty(keyName);
+          value = obj.unknownProperty(keyName);
         }
       }
     }
 
     if (isObjectLike && (0, _validator.isTracking)()) {
-      (0, _validator.consume)(tagForProperty(obj, keyName)); // Add the tag of the returned value if it is an array, since arrays
+      (0, _validator.consumeTag)(tagForProperty(obj, keyName)); // Add the tag of the returned value if it is an array, since arrays
       // should always cause updates if they are consumed and then changed
 
-      if (Array.isArray(value$$1) || (0, _utils.isEmberArray)(value$$1)) {
-        (0, _validator.consume)(tagForProperty(value$$1, '[]'));
+      if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
+        (0, _validator.consumeTag)(tagForProperty(value, '[]'));
       } // Add the value of the content if the value is a proxy. This is because
       // content changes the truthiness/falsiness of the proxy.
 
 
-      if ((0, _utils.isProxy)(value$$1)) {
-        (0, _validator.consume)(tagForProperty(value$$1, 'content'));
+      if ((0, _utils.isProxy)(value)) {
+        (0, _validator.consumeTag)(tagForProperty(value, 'content'));
       }
     }
 
-    return value$$1;
+    return value;
   }
 
   function _getPath(root, path) {
@@ -15834,13 +15857,13 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
 
   function getWithDefault(root, key, defaultValue) {
-    var value$$1 = get(root, key);
+    var value = get(root, key);
 
-    if (value$$1 === undefined) {
+    if (value === undefined) {
       return defaultValue;
     }
 
-    return value$$1;
+    return value;
   }
   /**
    @module @ember/object
@@ -15870,27 +15893,27 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   */
 
 
-  function set(obj, keyName, value$$1, tolerant) {
+  function set(obj, keyName, value, tolerant) {
     (true && !(arguments.length === 3 || arguments.length === 4) && (0, _debug.assert)(`Set must be called with three or four arguments; an object, a property key, a value and tolerant true/false`, arguments.length === 3 || arguments.length === 4));
     (true && !(obj && typeof obj === 'object' || typeof obj === 'function') && (0, _debug.assert)(`Cannot call set with '${keyName}' on an undefined object.`, obj && typeof obj === 'object' || typeof obj === 'function'));
     (true && !(typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)) && (0, _debug.assert)(`The key provided to set must be a string or number, you passed ${keyName}`, typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)));
     (true && !(typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0) && (0, _debug.assert)(`'this' in paths is not supported`, typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0));
 
     if (obj.isDestroyed) {
-      (true && !(tolerant) && (0, _debug.assert)(`calling set on destroyed object: ${(0, _utils.toString)(obj)}.${keyName} = ${(0, _utils.toString)(value$$1)}`, tolerant));
+      (true && !(tolerant) && (0, _debug.assert)(`calling set on destroyed object: ${(0, _utils.toString)(obj)}.${keyName} = ${(0, _utils.toString)(value)}`, tolerant));
       return;
     }
 
     if (isPath(keyName)) {
-      return setPath(obj, keyName, value$$1, tolerant);
+      return setPath(obj, keyName, value, tolerant);
     }
 
     var descriptor = (0, _utils.lookupDescriptor)(obj, keyName);
     var setter = descriptor === null ? undefined : descriptor.set;
 
     if (setter !== undefined && CP_SETTER_FUNCS.has(setter)) {
-      obj[keyName] = value$$1;
-      return value$$1;
+      obj[keyName] = value;
+      return value;
     }
 
     var currentValue;
@@ -15905,25 +15928,25 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
     if (currentValue === undefined && 'object' === typeof obj && !(keyName in obj) && typeof obj.setUnknownProperty === 'function') {
       /* unknown property */
-      obj.setUnknownProperty(keyName, value$$1);
+      obj.setUnknownProperty(keyName, value);
     } else {
       if (true
       /* DEBUG */
       ) {
-        (0, _utils.setWithMandatorySetter)(obj, keyName, value$$1);
+        (0, _utils.setWithMandatorySetter)(obj, keyName, value);
       } else {
-        obj[keyName] = value$$1;
+        obj[keyName] = value;
       }
 
-      if (currentValue !== value$$1) {
+      if (currentValue !== value) {
         notifyPropertyChange(obj, keyName);
       }
     }
 
-    return value$$1;
+    return value;
   }
 
-  function setPath(root, path, value$$1, tolerant) {
+  function setPath(root, path, value, tolerant) {
     var parts = path.split('.');
     var keyName = parts.pop();
     (true && !(keyName.trim().length > 0) && (0, _debug.assert)('Property set failed: You passed an empty path', keyName.trim().length > 0));
@@ -15931,7 +15954,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     var newRoot = _getPath(root, parts);
 
     if (newRoot !== null && newRoot !== undefined) {
-      return set(newRoot, keyName, value$$1);
+      return set(newRoot, keyName, value);
     } else if (!tolerant) {
       throw new _error.default(`Property set failed: object in path "${parts.join('.')}" could not be found.`);
     }
@@ -15960,8 +15983,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   */
 
 
-  function trySet(root, path, value$$1) {
-    return set(root, path, value$$1, true);
+  function trySet(root, path, value) {
+    return set(root, path, value, true);
   }
   /**
   @module @ember/object
@@ -16174,7 +16197,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       super();
       this._volatile = false;
       this._readOnly = false;
-      this._suspended = undefined;
       this._hasConfig = false;
       this._getter = undefined;
       this._setter = undefined;
@@ -16220,8 +16242,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         }
 
         if (set$$1 !== undefined) {
-          this._setter = function setterWrapper(_key, value$$1) {
-            var ret = set$$1.call(this, value$$1);
+          this._setter = function setterWrapper(_key, value) {
+            var ret = set$$1.call(this, value);
 
             if (_get !== undefined) {
               return typeof ret === 'undefined' ? _get.call(this) : ret;
@@ -16434,7 +16456,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       var propertyTag = tagForProperty(obj, keyName);
       var ret;
 
-      if (cache.has(keyName) && (0, _validator.validate)(propertyTag, getLastRevisionFor(obj, keyName))) {
+      if (cache.has(keyName) && (0, _validator.validateTag)(propertyTag, getLastRevisionFor(obj, keyName))) {
         ret = cache.get(keyName);
       } else {
         // For backwards compatibility, we only throw if the CP has any dependencies. CPs without dependencies
@@ -16459,50 +16481,50 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         }
 
         if (upstreamTag !== undefined) {
-          (0, _validator.update)(propertyTag, upstreamTag);
+          (0, _validator.updateTag)(propertyTag, upstreamTag);
         }
 
-        setLastRevisionFor(obj, keyName, (0, _validator.value)(propertyTag));
+        setLastRevisionFor(obj, keyName, (0, _validator.valueForTag)(propertyTag));
         cache.set(keyName, ret);
         finishLazyChains(obj, keyName, ret);
       }
 
-      (0, _validator.consume)(propertyTag); // Add the tag of the returned value if it is an array, since arrays
+      (0, _validator.consumeTag)(propertyTag); // Add the tag of the returned value if it is an array, since arrays
       // should always cause updates if they are consumed and then changed
 
       if (Array.isArray(ret) || (0, _utils.isEmberArray)(ret)) {
-        (0, _validator.consume)(tagForProperty(ret, '[]'));
+        (0, _validator.consumeTag)(tagForProperty(ret, '[]'));
       }
 
       return ret;
     }
 
-    set(obj, keyName, value$$1) {
+    set(obj, keyName, value) {
       if (this._readOnly) {
         this._throwReadOnlyError(obj, keyName);
       }
 
       if (!this._setter) {
-        return this.clobberSet(obj, keyName, value$$1);
+        return this.clobberSet(obj, keyName, value);
       }
 
       if (this._volatile) {
-        return this.volatileSet(obj, keyName, value$$1);
+        return this.volatileSet(obj, keyName, value);
       }
 
       var ret;
 
       try {
         beginPropertyChanges();
-        ret = this._set(obj, keyName, value$$1);
+        ret = this._set(obj, keyName, value);
         finishLazyChains(obj, keyName, ret);
         var propertyTag = tagForProperty(obj, keyName);
 
         if (this._dependentKeys !== undefined) {
-          (0, _validator.update)(propertyTag, (0, _validator.combine)(getChainTagsForKeys(obj, this._dependentKeys)));
+          (0, _validator.updateTag)(propertyTag, (0, _validator.combine)(getChainTagsForKeys(obj, this._dependentKeys)));
         }
 
-        setLastRevisionFor(obj, keyName, (0, _validator.value)(propertyTag));
+        setLastRevisionFor(obj, keyName, (0, _validator.valueForTag)(propertyTag));
       } finally {
         endPropertyChanges();
       }
@@ -16514,7 +16536,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       throw new _error.default(`Cannot set read-only property "${keyName}" on object: ${(0, _utils.inspect)(obj)}`);
     }
 
-    clobberSet(obj, keyName, value$$1) {
+    clobberSet(obj, keyName, value) {
       (true && !(false) && (0, _debug.deprecate)(`The ${(0, _utils.toString)(obj)}#${keyName} computed property was just overridden. This removes the computed property and replaces it with a plain value, and has been deprecated. If you want this behavior, consider defining a setter which does it manually.`, false, {
         id: 'computed-property.override',
         until: '4.0.0',
@@ -16522,26 +16544,15 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       }));
       var cachedValue = getCachedValueFor(obj, keyName);
       defineProperty(obj, keyName, null, cachedValue);
-      set(obj, keyName, value$$1);
-      return value$$1;
+      set(obj, keyName, value);
+      return value;
     }
 
-    volatileSet(obj, keyName, value$$1) {
-      return this._setter.call(obj, keyName, value$$1);
+    volatileSet(obj, keyName, value) {
+      return this._setter.call(obj, keyName, value);
     }
 
-    setWithSuspend(obj, keyName, value$$1) {
-      var oldSuspended = this._suspended;
-      this._suspended = obj;
-
-      try {
-        return this._set(obj, keyName, value$$1);
-      } finally {
-        this._suspended = oldSuspended;
-      }
-    }
-
-    _set(obj, keyName, value$$1) {
+    _set(obj, keyName, value) {
       var cache = getCacheFor(obj);
       var hadCachedValue = cache.has(keyName);
       var cachedValue = cache.get(keyName);
@@ -16549,7 +16560,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       setObserverSuspended(obj, keyName, true);
 
       try {
-        ret = this._setter.call(obj, keyName, value$$1, cachedValue);
+        ret = this._setter.call(obj, keyName, value, cachedValue);
       } finally {
         setObserverSuspended(obj, keyName, false);
       } // allows setter to return the same value that is cached already
@@ -16561,7 +16572,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
       var meta$$1 = (0, _meta2.meta)(obj);
       cache.set(keyName, ret);
-      notifyPropertyChange(obj, keyName, meta$$1);
+      notifyPropertyChange(obj, keyName, meta$$1, value);
       return ret;
     }
     /* called before property is overridden */
@@ -16622,8 +16633,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     } // TODO: Refactor this, this is an internal API only
 
 
-    set enumerable(value$$1) {
-      descriptorForDecorator(this).enumerable = value$$1;
+    set enumerable(value) {
+      descriptorForDecorator(this).enumerable = value;
     }
 
   }
@@ -16715,18 +16726,18 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       });
       var lastRevision = getLastRevisionFor(obj, keyName);
 
-      if (!(0, _validator.validate)(propertyTag, lastRevision)) {
-        (0, _validator.update)(propertyTag, (0, _validator.combine)(getChainTagsForKey(obj, this.altKey)));
-        setLastRevisionFor(obj, keyName, (0, _validator.value)(propertyTag));
+      if (!(0, _validator.validateTag)(propertyTag, lastRevision)) {
+        (0, _validator.updateTag)(propertyTag, (0, _validator.combine)(getChainTagsForKey(obj, this.altKey)));
+        setLastRevisionFor(obj, keyName, (0, _validator.valueForTag)(propertyTag));
         finishLazyChains(obj, keyName, ret);
       }
 
-      (0, _validator.consume)(propertyTag);
+      (0, _validator.consumeTag)(propertyTag);
       return ret;
     }
 
-    set(obj, _keyName, value$$1) {
-      return set(obj, this.altKey, value$$1);
+    set(obj, _keyName, value) {
+      return set(obj, this.altKey, value);
     }
 
     readOnly() {
@@ -16744,9 +16755,9 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     throw new _error.default(`Cannot set read-only property '${keyName}' on object: ${(0, _utils.inspect)(obj)}`);
   }
 
-  function AliasedProperty_oneWaySet(obj, keyName, value$$1) {
+  function AliasedProperty_oneWaySet(obj, keyName, value) {
     defineProperty(obj, keyName, null);
-    return set(obj, keyName, value$$1);
+    return set(obj, keyName, value);
   }
   /**
   @module ember
@@ -16774,10 +16785,10 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       configurable: true,
       enumerable: false,
 
-      set(value$$1) {
+      set(value) {
         _deprecate();
 
-        set(this, newKey, value$$1);
+        set(this, newKey, value);
       },
 
       get() {
@@ -17553,9 +17564,9 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return method;
   }
 
-  function applyConcatenatedProperties(obj, key, value$$1, values) {
+  function applyConcatenatedProperties(obj, key, value, values) {
     var baseValue = values[key] || obj[key];
-    var ret = (0, _utils.makeArray)(baseValue).concat((0, _utils.makeArray)(value$$1));
+    var ret = (0, _utils.makeArray)(baseValue).concat((0, _utils.makeArray)(value));
 
     if (true
     /* DEBUG */
@@ -17571,23 +17582,23 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return ret;
   }
 
-  function applyMergedProperties(obj, key, value$$1, values) {
+  function applyMergedProperties(obj, key, value, values) {
     var baseValue = values[key] || obj[key];
-    (true && !(!isArray(value$$1)) && (0, _debug.assert)(`You passed in \`${JSON.stringify(value$$1)}\` as the value for \`${key}\` but \`${key}\` cannot be an Array`, !isArray(value$$1)));
+    (true && !(!isArray(value)) && (0, _debug.assert)(`You passed in \`${JSON.stringify(value)}\` as the value for \`${key}\` but \`${key}\` cannot be an Array`, !isArray(value)));
 
     if (!baseValue) {
-      return value$$1;
+      return value;
     }
 
     var newBase = (0, _polyfills.assign)({}, baseValue);
     var hasFunction = false;
 
-    for (var prop in value$$1) {
-      if (!value$$1.hasOwnProperty(prop)) {
+    for (var prop in value) {
+      if (!value.hasOwnProperty(prop)) {
         continue;
       }
 
-      var propValue = value$$1[prop];
+      var propValue = value[prop];
 
       if (isMethod(propValue)) {
         // TODO: support for Computed Properties, etc?
@@ -17605,22 +17616,22 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return newBase;
   }
 
-  function addNormalizedProperty(base, key, value$$1, meta$$1, descs, values, concats, mergings) {
-    if (isClassicDecorator(value$$1)) {
+  function addNormalizedProperty(base, key, value, meta$$1, descs, values, concats, mergings) {
+    if (isClassicDecorator(value)) {
       // Wrap descriptor function to implement _super() if needed
-      descs[key] = giveDecoratorSuper(meta$$1, key, value$$1, values, descs, base);
+      descs[key] = giveDecoratorSuper(meta$$1, key, value, values, descs, base);
       values[key] = undefined;
     } else {
       if (concats && concats.indexOf(key) >= 0 || key === 'concatenatedProperties' || key === 'mergedProperties') {
-        value$$1 = applyConcatenatedProperties(base, key, value$$1, values);
+        value = applyConcatenatedProperties(base, key, value, values);
       } else if (mergings && mergings.indexOf(key) > -1) {
-        value$$1 = applyMergedProperties(base, key, value$$1, values);
-      } else if (isMethod(value$$1)) {
-        value$$1 = giveMethodSuper(base, key, value$$1, values, descs);
+        value = applyMergedProperties(base, key, value, values);
+      } else if (isMethod(value)) {
+        value = giveMethodSuper(base, key, value, values, descs);
       }
 
       descs[key] = undefined;
-      values[key] = value$$1;
+      values[key] = value;
     }
   }
 
@@ -17680,20 +17691,20 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       var altKey = alias.methodName;
       var possibleDesc;
       var desc = descs[altKey];
-      var value$$1 = values[altKey];
+      var value = values[altKey];
 
-      if (desc !== undefined || value$$1 !== undefined) {// do nothing
+      if (desc !== undefined || value !== undefined) {// do nothing
       } else if ((possibleDesc = descriptorForProperty(obj, altKey)) !== undefined) {
         desc = possibleDesc;
-        value$$1 = undefined;
+        value = undefined;
       } else {
         desc = undefined;
-        value$$1 = obj[altKey];
+        value = obj[altKey];
       }
 
       return {
         desc,
-        value: value$$1
+        value
       };
     };
   }
@@ -17734,7 +17745,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     var values = {};
     var meta$$1 = (0, _meta2.meta)(obj);
     var keys = [];
-    var key, value$$1, desc;
+    var key, value, desc;
     obj._super = _utils.ROOT; // Go through all mixins and hashes passed in, and:
     //
     // * Handle concatenated properties
@@ -17753,27 +17764,27 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       }
 
       desc = descs[key];
-      value$$1 = values[key];
+      value = values[key];
 
       if (_deprecatedFeatures.ALIAS_METHOD) {
-        while (value$$1 && value$$1 instanceof AliasImpl) {
-          var followed = followMethodAlias(obj, value$$1, descs, values);
+        while (value && value instanceof AliasImpl) {
+          var followed = followMethodAlias(obj, value, descs, values);
           desc = followed.desc;
-          value$$1 = followed.value;
+          value = followed.value;
         }
       }
 
-      if (desc === undefined && value$$1 === undefined) {
+      if (desc === undefined && value === undefined) {
         continue;
       }
 
       if (descriptorForProperty(obj, key) !== undefined) {
-        replaceObserversAndListeners(obj, key, null, value$$1);
+        replaceObserversAndListeners(obj, key, null, value);
       } else {
-        replaceObserversAndListeners(obj, key, obj[key], value$$1);
+        replaceObserversAndListeners(obj, key, obj[key], value);
       }
 
-      defineProperty(obj, key, desc, value$$1, meta$$1);
+      defineProperty(obj, key, desc, value, meta$$1);
     }
 
     return obj;
@@ -18210,8 +18221,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     var decorator = computed({
       get: getInjection,
 
-      set(keyName, value$$1) {
-        defineProperty(this, keyName, null, value$$1);
+      set(keyName, value) {
+        defineProperty(this, keyName, null, value);
       }
 
     });
@@ -18239,12 +18250,12 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       }
 
       var initializer = propertyDesc ? propertyDesc.initializer : undefined;
-      var value$$1 = propertyDesc ? propertyDesc.value : undefined;
+      var value = propertyDesc ? propertyDesc.value : undefined;
 
       var decorator = function (target, key, _desc, _meta, isClassicDecorator$$1) {
         (true && !(isClassicDecorator$$1) && (0, _debug.assert)(`You attempted to set a default value for ${key} with the @tracked({ value: 'default' }) syntax. You can only use this syntax with classic classes. For native classes, you can use class initializers: @tracked field = 'default';`, isClassicDecorator$$1));
         var fieldDesc = {
-          initializer: initializer || (() => value$$1)
+          initializer: initializer || (() => value)
         };
         return descriptorForField([target, key, fieldDesc]);
       };
@@ -18275,14 +18286,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       configurable: true,
 
       get() {
-        var value$$1 = getter(this); // Add the tag of the returned value if it is an array, since arrays
+        var value = getter(this); // Add the tag of the returned value if it is an array, since arrays
         // should always cause updates if they are consumed and then changed
 
-        if (Array.isArray(value$$1) || (0, _utils.isEmberArray)(value$$1)) {
-          (0, _validator.consume)(tagForProperty(value$$1, '[]'));
+        if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
+          (0, _validator.consumeTag)(tagForProperty(value, '[]'));
         }
 
-        return value$$1;
+        return value;
       },
 
       set(newValue) {
@@ -21898,21 +21909,18 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
     afterModel() {}
     /**
       A hook you can implement to optionally redirect to another route.
-         If you call `this.transitionTo` from inside of this hook, this route
-      will not be entered in favor of the other hook.
+         Calling `this.transitionTo` from inside of the `redirect` hook will
+      abort the current transition (into the route that has implemented `redirect`).
          `redirect` and `afterModel` behave very similarly and are
       called almost at the same time, but they have an important
-      distinction in the case that, from one of these hooks, a
-      redirect into a child route of this route occurs: redirects
-      from `afterModel` essentially invalidate the current attempt
-      to enter this route, and will result in this route's `beforeModel`,
-      `model`, and `afterModel` hooks being fired again within
-      the new, redirecting transition. Redirects that occur within
-      the `redirect` hook, on the other hand, will _not_ cause
-      these hooks to be fired again the second time around; in
-      other words, by the time the `redirect` hook has been called,
-      both the resolved model and attempted entry into this route
-      are considered to be fully validated.
+      distinction when calling `this.transitionTo` to a child route
+      of the current route. From `afterModel`, this new transition
+      invalidates the current transition, causing `beforeModel`,
+      `model`, and `afterModel` hooks to be called again. But the
+      same transition started from `redirect` does _not_ invalidate
+      the current transition. In other words, by the time the `redirect`
+      hook has been called, both the resolved model and the attempted
+      entry into this route are considered fully validated.
          @method redirect
       @param {Object} model the model for this route
       @param {Transition} transition the transition object associated with the current transition
@@ -22545,7 +22553,10 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
         }
       }
       ```
-         @return any
+      @method buildRouteInfoMetadata
+      @return any
+      @since 3.10.0
+      @public
      */
 
 
@@ -22685,7 +22696,7 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
     for (var i = 0; i < qps.length; ++i) {
       // Put deserialized qp on params hash.
       var qp = qps[i];
-      var qpValueWasPassedIn = qp.prop in fullQueryParams;
+      var qpValueWasPassedIn = (qp.prop in fullQueryParams);
       params[qp.prop] = qpValueWasPassedIn ? fullQueryParams[qp.prop] : copyDefaultValue(qp.defaultValue);
     }
 
@@ -26259,7 +26270,7 @@ define("@ember/-internals/runtime/lib/mixins/-proxy", ["exports", "@ember/-inter
   */
   function contentFor(proxy) {
     var content = (0, _metal.get)(proxy, 'content');
-    (0, _validator.update)((0, _metal.tagForObject)(proxy), (0, _metal.tagForObject)(content));
+    (0, _validator.updateTag)((0, _metal.tagForObject)(proxy), (0, _metal.tagForObject)(content));
     return content;
   }
   /**
@@ -27232,7 +27243,7 @@ define("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
       it will be set directly. `null` objects are skipped.
        ```javascript
       let people = [{name: 'Joe'}, {name: 'Matt'}];
-       people.setEach('zipCode', '10011);
+       people.setEach('zipCode', '10011');
       // [{name: 'Joe', zipCode: '10011'}, {name: 'Matt', zipCode: '10011'}];
       ```
        @method setEach
@@ -30020,7 +30031,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
     _revalidate() {
       if (this._arrangedContentIsUpdating === true) return;
 
-      if (this._arrangedContentTag === null || !(0, _validator.validate)(this._arrangedContentTag, this._arrangedContentRevision)) {
+      if (this._arrangedContentTag === null || !(0, _validator.validateTag)(this._arrangedContentTag, this._arrangedContentRevision)) {
         if (this._arrangedContentTag === null) {
           // This is the first time the proxy has been setup, only add the observer
           // don't trigger any events
@@ -30034,7 +30045,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
         }
 
         this._arrangedContentTag = (0, _validator.combine)((0, _metal.getChainTagsForKey)(this, 'arrangedContent'));
-        this._arrangedContentRevision = (0, _validator.value)(this._arrangedContentTag);
+        this._arrangedContentRevision = (0, _validator.valueForTag)(this._arrangedContentTag);
       }
     }
 
@@ -34580,8 +34591,10 @@ define("@ember/-internals/views/lib/views/states/in_dom", ["exports", "@ember/-i
             return elementId;
           },
 
-          set() {
-            throw new _error.default("Changing a view's elementId after creation is not allowed");
+          set(value) {
+            if (value !== elementId) {
+              throw new _error.default("Changing a view's elementId after creation is not allowed");
+            }
           }
 
         });
@@ -36506,7 +36519,7 @@ define("@ember/application/lib/application", ["exports", "@ember/-internals/util
     registry.register('location:hash', _routing.HashLocation);
     registry.register('location:history', _routing.HistoryLocation);
     registry.register('location:none', _routing.NoneLocation);
-    registry.register(_container.privatize`-bucket-cache:main`, {
+    registry.register((0, _container.privatize)`-bucket-cache:main`, {
       create() {
         return new _routing.BucketCache();
       }
@@ -38090,8 +38103,8 @@ define("@ember/engine/index", ["exports", "@ember/engine/lib/engine-parent", "@e
     registry.injection('view:-outlet', 'namespace', 'application:main');
     registry.injection('controller', 'target', 'router:main');
     registry.injection('controller', 'namespace', 'application:main');
-    registry.injection('router', '_bucketCache', _container.privatize`-bucket-cache:main`);
-    registry.injection('route', '_bucketCache', _container.privatize`-bucket-cache:main`);
+    registry.injection('router', '_bucketCache', (0, _container.privatize)`-bucket-cache:main`);
+    registry.injection('route', '_bucketCache', (0, _container.privatize)`-bucket-cache:main`);
     registry.injection('route', '_router', 'router:main'); // Register the routing service...
 
     registry.register('service:-routing', _routing.RoutingService); // Then inject the app router into it
@@ -38262,7 +38275,7 @@ define("@ember/engine/instance", ["exports", "@ember/-internals/runtime", "@embe
       this.register('-environment:main', env, {
         instantiate: false
       });
-      var singletons = ['router:main', _container.privatize`-bucket-cache:main`, '-view-registry:main', `renderer:-${env.isInteractive ? 'dom' : 'inert'}`, 'service:-document'];
+      var singletons = ['router:main', (0, _container.privatize)`-bucket-cache:main`, '-view-registry:main', `renderer:-${env.isInteractive ? 'dom' : 'inert'}`, 'service:-document'];
 
       if (env.isInteractive) {
         singletons.push('event_dispatcher:main');
@@ -38698,8 +38711,8 @@ define("@ember/object/compat", ["exports", "@ember/-internals/metal", "@ember/de
         var tag = (0, _validator.track)(() => {
           ret = originalGet.call(this);
         });
-        (0, _validator.update)(propertyTag, tag);
-        (0, _validator.consume)(tag);
+        (0, _validator.updateTag)(propertyTag, tag);
+        (0, _validator.consumeTag)(tag);
         return ret;
       };
     }
@@ -43559,7 +43572,7 @@ define("@glimmer/node", ["exports", "@glimmer/runtime", "@simple-dom/document"],
     return SerializeBuilder.forInitialRender(env, cursor);
   }
 });
-define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program", "@glimmer/util", "@glimmer/encoder", "@glimmer/runtime"], function (_exports, _vm, _program, _util, _encoder, _runtime) {
+define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "@glimmer/program", "@glimmer/encoder"], function (_exports, _vm, _util, _program, _encoder) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -43574,21 +43587,13 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
   _exports.meta = meta;
   _exports.templateFactory = templateFactory;
   _exports.Component = Component;
-  _exports.unwrapTemplate = unwrapTemplate;
-  _exports.unwrapHandle = unwrapHandle;
-  _exports.isOkHandle = isOkHandle;
-  _exports.isErrHandle = isErrHandle;
-  _exports.extractHandle = extractHandle;
-  _exports.debug = debug;
-  _exports.debugSlice = debugSlice;
-  _exports.logOpcode = logOpcode;
   _exports.resolveLayoutForTag = resolveLayoutForTag;
   _exports.syntaxCompilationContext = syntaxCompilationContext;
   _exports.Context = Context;
   _exports.JitContext = JitContext;
   _exports.AotContext = AotContext;
   _exports.templateCompilationContext = templateCompilationContext;
-  _exports.DefaultCompileTimeResolverDelegate = _exports.MINIMAL_CAPABILITIES = _exports.DEFAULT_CAPABILITIES = _exports.JitProgramCompilationContext = _exports.ProgramCompilationContext = _exports.EMPTY_BLOCKS = _exports.WrappedBuilder = _exports.PartialDefinition = _exports.StdLib = _exports.debugCompiler = _exports.NONE = _exports.UNHANDLED = _exports.MacrosImpl = void 0;
+  _exports.DefaultCompileTimeResolverDelegate = _exports.MINIMAL_CAPABILITIES = _exports.DEFAULT_CAPABILITIES = _exports.JitProgramCompilationContext = _exports.ProgramCompilationContext = _exports.EMPTY_BLOCKS = _exports.WrappedBuilder = _exports.PartialDefinitionImpl = _exports.StdLib = _exports.debugCompiler = _exports.NONE = _exports.UNHANDLED = _exports.MacrosImpl = void 0;
 
   function arr(value) {
     return {
@@ -43657,7 +43662,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
     willDestroy: false
   };
   _exports.DEFAULT_CAPABILITIES = DEFAULT_CAPABILITIES;
-  var MINIMAL_CAPABILITIES$1 = {
+  var MINIMAL_CAPABILITIES = {
     dynamicLayout: false,
     dynamicTag: false,
     prepareArgs: false,
@@ -43671,7 +43676,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
     wrapped: false,
     willDestroy: false
   };
-  _exports.MINIMAL_CAPABILITIES = MINIMAL_CAPABILITIES$1;
+  _exports.MINIMAL_CAPABILITIES = MINIMAL_CAPABILITIES;
 
   class DefaultCompileTimeResolverDelegate {
     constructor(inner) {
@@ -43763,16 +43768,234 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
     return {
       handle,
       compilable,
-      capabilities: capabilities || MINIMAL_CAPABILITIES$1
+      capabilities: capabilities || MINIMAL_CAPABILITIES
     };
   }
+  /**
+   * Push a reference onto the stack corresponding to a statically known primitive
+   * @param value A JavaScript primitive (undefined, null, boolean, number or string)
+   */
 
-  function debugSlice(context, start, end) {}
 
-  function logOpcode(type, params) {}
+  function PushPrimitiveReference(value) {
+    return [PushPrimitive(value), op(31
+    /* PrimitiveReference */
+    )];
+  }
+  /**
+   * Push an encoded representation of a JavaScript primitive on the stack
+   *
+   * @param value A JavaScript primitive (undefined, null, boolean, number or string)
+   */
 
-  function debug(c, resolver, op, isMachine) {
-    return undefined;
+
+  function PushPrimitive(primitive) {
+    var p;
+
+    switch (typeof primitive) {
+      case 'number':
+        if ((0, _util.isSmallInt)(primitive)) {
+          p = prim(primitive, 0
+          /* IMMEDIATE */
+          );
+        } else {
+          p = prim(primitive, 2
+          /* NUMBER */
+          );
+        }
+
+        break;
+
+      case 'string':
+        p = prim(primitive, 1
+        /* STRING */
+        );
+        break;
+
+      case 'boolean':
+      case 'object': // assume null
+
+      case 'undefined':
+        p = prim(primitive, 0
+        /* IMMEDIATE */
+        );
+        break;
+
+      default:
+        throw new Error('Invalid primitive passed to pushPrimitive');
+    }
+
+    return op(30
+    /* Primitive */
+    , p);
+  }
+  /**
+   * Invoke a foreign function (a "helper") based on a statically known handle
+   *
+   * @param compile.handle A handle
+   * @param compile.params An optional list of expressions to compile
+   * @param compile.hash An optional list of named arguments (name + expression) to compile
+   */
+
+
+  function Call({
+    handle,
+    params,
+    hash
+  }) {
+    return [op(0
+    /* PushFrame */
+    ), op('SimpleArgs', {
+      params,
+      hash,
+      atNames: false
+    }), op(16
+    /* Helper */
+    , handle), op(1
+    /* PopFrame */
+    ), op(36
+    /* Fetch */
+    , _vm.$v0)];
+  }
+  /**
+   * Evaluate statements in the context of new dynamic scope entries. Move entries from the
+   * stack into named entries in the dynamic scope, then evaluate the statements, then pop
+   * the dynamic scope
+   *
+   * @param names a list of dynamic scope names
+   * @param block a function that returns a list of statements to evaluate
+   */
+
+
+  function DynamicScope(names, block) {
+    return [op(59
+    /* PushDynamicScope */
+    ), op(58
+    /* BindDynamicScope */
+    , strArray(names)), block(), op(60
+    /* PopDynamicScope */
+    )];
+  }
+  /**
+   * Yield to a block located at a particular symbol location.
+   *
+   * @param to the symbol containing the block to yield to
+   * @param params optional block parameters to yield to the block
+   */
+
+
+  function YieldBlock(to, params) {
+    return [op('SimpleArgs', {
+      params,
+      hash: null,
+      atNames: true
+    }), op(24
+    /* GetBlock */
+    , to), op(25
+    /* JitSpreadBlock */
+    ), op('Option', op('JitCompileBlock')), op(64
+    /* InvokeYield */
+    ), op(40
+    /* PopScope */
+    ), op(1
+    /* PopFrame */
+    )];
+  }
+  /**
+   * Push an (optional) yieldable block onto the stack. The yieldable block must be known
+   * statically at compile time.
+   *
+   * @param block An optional Compilable block
+   */
+
+
+  function PushYieldableBlock(block) {
+    return [PushSymbolTable(block && block.symbolTable), op(62
+    /* PushBlockScope */
+    ), op('PushCompilable', block)];
+  }
+  /**
+   * Invoke a block that is known statically at compile time.
+   *
+   * @param block a Compilable block
+   */
+
+
+  function InvokeStaticBlock(block) {
+    return [op(0
+    /* PushFrame */
+    ), op('PushCompilable', block), op('JitCompileBlock'), op(2
+    /* InvokeVirtual */
+    ), op(1
+    /* PopFrame */
+    )];
+  }
+  /**
+   * Invoke a static block, preserving some number of stack entries for use in
+   * updating.
+   *
+   * @param block A compilable block
+   * @param callerCount A number of stack entries to preserve
+   */
+
+
+  function InvokeStaticBlockWithStack(block, callerCount) {
+    var {
+      parameters
+    } = block.symbolTable;
+    var calleeCount = parameters.length;
+    var count = Math.min(callerCount, calleeCount);
+
+    if (count === 0) {
+      return InvokeStaticBlock(block);
+    }
+
+    var out = [];
+    out.push(op(0
+    /* PushFrame */
+    ));
+
+    if (count) {
+      out.push(op(39
+      /* ChildScope */
+      ));
+
+      for (var i = 0; i < count; i++) {
+        out.push(op(33
+        /* Dup */
+        , _vm.$fp, callerCount - i));
+        out.push(op(19
+        /* SetVariable */
+        , parameters[i]));
+      }
+    }
+
+    out.push(op('PushCompilable', block));
+    out.push(op('JitCompileBlock'));
+    out.push(op(2
+    /* InvokeVirtual */
+    ));
+
+    if (count) {
+      out.push(op(40
+      /* PopScope */
+      ));
+    }
+
+    out.push(op(1
+    /* PopFrame */
+    ));
+    return out;
+  }
+
+  function PushSymbolTable(table) {
+    if (table) {
+      return op(63
+      /* PushSymbolTable */
+      , serializable(table));
+    } else {
+      return PushPrimitive(null);
+    }
   }
 
   function SwitchCases(callback) {
@@ -43987,111 +44210,6 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
         return out;
       }
     });
-  }
-  /**
-   * Push a reference onto the stack corresponding to a statically known primitive
-   * @param value A JavaScript primitive (undefined, null, boolean, number or string)
-   */
-
-
-  function PushPrimitiveReference(value) {
-    return [PushPrimitive(value), op(31
-    /* PrimitiveReference */
-    )];
-  }
-  /**
-   * Push an encoded representation of a JavaScript primitive on the stack
-   *
-   * @param value A JavaScript primitive (undefined, null, boolean, number or string)
-   */
-
-
-  function PushPrimitive(primitive) {
-    var p;
-
-    switch (typeof primitive) {
-      case 'number':
-        if ((0, _util.isSmallInt)(primitive)) {
-          p = prim(primitive, 0
-          /* IMMEDIATE */
-          );
-        } else {
-          p = prim(primitive, 2
-          /* NUMBER */
-          );
-        }
-
-        break;
-
-      case 'string':
-        p = prim(primitive, 1
-        /* STRING */
-        );
-        break;
-
-      case 'boolean':
-      case 'object': // assume null
-
-      case 'undefined':
-        p = prim(primitive, 0
-        /* IMMEDIATE */
-        );
-        break;
-
-      default:
-        throw new Error('Invalid primitive passed to pushPrimitive');
-    }
-
-    return op(30
-    /* Primitive */
-    , p);
-  }
-  /**
-   * Invoke a foreign function (a "helper") based on a statically known handle
-   *
-   * @param compile.handle A handle
-   * @param compile.params An optional list of expressions to compile
-   * @param compile.hash An optional list of named arguments (name + expression) to compile
-   */
-
-
-  function Call({
-    handle,
-    params,
-    hash
-  }) {
-    return [op(0
-    /* PushFrame */
-    ), op('SimpleArgs', {
-      params,
-      hash,
-      atNames: false
-    }), op(16
-    /* Helper */
-    , handle), op(1
-    /* PopFrame */
-    ), op(36
-    /* Fetch */
-    , _vm.$v0)];
-  }
-  /**
-   * Evaluate statements in the context of new dynamic scope entries. Move entries from the
-   * stack into named entries in the dynamic scope, then evaluate the statements, then pop
-   * the dynamic scope
-   *
-   * @param names a list of dynamic scope names
-   * @param block a function that returns a list of statements to evaluate
-   */
-
-
-  function DynamicScope(names, block) {
-    return [op(59
-    /* PushDynamicScope */
-    ), op(58
-    /* BindDynamicScope */
-    , strArray(names)), block(), op(60
-    /* PopDynamicScope */
-    )];
   }
 
   function pushBuilderOp(context, op$$1) {
@@ -44386,28 +44504,12 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
 
   class Compilers {
     constructor() {
-      this.names = (0, _util.dict)();
-    }
-
-    add(name, func) {
-      this.funcs.push(func);
-      this.names[name] = this.funcs.length - 1;
-    }
-
-  }
-
-  class StatementCompilers extends Compilers {
-    constructor() {
-      super(...arguments);
+      this.names = {};
       this.funcs = [];
     }
 
     add(name, func) {
-      // TODO: This is not ideal and could probably miss bugs. However, getting the type inference
-      // to work correctly here is critical to the correctness of expressions.ts and statements.ts
-      // so it seems worth it for now.
-      this.funcs.push(func);
-      this.names[name] = this.funcs.length - 1;
+      this.names[name] = this.funcs.push(func) - 1;
     }
 
     compile(sexp, meta) {
@@ -44419,24 +44521,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
 
   }
 
-  var ATTRS_BLOCK = '&attrs';
-
-  class ExpressionCompilers extends Compilers {
-    constructor() {
-      super(...arguments);
-      this.funcs = [];
-    }
-
-    compile(sexp, meta) {
-      var name = sexp[0];
-      var index = this.names[name];
-      var func = this.funcs[index];
-      return func(sexp, meta);
-    }
-
-  }
-
-  var EXPRESSIONS = new ExpressionCompilers();
+  var EXPRESSIONS = new Compilers();
   EXPRESSIONS.add(32
   /* Concat */
   , ([, parts]) => {
@@ -44690,7 +44775,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
 
     out.push(op(84
     /* PushArgs */
-    , strArray(names), flags));
+    , strArray(names), strArray(_util.EMPTY_ARRAY), flags));
     return out;
   }
 
@@ -45241,129 +45326,8 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
       meta
     };
   }
-  /**
-   * Yield to a block located at a particular symbol location.
-   *
-   * @param to the symbol containing the block to yield to
-   * @param params optional block parameters to yield to the block
-   */
 
-
-  function YieldBlock(to, params) {
-    return [op('SimpleArgs', {
-      params,
-      hash: null,
-      atNames: true
-    }), op(24
-    /* GetBlock */
-    , to), op(25
-    /* JitSpreadBlock */
-    ), op('Option', op('JitCompileBlock')), op(64
-    /* InvokeYield */
-    ), op(40
-    /* PopScope */
-    ), op(1
-    /* PopFrame */
-    )];
-  }
-  /**
-   * Push an (optional) yieldable block onto the stack. The yieldable block must be known
-   * statically at compile time.
-   *
-   * @param block An optional Compilable block
-   */
-
-
-  function PushYieldableBlock(block) {
-    return [PushSymbolTable(block && block.symbolTable), op(62
-    /* PushBlockScope */
-    ), op('PushCompilable', block)];
-  }
-  /**
-   * Invoke a block that is known statically at compile time.
-   *
-   * @param block a Compilable block
-   */
-
-
-  function InvokeStaticBlock(block) {
-    return [op(0
-    /* PushFrame */
-    ), op('PushCompilable', block), op('JitCompileBlock'), op(2
-    /* InvokeVirtual */
-    ), op(1
-    /* PopFrame */
-    )];
-  }
-  /**
-   * Invoke a static block, preserving some number of stack entries for use in
-   * updating.
-   *
-   * @param block A compilable block
-   * @param callerCount A number of stack entries to preserve
-   */
-
-
-  function InvokeStaticBlockWithStack(block, callerCount) {
-    var {
-      parameters
-    } = block.symbolTable;
-    var calleeCount = parameters.length;
-    var count = Math.min(callerCount, calleeCount);
-
-    if (count === 0) {
-      return InvokeStaticBlock(block);
-    }
-
-    var out = [];
-    out.push(op(0
-    /* PushFrame */
-    ));
-
-    if (count) {
-      out.push(op(39
-      /* ChildScope */
-      ));
-
-      for (var i = 0; i < count; i++) {
-        out.push(op(33
-        /* Dup */
-        , _vm.$fp, callerCount - i));
-        out.push(op(19
-        /* SetVariable */
-        , parameters[i]));
-      }
-    }
-
-    out.push(op('PushCompilable', block));
-    out.push(op('JitCompileBlock'));
-    out.push(op(2
-    /* InvokeVirtual */
-    ));
-
-    if (count) {
-      out.push(op(40
-      /* PopScope */
-      ));
-    }
-
-    out.push(op(1
-    /* PopFrame */
-    ));
-    return out;
-  }
-
-  function PushSymbolTable(table) {
-    if (table) {
-      return op(63
-      /* PushSymbolTable */
-      , serializable(table));
-    } else {
-      return PushPrimitive(null);
-    }
-  }
-
-  var STATEMENTS = new StatementCompilers();
+  var STATEMENTS = new Compilers();
   STATEMENTS.add(2
   /* Comment */
   , sexp => op(42
@@ -45636,6 +45600,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
   class NamedBlocksImpl {
     constructor(blocks) {
       this.blocks = blocks;
+      this.names = blocks ? Object.keys(blocks) : [];
     }
 
     get(name) {
@@ -45715,159 +45680,6 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
       }
 
     throw new Error(`${desc}, got ${JSON.stringify(expr)}`);
-  }
-
-  class WrappedBuilder {
-    constructor(layout) {
-      this.layout = layout;
-      this.compiled = null;
-      var {
-        block
-      } = layout;
-      var symbols = block.symbols.slice(); // ensure ATTRS_BLOCK is always included (only once) in the list of symbols
-
-      var attrsBlockIndex = symbols.indexOf(ATTRS_BLOCK);
-
-      if (attrsBlockIndex === -1) {
-        this.attrsBlockNumber = symbols.push(ATTRS_BLOCK);
-      } else {
-        this.attrsBlockNumber = attrsBlockIndex + 1;
-      }
-
-      this.symbolTable = {
-        hasEval: block.hasEval,
-        symbols
-      };
-    }
-
-    compile(syntax) {
-      if (this.compiled !== null) return this.compiled;
-      var m = meta(this.layout);
-      var context = templateCompilationContext(syntax, m);
-      var actions = WrappedComponent(this.layout, this.attrsBlockNumber);
-      concatStatements(context, actions);
-      var handle = context.encoder.commit(context.syntax.program.heap, m.size);
-
-      if (typeof handle !== 'number') {
-        return handle;
-      }
-
-      this.compiled = handle;
-      (0, _program.patchStdlibs)(context.syntax.program);
-      return handle;
-    }
-
-  }
-
-  _exports.WrappedBuilder = WrappedBuilder;
-  var clientId = 0;
-
-  function templateFactory({
-    id: templateId,
-    meta,
-    block
-  }) {
-    var parsedBlock;
-    var id = templateId || `client-${clientId++}`;
-
-    var create = envMeta => {
-      var newMeta = envMeta ? (0, _util.assign)({}, envMeta, meta) : meta;
-
-      if (!parsedBlock) {
-        parsedBlock = JSON.parse(block);
-      }
-
-      return new TemplateImpl({
-        id,
-        block: parsedBlock,
-        referrer: newMeta
-      });
-    };
-
-    return {
-      id,
-      meta,
-      create
-    };
-  }
-
-  class TemplateImpl {
-    constructor(parsedLayout) {
-      this.parsedLayout = parsedLayout;
-      this.result = 'ok';
-      this.layout = null;
-      this.partial = null;
-      this.wrappedLayout = null;
-      var {
-        block
-      } = parsedLayout;
-      this.symbols = block.symbols;
-      this.hasEval = block.hasEval;
-      this.referrer = parsedLayout.referrer;
-      this.id = parsedLayout.id || `client-${clientId++}`;
-    }
-
-    asLayout() {
-      if (this.layout) return this.layout;
-      return this.layout = compilable((0, _util.assign)({}, this.parsedLayout, {
-        asPartial: false
-      }));
-    }
-
-    asPartial() {
-      if (this.partial) return this.partial;
-      return this.layout = compilable((0, _util.assign)({}, this.parsedLayout, {
-        asPartial: true
-      }));
-    }
-
-    asWrappedLayout() {
-      if (this.wrappedLayout) return this.wrappedLayout;
-      return this.wrappedLayout = new WrappedBuilder((0, _util.assign)({}, this.parsedLayout, {
-        asPartial: false
-      }));
-    }
-
-  }
-
-  function Component(serialized, envMeta) {
-    var parsed = JSON.parse(serialized);
-    var factory = templateFactory(parsed);
-    var template = unwrapTemplate(factory.create(envMeta));
-    return template.asLayout();
-  }
-
-  function unwrapTemplate(template) {
-    if (template.result === 'error') {
-      throw new Error(`Compile Error: ${template.problem} @ ${template.span.start}..${template.span.end}`);
-    }
-
-    return template;
-  }
-
-  function unwrapHandle(handle) {
-    if (typeof handle === 'number') {
-      return handle;
-    } else {
-      var _error = handle.errors[0];
-      throw new Error(`Compile Error: ${_error.problem} @ ${_error.span.start}..${_error.span.end}`);
-    }
-  }
-
-  function extractHandle(handle) {
-    if (typeof handle === 'number') {
-      return handle;
-    } else {
-      return handle.handle;
-    }
-  }
-
-  function isOkHandle(handle) {
-    return typeof handle === 'number';
-  }
-
-  function isErrHandle(handle) {
-    return typeof handle === 'number';
   }
 
   function compileInline(sexp, context) {
@@ -46192,11 +46004,10 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
     atNames
   }) {
     var out = [];
+    var blockNames = blocks.names;
 
-    if (blocks.hasAny) {
-      out.push(PushYieldableBlock(blocks.get('default')));
-      out.push(PushYieldableBlock(blocks.get('else')));
-      out.push(PushYieldableBlock(blocks.get('attrs')));
+    for (var i = 0; i < blockNames.length; i++) {
+      out.push(PushYieldableBlock(blocks.get(blockNames[i])));
     }
 
     var {
@@ -46217,14 +46028,14 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
       names = hash[0];
       var val = hash[1];
 
-      for (var i = 0; i < val.length; i++) {
-        out.push(op('Expr', val[i]));
+      for (var _i = 0; _i < val.length; _i++) {
+        out.push(op('Expr', val[_i]));
       }
     }
 
     out.push(op(84
     /* PushArgs */
-    , strArray(names), flags));
+    , strArray(names), strArray(blockNames), flags));
     return out;
   }
   /**
@@ -46268,6 +46079,8 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
     } = layout;
     return block.hasEval ? block.symbols : null;
   }
+
+  var ATTRS_BLOCK = '&attrs';
 
   function StaticComponentHelper(context, tag, hash, template) {
     var component = resolveLayoutForTag(tag, context);
@@ -46442,11 +46255,11 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
     /* RootScope */
     , symbols.length + 1, Object.keys(blocks).length > 0 ? 1 : 0));
 
-    for (var _i = bindings.length - 1; _i >= 0; _i--) {
+    for (var _i2 = bindings.length - 1; _i2 >= 0; _i2--) {
       var {
         symbol: _symbol,
         isBlock
-      } = bindings[_i];
+      } = bindings[_i2];
 
       if (isBlock) {
         out.push(op('SetBlock', _symbol));
@@ -46564,7 +46377,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
       return [op(80
       /* PushComponentDefinition */
       , handle), InvokeStaticComponent({
-        capabilities: capabilities || _runtime.MINIMAL_CAPABILITIES,
+        capabilities: capabilities || MINIMAL_CAPABILITIES,
         layout: compilable$$1,
         attrs: null,
         params,
@@ -46575,7 +46388,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
       return [op(80
       /* PushComponentDefinition */
       , handle), InvokeComponent({
-        capabilities: capabilities || _runtime.MINIMAL_CAPABILITIES,
+        capabilities: capabilities || MINIMAL_CAPABILITIES,
         attrs: null,
         params,
         hash,
@@ -46887,7 +46700,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
 
   _exports.JitProgramCompilationContext = JitProgramCompilationContext;
 
-  class PartialDefinition {
+  class PartialDefinitionImpl {
     constructor(name, // for debugging
     template) {
       this.name = name;
@@ -46895,7 +46708,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
     }
 
     getPartial(context) {
-      var partial = unwrapTemplate(this.template).asPartial();
+      var partial = (0, _util.unwrapTemplate)(this.template).asPartial();
       var handle = partial.compile(context);
       return {
         symbolTable: partial.symbolTable,
@@ -46905,7 +46718,127 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/program"
 
   }
 
-  _exports.PartialDefinition = PartialDefinition;
+  _exports.PartialDefinitionImpl = PartialDefinitionImpl;
+
+  class WrappedBuilder {
+    constructor(layout) {
+      this.layout = layout;
+      this.compiled = null;
+      var {
+        block
+      } = layout;
+      var symbols = block.symbols.slice(); // ensure ATTRS_BLOCK is always included (only once) in the list of symbols
+
+      var attrsBlockIndex = symbols.indexOf(ATTRS_BLOCK);
+
+      if (attrsBlockIndex === -1) {
+        this.attrsBlockNumber = symbols.push(ATTRS_BLOCK);
+      } else {
+        this.attrsBlockNumber = attrsBlockIndex + 1;
+      }
+
+      this.symbolTable = {
+        hasEval: block.hasEval,
+        symbols
+      };
+    }
+
+    compile(syntax) {
+      if (this.compiled !== null) return this.compiled;
+      var m = meta(this.layout);
+      var context = templateCompilationContext(syntax, m);
+      var actions = WrappedComponent(this.layout, this.attrsBlockNumber);
+      concatStatements(context, actions);
+      var handle = context.encoder.commit(context.syntax.program.heap, m.size);
+
+      if (typeof handle !== 'number') {
+        return handle;
+      }
+
+      this.compiled = handle;
+      (0, _program.patchStdlibs)(context.syntax.program);
+      return handle;
+    }
+
+  }
+
+  _exports.WrappedBuilder = WrappedBuilder;
+  var clientId = 0;
+
+  function templateFactory({
+    id: templateId,
+    meta,
+    block
+  }) {
+    var parsedBlock;
+    var id = templateId || `client-${clientId++}`;
+
+    var create = envMeta => {
+      var newMeta = envMeta ? (0, _util.assign)({}, envMeta, meta) : meta;
+
+      if (!parsedBlock) {
+        parsedBlock = JSON.parse(block);
+      }
+
+      return new TemplateImpl({
+        id,
+        block: parsedBlock,
+        referrer: newMeta
+      });
+    };
+
+    return {
+      id,
+      meta,
+      create
+    };
+  }
+
+  class TemplateImpl {
+    constructor(parsedLayout) {
+      this.parsedLayout = parsedLayout;
+      this.result = 'ok';
+      this.layout = null;
+      this.partial = null;
+      this.wrappedLayout = null;
+      var {
+        block
+      } = parsedLayout;
+      this.symbols = block.symbols;
+      this.hasEval = block.hasEval;
+      this.referrer = parsedLayout.referrer;
+      this.id = parsedLayout.id || `client-${clientId++}`;
+    }
+
+    asLayout() {
+      if (this.layout) return this.layout;
+      return this.layout = compilable((0, _util.assign)({}, this.parsedLayout, {
+        asPartial: false
+      }));
+    }
+
+    asPartial() {
+      if (this.partial) return this.partial;
+      return this.layout = compilable((0, _util.assign)({}, this.parsedLayout, {
+        asPartial: true
+      }));
+    }
+
+    asWrappedLayout() {
+      if (this.wrappedLayout) return this.wrappedLayout;
+      return this.wrappedLayout = new WrappedBuilder((0, _util.assign)({}, this.parsedLayout, {
+        asPartial: false
+      }));
+    }
+
+  }
+
+  function Component(serialized, envMeta) {
+    var parsed = JSON.parse(serialized);
+    var factory = templateFactory(parsed);
+    var template = (0, _util.unwrapTemplate)(factory.create(envMeta));
+    return template.asLayout();
+  }
 });
 define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _util) {
   "use strict";
@@ -47539,9 +47472,7 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
     value: true
   });
   _exports.isModified = isModified;
-  _exports.State = State;
-  _exports.StableState = StableState;
-  _exports.IterableImpl = _exports.UpdatableRootReference = _exports.IterationItemReference = _exports.PropertyReference = _exports.HelperRootReference = _exports.ComponentRootReference = _exports.RootReference = _exports.UPDATE_REFERENCED_VALUE = _exports.IteratorSynchronizer = _exports.ReferenceIterator = _exports.IterationArtifacts = _exports.END = _exports.ListItem = _exports.ConstReference = _exports.ReferenceCache = _exports.CachedReference = void 0;
+  _exports.IterableImpl = _exports.IterationItemReference = _exports.PropertyReference = _exports.HelperRootReference = _exports.ComponentRootReference = _exports.RootReference = _exports.UPDATE_REFERENCED_VALUE = _exports.IteratorSynchronizer = _exports.ReferenceIterator = _exports.IterationArtifacts = _exports.END = _exports.ListItem = _exports.ConstReference = _exports.ReferenceCache = _exports.CachedReference = void 0;
 
   class CachedReference {
     constructor() {
@@ -47556,9 +47487,9 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
         lastValue
       } = this;
 
-      if (lastRevision === null || !(0, _validator.validate)(tag, lastRevision)) {
+      if (lastRevision === null || !(0, _validator.validateTag)(tag, lastRevision)) {
         lastValue = this.lastValue = this.compute();
-        this.lastRevision = (0, _validator.value)(tag);
+        this.lastRevision = (0, _validator.valueForTag)(tag);
       }
 
       return lastValue;
@@ -47600,12 +47531,12 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
         lastRevision
       } = this;
       var tag = reference.tag;
-      if ((0, _validator.validate)(tag, lastRevision)) return NOT_MODIFIED;
+      if ((0, _validator.validateTag)(tag, lastRevision)) return NOT_MODIFIED;
       var {
         lastValue
       } = this;
       var currentValue = reference.value();
-      this.lastRevision = (0, _validator.value)(tag);
+      this.lastRevision = (0, _validator.valueForTag)(tag);
       if (currentValue === lastValue) return NOT_MODIFIED;
       this.lastValue = currentValue;
       return currentValue;
@@ -47616,7 +47547,7 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
         reference
       } = this;
       var currentValue = this.lastValue = reference.value();
-      this.lastRevision = (0, _validator.value)(reference.tag);
+      this.lastRevision = (0, _validator.valueForTag)(reference.tag);
       this.initialized = true;
       return currentValue;
     }
@@ -47626,8 +47557,8 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
   _exports.ReferenceCache = ReferenceCache;
   var NOT_MODIFIED = (0, _util.symbol)('NOT_MODIFIED');
 
-  function isModified(value$$1) {
-    return value$$1 !== NOT_MODIFIED;
+  function isModified(value) {
+    return value !== NOT_MODIFIED;
   }
 
   class PrimitiveReference {
@@ -48107,15 +48038,15 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
         // If the args are constant, and the first computation is constant, then
         // the helper itself is constant and will never update.
         tag = this.tag = _validator.CONSTANT_TAG;
-        this.computeRevision = (0, _validator.value)(tag);
+        this.computeRevision = (0, _validator.valueForTag)(tag);
       } else {
         var valueTag = this.valueTag = (0, _validator.createUpdatableTag)();
         tag = this.tag = (0, _validator.combine)([args.tag, valueTag]);
 
         if (computeTag !== null) {
           // We computed once, so setup the cache state correctly
-          (0, _validator.update)(valueTag, computeTag);
-          this.computeRevision = (0, _validator.value)(tag);
+          (0, _validator.updateTag)(valueTag, computeTag);
+          this.computeRevision = (0, _validator.valueForTag)(tag);
         }
       }
     }
@@ -48134,10 +48065,10 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
         computeRevision
       } = this;
 
-      if (computeRevision === null || !(0, _validator.validate)(tag, computeRevision)) {
+      if (computeRevision === null || !(0, _validator.validateTag)(tag, computeRevision)) {
         this.compute();
-        (0, _validator.update)(this.valueTag, this.computeTag);
-        this.computeRevision = (0, _validator.value)(tag);
+        (0, _validator.updateTag)(this.valueTag, this.computeTag);
+        this.computeRevision = (0, _validator.valueForTag)(tag);
       }
 
       return this.computeValue;
@@ -48185,7 +48116,7 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
         propertyKey
       } = this;
 
-      if (lastRevision === null || !(0, _validator.validate)(tag, lastRevision)) {
+      if (lastRevision === null || !(0, _validator.validateTag)(tag, lastRevision)) {
         var parentValue = parentReference.value();
 
         if ((0, _util.isDict)(parentValue)) {
@@ -48194,13 +48125,13 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
           }, true
           /* DEBUG */
           && this.env.getTemplatePathDebugContext(this));
-          (0, _validator.update)(valueTag, combined);
+          (0, _validator.updateTag)(valueTag, combined);
         } else {
           lastValue = undefined;
         }
 
         this.lastValue = lastValue;
-        this.lastRevision = (0, _validator.value)(tag);
+        this.lastRevision = (0, _validator.valueForTag)(tag);
       }
 
       return lastValue;
@@ -48225,13 +48156,13 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
       }
     }
 
-    [UPDATE_REFERENCED_VALUE](value$$1) {
+    [UPDATE_REFERENCED_VALUE](value) {
       var {
         parentReference,
         propertyKey
       } = this;
       var parentValue = parentReference.value();
-      this.env.setPath(parentValue, propertyKey, value$$1);
+      this.env.setPath(parentValue, propertyKey, value);
     }
 
   } //////////
@@ -48274,9 +48205,9 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
       return this.itemValue;
     }
 
-    update(value$$1) {
-      (0, _validator.dirty)(this.tag);
-      this.itemValue = value$$1;
+    update(value) {
+      (0, _validator.dirtyTag)(this.tag);
+      this.itemValue = value;
     }
 
     get(key) {
@@ -48299,89 +48230,8 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
     }
 
   }
-  /**
-   * UpdatableRootReferences aren't directly related to templates, but they are
-   * currently used in tests and the `State` helper used for embedding.
-   */
-
 
   _exports.IterationItemReference = IterationItemReference;
-
-  class UpdatableRootReference extends RootReference {
-    constructor(inner, env = DEFAULT_TEMPLATE_REF_ENV) {
-      super(env);
-      this.inner = inner;
-      this.tag = (0, _validator.createUpdatableTag)();
-    }
-
-    value() {
-      return this.inner;
-    }
-
-    update(value$$1) {
-      var {
-        inner
-      } = this;
-
-      if (value$$1 !== inner) {
-        (0, _validator.dirty)(this.tag);
-        this.inner = value$$1;
-      }
-    }
-
-    forceUpdate(value$$1) {
-      (0, _validator.dirty)(this.tag);
-      this.inner = value$$1;
-    }
-
-    dirty() {
-      (0, _validator.dirty)(this.tag);
-    }
-
-    getDebugPath() {
-      return 'this';
-    }
-
-  }
-
-  _exports.UpdatableRootReference = UpdatableRootReference;
-  var DEFAULT_TEMPLATE_REF_ENV = {
-    toIterator() {
-      return null;
-    },
-
-    getPath(obj, key) {
-      return obj[key];
-    },
-
-    setPath(obj, key, value$$1) {
-      return obj[key] = value$$1;
-    },
-
-    getTemplatePathDebugContext() {
-      return '';
-    },
-
-    setTemplatePathDebugContext() {}
-
-  };
-
-  function State(data) {
-    return new UpdatableRootReference(data, DEFAULT_TEMPLATE_REF_ENV);
-  }
-
-  var STABLE_STATE = new WeakMap();
-
-  function StableState(data) {
-    if (STABLE_STATE.has(data)) {
-      return STABLE_STATE.get(data);
-    } else {
-      var ref = new UpdatableRootReference(data, DEFAULT_TEMPLATE_REF_ENV);
-      STABLE_STATE.set(data, ref);
-      return ref;
-    }
-  }
-
   var NULL_IDENTITY = {};
 
   var KEY = (_, index) => index;
@@ -48402,7 +48252,7 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
     if (true
     /* DEBUG */
     && path[0] === '@') {
-      throw new Error(`invalid keypath: '${keyForPath}'`);
+      throw new Error(`invalid keypath: '${path}', valid keys: @index, @identity, or a path`);
     }
 
     return uniqueKeyFor(item => getPath(item, path));
@@ -48441,11 +48291,11 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
       return this._primitiveMap;
     }
 
-    set(key, value$$1) {
+    set(key, value) {
       if ((0, _util.isObject)(key) || typeof key === 'function') {
-        this.weakMap.set(key, value$$1);
+        this.weakMap.set(key, value);
       } else {
-        this.primitiveMap.set(key, value$$1);
+        this.primitiveMap.set(key, value);
       }
     }
 
@@ -48461,19 +48311,19 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
 
   var IDENTITIES = new WeakMapWithPrimitives();
 
-  function identityForNthOccurence(value$$1, count) {
-    var identities = IDENTITIES.get(value$$1);
+  function identityForNthOccurence(value, count) {
+    var identities = IDENTITIES.get(value);
 
     if (identities === undefined) {
       identities = [];
-      IDENTITIES.set(value$$1, identities);
+      IDENTITIES.set(value, identities);
     }
 
     var identity = identities[count];
 
     if (identity === undefined) {
       identity = {
-        value: value$$1,
+        value,
         count
       };
       identities[count] = identity;
@@ -48500,9 +48350,9 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
 
   function uniqueKeyFor(keyFor) {
     var seen = new WeakMapWithPrimitives();
-    return (value$$1, memo) => {
-      var key = keyFor(value$$1, memo);
-      var count = seen.get(value$$1) || 0;
+    return (value, memo) => {
+      var key = keyFor(value, memo);
+      var count = seen.get(value) || 0;
       seen.set(key, count + 1);
 
       if (count === 0) {
@@ -48618,35 +48468,35 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
     }
 
     next() {
-      var value$$1;
+      var value;
       var current = this.current;
 
       if (current.kind === 'first') {
         this.current = {
           kind: 'progress'
         };
-        value$$1 = current.value;
+        value = current.value;
       } else if (this.pos >= this.iterator.length - 1) {
         return null;
       } else {
-        value$$1 = this.iterator[++this.pos];
+        value = this.iterator[++this.pos];
       }
 
       var {
         keyFor
       } = this;
-      var key = keyFor(value$$1, this.pos);
+      var key = keyFor(value, this.pos);
       var memo = this.pos;
       return {
         key,
-        value: value$$1,
+        value,
         memo
       };
     }
 
   }
 });
-define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@glimmer/program", "@glimmer/vm", "@glimmer/validator", "@glimmer/opcode-compiler", "@glimmer/runtime", "@glimmer/low-level"], function (_exports, _util, _reference, _program, _vm2, _validator, _opcodeCompiler, _runtime, _lowLevel) {
+define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@glimmer/program", "@glimmer/vm", "@glimmer/validator", "@glimmer/low-level"], function (_exports, _util, _reference, _program, _vm2, _validator, _lowLevel) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -48662,8 +48512,6 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   _exports.isWhitespace = isWhitespace;
   _exports.normalizeProperty = normalizeProperty;
   _exports.AotRuntime = AotRuntime;
-  _exports.CustomJitRuntime = CustomJitRuntime;
-  _exports.JitRuntimeFromProgram = JitRuntimeFromProgram;
   _exports.JitRuntime = JitRuntime;
   _exports.inTransaction = inTransaction;
   _exports.getDynamicVar = getDynamicVar;
@@ -48678,7 +48526,6 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   _exports.isSerializationFirstNode = isSerializationFirstNode;
   _exports.rehydrationBuilder = rehydrationBuilder;
   _exports.TEMPLATE_ONLY_COMPONENT = _exports.SimpleComponentManager = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.RehydrateBuilder = _exports.RemoteLiveBlock = _exports.UpdatableBlockImpl = _exports.NewElementBuilder = _exports.SimpleDynamicAttribute = _exports.DynamicAttribute = _exports.CapturedPositionalArgumentsImpl = _exports.CapturedNamedArgumentsImpl = _exports.CapturedArgumentsImpl = _exports.EMPTY_ARGS = _exports.LowLevelVM = _exports.UpdatingVM = _exports.UNDEFINED_REFERENCE = _exports.PrimitiveReference = _exports.NULL_REFERENCE = _exports.ConditionalReference = _exports.ScopeImpl = _exports.EnvironmentImpl = _exports.DefaultDynamicScope = _exports.DOMTreeConstruction = _exports.IDOMChanges = _exports.DOMChanges = _exports.MINIMAL_CAPABILITIES = _exports.DEFAULT_CAPABILITIES = _exports.CurriedComponentDefinition = _exports.CursorImpl = _exports.ConcreteBounds = void 0;
-  // These symbols represent "friend" properties that are used inside of
   // the VM in other classes, but are not intended to be a part of
   // Glimmer's API.
   var INNER_VM = (0, _util.symbol)('INNER_VM');
@@ -49055,36 +48902,36 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return this.dom.insertHTMLBefore(this.element, this.nextSibling, html);
     }
 
-    appendDynamicHTML(value$$1) {
-      var bounds = this.trustedContent(value$$1);
+    appendDynamicHTML(value) {
+      var bounds = this.trustedContent(value);
       this.didAppendBounds(bounds);
     }
 
-    appendDynamicText(value$$1) {
-      var node = this.untrustedContent(value$$1);
+    appendDynamicText(value) {
+      var node = this.untrustedContent(value);
       this.didAppendNode(node);
       return node;
     }
 
-    appendDynamicFragment(value$$1) {
-      var bounds = this.__appendFragment(value$$1);
+    appendDynamicFragment(value) {
+      var bounds = this.__appendFragment(value);
 
       this.didAppendBounds(bounds);
     }
 
-    appendDynamicNode(value$$1) {
-      var node = this.__appendNode(value$$1);
+    appendDynamicNode(value) {
+      var node = this.__appendNode(value);
 
       var bounds = new SingleNodeBounds(this.element, node);
       this.didAppendBounds(bounds);
     }
 
-    trustedContent(value$$1) {
-      return this.__appendHTML(value$$1);
+    trustedContent(value) {
+      return this.__appendHTML(value);
     }
 
-    untrustedContent(value$$1) {
-      return this.__appendText(value$$1);
+    untrustedContent(value) {
+      return this.__appendText(value);
     }
 
     appendComment(string) {
@@ -49102,22 +48949,22 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return node;
     }
 
-    __setAttribute(name, value$$1, namespace) {
-      this.dom.setAttribute(this.constructing, name, value$$1, namespace);
+    __setAttribute(name, value, namespace) {
+      this.dom.setAttribute(this.constructing, name, value, namespace);
     }
 
-    __setProperty(name, value$$1) {
-      this.constructing[name] = value$$1;
+    __setProperty(name, value) {
+      this.constructing[name] = value;
     }
 
-    setStaticAttribute(name, value$$1, namespace) {
-      this.__setAttribute(name, value$$1, namespace);
+    setStaticAttribute(name, value, namespace) {
+      this.__setAttribute(name, value, namespace);
     }
 
-    setDynamicAttribute(name, value$$1, trusting, namespace) {
+    setDynamicAttribute(name, value, trusting, namespace) {
       var element = this.constructing;
       var attribute = this.env.attributeFor(element, name, trusting, namespace);
-      attribute.set(this, value$$1, this.env);
+      attribute.set(this, value, this.env);
       return attribute;
     }
 
@@ -49564,11 +49411,11 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         return this.document.createElementNS(namespace, tag);
       }
 
-      setAttribute(element, name, value$$1, namespace = null) {
+      setAttribute(element, name, value, namespace = null) {
         if (namespace) {
-          element.setAttributeNS(namespace, name, value$$1);
+          element.setAttributeNS(namespace, name, value);
         } else {
-          element.setAttribute(name, value$$1);
+          element.setAttribute(name, value);
         }
       }
 
@@ -49590,8 +49437,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.namespace = null;
     }
 
-    setAttribute(element, name, value$$1) {
-      element.setAttribute(name, value$$1);
+    setAttribute(element, name, value) {
+      element.setAttribute(name, value);
     }
 
     removeAttribute(element, name) {
@@ -49615,25 +49462,25 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   var DOMTreeConstruction = DOM.DOMTreeConstruction;
   _exports.DOMTreeConstruction = DOMTreeConstruction;
 
-  class PrimitiveReference$1 extends _reference.ConstReference {
-    constructor(value$$1) {
-      super(value$$1);
+  class PrimitiveReference extends _reference.ConstReference {
+    static create(value) {
+      if (value === undefined) {
+        return UNDEFINED_REFERENCE;
+      } else if (value === null) {
+        return NULL_REFERENCE;
+      } else if (value === true) {
+        return TRUE_REFERENCE;
+      } else if (value === false) {
+        return FALSE_REFERENCE;
+      } else if (typeof value === 'number') {
+        return new ValueReference(value);
+      } else {
+        return new StringReference(value);
+      }
     }
 
-    static create(value$$1) {
-      if (value$$1 === undefined) {
-        return UNDEFINED_REFERENCE;
-      } else if (value$$1 === null) {
-        return NULL_REFERENCE;
-      } else if (value$$1 === true) {
-        return TRUE_REFERENCE;
-      } else if (value$$1 === false) {
-        return FALSE_REFERENCE;
-      } else if (typeof value$$1 === 'number') {
-        return new ValueReference(value$$1);
-      } else {
-        return new StringReference(value$$1);
-      }
+    constructor(value) {
+      super(value);
     }
 
     get(_key) {
@@ -49642,9 +49489,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
   }
 
-  _exports.PrimitiveReference = PrimitiveReference$1;
+  _exports.PrimitiveReference = PrimitiveReference;
 
-  class StringReference extends PrimitiveReference$1 {
+  class StringReference extends PrimitiveReference {
     constructor() {
       super(...arguments);
       this.lengthReference = null;
@@ -49668,9 +49515,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
   }
 
-  class ValueReference extends PrimitiveReference$1 {
-    constructor(value$$1) {
-      super(value$$1);
+  class ValueReference extends PrimitiveReference {
+    constructor(value) {
+      super(value);
     }
 
   }
@@ -49697,40 +49544,40 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
   _exports.ConditionalReference = ConditionalReference;
 
-  function defaultToBool(value$$1) {
-    return !!value$$1;
+  function defaultToBool(value) {
+    return !!value;
   }
 
-  function normalizeStringValue(value$$1) {
-    if (isEmpty(value$$1)) {
+  function normalizeStringValue(value) {
+    if (isEmpty(value)) {
       return '';
     }
 
-    return String(value$$1);
+    return String(value);
   }
 
-  function shouldCoerce(value$$1) {
-    return isString(value$$1) || isEmpty(value$$1) || typeof value$$1 === 'boolean' || typeof value$$1 === 'number';
+  function shouldCoerce(value) {
+    return isString(value) || isEmpty(value) || typeof value === 'boolean' || typeof value === 'number';
   }
 
-  function isEmpty(value$$1) {
-    return value$$1 === null || value$$1 === undefined || typeof value$$1.toString !== 'function';
+  function isEmpty(value) {
+    return value === null || value === undefined || typeof value.toString !== 'function';
   }
 
-  function isSafeString(value$$1) {
-    return typeof value$$1 === 'object' && value$$1 !== null && typeof value$$1.toHTML === 'function';
+  function isSafeString(value) {
+    return typeof value === 'object' && value !== null && typeof value.toHTML === 'function';
   }
 
-  function isNode(value$$1) {
-    return typeof value$$1 === 'object' && value$$1 !== null && typeof value$$1.nodeType === 'number';
+  function isNode(value) {
+    return typeof value === 'object' && value !== null && typeof value.nodeType === 'number';
   }
 
-  function isFragment(value$$1) {
-    return isNode(value$$1) && value$$1.nodeType === 11;
+  function isFragment(value) {
+    return isNode(value) && value.nodeType === 11;
   }
 
-  function isString(value$$1) {
-    return typeof value$$1 === 'string';
+  function isString(value) {
+    return typeof value === 'string';
   }
   /*
    * @method normalizeProperty
@@ -49766,8 +49613,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       normalized,
       type
     };
-  } // properties that MUST be set as attributes, due to:
-  // * browser bug
+  } // * browser bug
   // * strange spec outlier
 
 
@@ -49838,15 +49684,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     return checkURI(tagName, attribute) || checkDataURI(tagName, attribute);
   }
 
-  function sanitizeAttributeValue(env, element, attribute, value$$1) {
+  function sanitizeAttributeValue(env, element, attribute, value) {
     var tagName = null;
 
-    if (value$$1 === null || value$$1 === undefined) {
-      return value$$1;
+    if (value === null || value === undefined) {
+      return value;
     }
 
-    if (isSafeString(value$$1)) {
-      return value$$1.toHTML();
+    if (isSafeString(value)) {
+      return value.toHTML();
     }
 
     if (!element) {
@@ -49855,7 +49701,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       tagName = element.tagName.toUpperCase();
     }
 
-    var str = normalizeStringValue(value$$1);
+    var str = normalizeStringValue(value);
 
     if (checkURI(tagName, attribute)) {
       var protocol = env.protocolForURL(str);
@@ -49935,8 +49781,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   _exports.DynamicAttribute = DynamicAttribute;
 
   class SimpleDynamicAttribute extends DynamicAttribute {
-    set(dom, value$$1, _env) {
-      var normalizedValue = normalizeValue(value$$1);
+    set(dom, value, _env) {
+      var normalizedValue = normalizeValue(value);
 
       if (normalizedValue !== null) {
         var {
@@ -49948,8 +49794,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       }
     }
 
-    update(value$$1, _env) {
-      var normalizedValue = normalizeValue(value$$1);
+    update(value, _env) {
+      var normalizedValue = normalizeValue(value);
       var {
         element,
         name
@@ -49972,23 +49818,23 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.normalizedName = normalizedName;
     }
 
-    set(dom, value$$1, _env) {
-      if (value$$1 !== null && value$$1 !== undefined) {
-        this.value = value$$1;
+    set(dom, value, _env) {
+      if (value !== null && value !== undefined) {
+        this.value = value;
 
-        dom.__setProperty(this.normalizedName, value$$1);
+        dom.__setProperty(this.normalizedName, value);
       }
     }
 
-    update(value$$1, _env) {
+    update(value, _env) {
       var {
         element
       } = this.attribute;
 
-      if (this.value !== value$$1) {
-        element[this.normalizedName] = this.value = value$$1;
+      if (this.value !== value) {
+        element[this.normalizedName] = this.value = value;
 
-        if (value$$1 === null || value$$1 === undefined) {
+        if (value === null || value === undefined) {
           this.removeAttribute();
         }
       }
@@ -50012,56 +49858,56 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }
 
   class SafeDynamicProperty extends DefaultDynamicProperty {
-    set(dom, value$$1, env) {
+    set(dom, value, env) {
       var {
         element,
         name
       } = this.attribute;
-      var sanitized = sanitizeAttributeValue(env, element, name, value$$1);
+      var sanitized = sanitizeAttributeValue(env, element, name, value);
       super.set(dom, sanitized, env);
     }
 
-    update(value$$1, env) {
+    update(value, env) {
       var {
         element,
         name
       } = this.attribute;
-      var sanitized = sanitizeAttributeValue(env, element, name, value$$1);
+      var sanitized = sanitizeAttributeValue(env, element, name, value);
       super.update(sanitized, env);
     }
 
   }
 
   class SafeDynamicAttribute extends SimpleDynamicAttribute {
-    set(dom, value$$1, env) {
+    set(dom, value, env) {
       var {
         element,
         name
       } = this.attribute;
-      var sanitized = sanitizeAttributeValue(env, element, name, value$$1);
+      var sanitized = sanitizeAttributeValue(env, element, name, value);
       super.set(dom, sanitized, env);
     }
 
-    update(value$$1, env) {
+    update(value, env) {
       var {
         element,
         name
       } = this.attribute;
-      var sanitized = sanitizeAttributeValue(env, element, name, value$$1);
+      var sanitized = sanitizeAttributeValue(env, element, name, value);
       super.update(sanitized, env);
     }
 
   }
 
   class InputValueDynamicAttribute extends DefaultDynamicProperty {
-    set(dom, value$$1) {
-      dom.__setProperty('value', normalizeStringValue(value$$1));
+    set(dom, value) {
+      dom.__setProperty('value', normalizeStringValue(value));
     }
 
-    update(value$$1) {
+    update(value) {
       var input = this.attribute.element;
       var currentValue = input.value;
-      var normalizedValue = normalizeStringValue(value$$1);
+      var normalizedValue = normalizeStringValue(value);
 
       if (currentValue !== normalizedValue) {
         input.value = normalizedValue;
@@ -50071,16 +49917,16 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }
 
   class OptionSelectedDynamicAttribute extends DefaultDynamicProperty {
-    set(dom, value$$1) {
-      if (value$$1 !== null && value$$1 !== undefined && value$$1 !== false) {
+    set(dom, value) {
+      if (value !== null && value !== undefined && value !== false) {
         dom.__setProperty('selected', true);
       }
     }
 
-    update(value$$1) {
+    update(value) {
       var option = this.attribute.element;
 
-      if (value$$1) {
+      if (value) {
         option.selected = true;
       } else {
         option.selected = false;
@@ -50097,21 +49943,21 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     return (tagName === 'INPUT' || tagName === 'TEXTAREA') && attribute === 'value';
   }
 
-  function normalizeValue(value$$1) {
-    if (value$$1 === false || value$$1 === undefined || value$$1 === null || typeof value$$1.toString === 'undefined') {
+  function normalizeValue(value) {
+    if (value === false || value === undefined || value === null || typeof value.toString === 'undefined') {
       return null;
     }
 
-    if (value$$1 === true) {
+    if (value === true) {
       return '';
     } // onclick function etc in SSR
 
 
-    if (typeof value$$1 === 'function') {
+    if (typeof value === 'function') {
       return null;
     }
 
-    return String(value$$1);
+    return String(value);
   }
 
   var _a$1;
@@ -50177,20 +50023,20 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return this.partialMap;
     }
 
-    bind(symbol$$1, value$$1) {
-      this.set(symbol$$1, value$$1);
+    bind(symbol$$1, value) {
+      this.set(symbol$$1, value);
     }
 
     bindSelf(self) {
       this.set(0, self);
     }
 
-    bindSymbol(symbol$$1, value$$1) {
-      this.set(symbol$$1, value$$1);
+    bindSymbol(symbol$$1, value) {
+      this.set(symbol$$1, value);
     }
 
-    bindBlock(symbol$$1, value$$1) {
-      this.set(symbol$$1, value$$1);
+    bindBlock(symbol$$1, value) {
+      this.set(symbol$$1, value);
     }
 
     bindEvalScope(map) {
@@ -50221,12 +50067,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return this.slots[index];
     }
 
-    set(index, value$$1) {
+    set(index, value) {
       if (index >= this.slots.length) {
         throw new RangeError(`BUG: cannot get $${index} from scope; length=${this.slots.length}`);
       }
 
-      this.slots[index] = value$$1;
+      this.slots[index] = value;
     }
 
   }
@@ -50362,14 +50208,16 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.toBool = defaultDelegateFn(this.delegate.toBool, defaultToBool$1);
       this.toIterator = defaultDelegateFn(this.delegate.toIterator, defaultToIterator);
 
-      if (options.appendOperations && options.updateOperations) {
+      if (options.appendOperations) {
         this.appendOperations = options.appendOperations;
         this.updateOperations = options.updateOperations;
       } else if (options.document) {
         this.appendOperations = new DOMTreeConstruction(options.document);
         this.updateOperations = new DOMChangesImpl(options.document);
-      } else {
-        throw new Error('you must pass a document or append and update operations to a new runtime');
+      } else if (true
+      /* DEBUG */
+      ) {
+        throw new Error('you must pass document or appendOperations to a new runtime');
       }
     }
 
@@ -50480,17 +50328,17 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     return obj[key];
   }
 
-  function defaultSetPath(obj, key, value$$1) {
-    return obj[key] = value$$1;
+  function defaultSetPath(obj, key, value) {
+    return obj[key] = value;
   }
 
-  function defaultToBool$1(value$$1) {
-    return Boolean(value$$1);
+  function defaultToBool$1(value) {
+    return Boolean(value);
   }
 
-  function defaultToIterator(value$$1) {
-    if (value$$1 && value$$1[Symbol.iterator]) {
-      return value$$1[Symbol.iterator]();
+  function defaultToIterator(value) {
+    if (value && value[Symbol.iterator]) {
+      return value[Symbol.iterator]();
     }
 
     return null;
@@ -50591,37 +50439,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       resolver: new DefaultRuntimeResolver(resolver),
       program: _program.RuntimeProgramImpl.hydrate(program)
     };
-  } // TODO: There are a lot of variants here. Some are here for transitional purposes
-  // and some might be GCable once the design stabilizes.
-
-
-  function CustomJitRuntime(resolver, context, env) {
-    var program = new _program.RuntimeProgramImpl(context.program.constants, context.program.heap);
-    return {
-      env,
-      resolver: new DefaultRuntimeResolver(resolver),
-      program
-    };
   }
 
-  function JitRuntime(options, resolver = {}, delegate = {}) {
-    var env = new EnvironmentImpl(options, delegate);
-    var constants = new _program.JitConstants();
-    var heap = new _program.HeapImpl();
-    var program = new _program.RuntimeProgramImpl(constants, heap);
+  function JitRuntime(options, delegate = {}, context, resolver = {}) {
     return {
-      env,
-      resolver: new DefaultRuntimeResolver(resolver),
-      program
-    };
-  }
-
-  function JitRuntimeFromProgram(options, program, resolver = {}, delegate = {}) {
-    var env = new EnvironmentImpl(options, delegate);
-    return {
-      env,
-      resolver: new DefaultRuntimeResolver(resolver),
-      program
+      env: new EnvironmentImpl(options, delegate),
+      program: new _program.RuntimeProgramImpl(context.program.constants, context.program.heap),
+      resolver: new DefaultRuntimeResolver(resolver)
     };
   }
 
@@ -50745,10 +50569,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       var parts = new Array();
 
       for (var i = 0; i < this.parts.length; i++) {
-        var value$$1 = this.parts[i].value();
+        var value = this.parts[i].value();
 
-        if (value$$1 !== null && value$$1 !== undefined) {
-          parts[i] = castToString(value$$1);
+        if (value !== null && value !== undefined) {
+          parts[i] = castToString(value);
         }
       }
 
@@ -50761,12 +50585,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
   }
 
-  function castToString(value$$1) {
-    if (typeof value$$1.toString !== 'function') {
+  function castToString(value) {
+    if (typeof value.toString !== 'function') {
       return '';
     }
 
-    return String(value$$1);
+    return String(value);
   }
 
   APPEND_OPCODES.add(16
@@ -50777,8 +50601,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var stack = vm.stack;
     var helper = vm.runtime.resolver.resolve(handle);
     var args = stack.pop();
-    var value$$1 = helper(args, vm);
-    vm.loadValue(_vm2.$v0, value$$1);
+    var value = helper(args, vm);
+    vm.loadValue(_vm2.$v0, value);
   });
   APPEND_OPCODES.add(22
   /* GetVariable */
@@ -50868,7 +50692,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     } = vm;
     var block = stack.pop();
 
-    if (block) {
+    if (block && !isUndefinedReference(block)) {
       stack.push(block[2]);
       stack.push(block[1]);
       stack.push(block[0]);
@@ -50878,19 +50702,24 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       stack.push(null);
     }
   });
+
+  function isUndefinedReference(input) {
+    return input === UNDEFINED_REFERENCE;
+  }
+
   APPEND_OPCODES.add(26
   /* HasBlock */
   , vm => {
-    var block = vm.stack.pop(); // TODO: We check if the block is null or UNDEFINED_REFERENCE here, but it should
-    // really only check if the block is null. The UNDEFINED_REFERENCE use case is for
-    // when we try to invoke a curry-component directly as a variable:
-    //
-    // <Foo as |bar|>{{bar}}</Foo>
-    //
-    // This code path does not work the same way as most components. In the future,
-    // we should make sure that it does, so things are setup correctly.
+    var {
+      stack
+    } = vm;
+    var block = stack.pop();
 
-    vm.stack.push(block === null || block === UNDEFINED_REFERENCE ? FALSE_REFERENCE : TRUE_REFERENCE);
+    if (block && !isUndefinedReference(block)) {
+      stack.push(TRUE_REFERENCE);
+    } else {
+      stack.push(FALSE_REFERENCE);
+    }
   });
   APPEND_OPCODES.add(27
   /* HasBlockParams */
@@ -51038,8 +50867,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       } = this;
 
       for (var i = 0; i < list.length; i++) {
-        var value$$1 = normalizeStringValue(list[i].value());
-        if (value$$1) ret.push(value$$1);
+        var value = normalizeStringValue(list[i].value());
+        if (value) ret.push(value);
       }
 
       return ret.length === 0 ? null : ret.join(' ');
@@ -51063,26 +50892,26 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         inner,
         lastValue
       } = this;
-      var value$$1 = inner.value();
+      var value = inner.value();
 
-      if (value$$1 === lastValue) {
+      if (value === lastValue) {
         return this.lastDefinition;
       }
 
       var definition = null;
 
-      if (isCurriedComponentDefinition(value$$1)) {
-        definition = value$$1;
-      } else if (typeof value$$1 === 'string' && value$$1) {
+      if (isCurriedComponentDefinition(value)) {
+        definition = value;
+      } else if (typeof value === 'string' && value) {
         var {
           resolver,
           meta
         } = this;
-        definition = resolveComponent(resolver, value$$1, meta);
+        definition = resolveComponent(resolver, value, meta);
       }
 
       definition = this.curry(definition);
-      this.lastValue = value$$1;
+      this.lastValue = value;
       this.lastDefinition = definition;
       return definition;
     }
@@ -51115,7 +50944,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.lastValue = lastValue;
       this.type = 'dynamic-text';
       this.tag = reference.tag;
-      this.lastRevision = (0, _validator.value)(this.tag);
+      this.lastRevision = (0, _validator.valueForTag)(this.tag);
     }
 
     evaluate() {
@@ -51124,25 +50953,25 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         tag
       } = this;
 
-      if (!(0, _validator.validate)(tag, this.lastRevision)) {
-        this.lastRevision = (0, _validator.value)(tag);
+      if (!(0, _validator.validateTag)(tag, this.lastRevision)) {
+        this.lastRevision = (0, _validator.valueForTag)(tag);
         this.update(reference.value());
       }
     }
 
-    update(value$$1) {
+    update(value) {
       var {
         lastValue
       } = this;
-      if (value$$1 === lastValue) return;
+      if (value === lastValue) return;
       var normalized;
 
-      if (isEmpty(value$$1)) {
+      if (isEmpty(value)) {
         normalized = '';
-      } else if (isString(value$$1)) {
-        normalized = value$$1;
+      } else if (isString(value)) {
+        normalized = value;
       } else {
-        normalized = String(value$$1);
+        normalized = String(value);
       }
 
       if (normalized !== lastValue) {
@@ -51160,25 +50989,25 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     value() {
-      var value$$1 = this.inner.value();
+      var value = this.inner.value();
 
-      if (shouldCoerce(value$$1)) {
+      if (shouldCoerce(value)) {
         return 1
         /* String */
         ;
-      } else if (isComponentDefinition(value$$1)) {
+      } else if (isComponentDefinition(value)) {
         return 0
         /* Component */
         ;
-      } else if (isSafeString(value$$1)) {
+      } else if (isSafeString(value)) {
         return 3
         /* SafeString */
         ;
-      } else if (isFragment(value$$1)) {
+      } else if (isFragment(value)) {
         return 4
         /* Fragment */
         ;
-      } else if (isNode(value$$1)) {
+      } else if (isNode(value)) {
         return 5
         /* Node */
         ;
@@ -51196,42 +51025,42 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , vm => {
     var reference = vm.stack.pop();
     var rawValue = reference.value();
-    var value$$1 = isEmpty(rawValue) ? '' : String(rawValue);
-    vm.elements().appendDynamicHTML(value$$1);
+    var value = isEmpty(rawValue) ? '' : String(rawValue);
+    vm.elements().appendDynamicHTML(value);
   });
   APPEND_OPCODES.add(44
   /* AppendSafeHTML */
   , vm => {
     var reference = vm.stack.pop();
     var rawValue = reference.value().toHTML();
-    var value$$1 = isEmpty(rawValue) ? '' : rawValue;
-    vm.elements().appendDynamicHTML(value$$1);
+    var value = isEmpty(rawValue) ? '' : rawValue;
+    vm.elements().appendDynamicHTML(value);
   });
   APPEND_OPCODES.add(47
   /* AppendText */
   , vm => {
     var reference = vm.stack.pop();
     var rawValue = reference.value();
-    var value$$1 = isEmpty(rawValue) ? '' : String(rawValue);
-    var node = vm.elements().appendDynamicText(value$$1);
+    var value = isEmpty(rawValue) ? '' : String(rawValue);
+    var node = vm.elements().appendDynamicText(value);
 
     if (!(0, _validator.isConst)(reference)) {
-      vm.updateWith(new DynamicTextContent(node, reference, value$$1));
+      vm.updateWith(new DynamicTextContent(node, reference, value));
     }
   });
   APPEND_OPCODES.add(45
   /* AppendDocumentFragment */
   , vm => {
     var reference = vm.stack.pop();
-    var value$$1 = reference.value();
-    vm.elements().appendDynamicFragment(value$$1);
+    var value = reference.value();
+    vm.elements().appendDynamicFragment(value);
   });
   APPEND_OPCODES.add(46
   /* AppendNode */
   , vm => {
     var reference = vm.stack.pop();
-    var value$$1 = reference.value();
-    vm.elements().appendDynamicNode(value$$1);
+    var value = reference.value();
+    vm.elements().appendDynamicNode(value);
   });
   APPEND_OPCODES.add(39
   /* ChildScope */
@@ -51260,21 +51089,21 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var stack = vm.stack;
 
     if ((0, _util.isHandle)(primitive)) {
-      var value$$1;
+      var value;
 
       if (primitive > -1073741825
       /* NUMBER_MAX_HANDLE */
       ) {
-          value$$1 = vm[CONSTANTS].getString((0, _util.decodeHandle)(primitive, -1
+          value = vm[CONSTANTS].getString((0, _util.decodeHandle)(primitive, -1
           /* STRING_MAX_HANDLE */
           ));
         } else {
-        value$$1 = vm[CONSTANTS].getNumber((0, _util.decodeHandle)(primitive, -1073741825
+        value = vm[CONSTANTS].getNumber((0, _util.decodeHandle)(primitive, -1073741825
         /* NUMBER_MAX_HANDLE */
         ));
       }
 
-      stack.pushJs(value$$1);
+      stack.pushJs(value);
     } else {
       // is already an encoded immediate
       stack.pushRaw(primitive);
@@ -51284,7 +51113,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   /* PrimitiveReference */
   , vm => {
     var stack = vm.stack;
-    stack.push(PrimitiveReference$1.create(stack.pop()));
+    stack.push(PrimitiveReference.create(stack.pop()));
   });
   APPEND_OPCODES.add(32
   /* ReifyU32 */
@@ -51510,7 +51339,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.target = target;
       this.type = 'jump-if-not-modified';
       this.tag = tag;
-      this.lastRevision = (0, _validator.value)(tag);
+      this.lastRevision = (0, _validator.valueForTag)(tag);
     }
 
     evaluate(vm) {
@@ -51520,13 +51349,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         lastRevision
       } = this;
 
-      if (!vm.alwaysRevalidate && (0, _validator.validate)(tag, lastRevision)) {
+      if (!vm.alwaysRevalidate && (0, _validator.validateTag)(tag, lastRevision)) {
         vm.goto(target);
       }
     }
 
     didModify() {
-      this.lastRevision = (0, _validator.value)(this.tag);
+      this.lastRevision = (0, _validator.valueForTag)(this.tag);
     }
 
   }
@@ -51690,7 +51519,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.manager = manager;
       this.modifier = modifier;
       this.type = 'update-modifier';
-      this.lastUpdated = (0, _validator.value)(tag);
+      this.lastUpdated = (0, _validator.valueForTag)(tag);
     }
 
     evaluate(vm) {
@@ -51701,9 +51530,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         lastUpdated
       } = this;
 
-      if (!(0, _validator.validate)(tag, lastUpdated)) {
+      if (!(0, _validator.validateTag)(tag, lastUpdated)) {
         vm.env.scheduleUpdateModifier(modifier, manager);
-        this.lastUpdated = (0, _validator.value)(tag);
+        this.lastUpdated = (0, _validator.valueForTag)(tag);
       }
     }
 
@@ -51717,9 +51546,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op3: _namespace
   }) => {
     var name = vm[CONSTANTS].getString(_name);
-    var value$$1 = vm[CONSTANTS].getString(_value);
+    var value = vm[CONSTANTS].getString(_value);
     var namespace = _namespace ? vm[CONSTANTS].getString(_namespace) : null;
-    vm.elements().setStaticAttribute(name, value$$1, namespace);
+    vm.elements().setStaticAttribute(name, value, namespace);
   });
   APPEND_OPCODES.add(52
   /* DynamicAttr */
@@ -51730,9 +51559,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }) => {
     var name = vm[CONSTANTS].getString(_name);
     var reference = vm.stack.pop();
-    var value$$1 = reference.value();
+    var value = reference.value();
     var namespace = _namespace ? vm[CONSTANTS].getString(_namespace) : null;
-    var attribute = vm.elements().setDynamicAttribute(name, value$$1, !!trusting, namespace);
+    var attribute = vm.elements().setDynamicAttribute(name, value, !!trusting, namespace);
 
     if (!(0, _validator.isConst)(reference)) {
       vm.updateWith(new UpdateDynamicAttributeOpcode(reference, attribute));
@@ -51749,7 +51578,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         tag
       } = reference;
       this.tag = tag;
-      this.lastRevision = (0, _validator.value)(tag);
+      this.lastRevision = (0, _validator.valueForTag)(tag);
     }
 
     evaluate(vm) {
@@ -51759,9 +51588,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         tag
       } = this;
 
-      if (!(0, _validator.validate)(tag, this.lastRevision)) {
+      if (!(0, _validator.validateTag)(tag, this.lastRevision)) {
         attribute.update(reference.value(), vm.env);
-        this.lastRevision = (0, _validator.value)(tag);
+        this.lastRevision = (0, _validator.valueForTag)(tag);
       }
     }
 
@@ -51893,16 +51722,14 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   /* PushArgs */
   , (vm, {
     op1: _names,
-    op2: flags
+    op2: _blockNames,
+    op3: flags
   }) => {
     var stack = vm.stack;
     var names = vm[CONSTANTS].getStringArray(_names);
     var positionalCount = flags >> 4;
     var atNames = flags & 0b1000;
-    var blockNames = [];
-    if (flags & 0b0100) blockNames.push('main');
-    if (flags & 0b0010) blockNames.push('else');
-    if (flags & 0b0001) blockNames.push('attrs');
+    var blockNames = flags & 0b0111 ? vm[CONSTANTS].getStringArray(_blockNames) : _util.EMPTY_ARRAY;
     vm[ARGS].setup(stack, names, blockNames, positionalCount, !!atNames);
     stack.push(vm[ARGS]);
   });
@@ -52104,9 +51931,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op3: _namespace
   }) => {
     var name = vm[CONSTANTS].getString(_name);
-    var value$$1 = vm[CONSTANTS].getString(_value);
+    var value = vm[CONSTANTS].getString(_value);
     var namespace = _namespace ? vm[CONSTANTS].getString(_namespace) : null;
-    vm.fetchValue(_vm2.$t0).setStaticAttribute(name, value$$1, namespace);
+    vm.fetchValue(_vm2.$t0).setStaticAttribute(name, value, namespace);
   });
 
   class ComponentElementOperations {
@@ -52116,28 +51943,28 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.modifiers = [];
     }
 
-    setAttribute(name, value$$1, trusting, namespace) {
+    setAttribute(name, value, trusting, namespace) {
       var deferred = {
-        value: value$$1,
+        value,
         namespace,
         trusting
       };
 
       if (name === 'class') {
-        this.classes.push(value$$1);
+        this.classes.push(value);
       }
 
       this.attributes[name] = deferred;
     }
 
-    setStaticAttribute(name, value$$1, namespace) {
+    setStaticAttribute(name, value, namespace) {
       var deferred = {
-        value: value$$1,
+        value,
         namespace
       };
 
       if (name === 'class') {
-        this.classes.push(value$$1);
+        this.classes.push(value);
       }
 
       this.attributes[name] = deferred;
@@ -52193,10 +52020,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
   function makeClassList(classes) {
     for (var i = 0; i < classes.length; i++) {
-      var value$$1 = classes[i];
+      var value = classes[i];
 
-      if (typeof value$$1 === 'string') {
-        classes[i] = _runtime.PrimitiveReference.create(value$$1);
+      if (typeof value === 'string') {
+        classes[i] = PrimitiveReference.create(value);
       }
     }
 
@@ -52213,14 +52040,14 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     return true;
   }
 
-  function setDeferredAttr(vm, name, value$$1, namespace, trusting = false) {
-    if (typeof value$$1 === 'string') {
-      vm.elements().setStaticAttribute(name, value$$1, namespace);
+  function setDeferredAttr(vm, name, value, namespace, trusting = false) {
+    if (typeof value === 'string') {
+      vm.elements().setStaticAttribute(name, value, namespace);
     } else {
-      var attribute = vm.elements().setDynamicAttribute(name, value$$1.value(), trusting, namespace);
+      var attribute = vm.elements().setDynamicAttribute(name, value.value(), trusting, namespace);
 
-      if (!(0, _validator.isConst)(value$$1)) {
-        vm.updateWith(new UpdateDynamicAttributeOpcode(value$$1, attribute));
+      if (!(0, _validator.isConst)(value)) {
+        vm.updateWith(new UpdateDynamicAttributeOpcode(value, attribute));
       }
     }
   }
@@ -52291,7 +52118,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     if (hasStaticLayoutCapability(capabilities, manager)) {
       layout = manager.getJitStaticLayout(definition.state, vm.runtime.resolver);
     } else if (hasDynamicLayoutCapability(capabilities, manager)) {
-      var template = (0, _opcodeCompiler.unwrapTemplate)(manager.getJitDynamicLayout(instance.state, vm.runtime.resolver));
+      var template = (0, _util.unwrapTemplate)(manager.getJitDynamicLayout(instance.state, vm.runtime.resolver));
 
       if (hasCapability(capabilities, 1024
       /* Wrapped */
@@ -52427,20 +52254,16 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     for (var i = callerNames.length - 1; i >= 0; i--) {
       var atName = callerNames[i];
       var symbol$$1 = state.table.symbols.indexOf(callerNames[i]);
-      var value$$1 = args.named.get(atName, true);
-      if (symbol$$1 !== -1) scope.bindSymbol(symbol$$1 + 1, value$$1);
-      if (state.lookup) state.lookup[atName] = value$$1;
+      var value = args.named.get(atName, true);
+      if (symbol$$1 !== -1) scope.bindSymbol(symbol$$1 + 1, value);
+      if (state.lookup) state.lookup[atName] = value;
     }
   });
 
   function bindBlock(symbolName, blockName, state, blocks, vm) {
     var symbol$$1 = state.table.symbols.indexOf(symbolName);
     var block = blocks.get(blockName);
-
-    if (symbol$$1 !== -1) {
-      vm.scope().bindBlock(symbol$$1 + 1, block);
-    }
-
+    if (symbol$$1 !== -1) vm.scope().bindBlock(symbol$$1 + 1, block);
     if (state.lookup) state.lookup[symbolName] = block;
   }
 
@@ -52453,9 +52276,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var {
       blocks
     } = vm.stack.peek();
-    bindBlock('&attrs', 'attrs', state, blocks, vm);
-    bindBlock('&else', 'else', state, blocks, vm);
-    bindBlock('&default', 'main', state, blocks, vm);
+
+    for (var i = 0; i < blocks.names.length; i++) {
+      bindBlock(blocks.symbolNames[i], blocks.names[i], state, blocks, vm);
+    }
   }); // Dynamic Invocation Only
 
   APPEND_OPCODES.add(99
@@ -52648,15 +52472,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         for (var _i7 = 0; _i7 < partialSymbols.length; _i7++) {
           var _name6 = partialSymbols[_i7];
           var symbol$$1 = _i7 + 1;
-          var value$$1 = evalScope[_name6];
-          if (value$$1 !== undefined) partialScope.bind(symbol$$1, value$$1);
+          var value = evalScope[_name6];
+          if (value !== undefined) partialScope.bind(symbol$$1, value);
         }
       }
 
       partialScope.bindPartialMap(locals);
       vm.pushFrame(); // sp += 2
 
-      vm.call((0, _opcodeCompiler.unwrapHandle)(vmHandle));
+      vm.call((0, _util.unwrapHandle)(vmHandle));
     }
   }, 'jit');
 
@@ -52841,7 +52665,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     getVar() {
       var name = String(this.nameRef.value());
       var ref = this.scope.get(name);
-      (0, _validator.update)(this.varTag, ref.tag);
+      (0, _validator.updateTag)(this.varTag, ref.tag);
       return ref;
     }
 
@@ -53078,7 +52902,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       } = this;
 
       if (name === 'length') {
-        return PrimitiveReference$1.create(length);
+        return PrimitiveReference.create(length);
       } else {
         var idx = parseInt(name, 10);
 
@@ -53311,9 +53135,14 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
   _exports.CapturedNamedArgumentsImpl = CapturedNamedArgumentsImpl;
 
+  function toSymbolName(name) {
+    return `&${name}`;
+  }
+
   class BlockArgumentsImpl {
     constructor() {
       this.internalValues = null;
+      this._symbolNames = null;
       this.internalTag = null;
       this.names = _util.EMPTY_ARRAY;
       this.length = 0;
@@ -53325,6 +53154,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.names = _util.EMPTY_ARRAY;
       this.base = base;
       this.length = 0;
+      this._symbolNames = null;
       this.internalTag = _validator.CONSTANT_TAG;
       this.internalValues = _util.EMPTY_ARRAY;
     }
@@ -53334,6 +53164,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.names = names;
       this.base = base;
       this.length = length;
+      this._symbolNames = null;
 
       if (length === 0) {
         this.internalTag = _validator.CONSTANT_TAG;
@@ -53382,6 +53213,16 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
     capture() {
       return new CapturedBlockArgumentsImpl(this.names, this.values);
+    }
+
+    get symbolNames() {
+      var symbolNames = this._symbolNames;
+
+      if (symbolNames === null) {
+        symbolNames = this._symbolNames = this.names.map(toSymbolName);
+      }
+
+      return symbolNames;
     }
 
   }
@@ -53446,8 +53287,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return this.registers[register];
     }
 
-    loadRegister(register, value$$1) {
-      this.registers[register] = value$$1;
+    loadRegister(register, value) {
+      this.registers[register] = value;
     }
 
     setPc(pc) {
@@ -53682,7 +53523,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     didInitializeChildren() {
-      (0, _validator.update)(this._tag, combineSlice(this.children));
+      (0, _validator.updateTag)(this._tag, combineSlice(this.children));
     }
 
     evaluate(vm) {
@@ -53738,7 +53579,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       nextSibling = reference !== undefined ? reference['bounds'].firstNode() : this.marker;
       var vm = opcode.vmForInsertion(nextSibling);
       var tryOpcode = null;
-      vm.execute(vm => {
+      var result = vm.execute(vm => {
         tryOpcode = vm.iterate(memo, item);
         map.set(key, tryOpcode);
         vm.pushUpdating(new _util.LinkedList());
@@ -53746,6 +53587,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         vm.pushUpdating(tryOpcode.children);
       });
       updating.insertBefore(tryOpcode, reference);
+      (0, _util.associate)(opcode, result.drop);
       this.didInsert = true;
     }
 
@@ -53802,10 +53644,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     didInitializeChildren(listDidChange = true) {
-      this.lastIterated = (0, _validator.value)(this.artifacts.tag);
+      this.lastIterated = (0, _validator.valueForTag)(this.artifacts.tag);
 
       if (listDidChange) {
-        (0, _validator.update)(this._tag, combineSlice(this.children));
+        (0, _validator.updateTag)(this._tag, combineSlice(this.children));
       }
     }
 
@@ -53815,7 +53657,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         lastIterated
       } = this;
 
-      if (!(0, _validator.validate)(artifacts.tag, lastIterated)) {
+      if (!(0, _validator.validateTag)(artifacts.tag, lastIterated)) {
         var {
           bounds
         } = this;
@@ -53973,47 +53815,47 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.inner.copy(from, to);
     }
 
-    write(pos, value$$1) {
-      switch (typeof value$$1) {
+    write(pos, value) {
+      switch (typeof value) {
         case 'boolean':
         case 'undefined':
-          this.writeRaw(pos, (0, _util.encodeImmediate)(value$$1));
+          this.writeRaw(pos, (0, _util.encodeImmediate)(value));
           break;
 
         case 'number':
-          if ((0, _util.isSmallInt)(value$$1)) {
-            this.writeRaw(pos, (0, _util.encodeImmediate)(value$$1));
+          if ((0, _util.isSmallInt)(value)) {
+            this.writeRaw(pos, (0, _util.encodeImmediate)(value));
             break;
           }
 
         case 'object':
-          if (value$$1 === null) {
-            this.writeRaw(pos, (0, _util.encodeImmediate)(value$$1));
+          if (value === null) {
+            this.writeRaw(pos, (0, _util.encodeImmediate)(value));
             break;
           }
 
         default:
-          this.writeJs(pos, value$$1);
+          this.writeJs(pos, value);
       }
     }
 
-    writeJs(pos, value$$1) {
+    writeJs(pos, value) {
       var idx = this.js.length;
-      this.js.push(value$$1);
+      this.js.push(value);
       this.inner.writeRaw(pos, (0, _util.encodeHandle)(idx));
     }
 
-    writeRaw(pos, value$$1) {
-      this.inner.writeRaw(pos, value$$1);
+    writeRaw(pos, value) {
+      this.inner.writeRaw(pos, value);
     }
 
     get(pos) {
-      var value$$1 = this.inner.getRaw(pos);
+      var value = this.inner.getRaw(pos);
 
-      if ((0, _util.isHandle)(value$$1)) {
-        return this.js[(0, _util.decodeHandle)(value$$1)];
+      if ((0, _util.isHandle)(value)) {
+        return this.js[(0, _util.decodeHandle)(value)];
       } else {
-        return (0, _util.decodeImmediate)(value$$1);
+        return (0, _util.decodeImmediate)(value);
       }
     }
 
@@ -54045,16 +53887,16 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return new this(stack, initializeRegistersWithSP(snapshot$$1.length - 1));
     }
 
-    push(value$$1) {
-      this.stack.write(++this[REGISTERS][_vm2.$sp], value$$1);
+    push(value) {
+      this.stack.write(++this[REGISTERS][_vm2.$sp], value);
     }
 
-    pushJs(value$$1) {
-      this.stack.writeJs(++this[REGISTERS][_vm2.$sp], value$$1);
+    pushJs(value) {
+      this.stack.writeJs(++this[REGISTERS][_vm2.$sp], value);
     }
 
-    pushRaw(value$$1) {
-      this.stack.writeRaw(++this[REGISTERS][_vm2.$sp], value$$1);
+    pushRaw(value) {
+      this.stack.writeRaw(++this[REGISTERS][_vm2.$sp], value);
     }
 
     dup(position = this[REGISTERS][_vm2.$sp]) {
@@ -54079,8 +53921,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return this.stack.get(base + offset);
     }
 
-    set(value$$1, offset, base = this[REGISTERS][_vm2.$fp]) {
-      this.stack.write(base + offset, value$$1);
+    set(value, offset, base = this[REGISTERS][_vm2.$fp]) {
+      this.stack.write(base + offset, value);
     }
 
     slice(start, end) {
@@ -54183,8 +54025,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
 
     load(register) {
-      var value$$1 = this.stack.pop();
-      this.loadValue(register, value$$1);
+      var value = this.stack.pop();
+      this.loadValue(register, value);
     }
 
     fetchValue(register) {
@@ -54211,30 +54053,30 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     } // Load a value into a register
 
 
-    loadValue(register, value$$1) {
+    loadValue(register, value) {
       if ((0, _vm2.isLowLevelRegister)(register)) {
-        this[INNER_VM].loadRegister(register, value$$1);
+        this[INNER_VM].loadRegister(register, value);
       }
 
       switch (register) {
         case _vm2.$s0:
-          this.s0 = value$$1;
+          this.s0 = value;
           break;
 
         case _vm2.$s1:
-          this.s1 = value$$1;
+          this.s1 = value;
           break;
 
         case _vm2.$t0:
-          this.t0 = value$$1;
+          this.t0 = value;
           break;
 
         case _vm2.$t1:
-          this.t1 = value$$1;
+          this.t1 = value;
           break;
 
         case _vm2.$v0:
-          this.v0 = value$$1;
+          this.v0 = value;
           break;
       }
     }
@@ -54315,9 +54157,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.didEnter(tryOpcode);
     }
 
-    iterate(memo, value$$1) {
+    iterate(memo, value) {
       var stack = this.stack;
-      stack.push(value$$1);
+      stack.push(value);
       stack.push(memo);
       var state = this.capture(2);
       var block = this.elements().pushUpdatableBlock(); // let ip = this.ip;
@@ -54585,7 +54427,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     compile(block) {
-      var handle = (0, _opcodeCompiler.unwrapHandle)(block.compile(this.context));
+      var handle = (0, _util.unwrapHandle)(block.compile(this.context));
       return handle;
     }
 
@@ -54718,7 +54560,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
     if (hasStaticLayoutCapability(capabilities, manager)) {
       var layout = manager.getJitStaticLayout(state, vm.runtime.resolver);
-      var handle = (0, _opcodeCompiler.unwrapHandle)(layout.compile(context));
+      var handle = (0, _util.unwrapHandle)(layout.compile(context));
 
       if (Array.isArray(handle)) {
         var error = handle[0];
@@ -55058,15 +54900,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return super.__openElement(tag);
     }
 
-    __setAttribute(name, value$$1, namespace) {
+    __setAttribute(name, value, namespace) {
       var unmatched = this.unmatchedAttributes;
 
       if (unmatched) {
         var attr = findByName(unmatched, name);
 
         if (attr) {
-          if (attr.value !== value$$1) {
-            attr.value = value$$1;
+          if (attr.value !== value) {
+            attr.value = value;
           }
 
           unmatched.splice(unmatched.indexOf(attr), 1);
@@ -55074,18 +54916,18 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         }
       }
 
-      return super.__setAttribute(name, value$$1, namespace);
+      return super.__setAttribute(name, value, namespace);
     }
 
-    __setProperty(name, value$$1) {
+    __setProperty(name, value) {
       var unmatched = this.unmatchedAttributes;
 
       if (unmatched) {
         var attr = findByName(unmatched, name);
 
         if (attr) {
-          if (attr.value !== value$$1) {
-            attr.value = value$$1;
+          if (attr.value !== value) {
+            attr.value = value;
           }
 
           unmatched.splice(unmatched.indexOf(attr), 1);
@@ -55093,7 +54935,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         }
       }
 
-      return super.__setProperty(name, value$$1);
+      return super.__setProperty(name, value);
     }
 
     __flushElement(parent, constructing) {
@@ -55140,7 +54982,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     __pushRemoteElement(element, cursorId, insertBefore) {
-      var marker = this.getMarker(element, cursorId); // when insertBefore is not present, we clear the element
+      var marker = this.getMarker(element, cursorId);
 
       if (insertBefore === undefined) {
         while (element.firstChild !== null && element.firstChild !== marker) {
@@ -55286,6 +55128,11 @@ define("@glimmer/util", ["exports"], function (_exports) {
   _exports.isHandle = isHandle;
   _exports.encodeHandle = encodeHandle;
   _exports.decodeHandle = decodeHandle;
+  _exports.unwrapHandle = unwrapHandle;
+  _exports.unwrapTemplate = unwrapTemplate;
+  _exports.extractHandle = extractHandle;
+  _exports.isOkHandle = isOkHandle;
+  _exports.isErrHandle = isErrHandle;
   _exports.symbol = _exports.tuple = _exports.ListContentsDestructor = _exports.DESTRUCTORS = _exports.CHILDREN = _exports.DID_DROP = _exports.WILL_DROP = _exports.LINKED = _exports.DESTROY = _exports.debugToString = _exports.ListSlice = _exports.ListNode = _exports.LinkedList = _exports.EMPTY_SLICE = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
   var EMPTY_ARRAY = Object.freeze([]); // import Logger from './logger';
   // let alreadyWarned = false;
@@ -55914,7 +55761,6 @@ define("@glimmer/util", ["exports"], function (_exports) {
 
   function encodeImmediate(value) {
     if (typeof value === 'number') {
-      // map -1 to -1073741820 onto 1073741828 to 2147483647
       // 1073741827 - (-1) == 1073741828
       // 1073741827 - (-1073741820) == 2147483647
       // positive it stays as is
@@ -56044,7 +55890,6 @@ define("@glimmer/util", ["exports"], function (_exports) {
   function decodeHandle(handle, maxHandle = -1
   /* MAX_HANDLE */
   ) {
-    // -1 - -1 == 0
     // -1 - -1073741824 == 1073741823
     // -1073741825 - -1073741825 == 0
     // -1073741825 - -2147483648 == 1073741823
@@ -56055,6 +55900,39 @@ define("@glimmer/util", ["exports"], function (_exports) {
     // this is the same as Math.floor(num) === num
     // also NaN % 1 is NaN and Infinity % 1 is NaN so both should fail
     return num % 1 === 0 && num >= min && num <= max;
+  }
+
+  function unwrapHandle(handle) {
+    if (typeof handle === 'number') {
+      return handle;
+    } else {
+      var error = handle.errors[0];
+      throw new Error(`Compile Error: ${error.problem} @ ${error.span.start}..${error.span.end}`);
+    }
+  }
+
+  function unwrapTemplate(template) {
+    if (template.result === 'error') {
+      throw new Error(`Compile Error: ${template.problem} @ ${template.span.start}..${template.span.end}`);
+    }
+
+    return template;
+  }
+
+  function extractHandle(handle) {
+    if (typeof handle === 'number') {
+      return handle;
+    } else {
+      return handle.handle;
+    }
+  }
+
+  function isOkHandle(handle) {
+    return typeof handle === 'number';
+  }
+
+  function isErrHandle(handle) {
+    return typeof handle === 'number';
   }
 
   var debugToString;
@@ -56132,17 +56010,21 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
   _exports.createUpdatableTag = createUpdatableTag;
   _exports.isConst = isConst;
   _exports.isConstTag = isConstTag;
-  _exports.validate = validate;
-  _exports.value = value;
+  _exports.validateTag = validateTag;
+  _exports.valueForTag = valueForTag;
   _exports.dirtyTagFor = dirtyTagFor;
   _exports.tagFor = tagFor;
   _exports.setPropertyDidChange = setPropertyDidChange;
-  _exports.consume = consume;
+  _exports.beginTrackFrame = beginTrackFrame;
+  _exports.endTrackFrame = endTrackFrame;
+  _exports.consumeTag = consumeTag;
   _exports.isTracking = isTracking;
   _exports.track = track;
   _exports.trackedData = trackedData;
+  _exports.memoizeTracked = memoizeTracked;
   _exports.untrack = untrack;
-  _exports.deprecateMutationsInAutotrackingTransaction = _exports.runInAutotrackingTransaction = _exports.setAutotrackingTransactionEnv = _exports.EPOCH = _exports.VOLATILE = _exports.VOLATILE_TAG = _exports.update = _exports.INITIAL = _exports.dirty = _exports.CURRENT_TAG = _exports.CONSTANT = _exports.CONSTANT_TAG = _exports.COMPUTE = _exports.ALLOW_CYCLES = void 0;
+  _exports.isConstMemo = isConstMemo;
+  _exports.deprecateMutationsInAutotrackingTransaction = _exports.runInAutotrackingTransaction = _exports.setAutotrackingTransactionEnv = _exports.EPOCH = _exports.VOLATILE = _exports.VOLATILE_TAG = _exports.VolatileTag = _exports.updateTag = _exports.INITIAL = _exports.dirtyTag = _exports.CURRENT_TAG = _exports.CurrentTag = _exports.CONSTANT = _exports.CONSTANT_TAG = _exports.COMPUTE = _exports.ALLOW_CYCLES = void 0;
   // This is a duplicate utility from @glimmer/util because `@glimmer/validator`
   // should not depend on any other @glimmer packages, in order to avoid pulling
   // in types and prevent regressions in `@glimmer/tracking` (which has public types).
@@ -56272,22 +56154,14 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
         message.push(`\`${String(keyName)}\` was first used:\n\n${sourceData.context}`);
       }
 
-      if (sourceData.error.stack) {
-        var sourceStack = sourceData.error.stack;
-        var thirdIndex = nthIndex(sourceStack, '\n', 3);
-        sourceStack = sourceStack.substr(thirdIndex);
-        message.push(`Stack trace for the first usage: ${sourceStack}`);
-      }
-
       message.push(`Stack trace for the update:`);
       return message.join('\n\n');
     };
 
-    markTagAsConsumed = (_tag, sourceError) => {
+    markTagAsConsumed = _tag => {
       if (!AUTOTRACKING_TRANSACTION || AUTOTRACKING_TRANSACTION.has(_tag)) return;
       AUTOTRACKING_TRANSACTION.set(_tag, {
-        context: debuggingContexts.map(c => c.replace(/^/gm, '  ').replace(/^ /, '-')).join('\n\n'),
-        error: sourceError
+        context: debuggingContexts.map(c => c.replace(/^/gm, '  ').replace(/^ /, '-')).join('\n\n')
       }); // We need to mark the tag and all of its subtags as consumed, so we need to
       // cast it and access its internals. In the future this shouldn't be necessary,
       // this is only for computed properties.
@@ -56295,11 +56169,11 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
       var tag = _tag;
 
       if (tag.subtag) {
-        markTagAsConsumed(tag.subtag, sourceError);
+        markTagAsConsumed(tag.subtag);
       }
 
       if (tag.subtags) {
-        tag.subtags.forEach(tag => markTagAsConsumed(tag, sourceError));
+        tag.subtags.forEach(tag => markTagAsConsumed(tag));
       }
     };
 
@@ -56366,7 +56240,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
 
   _exports.COMPUTE = COMPUTE;
 
-  function value(_tag) {
+  function valueForTag(_tag) {
     return $REVISION;
   }
   /**
@@ -56381,7 +56255,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
    */
 
 
-  function validate(tag, snapshot) {
+  function validateTag(tag, snapshot) {
     return snapshot >= tag[COMPUTE]();
   }
 
@@ -56447,9 +56321,8 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
 
           if (subtags !== null) {
             for (var i = 0; i < subtags.length; i++) {
-              var _value = subtags[i][COMPUTE]();
-
-              revision = Math.max(_value, revision);
+              var value = subtags[i][COMPUTE]();
+              revision = Math.max(value, revision);
             }
           }
 
@@ -56462,7 +56335,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
       return this.lastValue;
     }
 
-    static update(_tag, _subtag) {
+    static updateTag(_tag, _subtag) {
       if (true
       /* DEBUG */
       && _tag[TYPE] !== 1
@@ -56501,7 +56374,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
       }
     }
 
-    static dirty(tag) {
+    static dirtyTag(tag) {
       if (true
       /* DEBUG */
       && !(tag[TYPE] === 1
@@ -56525,11 +56398,11 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
 
   }
 
-  var dirty = MonomorphicTagImpl.dirty;
-  _exports.dirty = dirty;
-  var update = MonomorphicTagImpl.update; //////////
+  var dirtyTag = MonomorphicTagImpl.dirtyTag;
+  _exports.dirtyTag = dirtyTag;
+  var updateTag = MonomorphicTagImpl.updateTag; //////////
 
-  _exports.update = update;
+  _exports.updateTag = updateTag;
 
   function createTag() {
     return new MonomorphicTagImpl(0
@@ -56567,6 +56440,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
 
   }
 
+  _exports.VolatileTag = VolatileTag;
   var VOLATILE_TAG = new VolatileTag(); //////////
 
   _exports.VOLATILE_TAG = VOLATILE_TAG;
@@ -56578,6 +56452,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
 
   }
 
+  _exports.CurrentTag = CurrentTag;
   var CURRENT_TAG = new CurrentTag(); //////////
 
   _exports.CURRENT_TAG = CURRENT_TAG;
@@ -56638,7 +56513,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
           assertTagNotConsumed(propertyTag, obj, key);
         }
 
-        dirty(propertyTag);
+        dirtyTag(propertyTag);
         propertyDidChange();
       }
     } else {
@@ -56665,24 +56540,9 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
     }
   }
   /**
-   * Whenever a tracked computed property is entered, the current tracker is
-   * saved off and a new tracker is replaced.
-   *
-   * Any tracked properties consumed are added to the current tracker.
-   *
-   * When a tracked computed property is exited, the tracker's tags are
-   * combined and added to the parent tracker.
-   *
-   * The consequence is that each tracked computed property has a tag
-   * that corresponds to the tracked properties consumed inside of
-   * itself, including child tracked computed properties.
-   */
-
-
-  var CURRENT_TRACKER = null;
-  /**
    * An object that that tracks @tracked properties that were consumed.
    */
+
 
   class Tracker {
     constructor() {
@@ -56696,7 +56556,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
       if (true
       /* DEBUG */
       ) {
-        markTagAsConsumed(tag, new Error());
+        markTagAsConsumed(tag);
       }
 
       this.last = tag;
@@ -56718,13 +56578,112 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
       }
     }
 
+  }
+  /**
+   * Whenever a tracked computed property is entered, the current tracker is
+   * saved off and a new tracker is replaced.
+   *
+   * Any tracked properties consumed are added to the current tracker.
+   *
+   * When a tracked computed property is exited, the tracker's tags are
+   * combined and added to the parent tracker.
+   *
+   * The consequence is that each tracked computed property has a tag
+   * that corresponds to the tracked properties consumed inside of
+   * itself, including child tracked computed properties.
+   */
+
+
+  var CURRENT_TRACKER = null;
+  var OPEN_TRACK_FRAMES = [];
+
+  function beginTrackFrame() {
+    OPEN_TRACK_FRAMES.push(CURRENT_TRACKER);
+    CURRENT_TRACKER = new Tracker();
+  }
+
+  function endTrackFrame() {
+    var current = CURRENT_TRACKER;
+
+    if (true
+    /* DEBUG */
+    && OPEN_TRACK_FRAMES.length === 0) {
+      throw new Error('attempted to close a tracking frame, but one was not open');
+    }
+
+    CURRENT_TRACKER = OPEN_TRACK_FRAMES.pop();
+    return current.combine();
+  } //////////
+
+
+  var IS_CONST_MAP = new WeakMap();
+
+  function memoizeTracked(callback, debuggingContext) {
+    var lastValue;
+    var tag;
+    var snapshot;
+
+    var memoized = (...args) => {
+      if (!tag || !validateTag(tag, snapshot)) {
+        beginTrackFrame();
+
+        try {
+          if (true
+          /* DEBUG */
+          ) {
+            runInAutotrackingTransaction(() => lastValue = callback(...args), debuggingContext);
+          } else {
+            lastValue = callback(...args);
+          }
+        } finally {
+          tag = endTrackFrame();
+          snapshot = valueForTag(tag);
+          consumeTag(tag); // If the final tag is constant, then we know for sure that this
+          // memoized function can never change. There are times when this
+          // information is useful externally (i.e. in the append VM, it tells us
+          // whether or not to emit opcodes) so we expose it via a metadata weakmap.
+
+          if (tag === CONSTANT_TAG) {
+            IS_CONST_MAP.set(memoized, true);
+          } else if (true
+          /* DEBUG */
+          ) {
+            // In DEBUG, set the value to false explicitly. This way we can throw
+            // if someone attempts to call `isConst(memoized)` before running
+            // `memoized()` at least once.
+            IS_CONST_MAP.set(memoized, false);
+          }
+        }
+      } else {
+        consumeTag(tag);
+      }
+
+      return lastValue;
+    };
+
+    if (true
+    /* DEBUG */
+    ) {
+      IS_CONST_MAP.set(memoized, undefined);
+    }
+
+    return memoized;
+  }
+
+  function isConstMemo(memoized) {
+    if (true
+    /* DEBUG */
+    && IS_CONST_MAP.has(memoized) && IS_CONST_MAP.get(memoized) === undefined) {
+      throw new Error('Attempted to call `isConstMemo` on a memoized function, but the function has not been run at least once yet. You cannot know if a memoized function is constant or not until it has been run at least once. Call the function, then pass it to `isConstMemo`.');
+    }
+
+    return IS_CONST_MAP.get(memoized) === true;
   } //////////
 
 
   function track(callback, debuggingContext) {
-    var parent = CURRENT_TRACKER;
-    var current = new Tracker();
-    CURRENT_TRACKER = current;
+    beginTrackFrame();
+    var tag;
 
     try {
       if (true
@@ -56735,13 +56694,13 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
         callback();
       }
     } finally {
-      CURRENT_TRACKER = parent;
+      tag = endTrackFrame();
     }
 
-    return current.combine();
+    return tag;
   }
 
-  function consume(tag) {
+  function consumeTag(tag) {
     if (CURRENT_TRACKER !== null) {
       CURRENT_TRACKER.add(tag);
     }
@@ -56752,13 +56711,13 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
   }
 
   function untrack(callback) {
-    var parent = CURRENT_TRACKER;
+    OPEN_TRACK_FRAMES.push(CURRENT_TRACKER);
     CURRENT_TRACKER = null;
 
     try {
       callback();
     } finally {
-      CURRENT_TRACKER = parent;
+      CURRENT_TRACKER = OPEN_TRACK_FRAMES.pop();
     }
   } //////////
 
@@ -56771,29 +56730,29 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
     var hasInitializer = typeof initializer === 'function';
 
     function getter(self) {
-      consume(tagFor(self, key));
-      var value$$1; // If the field has never been initialized, we should initialize it
+      consumeTag(tagFor(self, key));
+      var value; // If the field has never been initialized, we should initialize it
 
       if (hasInitializer && !values.has(self)) {
-        value$$1 = initializer.call(self);
-        values.set(self, value$$1);
+        value = initializer.call(self);
+        values.set(self, value);
       } else {
-        value$$1 = values.get(self);
+        value = values.get(self);
       }
 
-      return value$$1;
+      return value;
     }
 
-    function setter(self, value$$1) {
+    function setter(self, value) {
       if (true
       /* DEBUG */
       ) {
         assertTagNotConsumed(tagFor(self, key), self, key, true);
       }
 
-      dirty(EPOCH);
+      dirtyTag(EPOCH);
       dirtyTagFor(self, key);
-      values.set(self, value$$1);
+      values.set(self, value);
     }
 
     return {
@@ -58904,7 +58863,13 @@ define("ember-babel", ["exports"], function (_exports) {
   _exports.assertThisInitialized = assertThisInitialized;
   _exports.possibleConstructorReturn = possibleConstructorReturn;
   _exports.objectDestructuringEmpty = objectDestructuringEmpty;
+  _exports.createSuper = createSuper;
+  _exports.createForOfIteratorHelperLoose = createForOfIteratorHelperLoose;
+
+  /* globals Reflect */
   var setPrototypeOf = Object.setPrototypeOf;
+  var getPrototypeOf = Object.getPrototypeOf;
+  var hasReflectConstruct = typeof Reflect === 'object' && typeof Reflect.construct === 'function';
   var nativeWrapperCache = new Map(); // Super minimal version of Babel's wrapNativeSuper. We only use this for
   // extending Function, for ComputedDecoratorImpl and AliasDecoratorImpl. We know
   // we will never directly create an instance of these classes so no need to
@@ -59033,6 +58998,84 @@ define("ember-babel", ["exports"], function (_exports) {
     && (obj === null || obj === undefined)) {
       throw new TypeError('Cannot destructure undefined');
     }
+  }
+  /*
+    Differs from default implementation by checking for _any_ `Reflect.construct`
+    (the default implementation tries to ensure that `Reflect.construct` is truly
+    the native one).
+  
+    Original source: https://github.com/babel/babel/blob/v7.9.2/packages/babel-helpers/src/helpers.js#L738-L757
+  */
+
+
+  function createSuper(Derived) {
+    return function () {
+      var Super = getPrototypeOf(Derived);
+      var result;
+
+      if (hasReflectConstruct) {
+        // NOTE: This doesn't work if this.__proto__.constructor has been modified.
+        var NewTarget = getPrototypeOf(this).constructor;
+        result = Reflect.construct(Super, arguments, NewTarget);
+      } else {
+        result = Super.apply(this, arguments);
+      }
+
+      return possibleConstructorReturn(this, result);
+    };
+  }
+  /*
+    Does not differ from default implementation.
+  */
+
+
+  function arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+    var arr2 = new Array(len);
+
+    for (var i = 0; i < len; i++) {
+      arr2[i] = arr[i];
+    }
+
+    return arr2;
+  }
+  /*
+    Does not differ from default implementation.
+  */
+
+
+  function unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === 'string') return arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === 'Object' && o.constructor) n = o.constructor.name;
+    if (n === 'Map' || n === 'Set') return Array.from(n);
+    if (n === 'Arguments' || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
+  }
+  /*
+    Does not differ from default implementation.
+  */
+
+
+  function createForOfIteratorHelperLoose(o) {
+    var i = 0;
+
+    if (typeof Symbol === 'undefined' || o[Symbol.iterator] == null) {
+      // Fallback for engines without symbol support
+      if (Array.isArray(o) || (o = unsupportedIterableToArray(o))) return function () {
+        if (i >= o.length) return {
+          done: true
+        };
+        return {
+          done: false,
+          value: o[i++]
+        };
+      };
+      throw new TypeError('Invalid attempt to iterate non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.');
+    }
+
+    i = o[Symbol.iterator]();
+    return i.next.bind(i);
   }
 });
 define("ember-testing/index", ["exports", "ember-testing/lib/test", "ember-testing/lib/adapters/adapter", "ember-testing/lib/setup_for_testing", "ember-testing/lib/adapters/qunit", "ember-testing/lib/support", "ember-testing/lib/ext/application", "ember-testing/lib/ext/rsvp", "ember-testing/lib/helpers", "ember-testing/lib/initializers"], function (_exports, _test, _adapter, _setup_for_testing, _qunit, _support, _application, _rsvp, _helpers, _initializers) {
@@ -61389,7 +61432,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.17.0";
+  var _default = "3.18.0";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
@@ -68824,20 +68867,20 @@ define("@ember-data/adapter/error", ["exports", "@ember-data/store/-private"], f
     ```app/routes/application.js
     import Route from '@ember/routing/route';
     import { TimeoutError } from '@ember-data/adapter/error';
+    import { action } from '@ember/object';
   
-    export default Route.extend({
-      actions: {
-        error(error, transition) {
-          if (error instanceof TimeoutError) {
-            // alert the user
-            alert('Are you still connected to the internet?');
-            return;
-          }
-  
-          // ...other error handling logic
+    export default class ApplicationRoute extends Route {
+      @action
+      error(error, transition) {
+        if (error instanceof TimeoutError) {
+          // alert the user
+          alert('Are you still connected to the Internet?');
+          return;
         }
+  
+        // ...other error handling logic
       }
-    });
+    }
     ```
   
     @class TimeoutError
@@ -68872,20 +68915,20 @@ define("@ember-data/adapter/error", ["exports", "@ember-data/store/-private"], f
     ```app/routes/application.js
     import Route from '@ember/routing/route';
     import { UnauthorizedError } from '@ember-data/adapter/error';
+    import { action } from '@ember/object';
   
-    export default Route.extend({
-      actions: {
-        error(error, transition) {
-          if (error instanceof UnauthorizedError) {
-            // go to the sign in route
-            this.transitionTo('login');
-            return;
-          }
-  
-          // ...other error handling logic
+    export default class ApplicationRoute extends Route {
+      @action
+      error(error, transition) {
+        if (error instanceof UnauthorizedError) {
+          // go to the login route
+          this.transitionTo('login');
+          return;
         }
+  
+        // ...other error handling logic
       }
-    });
+    }
     ```
   
     @class UnauthorizedError
@@ -68920,24 +68963,25 @@ define("@ember-data/adapter/error", ["exports", "@ember-data/store/-private"], f
     ```app/routes/post.js
     import Route from '@ember/routing/route';
     import { NotFoundError } from '@ember-data/adapter/error';
+    import { inject as service } from '@ember/service';
+    import { action } from '@ember/object';
   
-    export default Route.extend({
+    export default class PostRoute extends Route {
+      @service store;
       model(params) {
         return this.get('store').findRecord('post', params.post_id);
-      },
-  
-      actions: {
-        error(error, transition) {
-          if (error instanceof NotFoundError) {
-            // redirect to a list of all posts instead
-            this.transitionTo('posts');
-          } else {
-            // otherwise let the error bubble
-            return true;
-          }
+      }
+      @action
+      error(error, transition) {
+        if (error instanceof NotFoundError) {
+          // redirect to a list of all posts instead
+          this.transitionTo('posts');
+        } else {
+          // otherwise let the error bubble
+          return true;
         }
       }
-    });
+    }
     ```
   
     @class NotFoundError
@@ -75596,7 +75640,9 @@ define("@ember-data/model/-private/system/many-array", ["exports", "@ember-data/
       */
 
       this.currentState = [];
-      this.flushCanonical(this.initialState, false);
+      this.flushCanonical(this.initialState, false); // we don't need this anymore, it just prevents garbage collection the records in the initialState
+
+      this.initialState = undefined;
     },
 
     // TODO: if(DEBUG)
@@ -76912,6 +76958,7 @@ define("@ember-data/record-data/-private/record-data", ["exports", "@ember-data/
         }
       });
 
+      this.__relationships = null;
       let implicitRelationships = this._implicitRelationships;
       this.__implicitRelationships = null;
       Object.keys(implicitRelationships).forEach(key => {
@@ -81155,6 +81202,8 @@ define("@ember-data/serializer/-private/embedded-records-mixin", ["exports"], fu
   
     Note that embedded records will serialize with the serializer for their model instead of the serializer in which they are defined.
   
+    Note also that this mixin does not work with JSONAPISerializer because the JSON:API specification does not describe how to format embedded resources.
+  
     Below is an example of a per-type serializer (`post` type).
   
     ```app/serializers/post.js
@@ -83347,15 +83396,16 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
             string: 'StringTransform'
           };
           let shouldWarn = false;
+          let owner = Ember.getOwner(this);
           Object.keys(Mapping).forEach(attributeType => {
-            const transform = Ember.getOwner(this).lookup("transform:".concat(attributeType));
+            const transformFactory = owner.factoryFor("transform:".concat(attributeType));
 
-            if (!transform) {
+            if (!transformFactory) {
               // we don't deprecate this because the moduleFor style tests with the closed
               // resolver will be deprecated on their own. When that deprecation completes
               // we can drop this.
               const Transform = (0, _require.default)("@ember-data/serializer/-private")[Mapping[attributeType]];
-              Ember.getOwner(this).register("transform:".concat(attributeType), Transform);
+              owner.register("transform:".concat(attributeType), Transform);
               shouldWarn = true;
             }
           });
@@ -93118,7 +93168,7 @@ define("@ember-data/store/-private/system/references/has-many", ["exports", "@em
     }
 
     _isLoaded() {
-      let hasRelationshipDataProperty = Ember.get(this.hasManyRelationship, 'hasAnyRelationshipData');
+      let hasRelationshipDataProperty = this.hasManyRelationship.hasAnyRelationshipData;
 
       if (!hasRelationshipDataProperty) {
         return false;
@@ -94761,7 +94811,7 @@ define("@ember-data/store/-private/ts-interfaces/utils/symbol", ["exports"], fun
 });
 
       define('ember-data/version', ['exports'], function (exports) {
-        exports.default = '3.17.0';
+        exports.default = '3.18.0';
       });
     
 define("@ember-data/private-build-infra/available-packages", ["exports"], function (_exports) {
