@@ -24,15 +24,15 @@
   "devDependencies": {
     "mber": "{{mberVersion}}",
     "eslint": "^6.8.0",
-    "eslint-plugin-ember": "^7.10.1",
-    "qunit-dom": "1.1.0",
+    "eslint-plugin-ember": "^8.4.0",
+    "qunit-dom": "1.2.0",
     "@types/ember": "^3.1.1",
     "@types/ember-data": "^3.1.9",
     "@types/ember-qunit": "^3.4.7",
     "@types/ember__test-helpers": "^0.7.9",
     "@types/qunit": "^2.9.0",
     "@types/rsvp": "^4.0.3",
-    "@typescript-eslint/parser": "^2.23.0",
+    "@typescript-eslint/parser": "^2.31.0",
     "typescript": "^3.8.3"
   },
   "fastbootDependencies": [
@@ -42,14 +42,14 @@
   ],
   "dependencies": {
     "@glimmer/tracking": "^1.0.0",
-    "memserver": "^2.0.10",
+    "memserver": "^2.0.12",
     "abortcontroller-polyfill": "^1.4.0",
-    "ember-cli-fastboot": "^2.2.1",
-    "ember-data": "3.17.0",
+    "ember-cli-fastboot": "^2.2.2",
+    "ember-data": "3.18.0",
     "ember-load-initializers": "^2.1.1",
     "ember-modifier": "^1.0.3",
-    "fastboot": "^3.0.0",
-    "jquery": "^3.4.1",
+    "fastboot": "^3.0.3",
+    "jquery": "^3.5.1",
     "mber-head": "^0.1.0",
     "node-fetch": "2.6.0"
   },
