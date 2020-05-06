@@ -1306,7 +1306,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.18.0
+ * @version   3.18.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -3901,8 +3901,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   var RootTemplate = template({
-    "id": "9Fedtpxe",
-    "block": "{\"symbols\":[],\"statements\":[[1,0,0,0,[31,2,9,[27,[26,0,\"CallHead\"],[]],[[27,[24,0],[]]],null]]],\"hasEval\":false,\"upvars\":[\"component\"]}",
+    "id": "s5o9bxSn",
+    "block": "{\"symbols\":[],\"statements\":[[1,[30,[36,0],[[32,0]],null]]],\"hasEval\":false,\"upvars\":[\"component\"]}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/root.hbs"
     }
@@ -5338,8 +5338,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   TextArea.toString = () => '@ember/component/text-area';
 
   var layout$1 = template({
-    "id": "oodT3nZ5",
-    "block": "{\"symbols\":[\"&default\"],\"statements\":[[5,[27,[26,0,\"BlockHead\"],[]],[[28,[24,1]]],null,[[\"default\",\"else\"],[{\"statements\":[[16,1,null]],\"parameters\":[]},{\"statements\":[[1,0,0,0,[27,[24,0],[\"linkTitle\"]]]],\"parameters\":[]}]]]],\"hasEval\":false,\"upvars\":[\"if\"]}",
+    "id": "uDKxl8ne",
+    "block": "{\"symbols\":[\"&default\"],\"statements\":[[6,[37,0],[[27,[32,1]]],null,[[\"default\",\"else\"],[{\"statements\":[[18,1,null]],\"parameters\":[]},{\"statements\":[[1,[32,0,[\"linkTitle\"]]]],\"parameters\":[]}]]]],\"hasEval\":false,\"upvars\":[\"if\"]}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/link-to.hbs"
     }
@@ -13312,22 +13312,22 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     );
   });
   var ComponentTemplate = template({
-    "id": "F6E3y+Xw",
-    "block": "{\"symbols\":[\"&default\"],\"statements\":[[16,1,null]],\"hasEval\":false,\"upvars\":[]}",
+    "id": "RLf1peEf",
+    "block": "{\"symbols\":[\"&default\"],\"statements\":[[18,1,null]],\"hasEval\":false,\"upvars\":[]}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/component.hbs"
     }
   });
   var InputTemplate = template({
-    "id": "lIqKQBPA",
-    "block": "{\"symbols\":[\"Checkbox\",\"TextField\",\"@__ARGS__\",\"&attrs\"],\"statements\":[[5,[27,[26,2,\"BlockHead\"],[]],[[31,9,9,[27,[26,1,\"CallHead\"],[]],[\"-checkbox\"],null],[31,33,9,[27,[26,1,\"CallHead\"],[]],[\"-text-field\"],null]],null,[[\"default\"],[{\"statements\":[[5,[27,[26,0,\"BlockHead\"],[]],[[27,[24,0],[\"isCheckbox\"]]],null,[[\"default\",\"else\"],[{\"statements\":[[7,[27,[24,1],[]],[[15,4]],[[\"@target\",\"@__ARGS__\"],[[27,[24,0],[\"caller\"]],[27,[24,3],[]]]],null]],\"parameters\":[]},{\"statements\":[[7,[27,[24,2],[]],[[15,4]],[[\"@target\",\"@__ARGS__\"],[[27,[24,0],[\"caller\"]],[27,[24,3],[]]]],null]],\"parameters\":[]}]]]],\"parameters\":[1,2]}]]]],\"hasEval\":false,\"upvars\":[\"if\",\"component\",\"let\"]}",
+    "id": "ExnzE3OS",
+    "block": "{\"symbols\":[\"Checkbox\",\"TextField\",\"@__ARGS__\",\"&attrs\"],\"statements\":[[6,[37,2],[[30,[36,1],[\"-checkbox\"],null],[30,[36,1],[\"-text-field\"],null]],null,[[\"default\"],[{\"statements\":[[6,[37,0],[[32,0,[\"isCheckbox\"]]],null,[[\"default\",\"else\"],[{\"statements\":[[8,[32,1],[[17,4]],[[\"@target\",\"@__ARGS__\"],[[32,0,[\"caller\"]],[32,3]]],null]],\"parameters\":[]},{\"statements\":[[8,[32,2],[[17,4]],[[\"@target\",\"@__ARGS__\"],[[32,0,[\"caller\"]],[32,3]]],null]],\"parameters\":[]}]]]],\"parameters\":[1,2]}]]]],\"hasEval\":false,\"upvars\":[\"if\",\"component\",\"let\"]}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/input.hbs"
     }
   });
   var OutletTemplate = template({
-    "id": "/N63Y+JW",
-    "block": "{\"symbols\":[],\"statements\":[[1,0,0,0,[31,2,9,[27,[26,1,\"CallHead\"],[]],[[31,13,7,[27,[26,0,\"CallHead\"],[]],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}",
+    "id": "vA+C0Wde",
+    "block": "{\"symbols\":[],\"statements\":[[1,[30,[36,1],[[30,[36,0],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}",
     "meta": {
       "moduleName": "packages/@ember/-internals/glimmer/lib/templates/outlet.hbs"
     }
@@ -44522,7 +44522,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
   }
 
   var EXPRESSIONS = new Compilers();
-  EXPRESSIONS.add(32
+  EXPRESSIONS.add(31
   /* Concat */
   , ([, parts]) => {
     var out = [];
@@ -44536,10 +44536,13 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     , parts.length));
     return out;
   });
-  EXPRESSIONS.add(31
+  EXPRESSIONS.add(30
   /* Call */
-  , ([, start, offset, name, params, hash], meta) => {
+  , ([, name, params, hash], meta) => {
     // TODO: triage this in the WF compiler
+    var start = 0;
+    var offset = 0;
+
     if (isComponent(name, meta)) {
       if (!params || params.length === 0) {
         return op('Error', {
@@ -44581,60 +44584,111 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     });
   });
 
+  function isGetContextualFree(opcode) {
+    return opcode[0] >= 34
+    /* GetContextualFreeStart */
+    ;
+  }
+
   function isComponent(expr, meta) {
     if (!Array.isArray(expr)) {
       return false;
     }
 
-    if (expr[0] === 27
-    /* GetPath */
-    ) {
-        var head = expr[1];
+    if (isGetContextualFree(expr)) {
+      var head = expr[1];
 
-        if (head[0] === 26
-        /* GetContextualFree */
-        && meta.upvars && meta.upvars[head[1]] === 'component') {
-          return true;
-        } else {
-          return false;
-        }
+      if (meta.upvars && meta.upvars[head] === 'component') {
+        return true;
+      } else {
+        return false;
       }
+    }
 
     return false;
   }
 
-  EXPRESSIONS.add(24
+  EXPRESSIONS.add(32
   /* GetSymbol */
-  , ([, head]) => [op(22
+  , ([, sym, path]) => withPath(op(22
   /* GetVariable */
-  , head)]);
-  EXPRESSIONS.add(27
-  /* GetPath */
-  , ([, head, tail]) => {
-    return [op('Expr', head), ...tail.map(p => op(23
-    /* GetProperty */
-    , p))];
-  });
-  EXPRESSIONS.add(25
+  , sym), path));
+  EXPRESSIONS.add(33
   /* GetFree */
-  , ([, head]) => op('ResolveFree', head));
-  EXPRESSIONS.add(26
-  /* GetContextualFree */
-  , ([, head, context]) => op('ResolveContextualFree', {
-    freeVar: head,
-    context
-  }));
-  EXPRESSIONS.add(30
+  , ([, sym, path]) => withPath(op('ResolveFree', sym), path));
+  EXPRESSIONS.add(34
+  /* GetFreeInAppendSingleId */
+  , ([, sym, path]) => withPath(op('ResolveContextualFree', {
+    freeVar: sym,
+    context: 0
+    /* AppendSingleId */
+
+  }), path));
+  EXPRESSIONS.add(35
+  /* GetFreeInExpression */
+  , ([, sym, path]) => withPath(op('ResolveContextualFree', {
+    freeVar: sym,
+    context: 1
+    /* Expression */
+
+  }), path));
+  EXPRESSIONS.add(36
+  /* GetFreeInCallHead */
+  , ([, sym, path]) => withPath(op('ResolveContextualFree', {
+    freeVar: sym,
+    context: 2
+    /* CallHead */
+
+  }), path));
+  EXPRESSIONS.add(37
+  /* GetFreeInBlockHead */
+  , ([, sym, path]) => withPath(op('ResolveContextualFree', {
+    freeVar: sym,
+    context: 3
+    /* BlockHead */
+
+  }), path));
+  EXPRESSIONS.add(38
+  /* GetFreeInModifierHead */
+  , ([, sym, path]) => withPath(op('ResolveContextualFree', {
+    freeVar: sym,
+    context: 4
+    /* ModifierHead */
+
+  }), path));
+  EXPRESSIONS.add(39
+  /* GetFreeInComponentHead */
+  , ([, sym, path]) => withPath(op('ResolveContextualFree', {
+    freeVar: sym,
+    context: 5
+    /* ComponentHead */
+
+  }), path));
+
+  function withPath(expr, path) {
+    if (path === undefined || path.length === 0) return expr;
+    if (!Array.isArray(expr)) expr = [expr];
+
+    for (var i = 0; i < path.length; i++) {
+      expr.push(op(23
+      /* GetProperty */
+      , path[i]));
+    }
+
+    return expr;
+  }
+
+  EXPRESSIONS.add(29
   /* Undefined */
   , () => PushPrimitiveReference(undefined));
-  EXPRESSIONS.add(28
+  EXPRESSIONS.add(27
   /* HasBlock */
   , ([, block]) => {
     return [op('Expr', block), op(26
     /* HasBlock */
     )];
   });
-  EXPRESSIONS.add(29
+  EXPRESSIONS.add(28
   /* HasBlockParams */
   , ([, block]) => [op('Expr', block), op(25
   /* JitSpreadBlock */
@@ -44689,7 +44743,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
           }
 
           switch (expressionContext) {
-            case "Expression"
+            case 1
             /* Expression */
             :
               {
@@ -44703,7 +44757,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
                 break;
               }
 
-            case "AppendSingleId"
+            case 0
             /* AppendSingleId */
             :
               {
@@ -45214,7 +45268,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     }
 
     compile(sexp, context) {
-      var [,,,, value] = sexp; // TODO: Fix this so that expression macros can return
+      var [, value] = sexp; // TODO: Fix this so that expression macros can return
       // things like components, so that {{component foo}}
       // is the same as {{(component foo)}}
 
@@ -45223,31 +45277,29 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       var params;
       var hash;
 
-      if (value[0] === 31
+      if (value[0] === 30
       /* Call */
       ) {
-          var nameOrError = expectString(value[3], context.meta, 'Expected head of call to be a string');
+          var nameOrError = expectString(value[1], context.meta, 'Expected head of call to be a string');
 
           if (typeof nameOrError !== 'string') {
             return nameOrError;
           }
 
           name = nameOrError;
-          params = value[4];
-          hash = value[5];
-        } else if (value[0] === 27
-      /* GetPath */
-      ) {
-          var pathName = simplePathName(value, context.meta);
+          params = value[2];
+          hash = value[3];
+        } else if (isGet(value)) {
+        var pathName = simplePathName(value, context.meta);
 
-          if (pathName === null) {
-            return UNHANDLED;
-          }
+        if (pathName === null) {
+          return UNHANDLED;
+        }
 
-          name = pathName;
-          params = null;
-          hash = null;
-        } else {
+        name = pathName;
+        params = null;
+        hash = null;
+      } else {
         return UNHANDLED;
       }
 
@@ -45268,22 +45320,6 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       }
     }
 
-  }
-
-  function simplePathName([, get, tail], meta) {
-    if (tail.length > 0) {
-      return null;
-    }
-
-    if (get[0] === 25
-    /* GetFree */
-    || get[0] === 26
-    /* GetContextualFree */
-    ) {
-        return meta.upvars[get[1]];
-      }
-
-    return null;
   }
 
   function syntaxCompilationContext(program, macros) {
@@ -45328,25 +45364,36 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
   }
 
   var STATEMENTS = new Compilers();
-  STATEMENTS.add(2
+  var INFLATE_ATTR_TABLE = ['class', 'id', 'value', 'name', 'type', 'style', 'href'];
+  var INFLATE_TAG_TABLE = ['div', 'span', 'p', 'a'];
+
+  function inflateTagName(tagName) {
+    return typeof tagName === 'string' ? tagName : INFLATE_TAG_TABLE[tagName];
+  }
+
+  function inflateAttrName(attrName) {
+    return typeof attrName === 'string' ? attrName : INFLATE_ATTR_TABLE[attrName];
+  }
+
+  STATEMENTS.add(3
   /* Comment */
   , sexp => op(42
   /* Comment */
   , sexp[1]));
-  STATEMENTS.add(11
+  STATEMENTS.add(13
   /* CloseElement */
   , () => op(55
   /* CloseElement */
   ));
-  STATEMENTS.add(10
+  STATEMENTS.add(12
   /* FlushElement */
   , () => op(54
   /* FlushElement */
   ));
-  STATEMENTS.add(3
+  STATEMENTS.add(4
   /* Modifier */
   , (sexp, meta) => {
-    var [,,, name, params, hash] = sexp;
+    var [, name, params, hash] = sexp;
     var stringName = expectString(name, meta, 'Expected modifier head to be a string');
 
     if (typeof stringName !== 'string') {
@@ -45375,52 +45422,53 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       }
     });
   });
-  STATEMENTS.add(12
+  STATEMENTS.add(14
   /* StaticAttr */
   , ([, name, value, namespace]) => op(51
   /* StaticAttr */
-  , name, value, namespace));
-  STATEMENTS.add(23
+  , inflateAttrName(name), value, namespace !== null && namespace !== void 0 ? namespace : null));
+  STATEMENTS.add(24
   /* StaticComponentAttr */
   , ([, name, value, namespace]) => op(108
   /* StaticComponentAttr */
-  , name, value, namespace));
-  STATEMENTS.add(13
+  , inflateAttrName(name), value, namespace !== null && namespace !== void 0 ? namespace : null));
+  STATEMENTS.add(15
   /* DynamicAttr */
   , ([, name, value, namespace]) => [op('Expr', value), op(52
   /* DynamicAttr */
-  , name, false, namespace)]);
-  STATEMENTS.add(20
+  , inflateAttrName(name), false, namespace !== null && namespace !== void 0 ? namespace : null)]);
+  STATEMENTS.add(22
   /* TrustingDynamicAttr */
   , ([, name, value, namespace]) => [op('Expr', value), op(52
   /* DynamicAttr */
-  , name, true, namespace)]);
-  STATEMENTS.add(14
+  , inflateAttrName(name), true, namespace !== null && namespace !== void 0 ? namespace : null)]);
+  STATEMENTS.add(16
   /* ComponentAttr */
   , ([, name, value, namespace]) => [op('Expr', value), op(53
   /* ComponentAttr */
-  , name, false, namespace)]);
-  STATEMENTS.add(21
+  , inflateAttrName(name), false, namespace !== null && namespace !== void 0 ? namespace : null)]);
+  STATEMENTS.add(23
   /* TrustingComponentAttr */
   , ([, name, value, namespace]) => [op('Expr', value), op(53
   /* ComponentAttr */
-  , name, true, namespace)]);
-  STATEMENTS.add(9
+  , inflateAttrName(name), true, namespace !== null && namespace !== void 0 ? namespace : null)]);
+  STATEMENTS.add(10
   /* OpenElement */
-  , ([, tag, simple]) => {
-    if (simple) {
-      return op(48
-      /* OpenElement */
-      , tag);
-    } else {
-      return [op(91
-      /* PutComponentOperations */
-      ), op(48
-      /* OpenElement */
-      , tag)];
-    }
+  , ([, tag]) => {
+    return op(48
+    /* OpenElement */
+    , inflateTagName(tag));
   });
-  STATEMENTS.add(7
+  STATEMENTS.add(11
+  /* OpenElementWithSplat */
+  , ([, tag]) => {
+    return [op(91
+    /* PutComponentOperations */
+    ), op(48
+    /* OpenElement */
+    , inflateTagName(tag))];
+  });
+  STATEMENTS.add(8
   /* Component */
   , ([, tag, attrs, args$$1, blocks]) => {
     if (typeof tag === 'string') {
@@ -45470,7 +45518,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       });
     }
   });
-  STATEMENTS.add(17
+  STATEMENTS.add(19
   /* Partial */
   , ([, name, evalInfo], meta) => ReplayableIf({
     args() {
@@ -45493,13 +45541,13 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     }
 
   }));
-  STATEMENTS.add(16
+  STATEMENTS.add(18
   /* Yield */
   , ([, to, params]) => YieldBlock(to, params));
-  STATEMENTS.add(15
+  STATEMENTS.add(17
   /* AttrSplat */
   , ([, to]) => YieldBlock(to, _util.EMPTY_ARRAY));
-  STATEMENTS.add(22
+  STATEMENTS.add(26
   /* Debugger */
   , ([, evalInfo], meta) => op(106
   /* Debugger */
@@ -45507,14 +45555,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
   STATEMENTS.add(1
   /* Append */
   , sexp => {
-    var [, trusted,,, value] = sexp;
-
-    if (typeof value === 'string' && trusted) {
-      return op(41
-      /* Text */
-      , value);
-    }
-
+    var [, value] = sexp;
     return op('CompileInline', {
       inline: sexp,
       ifUnhandled: () => [op(0
@@ -45525,13 +45566,39 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       /* InvokeStatic */
       , {
         type: 'stdlib',
-        value: trusted ? 'trusting-append' : 'cautious-append'
+        value: 'cautious-append'
       }), op(1
       /* PopFrame */
       )]
     });
   });
-  STATEMENTS.add(5
+  STATEMENTS.add(2
+  /* TrustingAppend */
+  , sexp => {
+    var [, value] = sexp;
+
+    if (typeof value === 'string') {
+      return op(41
+      /* Text */
+      , value);
+    } // macro was ignoring trusting flag doesn't seem like {{{}}} should
+    // even be passed to macros, there is no {{{component}}}
+
+
+    return [op(0
+    /* PushFrame */
+    ), op("Expr"
+    /* Expr */
+    , value), op(3
+    /* InvokeStatic */
+    , {
+      type: 'stdlib',
+      value: 'trusting-append'
+    }), op(1
+    /* PopFrame */
+    )];
+  });
+  STATEMENTS.add(6
   /* Block */
   , sexp => {
     return op('CompileBlock', sexp);
@@ -45660,26 +45727,40 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       return error(`${desc}, but there were no free variables in the template`, 0, 0);
     }
 
-    if (!Array.isArray(expr) || expr[0] !== 27
-    /* GetPath */
-    ) {
-        throw new Error(`${desc}, got ${JSON.stringify(expr)}`);
-      }
-
-    if (expr[2].length !== 0) {
+    if (!Array.isArray(expr)) {
       throw new Error(`${desc}, got ${JSON.stringify(expr)}`);
     }
 
-    if (expr[1][0] === 26
-    /* GetContextualFree */
-    || expr[1][0] === 25
-    /* GetFree */
-    ) {
-        var head = expr[1][1];
-        return meta.upvars[head];
-      }
+    if (isGet(expr)) {
+      var name = simplePathName(expr, meta);
+      if (name !== null) return name;
+    }
 
     throw new Error(`${desc}, got ${JSON.stringify(expr)}`);
+  }
+
+  function simplePathName(opcode, meta) {
+    if (opcode.length === 3 && opcode[2].length > 0) {
+      return null;
+    }
+
+    if (isGetFree(opcode)) {
+      return meta.upvars[opcode[1]];
+    }
+
+    return null;
+  }
+
+  function isGet(opcode) {
+    return opcode.length >= 2 && opcode[0] >= 32
+    /* GetSymbol */
+    ;
+  }
+
+  function isGetFree(opcode) {
+    return opcode[0] >= 33
+    /* GetFree */
+    ;
   }
 
   function compileInline(sexp, context) {
@@ -48352,7 +48433,7 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
     var seen = new WeakMapWithPrimitives();
     return (value, memo) => {
       var key = keyFor(value, memo);
-      var count = seen.get(value) || 0;
+      var count = seen.get(key) || 0;
       seen.set(key, count + 1);
 
       if (count === 0) {
@@ -48728,6 +48809,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
     get nextSibling() {
       return this[CURSOR_STACK].current.nextSibling;
+    }
+
+    get hasBlocks() {
+      return this.blockStack.size > 0;
     }
 
     block() {
@@ -52528,8 +52613,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var item = stack.peek().next();
 
     if (item) {
-      var tryOpcode = vm.iterate(item.memo, item.value);
-      vm.enterItem(item.key, tryOpcode);
+      var tryOpcode = vm.enterItem(item.memo, item.value);
+      vm.registerItem(item.key, tryOpcode);
     } else {
       vm.goto(breaks);
     }
@@ -53580,11 +53665,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       var vm = opcode.vmForInsertion(nextSibling);
       var tryOpcode = null;
       var result = vm.execute(vm => {
-        tryOpcode = vm.iterate(memo, item);
+        vm.pushUpdating();
+        tryOpcode = vm.enterItem(memo, item);
         map.set(key, tryOpcode);
-        vm.pushUpdating(new _util.LinkedList());
-        vm.updateWith(tryOpcode);
-        vm.pushUpdating(tryOpcode.children);
       });
       updating.insertBefore(tryOpcode, reference);
       (0, _util.associate)(opcode, result.drop);
@@ -54007,10 +54090,6 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     get stack() {
       return this[INNER_VM].stack;
     }
-
-    currentBlock() {
-      return this.elements().block();
-    }
     /* Registers */
 
 
@@ -54157,7 +54236,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.didEnter(tryOpcode);
     }
 
-    iterate(memo, value) {
+    enterItem(memo, value) {
       var stack = this.stack;
       stack.push(value);
       stack.push(memo);
@@ -54166,12 +54245,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       // this.ip = end + 4;
       // this.frames.push(ip);
 
-      return new TryOpcode(state, this.runtime, block, new _util.LinkedList());
+      var opcode = new TryOpcode(state, this.runtime, block, new _util.LinkedList());
+      this.didEnter(opcode);
+      return opcode;
     }
 
-    enterItem(key, opcode) {
+    registerItem(key, opcode) {
       this.listBlock().map.set(key, opcode);
-      this.didEnter(opcode);
     }
 
     enterList(offset) {
@@ -54293,9 +54373,19 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       if (initialize) initialize(this);
       var result;
 
-      while (true) {
-        result = this.next();
-        if (result.done) break;
+      try {
+        while (true) {
+          result = this.next();
+          if (result.done) break;
+        }
+      } finally {
+        // If any existing blocks are open, due to an error or something like
+        // that, we need to close them all and clean things up properly.
+        var elements = this.elements();
+
+        while (elements.hasBlocks) {
+          elements.popBlock();
+        }
       }
 
       return result.value;
@@ -56853,47 +56943,47 @@ define("@glimmer/wire-format", ["exports"], function (_exports) {
   } // Statements
 
 
-  var isFlushElement = is(10
+  var isFlushElement = is(12
   /* FlushElement */
   );
   _exports.isFlushElement = isFlushElement;
 
   function isAttribute(val) {
-    return val[0] === 12
+    return val[0] === 14
     /* StaticAttr */
-    || val[0] === 13
-    /* DynamicAttr */
-    || val[0] === 20
-    /* TrustingDynamicAttr */
-    || val[0] === 14
-    /* ComponentAttr */
-    || val[0] === 23
-    /* StaticComponentAttr */
-    || val[0] === 21
-    /* TrustingComponentAttr */
     || val[0] === 15
+    /* DynamicAttr */
+    || val[0] === 22
+    /* TrustingDynamicAttr */
+    || val[0] === 16
+    /* ComponentAttr */
+    || val[0] === 24
+    /* StaticComponentAttr */
+    || val[0] === 23
+    /* TrustingComponentAttr */
+    || val[0] === 17
     /* AttrSplat */
-    || val[0] === 3
+    || val[0] === 4
     /* Modifier */
     ;
   }
 
   function isArgument(val) {
-    return val[0] === 19
+    return val[0] === 21
     /* StaticArg */
-    || val[0] === 18
+    || val[0] === 20
     /* DynamicArg */
     ;
   }
 
   function isHelper(expr) {
-    return Array.isArray(expr) && expr[0] === 31
+    return Array.isArray(expr) && expr[0] === 30
     /* Call */
     ;
   } // Expressions
 
 
-  var isGet = is(24
+  var isGet = is(32
   /* GetSymbol */
   );
   _exports.isGet = isGet;
@@ -61432,7 +61522,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.18.0";
+  var _default = "3.18.1";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {

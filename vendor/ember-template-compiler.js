@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.18.0
+ * @version   3.18.1
  */
 
 /*globals process */
@@ -2838,1744 +2838,6 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
     return -1;
   }
 
-  var Block = /*#__PURE__*/function () {
-    function Block() {
-      this.statements = [];
-    }
-
-    var _proto5 = Block.prototype;
-
-    _proto5.push = function push(statement) {
-      this.statements.push(statement);
-    };
-
-    return Block;
-  }();
-
-  var InlineBlock = /*#__PURE__*/function (_Block) {
-    (0, _emberBabel.inheritsLoose)(InlineBlock, _Block);
-
-    var _super3 = (0, _emberBabel.createSuper)(InlineBlock);
-
-    function InlineBlock(table) {
-      var _this5;
-
-      _this5 = _Block.call(this) || this;
-      _this5.table = table;
-      return _this5;
-    }
-
-    var _proto6 = InlineBlock.prototype;
-
-    _proto6.toJSON = function toJSON() {
-      return {
-        statements: this.statements,
-        parameters: this.table.slots
-      };
-    };
-
-    return InlineBlock;
-  }(Block);
-
-  var NamedBlock = /*#__PURE__*/function (_InlineBlock) {
-    (0, _emberBabel.inheritsLoose)(NamedBlock, _InlineBlock);
-
-    var _super4 = (0, _emberBabel.createSuper)(NamedBlock);
-
-    function NamedBlock(name, table) {
-      var _this6;
-
-      _this6 = _InlineBlock.call(this, table) || this;
-      _this6.name = name;
-      return _this6;
-    }
-
-    return NamedBlock;
-  }(InlineBlock);
-
-  var TemplateBlock = /*#__PURE__*/function (_Block2) {
-    (0, _emberBabel.inheritsLoose)(TemplateBlock, _Block2);
-
-    var _super5 = (0, _emberBabel.createSuper)(TemplateBlock);
-
-    function TemplateBlock(symbolTable) {
-      var _this7;
-
-      _this7 = _Block2.call(this) || this;
-      _this7.symbolTable = symbolTable;
-      _this7.type = 'template';
-      _this7.yields = new _util.DictSet();
-      _this7.named = new _util.DictSet();
-      _this7.blocks = [];
-      _this7.hasEval = false;
-      return _this7;
-    }
-
-    var _proto7 = TemplateBlock.prototype;
-
-    _proto7.push = function push(statement) {
-      this.statements.push(statement);
-    };
-
-    _proto7.toJSON = function toJSON() {
-      return {
-        symbols: this.symbolTable.symbols,
-        statements: this.statements,
-        hasEval: this.hasEval,
-        upvars: this.symbolTable.freeVariables
-      };
-    };
-
-    return TemplateBlock;
-  }(Block);
-
-  var ComponentBlock = /*#__PURE__*/function (_Block3) {
-    (0, _emberBabel.inheritsLoose)(ComponentBlock, _Block3);
-
-    var _super6 = (0, _emberBabel.createSuper)(ComponentBlock);
-
-    function ComponentBlock(tag, table, selfClosing) {
-      var _this8;
-
-      _this8 = _Block3.call(this) || this;
-      _this8.tag = tag;
-      _this8.table = table;
-      _this8.selfClosing = selfClosing;
-      _this8.attributes = [];
-      _this8.arguments = [];
-      _this8.inParams = true;
-      _this8.positionals = [];
-      _this8.blocks = [];
-      return _this8;
-    }
-
-    var _proto8 = ComponentBlock.prototype;
-
-    _proto8.push = function push(statement) {
-      if (this.inParams) {
-        if ((0, _wireFormat.isFlushElement)(statement)) {
-          this.inParams = false;
-        } else if ((0, _wireFormat.isArgument)(statement)) {
-          this.arguments.push(statement);
-        } else if ((0, _wireFormat.isAttribute)(statement)) {
-          this.attributes.push(statement);
-        } else {
-          throw new Error('Compile Error: only parameters allowed before flush-element');
-        }
-      } else {
-        this.statements.push(statement);
-      }
-    };
-
-    _proto8.pushBlock = function pushBlock(name, block) {
-      this.blocks.push([name, block]);
-    };
-
-    _proto8.toJSON = function toJSON() {
-      var blocks;
-      var args = this.arguments;
-      var keys = args.map(function (arg) {
-        return arg[1];
-      });
-      var values$$1 = args.map(function (arg) {
-        return arg[2];
-      });
-
-      if (this.selfClosing) {
-        blocks = null;
-      } else if (this.blocks.length > 0) {
-        var _keys = [];
-        var _values$$ = [];
-
-        for (var i = 0; i < this.blocks.length; i++) {
-          var _this$blocks$i = this.blocks[i],
-              key = _this$blocks$i[0],
-              value = _this$blocks$i[1];
-
-          _keys.push(key.slice(1));
-
-          _values$$.push(value);
-        }
-
-        blocks = [_keys, _values$$];
-      } else {
-        blocks = [['default'], [{
-          statements: this.statements,
-          parameters: this.table.slots
-        }]];
-      }
-
-      return [this.tag, this.attributes, [keys, values$$1], blocks];
-    };
-
-    return ComponentBlock;
-  }(Block);
-
-  var Template = /*#__PURE__*/function () {
-    function Template(symbols) {
-      this.block = new TemplateBlock(symbols);
-    }
-
-    var _proto9 = Template.prototype;
-
-    _proto9.toJSON = function toJSON() {
-      return this.block.toJSON();
-    };
-
-    return Template;
-  }();
-
-  var JavaScriptCompiler = /*#__PURE__*/function () {
-    function JavaScriptCompiler(opcodes, symbols, locations, options) {
-      this.locations = locations;
-      this.blocks = new _util.Stack();
-      this.values = [];
-      this.location = null;
-      this.locationStack = [];
-      this.opcodes = opcodes;
-      this.template = new Template(symbols);
-      this.options = options;
-    }
-
-    JavaScriptCompiler.process = function process(opcodes, locations, symbols, options) {
-      var compiler = new JavaScriptCompiler(opcodes, symbols, locations, options);
-      return compiler.process();
-    };
-
-    var _proto10 = JavaScriptCompiler.prototype;
-
-    _proto10.process = function process() {
-      var _this9 = this;
-
-      this.opcodes.forEach(function (op, i) {
-        var opcode = op[0];
-        _this9.location = _this9.locations[i];
-        var arg = op[1];
-
-        if (!_this9[opcode]) {
-          throw new Error("unimplemented " + opcode + " on JavaScriptCompiler");
-        }
-
-        _this9[opcode](arg);
-      });
-      return this.template;
-    } /// Nesting
-    ;
-
-    _proto10.startBlock = function startBlock(program) {
-      this.startInlineBlock(program.symbols);
-    };
-
-    _proto10.endBlock = function endBlock() {
-      var block = this.endInlineBlock();
-      this.template.block.blocks.push(block);
-    };
-
-    _proto10.startProgram = function startProgram() {
-      this.blocks.push(this.template.block);
-    };
-
-    _proto10.endProgram = function endProgram() {} /// Statements
-    ;
-
-    _proto10.text = function text(content) {
-      this.push([1
-      /* Append */
-      , 1, 0, 0, content]);
-    };
-
-    _proto10.append = function append(trusted) {
-      this.push([1
-      /* Append */
-      , +trusted, 0, 0, this.popValue()]);
-    };
-
-    _proto10.comment = function comment(value) {
-      this.push([2
-      /* Comment */
-      , value]);
-    };
-
-    _proto10.modifier = function modifier() {
-      var name = this.popValue();
-      var params = this.popValue();
-      var hash = this.popValue();
-      this.push([3
-      /* Modifier */
-      , 0, 0, name, params, hash]);
-    };
-
-    _proto10.block = function block(_ref) {
-      var template = _ref[0],
-          inverse = _ref[1];
-      var head = this.popValue();
-      var params = this.popValue();
-      var hash = this.popValue();
-      var blocks = this.template.block.blocks;
-      var namedBlocks;
-
-      if (template === null && inverse === null) {
-        namedBlocks = null;
-      } else if (inverse === null) {
-        namedBlocks = [['default'], [blocks[template]]];
-      } else {
-        namedBlocks = [['default', 'else'], [blocks[template], blocks[inverse]]];
-      } // assert(head[]);
-
-
-      this.push([5
-      /* Block */
-      , head, params, hash, namedBlocks]);
-    };
-
-    _proto10.openComponent = function openComponent(element) {
-      var tag = this.options && this.options.customizeComponentName ? this.options.customizeComponentName(element.tag) : element.tag;
-      var component = new ComponentBlock(tag, element.symbols, element.selfClosing);
-      this.blocks.push(component);
-    };
-
-    _proto10.openNamedBlock = function openNamedBlock(element) {
-      var block = new NamedBlock(element.tag, element.symbols);
-      this.blocks.push(block);
-    };
-
-    _proto10.openElement = function openElement(_ref2) {
-      var element = _ref2[0],
-          simple = _ref2[1];
-      var tag = element.tag;
-
-      if (element.blockParams.length > 0) {
-        throw new Error("Compile Error: <" + element.tag + "> is not a component and doesn't support block parameters");
-      } else {
-        this.push([9
-        /* OpenElement */
-        , tag, simple]);
-      }
-    };
-
-    _proto10.flushElement = function flushElement() {
-      this.push([10
-      /* FlushElement */
-      ]);
-    };
-
-    _proto10.closeComponent = function closeComponent(_element) {
-      var _this$endComponent = this.endComponent(),
-          tag = _this$endComponent[0],
-          attrs = _this$endComponent[1],
-          args = _this$endComponent[2],
-          blocks = _this$endComponent[3];
-
-      this.push([7
-      /* Component */
-      , tag, attrs, args, blocks]);
-    };
-
-    _proto10.closeNamedBlock = function closeNamedBlock(_element) {
-      var blocks = this.blocks;
-      var block = blocks.pop();
-      this.currentComponent.pushBlock(block.name, block.toJSON());
-    };
-
-    _proto10.closeDynamicComponent = function closeDynamicComponent(_element) {
-      var _this$endComponent2 = this.endComponent(),
-          attrs = _this$endComponent2[1],
-          args = _this$endComponent2[2],
-          block = _this$endComponent2[3];
-
-      this.push([7
-      /* Component */
-      , this.popValue(), attrs, args, block]);
-    };
-
-    _proto10.closeElement = function closeElement(_element) {
-      this.push([11
-      /* CloseElement */
-      ]);
-    };
-
-    _proto10.staticAttr = function staticAttr(_ref3) {
-      var name = _ref3[0],
-          namespace = _ref3[1];
-      var value = this.popValue();
-      this.push([12
-      /* StaticAttr */
-      , name, value, namespace]);
-    };
-
-    _proto10.staticComponentAttr = function staticComponentAttr(_ref4) {
-      var name = _ref4[0],
-          namespace = _ref4[1];
-      var value = this.popValue();
-      this.push([23
-      /* StaticComponentAttr */
-      , name, value, namespace]);
-    };
-
-    _proto10.dynamicAttr = function dynamicAttr(_ref5) {
-      var name = _ref5[0],
-          namespace = _ref5[1];
-      var value = this.popValue();
-      this.push([13
-      /* DynamicAttr */
-      , name, value, namespace]);
-    };
-
-    _proto10.componentAttr = function componentAttr(_ref6) {
-      var name = _ref6[0],
-          namespace = _ref6[1];
-      var value = this.popValue();
-      this.push([14
-      /* ComponentAttr */
-      , name, value, namespace]);
-    };
-
-    _proto10.trustingAttr = function trustingAttr(_ref7) {
-      var name = _ref7[0],
-          namespace = _ref7[1];
-      var value = this.popValue();
-      this.push([20
-      /* TrustingDynamicAttr */
-      , name, value, namespace]);
-    };
-
-    _proto10.trustingComponentAttr = function trustingComponentAttr(_ref8) {
-      var name = _ref8[0],
-          namespace = _ref8[1];
-      var value = this.popValue();
-      this.push([21
-      /* TrustingComponentAttr */
-      , name, value, namespace]);
-    };
-
-    _proto10.staticArg = function staticArg(name) {
-      var value = this.popValue();
-      this.push([19
-      /* StaticArg */
-      , name, value]);
-    };
-
-    _proto10.dynamicArg = function dynamicArg(name) {
-      var value = this.popValue();
-      this.push([18
-      /* DynamicArg */
-      , name, value]);
-    };
-
-    _proto10.yield = function _yield(to) {
-      var params = this.popValue();
-      this.push([16
-      /* Yield */
-      , to, params]);
-    };
-
-    _proto10.attrSplat = function attrSplat(to) {
-      // consume (and disregard) the value pushed for the
-      // ...attributes attribute
-      this.popValue();
-      this.push([15
-      /* AttrSplat */
-      , to]);
-    };
-
-    _proto10.debugger = function _debugger(evalInfo) {
-      this.push([22
-      /* Debugger */
-      , evalInfo]);
-      this.template.block.hasEval = true;
-    };
-
-    _proto10.hasBlock = function hasBlock(name) {
-      this.pushValue([28
-      /* HasBlock */
-      , [24
-      /* GetSymbol */
-      , name]]);
-    };
-
-    _proto10.hasBlockParams = function hasBlockParams(name) {
-      this.pushValue([29
-      /* HasBlockParams */
-      , [24
-      /* GetSymbol */
-      , name]]);
-    };
-
-    _proto10.partial = function partial(evalInfo) {
-      var params = this.popValue();
-      this.push([17
-      /* Partial */
-      , params[0], evalInfo]);
-      this.template.block.hasEval = true;
-    } /// Expressions
-    ;
-
-    _proto10.literal = function literal(value) {
-      if (value === undefined) {
-        this.pushValue([30
-        /* Undefined */
-        ]);
-      } else {
-        this.pushValue(value);
-      }
-    };
-
-    _proto10.getPath = function getPath(rest) {
-      var head = this.popValue();
-      this.pushValue([27
-      /* GetPath */
-      , head, rest]);
-    };
-
-    _proto10.getSymbol = function getSymbol(head) {
-      this.pushValue([24
-      /* GetSymbol */
-      , head]);
-    };
-
-    _proto10.getFree = function getFree(head) {
-      this.pushValue([25
-      /* GetFree */
-      , head]);
-    };
-
-    _proto10.getFreeWithContext = function getFreeWithContext(_ref9) {
-      var head = _ref9[0],
-          context = _ref9[1];
-      this.pushValue([26
-      /* GetContextualFree */
-      , head, context]);
-    };
-
-    _proto10.concat = function concat() {
-      this.pushValue([32
-      /* Concat */
-      , this.popValue()]);
-    };
-
-    _proto10.helper = function helper() {
-      var _this$popLocatedValue = this.popLocatedValue(),
-          head = _this$popLocatedValue.value,
-          location = _this$popLocatedValue.location;
-
-      var params = this.popValue();
-      var hash = this.popValue();
-      this.pushValue([31
-      /* Call */
-      , start(location), end(location), head, params, hash]);
-    } /// Stack Management Opcodes
-    ;
-
-    _proto10.prepareArray = function prepareArray(size) {
-      var values$$1 = [];
-
-      for (var i = 0; i < size; i++) {
-        values$$1.push(this.popValue());
-      }
-
-      this.pushValue(values$$1);
-    };
-
-    _proto10.prepareObject = function prepareObject(size) {
-      var keys = new Array(size);
-      var values$$1 = new Array(size);
-
-      for (var i = 0; i < size; i++) {
-        keys[i] = this.popValue();
-        values$$1[i] = this.popValue();
-      }
-
-      this.pushValue([keys, values$$1]);
-    } /// Utilities
-    ;
-
-    _proto10.endComponent = function endComponent() {
-      var component = this.blocks.pop();
-      return component.toJSON();
-    };
-
-    _proto10.startInlineBlock = function startInlineBlock(symbols) {
-      var block = new InlineBlock(symbols);
-      this.blocks.push(block);
-    };
-
-    _proto10.endInlineBlock = function endInlineBlock() {
-      var blocks = this.blocks;
-      var block = blocks.pop();
-      return block.toJSON();
-    };
-
-    _proto10.push = function push(args) {
-      this.currentBlock.push(args);
-    };
-
-    _proto10.pushValue = function pushValue(val) {
-      this.values.push(val);
-      this.locationStack.push(this.location);
-    };
-
-    _proto10.popLocatedValue = function popLocatedValue() {
-      var value = this.values.pop();
-      var location = this.locationStack.pop();
-
-      if (location === undefined) {
-        throw new Error('Unbalanced location push and pop');
-      }
-
-      return {
-        value: value,
-        location: location
-      };
-    };
-
-    _proto10.popValue = function popValue() {
-      return this.popLocatedValue().value;
-    };
-
-    (0, _emberBabel.createClass)(JavaScriptCompiler, [{
-      key: "currentBlock",
-      get: function get() {
-        return this.blocks.current;
-      }
-    }, {
-      key: "currentComponent",
-      get: function get() {
-        var block = this.currentBlock;
-
-        if (block instanceof ComponentBlock) {
-          return block;
-        } else {
-          throw new Error("Expected ComponentBlock on stack, found " + block.constructor.name);
-        }
-      }
-    }]);
-    return JavaScriptCompiler;
-  }();
-
-  function start(location) {
-    if (location) {
-      return location.start;
-    } else {
-      return -1;
-    }
-  }
-
-  function end(location) {
-    if (location) {
-      return location.end - location.start;
-    } else {
-      return -1;
-    }
-  } // enumerated in
-  // https://www.w3.org/TR/html/syntax.html#attributes-0
-  //
-  // > When a foreign element has one of the namespaced attributes given by
-  // > the local name and namespace of the first and second cells of a row
-  // > from the following table, it must be written using the name given by
-  // > the third cell from the same row.
-  //
-  // In all other cases, colons are interpreted as a regular character
-  // with no special meaning:
-  //
-  // > No other namespaced attribute can be expressed in the HTML syntax.
-
-
-  var XLINK = 'http://www.w3.org/1999/xlink';
-  var XML = 'http://www.w3.org/XML/1998/namespace';
-  var XMLNS = 'http://www.w3.org/2000/xmlns/';
-  var WHITELIST = {
-    'xlink:actuate': XLINK,
-    'xlink:arcrole': XLINK,
-    'xlink:href': XLINK,
-    'xlink:role': XLINK,
-    'xlink:show': XLINK,
-    'xlink:title': XLINK,
-    'xlink:type': XLINK,
-    'xml:base': XML,
-    'xml:lang': XML,
-    'xml:space': XML,
-    xmlns: XMLNS,
-    'xmlns:xlink': XMLNS
-  };
-
-  function getAttrNamespace(attrName) {
-    return WHITELIST[attrName] || null;
-  }
-
-  var SymbolAllocator = /*#__PURE__*/function () {
-    function SymbolAllocator(ops, locations) {
-      this.ops = ops;
-      this.locations = locations;
-      this.symbolStack = new _util.Stack();
-    }
-
-    var _proto11 = SymbolAllocator.prototype;
-
-    _proto11.process = function process() {
-      var out = [];
-      var locations = [];
-      var ops = this.ops;
-
-      for (var i = 0; i < ops.length; i++) {
-        var op = ops[i];
-        var location = this.locations[i];
-        var result = this.dispatch(op);
-        out.push(result);
-        locations.push(location);
-      }
-
-      return {
-        ops: out,
-        locations: locations
-      };
-    };
-
-    _proto11.dispatch = function dispatch(op) {
-      var name = op[0];
-      var operand = op[1];
-      return this[name](operand) || op;
-    };
-
-    _proto11.startProgram = function startProgram(op) {
-      this.symbolStack.push(op.symbols);
-    };
-
-    _proto11.endProgram = function endProgram() {
-      this.symbolStack.pop();
-    };
-
-    _proto11.startBlock = function startBlock(op) {
-      this.symbolStack.push(op.symbols);
-    };
-
-    _proto11.endBlock = function endBlock() {
-      this.symbolStack.pop();
-    };
-
-    _proto11.openNamedBlock = function openNamedBlock(op) {
-      this.symbolStack.push(op.symbols);
-    };
-
-    _proto11.closeNamedBlock = function closeNamedBlock(_op) {
-      this.symbolStack.pop();
-    };
-
-    _proto11.flushElement = function flushElement(op) {
-      this.symbolStack.push(op.symbols);
-    };
-
-    _proto11.closeElement = function closeElement(_op) {
-      this.symbolStack.pop();
-    };
-
-    _proto11.closeComponent = function closeComponent(_op) {
-      this.symbolStack.pop();
-    };
-
-    _proto11.closeDynamicComponent = function closeDynamicComponent(_op) {
-      this.symbolStack.pop();
-    };
-
-    _proto11.attrSplat = function attrSplat() {
-      return ['attrSplat', this.symbols.allocateBlock('attrs')];
-    };
-
-    _proto11.getFree = function getFree(name) {
-      var symbol = this.symbols.allocateFree(name);
-      return ['getFree', symbol];
-    };
-
-    _proto11.getArg = function getArg(name) {
-      var symbol = this.symbols.allocateNamed(name);
-      return ['getSymbol', symbol];
-    };
-
-    _proto11.getThis = function getThis() {
-      return ['getSymbol', 0];
-    };
-
-    _proto11.getVar = function getVar(_ref10) {
-      var name = _ref10[0],
-          context = _ref10[1];
-
-      if (this.symbols.has(name)) {
-        var symbol = this.symbols.get(name);
-        return ['getSymbol', symbol];
-      } else {
-        var _symbol = this.symbols.allocateFree(name);
-
-        return ['getFreeWithContext', [_symbol, context]];
-      }
-    };
-
-    _proto11.getPath = function getPath(rest) {
-      return ['getPath', rest];
-    };
-
-    _proto11.yield = function _yield(op) {
-      return ['yield', this.symbols.allocateBlock(op)];
-    };
-
-    _proto11.debugger = function _debugger(_op) {
-      return ['debugger', this.symbols.getEvalInfo()];
-    };
-
-    _proto11.hasBlock = function hasBlock(op) {
-      if (op === 0) {
-        throw new Error('Cannot hasBlock this');
-      }
-
-      return ['hasBlock', this.symbols.allocateBlock(op)];
-    };
-
-    _proto11.hasBlockParams = function hasBlockParams(op) {
-      if (op === 0) {
-        throw new Error('Cannot hasBlockParams this');
-      }
-
-      return ['hasBlockParams', this.symbols.allocateBlock(op)];
-    };
-
-    _proto11.partial = function partial() {
-      return ['partial', this.symbols.getEvalInfo()];
-    };
-
-    _proto11.block = function block(_ref11) {
-      var template = _ref11[0],
-          inverse = _ref11[1];
-      return ['block', [template, inverse]];
-    };
-
-    _proto11.modifier = function modifier() {
-      return ['modifier'];
-    };
-
-    _proto11.helper = function helper() {
-      return ['helper'];
-    };
-
-    _proto11.text = function text(content) {
-      return ['text', content];
-    };
-
-    _proto11.comment = function comment(_comment) {
-      return ['comment', _comment];
-    };
-
-    _proto11.openComponent = function openComponent(element) {
-      return ['openComponent', element];
-    };
-
-    _proto11.openElement = function openElement(_ref12) {
-      var element = _ref12[0],
-          simple = _ref12[1];
-      return ['openElement', [element, simple]];
-    };
-
-    _proto11.staticArg = function staticArg(name) {
-      return ['staticArg', name];
-    };
-
-    _proto11.dynamicArg = function dynamicArg(name) {
-      return ['dynamicArg', name];
-    };
-
-    _proto11.staticAttr = function staticAttr(_ref13) {
-      var name = _ref13[0],
-          ns = _ref13[1];
-      return ['staticAttr', [name, ns]];
-    };
-
-    _proto11.staticComponentAttr = function staticComponentAttr(_ref14) {
-      var name = _ref14[0],
-          ns = _ref14[1];
-      return ['staticComponentAttr', [name, ns]];
-    };
-
-    _proto11.trustingAttr = function trustingAttr(_ref15) {
-      var name = _ref15[0],
-          ns = _ref15[1];
-      return ['trustingAttr', [name, ns]];
-    };
-
-    _proto11.dynamicAttr = function dynamicAttr(_ref16) {
-      var name = _ref16[0],
-          ns = _ref16[1];
-      return ['dynamicAttr', [name, ns]];
-    };
-
-    _proto11.componentAttr = function componentAttr(_ref17) {
-      var name = _ref17[0],
-          ns = _ref17[1];
-      return ['componentAttr', [name, ns]];
-    };
-
-    _proto11.trustingComponentAttr = function trustingComponentAttr(_ref18) {
-      var name = _ref18[0],
-          ns = _ref18[1];
-      return ['trustingComponentAttr', [name, ns]];
-    };
-
-    _proto11.append = function append(trusted) {
-      return ['append', trusted];
-    };
-
-    _proto11.literal = function literal(value) {
-      return ['literal', value];
-    };
-
-    _proto11.prepareArray = function prepareArray(count) {
-      return ['prepareArray', count];
-    };
-
-    _proto11.prepareObject = function prepareObject(count) {
-      return ['prepareObject', count];
-    };
-
-    _proto11.concat = function concat() {
-      return ['concat'];
-    };
-
-    (0, _emberBabel.createClass)(SymbolAllocator, [{
-      key: "symbols",
-      get: function get() {
-        return this.symbolStack.current;
-      }
-    }]);
-    return SymbolAllocator;
-  }();
-
-  function locationToOffset(source, line, column) {
-    var seenLines = 0;
-    var seenChars = 0;
-
-    while (true) {
-      if (seenChars === source.length) return null;
-      var nextLine = source.indexOf('\n', seenChars);
-      if (nextLine === -1) nextLine = source.length;
-
-      if (seenLines === line) {
-        if (seenChars + column > nextLine) return null;
-        return seenChars + column;
-      } else if (nextLine === -1) {
-        return null;
-      } else {
-        seenLines += 1;
-        seenChars = nextLine + 1;
-      }
-    }
-  }
-
-  function offsetToLocation(source, offset) {
-    var seenLines = 0;
-    var seenChars = 0;
-
-    if (offset > source.length) {
-      return null;
-    }
-
-    while (true) {
-      var nextLine = source.indexOf('\n', seenChars);
-
-      if (offset <= nextLine || nextLine === -1) {
-        return {
-          line: seenLines,
-          column: offset - seenChars
-        };
-      } else {
-        seenLines += 1;
-        seenChars = nextLine + 1;
-      }
-    }
-  }
-
-  function isTrustedValue(value) {
-    return value.escaped !== undefined && !value.escaped;
-  }
-
-  var TemplateCompiler = /*#__PURE__*/function () {
-    function TemplateCompiler(source) {
-      this.source = source;
-      this.templateId = 0;
-      this.templateIds = [];
-      this.opcodes = [];
-      this.locations = [];
-      this.includeMeta = true;
-    }
-
-    TemplateCompiler.compile = function compile(ast, source, options) {
-      var templateVisitor = new TemplateVisitor();
-      templateVisitor.visit(ast);
-      var compiler = new TemplateCompiler(source);
-
-      var _compiler$process = compiler.process(templateVisitor.actions),
-          opcodes = _compiler$process.opcodes,
-          templateLocations = _compiler$process.locations;
-
-      var _SymbolAllocator$proc = new SymbolAllocator(opcodes, templateLocations).process(),
-          ops = _SymbolAllocator$proc.ops,
-          allocationLocations = _SymbolAllocator$proc.locations;
-
-      var out = JavaScriptCompiler.process(ops, allocationLocations, ast.symbols, options);
-      return out;
-    };
-
-    var _proto12 = TemplateCompiler.prototype;
-
-    _proto12.process = function process(actions) {
-      var _this10 = this;
-
-      actions.forEach(function (_ref19) {
-        var name = _ref19[0],
-            args = _ref19[1];
-
-        if (!_this10[name]) {
-          throw new Error("Unimplemented " + name + " on TemplateCompiler");
-        }
-
-        _this10[name](args);
-      });
-      return {
-        opcodes: this.opcodes,
-        locations: this.locations
-      };
-    };
-
-    _proto12.startProgram = function startProgram(_ref20) {
-      var program = _ref20[0];
-      this.opcode(['startProgram', program], program);
-    };
-
-    _proto12.endProgram = function endProgram() {
-      this.opcode(['endProgram'], null);
-    };
-
-    _proto12.startBlock = function startBlock(_ref21) {
-      var program = _ref21[0];
-      this.templateId++;
-      this.opcode(['startBlock', program], program);
-    };
-
-    _proto12.endBlock = function endBlock() {
-      this.templateIds.push(this.templateId - 1);
-      this.opcode(['endBlock'], null);
-    };
-
-    _proto12.text = function text(_ref22) {
-      var action = _ref22[0];
-      this.opcode(['text', action.chars], action);
-    };
-
-    _proto12.comment = function comment(_ref23) {
-      var action = _ref23[0];
-      this.opcode(['comment', action.value], action);
-    };
-
-    _proto12.openElement = function openElement(_ref24) {
-      var action = _ref24[0];
-      var attributes = action.attributes;
-      var simple = true;
-
-      for (var i = 0; i < attributes.length; i++) {
-        var attr = attributes[i];
-
-        if (attr.name === '...attributes') {
-          simple = false;
-          break;
-        }
-      }
-
-      if (action.modifiers.length > 0) {
-        simple = false;
-      }
-
-      var actionIsComponent = false;
-      var dynamic = destructureDynamicComponent(action);
-
-      if (dynamic) {
-        this.expression(dynamic, "ComponentHead"
-        /* ComponentHead */
-        , action);
-        this.opcode(['openComponent', action], action);
-        actionIsComponent = true;
-      } else if (isNamedBlock(action)) {
-        this.opcode(['openNamedBlock', action], action);
-      } else if (isComponent(action)) {
-        this.opcode(['openComponent', action], action);
-        actionIsComponent = true;
-      } else {
-        this.opcode(['openElement', [action, simple]], action);
-      }
-
-      if (!isNamedBlock(action)) {
-        // TODO: Assert no attributes
-        var typeAttr = null;
-        var attrs = action.attributes;
-
-        for (var _i2 = 0; _i2 < attrs.length; _i2++) {
-          if (attrs[_i2].name === 'type') {
-            typeAttr = attrs[_i2];
-            continue;
-          }
-
-          this.attribute([attrs[_i2]], !simple || actionIsComponent);
-        }
-
-        if (typeAttr) {
-          this.attribute([typeAttr], !simple || actionIsComponent);
-        }
-
-        for (var _i3 = 0; _i3 < action.modifiers.length; _i3++) {
-          this.modifier([action.modifiers[_i3]]);
-        }
-
-        this.opcode(['flushElement', action], null);
-      }
-    };
-
-    _proto12.closeElement = function closeElement(_ref25) {
-      var action = _ref25[0];
-
-      if (isNamedBlock(action)) {
-        this.opcode(['closeNamedBlock', action]);
-      } else if (destructureDynamicComponent(action)) {
-        this.opcode(['closeDynamicComponent', action], action);
-      } else if (isComponent(action)) {
-        this.opcode(['closeComponent', action], action);
-      } else {
-        this.opcode(['closeElement', action], action);
-      }
-    };
-
-    _proto12.attribute = function attribute(_ref26, isComponent) {
-      var action = _ref26[0];
-      var name = action.name,
-          value = action.value;
-      var namespace = getAttrNamespace(name);
-      var isStatic = this.prepareAttributeValue(value);
-
-      if (name.charAt(0) === '@') {
-        // Arguments
-        if (isStatic) {
-          this.opcode(['staticArg', name], action);
-        } else if (action.value.type === 'MustacheStatement') {
-          this.opcode(['dynamicArg', name], action);
-        } else {
-          this.opcode(['dynamicArg', name], action);
-        }
-      } else {
-        var isTrusting = isTrustedValue(value);
-
-        if (isStatic && name === '...attributes') {
-          this.opcode(['attrSplat'], action);
-        } else if (isStatic) {
-          this.opcode(isComponent ? ['staticComponentAttr', [name, namespace]] : ['staticAttr', [name, namespace]], action);
-        } else if (isTrusting) {
-          this.opcode(isComponent ? ['trustingComponentAttr', [name, namespace]] : ['trustingAttr', [name, namespace]], action);
-        } else if (action.value.type === 'MustacheStatement') {
-          this.opcode(isComponent ? ['componentAttr', [name, namespace]] : ['dynamicAttr', [name, namespace]], action);
-        } else {
-          this.opcode(isComponent ? ['componentAttr', [name, namespace]] : ['dynamicAttr', [name, namespace]], action);
-        }
-      }
-    };
-
-    _proto12.modifier = function modifier(_ref27) {
-      var action = _ref27[0];
-      this.prepareHelper(action, 'modifier');
-      this.expression(action.path, "ModifierHead"
-      /* ModifierHead */
-      , action);
-      this.opcode(['modifier'], action);
-    };
-
-    _proto12.mustache = function mustache(_ref28) {
-      var _mustache = _ref28[0];
-      var path = _mustache.path;
-
-      if ((0, _syntax.isLiteral)(path)) {
-        this.expression(_mustache.path, "Expression"
-        /* Expression */
-        , _mustache);
-        this.opcode(['append', !_mustache.escaped], _mustache);
-      } else if (path.type !== 'PathExpression') {
-        throw new _syntax.SyntaxError("Expected PathExpression, got " + path.type, path.loc);
-      } else if (isYield(path)) {
-        var to = assertValidYield(_mustache);
-        this.yield(to, _mustache);
-      } else if (isPartial(path)) {
-        var params = assertValidPartial(_mustache);
-        this.partial(params, _mustache);
-      } else if (isDebugger(path)) {
-        assertValidDebuggerUsage(_mustache);
-        this.debugger('debugger', _mustache);
-      } else if (isKeyword(_mustache)) {
-        this.keyword(_mustache);
-        this.opcode(['append', !_mustache.escaped], _mustache);
-      } else if (isHelperInvocation(_mustache)) {
-        this.prepareHelper(_mustache, 'helper');
-        this.expression(_mustache.path, "CallHead"
-        /* CallHead */
-        , _mustache.path);
-        this.opcode(['helper'], _mustache);
-        this.opcode(['append', !_mustache.escaped], _mustache);
-      } else {
-        this.expression(_mustache.path, mustacheContext(_mustache.path), _mustache);
-        this.opcode(['append', !_mustache.escaped], _mustache);
-      }
-    };
-
-    _proto12.block = function block(_ref29) {
-      var action
-      /*, index, count*/
-      = _ref29[0];
-      this.prepareHelper(action, 'block');
-      var templateId = this.templateIds.pop();
-      var inverseId = action.inverse === null ? null : this.templateIds.pop();
-      this.expression(action.path, "BlockHead"
-      /* BlockHead */
-      , action);
-      this.opcode(['block', [templateId, inverseId]], action);
-    } /// Internal actions, not found in the original processed actions
-    // private path(head: string, rest: string[], context: ExpressionContext, loc: AST.BaseNode) {
-    //   if (head[0] === '@') {
-    //     this.argPath(head, rest, loc);
-    //   } else {
-    //     this.varPath(head, rest, context, loc);
-    //   }
-    // }
-    ;
-
-    _proto12.argPath = function argPath(head, rest, loc) {
-      this.opcode(['getArg', head], loc);
-      this.opcode(['getPath', rest], loc);
-    };
-
-    _proto12.varPath = function varPath(head, rest, context, loc) {
-      this.opcode(['getVar', [head, context]], loc);
-      this.opcode(['getPath', rest], loc);
-    };
-
-    _proto12.thisPath = function thisPath(rest, loc) {
-      this.opcode(['getThis'], loc);
-      this.opcode(['getPath', rest], loc);
-    };
-
-    _proto12.expression = function expression(path, context, expr) {
-      if ((0, _syntax.isLiteral)(path)) {
-        this.opcode(['literal', path.value], expr);
-      } else if (path.type !== 'PathExpression') {
-        throw new _syntax.SyntaxError("Expected PathExpression, got " + path.type, path.loc);
-      } else if (isKeyword(expr)) {
-        this.keyword(expr);
-      } else {
-        this.path(path, context);
-      }
-    } /// Internal Syntax
-    ;
-
-    _proto12.yield = function _yield(to, action) {
-      this.prepareParams(action.params);
-      this.opcode(['yield', to], action);
-    };
-
-    _proto12.debugger = function _debugger(_name, action) {
-      this.opcode(['debugger', null], action);
-    };
-
-    _proto12.hasBlock = function hasBlock(name, action) {
-      this.opcode(['hasBlock', name], action);
-    };
-
-    _proto12.hasBlockParams = function hasBlockParams(name, action) {
-      this.opcode(['hasBlockParams', name], action);
-    };
-
-    _proto12.partial = function partial(_params, action) {
-      this.prepareParams(action.params);
-      this.opcode(['partial'], action);
-    };
-
-    _proto12.keyword = function keyword(action) {
-      var path = action.path;
-
-      if (isHasBlock(path)) {
-        var name = assertValidHasBlockUsage(path.original, action);
-        this.hasBlock(name, action);
-      } else if (isHasBlockParams(path)) {
-        var _name2 = assertValidHasBlockUsage(path.original, action);
-
-        this.hasBlockParams(_name2, action);
-      }
-    } /// Expressions, invoked recursively from prepareParams and prepareHash
-    ;
-
-    _proto12.SubExpression = function SubExpression(expr) {
-      if (isKeyword(expr)) {
-        this.keyword(expr);
-      } else {
-        this.prepareHelper(expr, 'helper');
-        this.expression(expr.path, "CallHead"
-        /* CallHead */
-        , expr);
-        this.opcode(['helper']);
-      }
-    };
-
-    _proto12.PathExpression = function PathExpression(expr) {
-      this.path(expr, "Expression"
-      /* Expression */
-      );
-    };
-
-    _proto12.path = function path(expr, context) {
-      var _expr$parts = expr.parts,
-          head = _expr$parts[0],
-          rest = _expr$parts.slice(1);
-
-      if (expr.data) {
-        this.argPath("@" + head, rest, expr);
-      } else if (expr.this) {
-        this.thisPath(expr.parts, expr);
-      } else {
-        this.varPath(head, rest, context, expr);
-      }
-    };
-
-    _proto12.StringLiteral = function StringLiteral(action) {
-      this.opcode(['literal', action.value], action);
-    };
-
-    _proto12.BooleanLiteral = function BooleanLiteral(action) {
-      this.opcode(['literal', action.value], action);
-    };
-
-    _proto12.NumberLiteral = function NumberLiteral(action) {
-      this.opcode(['literal', action.value], action);
-    };
-
-    _proto12.NullLiteral = function NullLiteral(action) {
-      this.opcode(['literal', action.value], action);
-    };
-
-    _proto12.UndefinedLiteral = function UndefinedLiteral(action) {
-      this.opcode(['literal', action.value], action);
-    } /// Utilities
-    ;
-
-    _proto12.opcode = function opcode(_opcode, action) {
-      if (action === void 0) {
-        action = null;
-      }
-
-      if (action) {
-        this.locations.push(this.location(action));
-      } else {
-        this.locations.push(null);
-      }
-
-      if (this.includeMeta && action) {
-        _opcode.push(this.meta(action));
-      }
-
-      this.opcodes.push(_opcode);
-    };
-
-    _proto12.helperCall = function helperCall(call, node) {
-      this.prepareHelper(call, 'helper');
-      this.expression(call.path, "CallHead"
-      /* CallHead */
-      , node);
-      this.opcode(['helper'], node);
-    };
-
-    _proto12.mustacheCall = function mustacheCall(call) {
-      this.prepareHelper(call, 'helper');
-      this.expression(call.path, "CallHead"
-      /* CallHead */
-      , call);
-      this.opcode(['helper'], call);
-    };
-
-    _proto12.prepareHelper = function prepareHelper(expr, context) {
-      assertIsSimplePath(expr.path, expr.loc, context);
-      var params = expr.params,
-          hash = expr.hash;
-      this.prepareHash(hash);
-      this.prepareParams(params);
-    };
-
-    _proto12.prepareParams = function prepareParams(params) {
-      if (!params.length) {
-        this.opcode(['literal', null], null);
-        return;
-      }
-
-      for (var i = params.length - 1; i >= 0; i--) {
-        var param = params[i];
-        this[param.type](param);
-      }
-
-      this.opcode(['prepareArray', params.length], null);
-    };
-
-    _proto12.prepareHash = function prepareHash(hash) {
-      var pairs = hash.pairs;
-
-      if (!pairs.length) {
-        this.opcode(['literal', null], null);
-        return;
-      }
-
-      for (var i = pairs.length - 1; i >= 0; i--) {
-        var _pairs$i = pairs[i],
-            key = _pairs$i.key,
-            value = _pairs$i.value;
-        this[value.type](value);
-        this.opcode(['literal', key], null);
-      }
-
-      this.opcode(['prepareObject', pairs.length], null);
-    };
-
-    _proto12.prepareAttributeValue = function prepareAttributeValue(value) {
-      // returns the static value if the value is static
-      if (value.type === 'ConcatStatement') {
-        this.prepareConcatParts(value.parts);
-        this.opcode(['concat'], value);
-        return false;
-      } else {
-        return this.mustacheAttrValue(value);
-      }
-    };
-
-    _proto12.prepareConcatParts = function prepareConcatParts(parts) {
-      for (var i = parts.length - 1; i >= 0; i--) {
-        var part = parts[i];
-        this.mustacheAttrValue(part);
-      }
-
-      this.opcode(['prepareArray', parts.length], null);
-    };
-
-    _proto12.mustacheAttrValue = function mustacheAttrValue(value) {
-      if (value.type === 'TextNode') {
-        this.opcode(['literal', value.chars]);
-        return true;
-      } else if (isKeyword(value)) {
-        this.keyword(value);
-      } else if (isHelperInvocation(value)) {
-        this.prepareHelper(value, 'helper');
-        this.expression(value.path, "CallHead"
-        /* CallHead */
-        , value);
-        this.opcode(['helper'], value);
-      } else {
-        this.expression(value.path, "AppendSingleId"
-        /* AppendSingleId */
-        , value);
-      }
-
-      return false;
-    };
-
-    _proto12.meta = function meta(node) {
-      var loc = node.loc;
-
-      if (!loc) {
-        return [];
-      }
-
-      var source = loc.source,
-          start = loc.start,
-          end = loc.end;
-      return ['loc', [source || null, [start.line, start.column], [end.line, end.column]]];
-    };
-
-    _proto12.location = function location(node) {
-      var loc = node.loc;
-      if (!loc) return null;
-      var source = loc.source,
-          start = loc.start,
-          end = loc.end;
-      var startOffset = locationToOffset(this.source, start.line - 1, start.column);
-      var endOffset = locationToOffset(this.source, end.line - 1, end.column);
-
-      if (startOffset === null || endOffset === null) {
-        // Should this be an assertion?
-        return null;
-      }
-
-      return {
-        source: source || null,
-        start: startOffset,
-        end: endOffset
-      };
-    };
-
-    return TemplateCompiler;
-  }();
-
-  _exports.TemplateCompiler = TemplateCompiler;
-
-  function isHelperInvocation(mustache) {
-    if (mustache.type !== 'SubExpression' && mustache.type !== 'MustacheStatement') {
-      return false;
-    }
-
-    return mustache.params && mustache.params.length > 0 || mustache.hash && mustache.hash.pairs.length > 0;
-  }
-
-  function isSimplePath(_ref30) {
-    var parts = _ref30.parts;
-    return parts.length === 1;
-  }
-
-  function isYield(path) {
-    return path.original === 'yield';
-  }
-
-  function isPartial(path) {
-    return path.original === 'partial';
-  }
-
-  function isDebugger(path) {
-    return path.original === 'debugger';
-  }
-
-  function isHasBlock(path) {
-    if (path.type !== 'PathExpression') return false;
-    return path.original === 'has-block';
-  }
-
-  function isHasBlockParams(path) {
-    if (path.type !== 'PathExpression') return false;
-    return path.original === 'has-block-params';
-  }
-
-  function isKeyword(node) {
-    if (isCall(node)) {
-      return isHasBlock(node.path) || isHasBlockParams(node.path);
-    } else if (isPath(node)) {
-      return isHasBlock(node) || isHasBlockParams(node);
-    } else {
-      return false;
-    }
-  }
-
-  function isCall(node) {
-    return node.type === 'SubExpression' || node.type === 'MustacheStatement';
-  }
-
-  function isPath(node) {
-    return node.type === 'PathExpression';
-  }
-
-  function destructureDynamicComponent(element) {
-    var open = element.tag.charAt(0);
-
-    var _element$tag$split = element.tag.split('.'),
-        maybeLocal = _element$tag$split[0],
-        rest = _element$tag$split.slice(1);
-
-    var isNamedArgument = open === '@';
-    var isLocal = element.symbols.has(maybeLocal);
-    var isThisPath = maybeLocal === 'this';
-
-    if (isLocal) {
-      return {
-        type: 'PathExpression',
-        data: false,
-        parts: [maybeLocal].concat(rest),
-        this: false,
-        original: element.tag,
-        loc: element.loc
-      };
-    } else if (isNamedArgument) {
-      return {
-        type: 'PathExpression',
-        data: true,
-        parts: [maybeLocal.slice(1)].concat(rest),
-        this: false,
-        original: element.tag,
-        loc: element.loc
-      };
-    } else if (isThisPath) {
-      return {
-        type: 'PathExpression',
-        data: false,
-        parts: rest,
-        this: true,
-        original: element.tag,
-        loc: element.loc
-      };
-    } else {
-      return null;
-    }
-  }
-
-  function isComponent(element) {
-    var open = element.tag.charAt(0);
-    var isPath = element.tag.indexOf('.') > -1;
-    var isUpperCase = open === open.toUpperCase() && open !== open.toLowerCase();
-    return isUpperCase && !isPath || !!destructureDynamicComponent(element);
-  }
-
-  function isNamedBlock(element) {
-    var open = element.tag.charAt(0);
-    return open === ':';
-  }
-
-  function assertIsSimplePath(path, loc, context) {
-    if (path.type !== 'PathExpression') {
-      throw new _syntax.SyntaxError("`" + path.type + "` is not a valid " + context + " on line " + loc.start.line + ".", path.loc);
-    }
-
-    if (!isSimplePath(path)) {
-      throw new _syntax.SyntaxError("`" + path.original + "` is not a valid name for a " + context + " on line " + loc.start.line + ".", path.loc);
-    }
-  }
-
-  function assertValidYield(statement) {
-    var pairs = statement.hash.pairs;
-
-    if (pairs.length === 1 && pairs[0].key !== 'to' || pairs.length > 1) {
-      throw new _syntax.SyntaxError("yield only takes a single named argument: 'to'", statement.loc);
-    } else if (pairs.length === 1 && pairs[0].value.type !== 'StringLiteral') {
-      throw new _syntax.SyntaxError("you can only yield to a literal value", statement.loc);
-    } else if (pairs.length === 0) {
-      return 'default';
-    } else {
-      return pairs[0].value.value;
-    }
-  }
-
-  function assertValidPartial(statement) {
-    var params = statement.params,
-        hash = statement.hash,
-        escaped = statement.escaped,
-        loc = statement.loc;
-
-    if (params && params.length !== 1) {
-      throw new _syntax.SyntaxError("Partial found with no arguments. You must specify a template name. (on line " + loc.start.line + ")", statement.loc);
-    } else if (hash && hash.pairs.length > 0) {
-      throw new _syntax.SyntaxError("partial does not take any named arguments (on line " + loc.start.line + ")", statement.loc);
-    } else if (!escaped) {
-      throw new _syntax.SyntaxError("{{{partial ...}}} is not supported, please use {{partial ...}} instead (on line " + loc.start.line + ")", statement.loc);
-    }
-
-    return params;
-  }
-
-  function assertValidHasBlockUsage(type, call) {
-    var params = call.params,
-        hash = call.hash,
-        loc = call.loc;
-
-    if (hash && hash.pairs.length > 0) {
-      throw new _syntax.SyntaxError(type + " does not take any named arguments", call.loc);
-    }
-
-    if (params.length === 0) {
-      return 'default';
-    } else if (params.length === 1) {
-      var param = params[0];
-
-      if (param.type === 'StringLiteral') {
-        return param.value;
-      } else {
-        throw new _syntax.SyntaxError("you can only yield to a literal value (on line " + loc.start.line + ")", call.loc);
-      }
-    } else {
-      throw new _syntax.SyntaxError(type + " only takes a single positional argument (on line " + loc.start.line + ")", call.loc);
-    }
-  }
-
-  function assertValidDebuggerUsage(statement) {
-    var params = statement.params,
-        hash = statement.hash;
-
-    if (hash && hash.pairs.length > 0) {
-      throw new _syntax.SyntaxError("debugger does not take any named arguments", statement.loc);
-    }
-
-    if (params.length === 0) {
-      return 'default';
-    } else {
-      throw new _syntax.SyntaxError("debugger does not take any positional arguments", statement.loc);
-    }
-  }
-
-  function mustacheContext(body) {
-    if (body.type === 'PathExpression') {
-      if (body.parts.length > 1 || body.data) {
-        return "Expression"
-        /* Expression */
-        ;
-      } else {
-          return "AppendSingleId"
-          /* AppendSingleId */
-          ;
-        }
-    } else {
-        return "Expression"
-        /* Expression */
-        ;
-      }
-  }
-
-  var defaultId = function () {
-    if (typeof _nodeModule.require === 'function') {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        var crypto = (0, _nodeModule.require)('crypto');
-
-        var idFn = function idFn(src) {
-          var hash = crypto.createHash('sha1');
-          hash.update(src, 'utf8'); // trim to 6 bytes of data (2^48 - 1)
-
-          return hash.digest('base64').substring(0, 8);
-        };
-
-        idFn('test');
-        return idFn;
-      } catch (e) {}
-    }
-
-    return function idFn() {
-      return null;
-    };
-  }();
-
-  _exports.defaultId = defaultId;
-  var defaultOptions = {
-    id: defaultId,
-    meta: {}
-  };
-
-  function precompile(string, options) {
-    if (options === void 0) {
-      options = defaultOptions;
-    }
-
-    var ast = (0, _syntax.preprocess)(string, options);
-    var _options = options,
-        meta = _options.meta;
-
-    var _TemplateCompiler$com = TemplateCompiler.compile(ast, string, options),
-        block = _TemplateCompiler$com.block;
-
-    var idFn = options.id || defaultId;
-    var blockJSON = JSON.stringify(block.toJSON());
-    var templateJSONObject = {
-      id: idFn(JSON.stringify(meta) + blockJSON),
-      block: blockJSON,
-      meta: meta
-    }; // JSON is javascript
-
-    return JSON.stringify(templateJSONObject);
-  }
-
   var VariableKind;
 
   (function (VariableKind) {
@@ -4589,9 +2851,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
   function normalizeStatement(statement) {
     if (Array.isArray(statement)) {
       if (statementIsExpression(statement)) {
-        return normalizeAppendExpression(statement, "AppendSingleId"
-        /* AppendSingleId */
-        );
+        return normalizeAppendExpression(statement);
       } else if (isSugaryArrayStatement(statement)) {
         return normalizeSugaryArrayStatement(statement);
       } else {
@@ -4727,9 +2987,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       /* Append */
       :
         {
-          return normalizeAppendExpression(statement[1], "AppendSingleId"
-          /* AppendSingleId */
-          , statement[2]);
+          return normalizeAppendExpression(statement[1], statement[2]);
         }
 
       case 3
@@ -4992,7 +3250,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
     return match ? match[1] : null;
   }
 
-  function normalizeAppendExpression(expression, _context, forceTrusted) {
+  function normalizeAppendExpression(expression, forceTrusted) {
     if (forceTrusted === void 0) {
       forceTrusted = false;
     }
@@ -5380,46 +3638,46 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       this.top = this;
     }
 
-    var _proto13 = ProgramSymbols.prototype;
+    var _proto5 = ProgramSymbols.prototype;
 
-    _proto13.toSymbols = function toSymbols() {
+    _proto5.toSymbols = function toSymbols() {
       return this._symbols.slice(1);
     };
 
-    _proto13.toUpvars = function toUpvars() {
+    _proto5.toUpvars = function toUpvars() {
       return this._freeVariables;
     };
 
-    _proto13.freeVar = function freeVar(name) {
+    _proto5.freeVar = function freeVar(name) {
       return addString(this._freeVariables, name);
     };
 
-    _proto13.block = function block(name) {
+    _proto5.block = function block(name) {
       return this.symbol(name);
     };
 
-    _proto13.arg = function arg(name) {
+    _proto5.arg = function arg(name) {
       return addString(this._symbols, name);
     };
 
-    _proto13.local = function local(name) {
+    _proto5.local = function local(name) {
       throw new Error("No local " + name + " was found. Maybe you meant ^" + name + "?");
     };
 
-    _proto13.this = function _this() {
+    _proto5.this = function _this() {
       return 0;
     };
 
-    _proto13.hasLocal = function hasLocal(_name) {
+    _proto5.hasLocal = function hasLocal(_name) {
       return false;
     } // any symbol
     ;
 
-    _proto13.symbol = function symbol(name) {
+    _proto5.symbol = function symbol(name) {
       return addString(this._symbols, name);
     };
 
-    _proto13.child = function child(locals) {
+    _proto5.child = function child(locals) {
       return new LocalSymbols(this, locals);
     };
 
@@ -5439,21 +3697,21 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       }
     }
 
-    var _proto14 = LocalSymbols.prototype;
+    var _proto6 = LocalSymbols.prototype;
 
-    _proto14.freeVar = function freeVar(name) {
+    _proto6.freeVar = function freeVar(name) {
       return this.parent.freeVar(name);
     };
 
-    _proto14.arg = function arg(name) {
+    _proto6.arg = function arg(name) {
       return this.parent.arg(name);
     };
 
-    _proto14.block = function block(name) {
+    _proto6.block = function block(name) {
       return this.parent.block(name);
     };
 
-    _proto14.local = function local(name) {
+    _proto6.local = function local(name) {
       if (name in this.locals) {
         return this.locals[name];
       } else {
@@ -5461,11 +3719,11 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       }
     };
 
-    _proto14.this = function _this() {
+    _proto6.this = function _this() {
       return this.parent.this();
     };
 
-    _proto14.hasLocal = function hasLocal(name) {
+    _proto6.hasLocal = function hasLocal(name) {
       if (name in this.locals) {
         return true;
       } else {
@@ -5473,7 +3731,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       }
     };
 
-    _proto14.child = function child(locals) {
+    _proto6.child = function child(locals) {
       return new LocalSymbols(this, locals);
     };
 
@@ -5533,9 +3791,11 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       /* AppendPath */
       :
         {
-          return [[1
+          return [[normalized.trusted ? 2
+          /* TrustingAppend */
+          : 1
           /* Append */
-          , +normalized.trusted, 0, 0, buildPath(normalized.path, "AppendSingleId"
+          , buildPath(normalized.path, 0
           /* AppendSingleId */
           , symbols)]];
         }
@@ -5544,9 +3804,11 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       /* AppendExpr */
       :
         {
-          return [[1
+          return [[normalized.trusted ? 2
+          /* TrustingAppend */
+          : 1
           /* Append */
-          , +normalized.trusted, 0, 0, buildExpression(normalized.expr, "Expression"
+          , buildExpression(normalized.expr, 1
           /* Expression */
           , symbols)]];
         }
@@ -5561,30 +3823,32 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
               trusted = normalized.trusted;
           var builtParams = params ? buildParams(params, symbols) : [];
           var builtHash = hash ? buildHash(hash, symbols) : null;
-          var builtExpr = buildPath(path, "CallHead"
+          var builtExpr = buildPath(path, 2
           /* CallHead */
           , symbols);
-          return [[1
+          return [[trusted ? 2
+          /* TrustingAppend */
+          : 1
           /* Append */
-          , +trusted, 0, 0, [31
+          , [30
           /* Call */
-          , 0, 0, builtExpr, builtParams, builtHash]]];
+          , builtExpr, builtParams, builtHash]]];
         }
 
       case "Literal"
       /* Literal */
       :
         {
-          return [[1
-          /* Append */
-          , 1, 0, 0, normalized.value]];
+          return [[2
+          /* TrustingAppend */
+          , normalized.value]];
         }
 
       case "Comment"
       /* Comment */
       :
         {
-          return [[2
+          return [[3
           /* Comment */
           , normalized.value]];
         }
@@ -5599,11 +3863,11 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
 
           var _params3 = buildParams(normalized.params, symbols);
 
-          var _path = buildPath(normalized.path, "BlockHead"
+          var _path = buildPath(normalized.path, 3
           /* BlockHead */
           , symbols);
 
-          return [[5
+          return [[6
           /* Block */
           , _path, _params3, _hash2, blocks]];
         }
@@ -5661,13 +3925,15 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
   var NEWLINE = '\n';
   _exports.NEWLINE = NEWLINE;
 
-  function buildElement(_ref31, symbols) {
-    var name = _ref31.name,
-        attrs = _ref31.attrs,
-        block = _ref31.block;
-    var out = [[9
+  function buildElement(_ref, symbols) {
+    var name = _ref.name,
+        attrs = _ref.attrs,
+        block = _ref.block;
+    var out = [hasSplat(attrs) ? [11
+    /* OpenElementWithSplat */
+    , name] : [10
     /* OpenElement */
-    , name, !hasSplat(attrs)]];
+    , name]];
 
     if (attrs) {
       var _buildAttrs = buildAttrs(attrs, symbols),
@@ -5677,7 +3943,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       out.push.apply(out, attributes);
     }
 
-    out.push([10
+    out.push([12
     /* FlushElement */
     ]);
 
@@ -5690,7 +3956,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       throw (0, _util.assertNever)(block);
     }
 
-    out.push([11
+    out.push([13
     /* CloseElement */
     ]);
     return out;
@@ -5715,12 +3981,12 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       if (value === "Splat"
       /* Splat */
       ) {
-          attributes.push([15
+          attributes.push([17
           /* AttrSplat */
           , symbols.block('&attrs')]);
         } else if (key[0] === '@') {
         keys.push(key);
-        values$$1.push(buildExpression(value, "Expression"
+        values$$1.push(buildExpression(value, 1
         /* Expression */
         , symbols));
       } else {
@@ -5780,24 +4046,24 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
           if (val === false) {
             return [];
           } else if (val === true) {
-            return [[12
+            return [[14
             /* StaticAttr */
-            , name, '', namespace]];
+            , name, '', namespace !== null && namespace !== void 0 ? namespace : undefined]];
           } else if (typeof val === 'string') {
-            return [[12
+            return [[14
             /* StaticAttr */
-            , name, val, namespace]];
+            , name, val, namespace !== null && namespace !== void 0 ? namespace : undefined]];
           } else {
             throw new Error("Unexpected/unimplemented literal attribute " + JSON.stringify(val));
           }
         }
 
       default:
-        return [[13
+        return [[15
         /* DynamicAttr */
-        , name, buildExpression(value, "AppendSingleId"
+        , name, buildExpression(value, 0
         /* AppendSingleId */
-        , symbols), namespace]];
+        , symbols), namespace !== null && namespace !== void 0 ? namespace : undefined]];
     }
   }
 
@@ -5814,7 +4080,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       /* Concat */
       :
         {
-          return [32
+          return [31
           /* Concat */
           , buildConcat(expr.params, symbols)];
         }
@@ -5825,24 +4091,24 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
         {
           var builtParams = buildParams(expr.params, symbols);
           var builtHash = buildHash(expr.hash, symbols);
-          var builtExpr = buildPath(expr.path, "CallHead"
+          var builtExpr = buildPath(expr.path, 2
           /* CallHead */
           , symbols);
-          return [31
+          return [30
           /* Call */
-          , 0, 0, builtExpr, builtParams, builtHash];
+          , builtExpr, builtParams, builtHash];
         }
 
       case "HasBlock"
       /* HasBlock */
       :
         {
-          return [28
+          return [27
           /* HasBlock */
           , buildVar({
             kind: VariableKind.Block,
             name: expr.name
-          }, "Expression"
+          }, 1
           /* Expression */
           , symbols)];
         }
@@ -5851,12 +4117,12 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       /* HasBlockParams */
       :
         {
-          return [29
+          return [28
           /* HasBlockParams */
           , buildVar({
             kind: VariableKind.Block,
             name: expr.name
-          }, "Expression"
+          }, 1
           /* Expression */
           , symbols)];
         }
@@ -5866,7 +4132,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       :
         {
           if (expr.value === undefined) {
-            return [30
+            return [29
             /* Undefined */
             ];
           } else {
@@ -5878,51 +4144,108 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
 
   function buildPath(path, context, symbols) {
     if (path.tail.length === 0) {
-      return [27
-      /* GetPath */
-      , buildVar(path.variable, context, symbols), path.tail];
+      return buildVar(path.variable, context, symbols, path.tail);
     } else {
-      return [27
-      /* GetPath */
-      , buildVar(path.variable, "Expression"
+      return buildVar(path.variable, 1
       /* Expression */
-      , symbols), path.tail];
+      , symbols, path.tail);
     }
   }
 
-  function buildVar(head, context, symbols) {
+  function buildVar(head, context, symbols, path) {
+    var op = 32
+    /* GetSymbol */
+    ;
+    var sym;
+
     switch (head.kind) {
       case VariableKind.Free:
-        return [26
-        /* GetContextualFree */
-        , symbols.freeVar(head.name), context];
+        op = expressionContextOp(context);
+        sym = symbols.freeVar(head.name);
+        break;
 
-      case VariableKind.Arg:
-        return [24
+      default:
+        op = 32
         /* GetSymbol */
-        , symbols.arg(head.name)];
+        ;
+        sym = getSymbolForVar(head.kind, symbols, head.name);
+    }
+
+    return path === undefined || path.length === 0 ? [op, sym] : [op, sym, path];
+  }
+
+  function getSymbolForVar(kind, symbols, name) {
+    switch (kind) {
+      case VariableKind.Arg:
+        return symbols.arg(name);
 
       case VariableKind.Block:
-        return [24
-        /* GetSymbol */
-        , symbols.block(head.name)];
+        return symbols.block(name);
 
       case VariableKind.Local:
-        return [24
-        /* GetSymbol */
-        , symbols.local(head.name)];
+        return symbols.local(name);
 
       case VariableKind.This:
-        return [24
-        /* GetSymbol */
-        , symbols.this()];
+        return symbols.this();
+
+      default:
+        return (0, _util.exhausted)(kind);
+    }
+  }
+
+  function expressionContextOp(context) {
+    switch (context) {
+      case 0
+      /* AppendSingleId */
+      :
+        return 34
+        /* GetFreeInAppendSingleId */
+        ;
+
+      case 1
+      /* Expression */
+      :
+        return 35
+        /* GetFreeInExpression */
+        ;
+
+      case 2
+      /* CallHead */
+      :
+        return 36
+        /* GetFreeInCallHead */
+        ;
+
+      case 3
+      /* BlockHead */
+      :
+        return 37
+        /* GetFreeInBlockHead */
+        ;
+
+      case 4
+      /* ModifierHead */
+      :
+        return 38
+        /* GetFreeInModifierHead */
+        ;
+
+      case 5
+      /* ComponentHead */
+      :
+        return 39
+        /* GetFreeInComponentHead */
+        ;
+
+      default:
+        return (0, _util.exhausted)(context);
     }
   }
 
   function buildParams(exprs, symbols) {
     if (exprs === null) return null;
     return exprs.map(function (e) {
-      return buildExpression(e, "Expression"
+      return buildExpression(e, 1
       /* Expression */
       , symbols);
     });
@@ -5930,7 +4253,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
 
   function buildConcat(exprs, symbols) {
     return exprs.map(function (e) {
-      return buildExpression(e, "AppendSingleId"
+      return buildExpression(e, 0
       /* AppendSingleId */
       , symbols);
     });
@@ -5941,7 +4264,7 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
     var out = [[], []];
     Object.keys(exprs).forEach(function (key) {
       out[0].push(key);
-      out[1].push(buildExpression(exprs[key], "Expression"
+      out[1].push(buildExpression(exprs[key], 1
       /* Expression */
       , symbols));
     });
@@ -5968,6 +4291,1790 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       }
     });
     return [keys, values$$1];
+  } // enumerated in
+  // https://www.w3.org/TR/html/syntax.html#attributes-0
+  //
+  // > When a foreign element has one of the namespaced attributes given by
+  // > the local name and namespace of the first and second cells of a row
+  // > from the following table, it must be written using the name given by
+  // > the third cell from the same row.
+  //
+  // In all other cases, colons are interpreted as a regular character
+  // with no special meaning:
+  //
+  // > No other namespaced attribute can be expressed in the HTML syntax.
+
+
+  var XLINK = 'http://www.w3.org/1999/xlink';
+  var XML = 'http://www.w3.org/XML/1998/namespace';
+  var XMLNS = 'http://www.w3.org/2000/xmlns/';
+  var WHITELIST = {
+    'xlink:actuate': XLINK,
+    'xlink:arcrole': XLINK,
+    'xlink:href': XLINK,
+    'xlink:role': XLINK,
+    'xlink:show': XLINK,
+    'xlink:title': XLINK,
+    'xlink:type': XLINK,
+    'xml:base': XML,
+    'xml:lang': XML,
+    'xml:space': XML,
+    xmlns: XMLNS,
+    'xmlns:xlink': XMLNS
+  };
+
+  function getAttrNamespace(attrName) {
+    return WHITELIST[attrName] || null;
+  }
+
+  var INFLATE_TAG_TABLE = ['div', 'span', 'p', 'a'];
+
+  function inflateTagName(tagName) {
+    return typeof tagName === 'string' ? tagName : INFLATE_TAG_TABLE[tagName];
+  }
+
+  var DEFLATE_ATTR_TABLE = {
+    class: 0
+    /* class */
+    ,
+    id: 1
+    /* id */
+    ,
+    value: 2
+    /* value */
+    ,
+    name: 3
+    /* name */
+    ,
+    type: 4
+    /* type */
+    ,
+    style: 5
+    /* style */
+    ,
+    href: 6
+    /* href */
+
+  };
+  var INFLATE_ATTR_TABLE = ['class', 'id', 'value', 'name', 'type', 'style', 'href'];
+
+  function deflateAttrName(attrName) {
+    var _a;
+
+    return _a = DEFLATE_ATTR_TABLE[attrName], _a !== null && _a !== void 0 ? _a : attrName;
+  }
+
+  function inflateAttrName(attrName) {
+    return typeof attrName === 'string' ? attrName : INFLATE_ATTR_TABLE[attrName];
+  }
+
+  var Block = /*#__PURE__*/function () {
+    function Block() {
+      this.statements = [];
+    }
+
+    var _proto7 = Block.prototype;
+
+    _proto7.push = function push(statement) {
+      this.statements.push(statement);
+    };
+
+    return Block;
+  }();
+
+  var InlineBlock = /*#__PURE__*/function (_Block) {
+    (0, _emberBabel.inheritsLoose)(InlineBlock, _Block);
+
+    var _super3 = (0, _emberBabel.createSuper)(InlineBlock);
+
+    function InlineBlock(table) {
+      var _this5;
+
+      _this5 = _Block.call(this) || this;
+      _this5.table = table;
+      return _this5;
+    }
+
+    var _proto8 = InlineBlock.prototype;
+
+    _proto8.toJSON = function toJSON() {
+      return {
+        statements: this.statements,
+        parameters: this.table.slots
+      };
+    };
+
+    return InlineBlock;
+  }(Block);
+
+  var NamedBlock = /*#__PURE__*/function (_InlineBlock) {
+    (0, _emberBabel.inheritsLoose)(NamedBlock, _InlineBlock);
+
+    var _super4 = (0, _emberBabel.createSuper)(NamedBlock);
+
+    function NamedBlock(name, table) {
+      var _this6;
+
+      _this6 = _InlineBlock.call(this, table) || this;
+      _this6.name = name;
+      return _this6;
+    }
+
+    return NamedBlock;
+  }(InlineBlock);
+
+  var TemplateBlock = /*#__PURE__*/function (_Block2) {
+    (0, _emberBabel.inheritsLoose)(TemplateBlock, _Block2);
+
+    var _super5 = (0, _emberBabel.createSuper)(TemplateBlock);
+
+    function TemplateBlock(symbolTable) {
+      var _this7;
+
+      _this7 = _Block2.call(this) || this;
+      _this7.symbolTable = symbolTable;
+      _this7.type = 'template';
+      _this7.yields = new _util.DictSet();
+      _this7.named = new _util.DictSet();
+      _this7.blocks = [];
+      _this7.hasEval = false;
+      return _this7;
+    }
+
+    var _proto9 = TemplateBlock.prototype;
+
+    _proto9.push = function push(statement) {
+      this.statements.push(statement);
+    };
+
+    _proto9.toJSON = function toJSON() {
+      return {
+        symbols: this.symbolTable.symbols,
+        statements: this.statements,
+        hasEval: this.hasEval,
+        upvars: this.symbolTable.freeVariables
+      };
+    };
+
+    return TemplateBlock;
+  }(Block);
+
+  var ComponentBlock = /*#__PURE__*/function (_Block3) {
+    (0, _emberBabel.inheritsLoose)(ComponentBlock, _Block3);
+
+    var _super6 = (0, _emberBabel.createSuper)(ComponentBlock);
+
+    function ComponentBlock(tag, table, selfClosing) {
+      var _this8;
+
+      _this8 = _Block3.call(this) || this;
+      _this8.tag = tag;
+      _this8.table = table;
+      _this8.selfClosing = selfClosing;
+      _this8.attributes = [];
+      _this8.arguments = [];
+      _this8.inParams = true;
+      _this8.positionals = [];
+      _this8.blocks = [];
+      return _this8;
+    }
+
+    var _proto10 = ComponentBlock.prototype;
+
+    _proto10.push = function push(statement) {
+      if (this.inParams) {
+        if ((0, _wireFormat.isFlushElement)(statement)) {
+          this.inParams = false;
+        } else if ((0, _wireFormat.isArgument)(statement)) {
+          this.arguments.push(statement);
+        } else if ((0, _wireFormat.isAttribute)(statement)) {
+          this.attributes.push(statement);
+        } else {
+          throw new Error('Compile Error: only parameters allowed before flush-element');
+        }
+      } else {
+        this.statements.push(statement);
+      }
+    };
+
+    _proto10.pushBlock = function pushBlock(name, block) {
+      this.blocks.push([name, block]);
+    };
+
+    _proto10.toJSON = function toJSON() {
+      var blocks;
+      var args = this.arguments;
+      var keys = args.map(function (arg) {
+        return arg[1];
+      });
+      var values$$1 = args.map(function (arg) {
+        return arg[2];
+      });
+
+      if (this.selfClosing) {
+        blocks = null;
+      } else if (this.blocks.length > 0) {
+        var _keys = [];
+        var _values$$ = [];
+
+        for (var i = 0; i < this.blocks.length; i++) {
+          var _this$blocks$i = this.blocks[i],
+              key = _this$blocks$i[0],
+              value = _this$blocks$i[1];
+
+          _keys.push(key.slice(1));
+
+          _values$$.push(value);
+        }
+
+        blocks = [_keys, _values$$];
+      } else {
+        blocks = [['default'], [{
+          statements: this.statements,
+          parameters: this.table.slots
+        }]];
+      }
+
+      return [this.tag, this.attributes, [keys, values$$1], blocks];
+    };
+
+    return ComponentBlock;
+  }(Block);
+
+  var Template = /*#__PURE__*/function () {
+    function Template(symbols) {
+      this.block = new TemplateBlock(symbols);
+    }
+
+    var _proto11 = Template.prototype;
+
+    _proto11.toJSON = function toJSON() {
+      return this.block.toJSON();
+    };
+
+    return Template;
+  }();
+
+  var JavaScriptCompiler = /*#__PURE__*/function () {
+    function JavaScriptCompiler(opcodes, symbols, locations, options) {
+      this.locations = locations;
+      this.blocks = new _util.Stack();
+      this.values = [];
+      this.location = null;
+      this.locationStack = [];
+      this.opcodes = opcodes;
+      this.template = new Template(symbols);
+      this.options = options;
+    }
+
+    JavaScriptCompiler.process = function process(opcodes, locations, symbols, options) {
+      var compiler = new JavaScriptCompiler(opcodes, symbols, locations, options);
+      return compiler.process();
+    };
+
+    var _proto12 = JavaScriptCompiler.prototype;
+
+    _proto12.process = function process() {
+      var _this9 = this;
+
+      this.opcodes.forEach(function (op, i) {
+        var opcode = op[0];
+        _this9.location = _this9.locations[i];
+        var arg = op[1];
+
+        if (!_this9[opcode]) {
+          throw new Error("unimplemented " + opcode + " on JavaScriptCompiler");
+        }
+
+        _this9[opcode](arg);
+      });
+      return this.template;
+    } /// Nesting
+    ;
+
+    _proto12.startBlock = function startBlock(program) {
+      this.startInlineBlock(program.symbols);
+    };
+
+    _proto12.endBlock = function endBlock() {
+      var block = this.endInlineBlock();
+      this.template.block.blocks.push(block);
+    };
+
+    _proto12.startProgram = function startProgram() {
+      this.blocks.push(this.template.block);
+    };
+
+    _proto12.endProgram = function endProgram() {} /// Statements
+    ;
+
+    _proto12.text = function text(content) {
+      this.push([2
+      /* TrustingAppend */
+      , content]);
+    };
+
+    _proto12.append = function append(trusted) {
+      this.push([trusted ? 2
+      /* TrustingAppend */
+      : 1
+      /* Append */
+      , this.popValue()]);
+    };
+
+    _proto12.comment = function comment(value) {
+      this.push([3
+      /* Comment */
+      , value]);
+    };
+
+    _proto12.modifier = function modifier() {
+      var name = this.popValue();
+      var params = this.popValue();
+      var hash = this.popValue();
+      this.push([4
+      /* Modifier */
+      , name, params, hash]);
+    };
+
+    _proto12.block = function block(_ref2) {
+      var template = _ref2[0],
+          inverse = _ref2[1];
+      var head = this.popValue();
+      var params = this.popValue();
+      var hash = this.popValue();
+      var blocks = this.template.block.blocks;
+      var namedBlocks;
+
+      if (template === null && inverse === null) {
+        namedBlocks = null;
+      } else if (inverse === null) {
+        namedBlocks = [['default'], [blocks[template]]];
+      } else {
+        namedBlocks = [['default', 'else'], [blocks[template], blocks[inverse]]];
+      } // assert(head[]);
+
+
+      this.push([6
+      /* Block */
+      , head, params, hash, namedBlocks]);
+    };
+
+    _proto12.openComponent = function openComponent(element) {
+      var tag = this.options && this.options.customizeComponentName ? this.options.customizeComponentName(element.tag) : element.tag;
+      var component = new ComponentBlock(tag, element.symbols, element.selfClosing);
+      this.blocks.push(component);
+    };
+
+    _proto12.openNamedBlock = function openNamedBlock(element) {
+      var block = new NamedBlock(element.tag, element.symbols);
+      this.blocks.push(block);
+    };
+
+    _proto12.openElement = function openElement(_ref3) {
+      var element = _ref3[0],
+          simple = _ref3[1];
+      var tag = element.tag;
+
+      if (element.blockParams.length > 0) {
+        throw new Error("Compile Error: <" + element.tag + "> is not a component and doesn't support block parameters");
+      } else {
+        this.push(simple ? [10
+        /* OpenElement */
+        , tag] : [11
+        /* OpenElementWithSplat */
+        , tag]);
+      }
+    };
+
+    _proto12.flushElement = function flushElement() {
+      this.push([12
+      /* FlushElement */
+      ]);
+    };
+
+    _proto12.closeComponent = function closeComponent(_element) {
+      var _this$endComponent = this.endComponent(),
+          tag = _this$endComponent[0],
+          attrs = _this$endComponent[1],
+          args = _this$endComponent[2],
+          blocks = _this$endComponent[3];
+
+      this.push([8
+      /* Component */
+      , tag, attrs, args, blocks]);
+    };
+
+    _proto12.closeNamedBlock = function closeNamedBlock(_element) {
+      var blocks = this.blocks;
+      var block = blocks.pop();
+      this.currentComponent.pushBlock(block.name, block.toJSON());
+    };
+
+    _proto12.closeDynamicComponent = function closeDynamicComponent(_element) {
+      var _this$endComponent2 = this.endComponent(),
+          attrs = _this$endComponent2[1],
+          args = _this$endComponent2[2],
+          block = _this$endComponent2[3];
+
+      this.push([8
+      /* Component */
+      , this.popValue(), attrs, args, block]);
+    };
+
+    _proto12.closeElement = function closeElement(_element) {
+      this.push([13
+      /* CloseElement */
+      ]);
+    };
+
+    _proto12.staticAttr = function staticAttr(_ref4) {
+      var name = _ref4[0],
+          namespace = _ref4[1];
+      var value = this.popValue();
+      var op = [14
+      /* StaticAttr */
+      , deflateAttrName(name), value];
+      if (namespace) op.push(namespace);
+      this.push(op);
+    };
+
+    _proto12.staticComponentAttr = function staticComponentAttr(_ref5) {
+      var name = _ref5[0],
+          namespace = _ref5[1];
+      var value = this.popValue();
+      var op = [24
+      /* StaticComponentAttr */
+      , deflateAttrName(name), value];
+      if (namespace) op.push(namespace);
+      this.push(op);
+    };
+
+    _proto12.dynamicAttr = function dynamicAttr(_ref6) {
+      var name = _ref6[0],
+          namespace = _ref6[1];
+      var value = this.popValue();
+      var op = [15
+      /* DynamicAttr */
+      , deflateAttrName(name), value];
+      if (namespace) op.push(namespace);
+      this.push(op);
+    };
+
+    _proto12.componentAttr = function componentAttr(_ref7) {
+      var name = _ref7[0],
+          namespace = _ref7[1];
+      var value = this.popValue();
+      var op = [16
+      /* ComponentAttr */
+      , deflateAttrName(name), value];
+      if (namespace) op.push(namespace);
+      this.push(op);
+    };
+
+    _proto12.trustingAttr = function trustingAttr(_ref8) {
+      var name = _ref8[0],
+          namespace = _ref8[1];
+      var value = this.popValue();
+      var op = [22
+      /* TrustingDynamicAttr */
+      , deflateAttrName(name), value];
+      if (namespace) op.push(namespace);
+      this.push(op);
+    };
+
+    _proto12.trustingComponentAttr = function trustingComponentAttr(_ref9) {
+      var name = _ref9[0],
+          namespace = _ref9[1];
+      var value = this.popValue();
+      var op = [23
+      /* TrustingComponentAttr */
+      , deflateAttrName(name), value];
+      if (namespace) op.push(namespace);
+      this.push(op);
+    };
+
+    _proto12.staticArg = function staticArg(name) {
+      var value = this.popValue();
+      this.push([21
+      /* StaticArg */
+      , name, value]);
+    };
+
+    _proto12.dynamicArg = function dynamicArg(name) {
+      var value = this.popValue();
+      this.push([20
+      /* DynamicArg */
+      , name, value]);
+    };
+
+    _proto12.yield = function _yield(to) {
+      var params = this.popValue();
+      this.push([18
+      /* Yield */
+      , to, params]);
+    };
+
+    _proto12.attrSplat = function attrSplat(to) {
+      // consume (and disregard) the value pushed for the
+      // ...attributes attribute
+      this.popValue();
+      this.push([17
+      /* AttrSplat */
+      , to]);
+    };
+
+    _proto12.debugger = function _debugger(evalInfo) {
+      this.push([26
+      /* Debugger */
+      , evalInfo]);
+      this.template.block.hasEval = true;
+    };
+
+    _proto12.hasBlock = function hasBlock(name) {
+      this.pushValue([27
+      /* HasBlock */
+      , [32
+      /* GetSymbol */
+      , name]]);
+    };
+
+    _proto12.hasBlockParams = function hasBlockParams(name) {
+      this.pushValue([28
+      /* HasBlockParams */
+      , [32
+      /* GetSymbol */
+      , name]]);
+    };
+
+    _proto12.partial = function partial(evalInfo) {
+      var params = this.popValue();
+      this.push([19
+      /* Partial */
+      , params[0], evalInfo]);
+      this.template.block.hasEval = true;
+    } /// Expressions
+    ;
+
+    _proto12.literal = function literal(value) {
+      if (value === undefined) {
+        this.pushValue([29
+        /* Undefined */
+        ]);
+      } else {
+        this.pushValue(value);
+      }
+    };
+
+    _proto12.getPath = function getPath(path) {
+      var _this$popValue = this.popValue(),
+          op = _this$popValue[0],
+          sym = _this$popValue[1];
+
+      this.pushValue([op, sym, path]);
+    };
+
+    _proto12.getSymbol = function getSymbol(head) {
+      this.pushValue([32
+      /* GetSymbol */
+      , head]);
+    };
+
+    _proto12.getFree = function getFree(head) {
+      this.pushValue([33
+      /* GetFree */
+      , head]);
+    };
+
+    _proto12.getFreeWithContext = function getFreeWithContext(_ref10) {
+      var head = _ref10[0],
+          context = _ref10[1];
+      this.pushValue([expressionContextOp(context), head]);
+    };
+
+    _proto12.concat = function concat() {
+      this.pushValue([31
+      /* Concat */
+      , this.popValue()]);
+    };
+
+    _proto12.helper = function helper() {
+      var _this$popLocatedValue = this.popLocatedValue(),
+          head = _this$popLocatedValue.value;
+
+      var params = this.popValue();
+      var hash = this.popValue();
+      this.pushValue([30
+      /* Call */
+      , head, params, hash]);
+    } /// Stack Management Opcodes
+    ;
+
+    _proto12.prepareArray = function prepareArray(size) {
+      var values$$1 = [];
+
+      for (var i = 0; i < size; i++) {
+        values$$1.push(this.popValue());
+      }
+
+      this.pushValue(values$$1);
+    };
+
+    _proto12.prepareObject = function prepareObject(size) {
+      var keys = new Array(size);
+      var values$$1 = new Array(size);
+
+      for (var i = 0; i < size; i++) {
+        keys[i] = this.popValue();
+        values$$1[i] = this.popValue();
+      }
+
+      this.pushValue([keys, values$$1]);
+    } /// Utilities
+    ;
+
+    _proto12.endComponent = function endComponent() {
+      var component = this.blocks.pop();
+      return component.toJSON();
+    };
+
+    _proto12.startInlineBlock = function startInlineBlock(symbols) {
+      var block = new InlineBlock(symbols);
+      this.blocks.push(block);
+    };
+
+    _proto12.endInlineBlock = function endInlineBlock() {
+      var blocks = this.blocks;
+      var block = blocks.pop();
+      return block.toJSON();
+    };
+
+    _proto12.push = function push(args) {
+      this.currentBlock.push(args);
+    };
+
+    _proto12.pushValue = function pushValue(val) {
+      this.values.push(val);
+      this.locationStack.push(this.location);
+    };
+
+    _proto12.popLocatedValue = function popLocatedValue() {
+      var value = this.values.pop();
+      var location = this.locationStack.pop();
+
+      if (location === undefined) {
+        throw new Error('Unbalanced location push and pop');
+      }
+
+      return {
+        value: value,
+        location: location
+      };
+    };
+
+    _proto12.popValue = function popValue() {
+      return this.popLocatedValue().value;
+    };
+
+    (0, _emberBabel.createClass)(JavaScriptCompiler, [{
+      key: "currentBlock",
+      get: function get() {
+        return this.blocks.current;
+      }
+    }, {
+      key: "currentComponent",
+      get: function get() {
+        var block = this.currentBlock;
+
+        if (block instanceof ComponentBlock) {
+          return block;
+        } else {
+          throw new Error("Expected ComponentBlock on stack, found " + block.constructor.name);
+        }
+      }
+    }]);
+    return JavaScriptCompiler;
+  }();
+
+  var SymbolAllocator = /*#__PURE__*/function () {
+    function SymbolAllocator(ops, locations) {
+      this.ops = ops;
+      this.locations = locations;
+      this.symbolStack = new _util.Stack();
+    }
+
+    var _proto13 = SymbolAllocator.prototype;
+
+    _proto13.process = function process() {
+      var out = [];
+      var locations = [];
+      var ops = this.ops;
+
+      for (var i = 0; i < ops.length; i++) {
+        var op = ops[i];
+        var location = this.locations[i];
+        var result = this.dispatch(op);
+        out.push(result);
+        locations.push(location);
+      }
+
+      return {
+        ops: out,
+        locations: locations
+      };
+    };
+
+    _proto13.dispatch = function dispatch(op) {
+      var name = op[0];
+      var operand = op[1];
+      return this[name](operand) || op;
+    };
+
+    _proto13.startProgram = function startProgram(op) {
+      this.symbolStack.push(op.symbols);
+    };
+
+    _proto13.endProgram = function endProgram() {
+      this.symbolStack.pop();
+    };
+
+    _proto13.startBlock = function startBlock(op) {
+      this.symbolStack.push(op.symbols);
+    };
+
+    _proto13.endBlock = function endBlock() {
+      this.symbolStack.pop();
+    };
+
+    _proto13.openNamedBlock = function openNamedBlock(op) {
+      this.symbolStack.push(op.symbols);
+    };
+
+    _proto13.closeNamedBlock = function closeNamedBlock(_op) {
+      this.symbolStack.pop();
+    };
+
+    _proto13.flushElement = function flushElement(op) {
+      this.symbolStack.push(op.symbols);
+    };
+
+    _proto13.closeElement = function closeElement(_op) {
+      this.symbolStack.pop();
+    };
+
+    _proto13.closeComponent = function closeComponent(_op) {
+      this.symbolStack.pop();
+    };
+
+    _proto13.closeDynamicComponent = function closeDynamicComponent(_op) {
+      this.symbolStack.pop();
+    };
+
+    _proto13.attrSplat = function attrSplat() {
+      return ['attrSplat', this.symbols.allocateBlock('attrs')];
+    };
+
+    _proto13.getFree = function getFree(name) {
+      var symbol = this.symbols.allocateFree(name);
+      return ['getFree', symbol];
+    };
+
+    _proto13.getArg = function getArg(name) {
+      var symbol = this.symbols.allocateNamed(name);
+      return ['getSymbol', symbol];
+    };
+
+    _proto13.getThis = function getThis() {
+      return ['getSymbol', 0];
+    };
+
+    _proto13.getVar = function getVar(_ref11) {
+      var name = _ref11[0],
+          context = _ref11[1];
+
+      if (this.symbols.has(name)) {
+        var symbol = this.symbols.get(name);
+        return ['getSymbol', symbol];
+      } else {
+        var _symbol = this.symbols.allocateFree(name);
+
+        return ['getFreeWithContext', [_symbol, context]];
+      }
+    };
+
+    _proto13.getPath = function getPath(rest) {
+      return ['getPath', rest];
+    };
+
+    _proto13.yield = function _yield(op) {
+      return ['yield', this.symbols.allocateBlock(op)];
+    };
+
+    _proto13.debugger = function _debugger(_op) {
+      return ['debugger', this.symbols.getEvalInfo()];
+    };
+
+    _proto13.hasBlock = function hasBlock(op) {
+      if (op === 0) {
+        throw new Error('Cannot hasBlock this');
+      }
+
+      return ['hasBlock', this.symbols.allocateBlock(op)];
+    };
+
+    _proto13.hasBlockParams = function hasBlockParams(op) {
+      if (op === 0) {
+        throw new Error('Cannot hasBlockParams this');
+      }
+
+      return ['hasBlockParams', this.symbols.allocateBlock(op)];
+    };
+
+    _proto13.partial = function partial() {
+      return ['partial', this.symbols.getEvalInfo()];
+    };
+
+    _proto13.block = function block(_ref12) {
+      var template = _ref12[0],
+          inverse = _ref12[1];
+      return ['block', [template, inverse]];
+    };
+
+    _proto13.modifier = function modifier() {
+      return ['modifier'];
+    };
+
+    _proto13.helper = function helper() {
+      return ['helper'];
+    };
+
+    _proto13.text = function text(content) {
+      return ['text', content];
+    };
+
+    _proto13.comment = function comment(_comment) {
+      return ['comment', _comment];
+    };
+
+    _proto13.openComponent = function openComponent(element) {
+      return ['openComponent', element];
+    };
+
+    _proto13.openElement = function openElement(_ref13) {
+      var element = _ref13[0],
+          simple = _ref13[1];
+      return ['openElement', [element, simple]];
+    };
+
+    _proto13.staticArg = function staticArg(name) {
+      return ['staticArg', name];
+    };
+
+    _proto13.dynamicArg = function dynamicArg(name) {
+      return ['dynamicArg', name];
+    };
+
+    _proto13.staticAttr = function staticAttr(_ref14) {
+      var name = _ref14[0],
+          ns = _ref14[1];
+      return ['staticAttr', [name, ns]];
+    };
+
+    _proto13.staticComponentAttr = function staticComponentAttr(_ref15) {
+      var name = _ref15[0],
+          ns = _ref15[1];
+      return ['staticComponentAttr', [name, ns]];
+    };
+
+    _proto13.trustingAttr = function trustingAttr(_ref16) {
+      var name = _ref16[0],
+          ns = _ref16[1];
+      return ['trustingAttr', [name, ns]];
+    };
+
+    _proto13.dynamicAttr = function dynamicAttr(_ref17) {
+      var name = _ref17[0],
+          ns = _ref17[1];
+      return ['dynamicAttr', [name, ns]];
+    };
+
+    _proto13.componentAttr = function componentAttr(_ref18) {
+      var name = _ref18[0],
+          ns = _ref18[1];
+      return ['componentAttr', [name, ns]];
+    };
+
+    _proto13.trustingComponentAttr = function trustingComponentAttr(_ref19) {
+      var name = _ref19[0],
+          ns = _ref19[1];
+      return ['trustingComponentAttr', [name, ns]];
+    };
+
+    _proto13.append = function append(trusted) {
+      return ['append', trusted];
+    };
+
+    _proto13.literal = function literal(value) {
+      return ['literal', value];
+    };
+
+    _proto13.prepareArray = function prepareArray(count) {
+      return ['prepareArray', count];
+    };
+
+    _proto13.prepareObject = function prepareObject(count) {
+      return ['prepareObject', count];
+    };
+
+    _proto13.concat = function concat() {
+      return ['concat'];
+    };
+
+    (0, _emberBabel.createClass)(SymbolAllocator, [{
+      key: "symbols",
+      get: function get() {
+        return this.symbolStack.current;
+      }
+    }]);
+    return SymbolAllocator;
+  }();
+
+  function locationToOffset(source, line, column) {
+    var seenLines = 0;
+    var seenChars = 0;
+
+    while (true) {
+      if (seenChars === source.length) return null;
+      var nextLine = source.indexOf('\n', seenChars);
+      if (nextLine === -1) nextLine = source.length;
+
+      if (seenLines === line) {
+        if (seenChars + column > nextLine) return null;
+        return seenChars + column;
+      } else if (nextLine === -1) {
+        return null;
+      } else {
+        seenLines += 1;
+        seenChars = nextLine + 1;
+      }
+    }
+  }
+
+  function offsetToLocation(source, offset) {
+    var seenLines = 0;
+    var seenChars = 0;
+
+    if (offset > source.length) {
+      return null;
+    }
+
+    while (true) {
+      var nextLine = source.indexOf('\n', seenChars);
+
+      if (offset <= nextLine || nextLine === -1) {
+        return {
+          line: seenLines,
+          column: offset - seenChars
+        };
+      } else {
+        seenLines += 1;
+        seenChars = nextLine + 1;
+      }
+    }
+  }
+
+  function isTrustedValue(value) {
+    return value.escaped !== undefined && !value.escaped;
+  }
+
+  var TemplateCompiler = /*#__PURE__*/function () {
+    function TemplateCompiler(source) {
+      this.source = source;
+      this.templateId = 0;
+      this.templateIds = [];
+      this.opcodes = [];
+      this.locations = [];
+      this.includeMeta = true;
+    }
+
+    TemplateCompiler.compile = function compile(ast, source, options) {
+      var templateVisitor = new TemplateVisitor();
+      templateVisitor.visit(ast);
+      var compiler = new TemplateCompiler(source);
+
+      var _compiler$process = compiler.process(templateVisitor.actions),
+          opcodes = _compiler$process.opcodes,
+          templateLocations = _compiler$process.locations;
+
+      var _SymbolAllocator$proc = new SymbolAllocator(opcodes, templateLocations).process(),
+          ops = _SymbolAllocator$proc.ops,
+          allocationLocations = _SymbolAllocator$proc.locations;
+
+      var out = JavaScriptCompiler.process(ops, allocationLocations, ast.symbols, options);
+      return out;
+    };
+
+    var _proto14 = TemplateCompiler.prototype;
+
+    _proto14.process = function process(actions) {
+      var _this10 = this;
+
+      actions.forEach(function (_ref20) {
+        var name = _ref20[0],
+            args = _ref20[1];
+
+        if (!_this10[name]) {
+          throw new Error("Unimplemented " + name + " on TemplateCompiler");
+        }
+
+        _this10[name](args);
+      });
+      return {
+        opcodes: this.opcodes,
+        locations: this.locations
+      };
+    };
+
+    _proto14.startProgram = function startProgram(_ref21) {
+      var program = _ref21[0];
+      this.opcode(['startProgram', program], program);
+    };
+
+    _proto14.endProgram = function endProgram() {
+      this.opcode(['endProgram'], null);
+    };
+
+    _proto14.startBlock = function startBlock(_ref22) {
+      var program = _ref22[0];
+      this.templateId++;
+      this.opcode(['startBlock', program], program);
+    };
+
+    _proto14.endBlock = function endBlock() {
+      this.templateIds.push(this.templateId - 1);
+      this.opcode(['endBlock'], null);
+    };
+
+    _proto14.text = function text(_ref23) {
+      var action = _ref23[0];
+      this.opcode(['text', action.chars], action);
+    };
+
+    _proto14.comment = function comment(_ref24) {
+      var action = _ref24[0];
+      this.opcode(['comment', action.value], action);
+    };
+
+    _proto14.openElement = function openElement(_ref25) {
+      var action = _ref25[0];
+      var attributes = action.attributes;
+      var simple = true;
+
+      for (var i = 0; i < attributes.length; i++) {
+        var attr = attributes[i];
+
+        if (attr.name === '...attributes') {
+          simple = false;
+          break;
+        }
+      }
+
+      if (action.modifiers.length > 0) {
+        simple = false;
+      }
+
+      var actionIsComponent = false;
+      var dynamic = destructureDynamicComponent(action);
+
+      if (dynamic) {
+        this.expression(dynamic, 5
+        /* ComponentHead */
+        , action);
+        this.opcode(['openComponent', action], action);
+        actionIsComponent = true;
+      } else if (isNamedBlock(action)) {
+        this.opcode(['openNamedBlock', action], action);
+      } else if (isComponent(action)) {
+        this.opcode(['openComponent', action], action);
+        actionIsComponent = true;
+      } else {
+        this.opcode(['openElement', [action, simple]], action);
+      }
+
+      if (!isNamedBlock(action)) {
+        // TODO: Assert no attributes
+        var typeAttr = null;
+        var attrs = action.attributes;
+
+        for (var _i2 = 0; _i2 < attrs.length; _i2++) {
+          if (attrs[_i2].name === 'type') {
+            typeAttr = attrs[_i2];
+            continue;
+          }
+
+          this.attribute([attrs[_i2]], !simple || actionIsComponent);
+        }
+
+        if (typeAttr) {
+          this.attribute([typeAttr], !simple || actionIsComponent);
+        }
+
+        for (var _i3 = 0; _i3 < action.modifiers.length; _i3++) {
+          this.modifier([action.modifiers[_i3]]);
+        }
+
+        this.opcode(['flushElement', action], null);
+      }
+    };
+
+    _proto14.closeElement = function closeElement(_ref26) {
+      var action = _ref26[0];
+
+      if (isNamedBlock(action)) {
+        this.opcode(['closeNamedBlock', action]);
+      } else if (destructureDynamicComponent(action)) {
+        this.opcode(['closeDynamicComponent', action], action);
+      } else if (isComponent(action)) {
+        this.opcode(['closeComponent', action], action);
+      } else {
+        this.opcode(['closeElement', action], action);
+      }
+    };
+
+    _proto14.attribute = function attribute(_ref27, isComponent) {
+      var action = _ref27[0];
+      var name = action.name,
+          value = action.value;
+      var namespace = getAttrNamespace(name);
+      var isStatic = this.prepareAttributeValue(value);
+
+      if (name.charAt(0) === '@') {
+        // Arguments
+        if (isStatic) {
+          this.opcode(['staticArg', name], action);
+        } else if (action.value.type === 'MustacheStatement') {
+          this.opcode(['dynamicArg', name], action);
+        } else {
+          this.opcode(['dynamicArg', name], action);
+        }
+      } else {
+        var isTrusting = isTrustedValue(value);
+
+        if (isStatic && name === '...attributes') {
+          this.opcode(['attrSplat'], action);
+        } else if (isStatic) {
+          this.opcode(isComponent ? ['staticComponentAttr', [name, namespace]] : ['staticAttr', [name, namespace]], action);
+        } else if (isTrusting) {
+          this.opcode(isComponent ? ['trustingComponentAttr', [name, namespace]] : ['trustingAttr', [name, namespace]], action);
+        } else if (action.value.type === 'MustacheStatement') {
+          this.opcode(isComponent ? ['componentAttr', [name, namespace]] : ['dynamicAttr', [name, namespace]], action);
+        } else {
+          this.opcode(isComponent ? ['componentAttr', [name, namespace]] : ['dynamicAttr', [name, namespace]], action);
+        }
+      }
+    };
+
+    _proto14.modifier = function modifier(_ref28) {
+      var action = _ref28[0];
+      this.prepareHelper(action, 'modifier');
+      this.expression(action.path, 4
+      /* ModifierHead */
+      , action);
+      this.opcode(['modifier'], action);
+    };
+
+    _proto14.mustache = function mustache(_ref29) {
+      var _mustache = _ref29[0];
+      var path = _mustache.path;
+
+      if ((0, _syntax.isLiteral)(path)) {
+        this.expression(_mustache.path, 1
+        /* Expression */
+        , _mustache);
+        this.opcode(['append', !_mustache.escaped], _mustache);
+      } else if (path.type !== 'PathExpression') {
+        throw new _syntax.SyntaxError("Expected PathExpression, got " + path.type, path.loc);
+      } else if (isYield(path)) {
+        var to = assertValidYield(_mustache);
+        this.yield(to, _mustache);
+      } else if (isPartial(path)) {
+        var params = assertValidPartial(_mustache);
+        this.partial(params, _mustache);
+      } else if (isDebugger(path)) {
+        assertValidDebuggerUsage(_mustache);
+        this.debugger('debugger', _mustache);
+      } else if (isKeyword(_mustache)) {
+        this.keyword(_mustache);
+        this.opcode(['append', !_mustache.escaped], _mustache);
+      } else if (isHelperInvocation(_mustache)) {
+        this.prepareHelper(_mustache, 'helper');
+        this.expression(_mustache.path, 2
+        /* CallHead */
+        , _mustache.path);
+        this.opcode(['helper'], _mustache);
+        this.opcode(['append', !_mustache.escaped], _mustache);
+      } else {
+        this.expression(_mustache.path, mustacheContext(_mustache.path), _mustache);
+        this.opcode(['append', !_mustache.escaped], _mustache);
+      }
+    };
+
+    _proto14.block = function block(_ref30) {
+      var action
+      /*, index, count*/
+      = _ref30[0];
+      this.prepareHelper(action, 'block');
+      var templateId = this.templateIds.pop();
+      var inverseId = action.inverse === null ? null : this.templateIds.pop();
+      this.expression(action.path, 3
+      /* BlockHead */
+      , action);
+      this.opcode(['block', [templateId, inverseId]], action);
+    } /// Internal actions, not found in the original processed actions
+    // private path(head: string, rest: string[], context: ExpressionContext, loc: AST.BaseNode) {
+    //   if (head[0] === '@') {
+    //     this.argPath(head, rest, loc);
+    //   } else {
+    //     this.varPath(head, rest, context, loc);
+    //   }
+    // }
+    ;
+
+    _proto14.argPath = function argPath(head, rest, loc) {
+      this.opcode(['getArg', head], loc);
+
+      if (rest.length > 0) {
+        this.opcode(['getPath', rest], loc);
+      }
+    };
+
+    _proto14.varPath = function varPath(head, rest, context, loc) {
+      this.opcode(['getVar', [head, context]], loc);
+
+      if (rest.length > 0) {
+        this.opcode(['getPath', rest], loc);
+      }
+    };
+
+    _proto14.thisPath = function thisPath(rest, loc) {
+      this.opcode(['getThis'], loc);
+
+      if (rest.length > 0) {
+        this.opcode(['getPath', rest], loc);
+      }
+    };
+
+    _proto14.expression = function expression(path, context, expr) {
+      if ((0, _syntax.isLiteral)(path)) {
+        this.opcode(['literal', path.value], expr);
+      } else if (path.type !== 'PathExpression') {
+        throw new _syntax.SyntaxError("Expected PathExpression, got " + path.type, path.loc);
+      } else if (isKeyword(expr)) {
+        this.keyword(expr);
+      } else {
+        this.path(path, context);
+      }
+    } /// Internal Syntax
+    ;
+
+    _proto14.yield = function _yield(to, action) {
+      this.prepareParams(action.params);
+      this.opcode(['yield', to], action);
+    };
+
+    _proto14.debugger = function _debugger(_name, action) {
+      this.opcode(['debugger', null], action);
+    };
+
+    _proto14.hasBlock = function hasBlock(name, action) {
+      this.opcode(['hasBlock', name], action);
+    };
+
+    _proto14.hasBlockParams = function hasBlockParams(name, action) {
+      this.opcode(['hasBlockParams', name], action);
+    };
+
+    _proto14.partial = function partial(_params, action) {
+      this.prepareParams(action.params);
+      this.opcode(['partial'], action);
+    };
+
+    _proto14.keyword = function keyword(action) {
+      var path = action.path;
+
+      if (isHasBlock(path)) {
+        var name = assertValidHasBlockUsage(path.original, action);
+        this.hasBlock(name, action);
+      } else if (isHasBlockParams(path)) {
+        var _name2 = assertValidHasBlockUsage(path.original, action);
+
+        this.hasBlockParams(_name2, action);
+      }
+    } /// Expressions, invoked recursively from prepareParams and prepareHash
+    ;
+
+    _proto14.SubExpression = function SubExpression(expr) {
+      if (isKeyword(expr)) {
+        this.keyword(expr);
+      } else {
+        this.prepareHelper(expr, 'helper');
+        this.expression(expr.path, 2
+        /* CallHead */
+        , expr);
+        this.opcode(['helper']);
+      }
+    };
+
+    _proto14.PathExpression = function PathExpression(expr) {
+      this.path(expr, 1
+      /* Expression */
+      );
+    };
+
+    _proto14.path = function path(expr, context) {
+      var parts = expr.parts;
+
+      if (expr.data) {
+        this.argPath("@" + parts[0], parts.slice(1), expr);
+      } else if (expr.this) {
+        this.thisPath(parts, expr);
+      } else {
+        this.varPath(parts[0], parts.slice(1), context, expr);
+      }
+    };
+
+    _proto14.StringLiteral = function StringLiteral(action) {
+      this.opcode(['literal', action.value], action);
+    };
+
+    _proto14.BooleanLiteral = function BooleanLiteral(action) {
+      this.opcode(['literal', action.value], action);
+    };
+
+    _proto14.NumberLiteral = function NumberLiteral(action) {
+      this.opcode(['literal', action.value], action);
+    };
+
+    _proto14.NullLiteral = function NullLiteral(action) {
+      this.opcode(['literal', action.value], action);
+    };
+
+    _proto14.UndefinedLiteral = function UndefinedLiteral(action) {
+      this.opcode(['literal', action.value], action);
+    } /// Utilities
+    ;
+
+    _proto14.opcode = function opcode(_opcode, action) {
+      if (action === void 0) {
+        action = null;
+      }
+
+      if (action) {
+        this.locations.push(this.location(action));
+      } else {
+        this.locations.push(null);
+      }
+
+      if (this.includeMeta && action) {
+        _opcode.push(this.meta(action));
+      }
+
+      this.opcodes.push(_opcode);
+    };
+
+    _proto14.helperCall = function helperCall(call, node) {
+      this.prepareHelper(call, 'helper');
+      this.expression(call.path, 2
+      /* CallHead */
+      , node);
+      this.opcode(['helper'], node);
+    };
+
+    _proto14.mustacheCall = function mustacheCall(call) {
+      this.prepareHelper(call, 'helper');
+      this.expression(call.path, 2
+      /* CallHead */
+      , call);
+      this.opcode(['helper'], call);
+    };
+
+    _proto14.prepareHelper = function prepareHelper(expr, context) {
+      assertIsSimplePath(expr.path, expr.loc, context);
+      var params = expr.params,
+          hash = expr.hash;
+      this.prepareHash(hash);
+      this.prepareParams(params);
+    };
+
+    _proto14.prepareParams = function prepareParams(params) {
+      if (!params.length) {
+        this.opcode(['literal', null], null);
+        return;
+      }
+
+      for (var i = params.length - 1; i >= 0; i--) {
+        var param = params[i];
+        this[param.type](param);
+      }
+
+      this.opcode(['prepareArray', params.length], null);
+    };
+
+    _proto14.prepareHash = function prepareHash(hash) {
+      var pairs = hash.pairs;
+
+      if (!pairs.length) {
+        this.opcode(['literal', null], null);
+        return;
+      }
+
+      for (var i = pairs.length - 1; i >= 0; i--) {
+        var _pairs$i = pairs[i],
+            key = _pairs$i.key,
+            value = _pairs$i.value;
+        this[value.type](value);
+        this.opcode(['literal', key], null);
+      }
+
+      this.opcode(['prepareObject', pairs.length], null);
+    };
+
+    _proto14.prepareAttributeValue = function prepareAttributeValue(value) {
+      // returns the static value if the value is static
+      if (value.type === 'ConcatStatement') {
+        this.prepareConcatParts(value.parts);
+        this.opcode(['concat'], value);
+        return false;
+      } else {
+        return this.mustacheAttrValue(value);
+      }
+    };
+
+    _proto14.prepareConcatParts = function prepareConcatParts(parts) {
+      for (var i = parts.length - 1; i >= 0; i--) {
+        var part = parts[i];
+        this.mustacheAttrValue(part);
+      }
+
+      this.opcode(['prepareArray', parts.length], null);
+    };
+
+    _proto14.mustacheAttrValue = function mustacheAttrValue(value) {
+      if (value.type === 'TextNode') {
+        this.opcode(['literal', value.chars]);
+        return true;
+      } else if (isKeyword(value)) {
+        this.keyword(value);
+      } else if (isHelperInvocation(value)) {
+        this.prepareHelper(value, 'helper');
+        this.expression(value.path, 2
+        /* CallHead */
+        , value);
+        this.opcode(['helper'], value);
+      } else {
+        this.expression(value.path, 0
+        /* AppendSingleId */
+        , value);
+      }
+
+      return false;
+    };
+
+    _proto14.meta = function meta(node) {
+      var loc = node.loc;
+
+      if (!loc) {
+        return [];
+      }
+
+      var source = loc.source,
+          start = loc.start,
+          end = loc.end;
+      return ['loc', [source || null, [start.line, start.column], [end.line, end.column]]];
+    };
+
+    _proto14.location = function location(node) {
+      var loc = node.loc;
+      if (!loc) return null;
+      var source = loc.source,
+          start = loc.start,
+          end = loc.end;
+      var startOffset = locationToOffset(this.source, start.line - 1, start.column);
+      var endOffset = locationToOffset(this.source, end.line - 1, end.column);
+
+      if (startOffset === null || endOffset === null) {
+        // Should this be an assertion?
+        return null;
+      }
+
+      return {
+        source: source || null,
+        start: startOffset,
+        end: endOffset
+      };
+    };
+
+    return TemplateCompiler;
+  }();
+
+  _exports.TemplateCompiler = TemplateCompiler;
+
+  function isHelperInvocation(mustache) {
+    if (mustache.type !== 'SubExpression' && mustache.type !== 'MustacheStatement') {
+      return false;
+    }
+
+    return mustache.params && mustache.params.length > 0 || mustache.hash && mustache.hash.pairs.length > 0;
+  }
+
+  function isSimplePath(_ref31) {
+    var parts = _ref31.parts;
+    return parts.length === 1;
+  }
+
+  function isYield(path) {
+    return path.original === 'yield';
+  }
+
+  function isPartial(path) {
+    return path.original === 'partial';
+  }
+
+  function isDebugger(path) {
+    return path.original === 'debugger';
+  }
+
+  function isHasBlock(path) {
+    if (path.type !== 'PathExpression') return false;
+    return path.original === 'has-block';
+  }
+
+  function isHasBlockParams(path) {
+    if (path.type !== 'PathExpression') return false;
+    return path.original === 'has-block-params';
+  }
+
+  function isKeyword(node) {
+    if (isCall(node)) {
+      return isHasBlock(node.path) || isHasBlockParams(node.path);
+    } else if (isPath(node)) {
+      return isHasBlock(node) || isHasBlockParams(node);
+    } else {
+      return false;
+    }
+  }
+
+  function isCall(node) {
+    return node.type === 'SubExpression' || node.type === 'MustacheStatement';
+  }
+
+  function isPath(node) {
+    return node.type === 'PathExpression';
+  }
+
+  function destructureDynamicComponent(element) {
+    var open = element.tag.charAt(0);
+
+    var _element$tag$split = element.tag.split('.'),
+        maybeLocal = _element$tag$split[0],
+        rest = _element$tag$split.slice(1);
+
+    var isNamedArgument = open === '@';
+    var isLocal = element.symbols.has(maybeLocal);
+    var isThisPath = maybeLocal === 'this';
+
+    if (isLocal) {
+      return {
+        type: 'PathExpression',
+        data: false,
+        parts: [maybeLocal].concat(rest),
+        this: false,
+        original: element.tag,
+        loc: element.loc
+      };
+    } else if (isNamedArgument) {
+      return {
+        type: 'PathExpression',
+        data: true,
+        parts: [maybeLocal.slice(1)].concat(rest),
+        this: false,
+        original: element.tag,
+        loc: element.loc
+      };
+    } else if (isThisPath) {
+      return {
+        type: 'PathExpression',
+        data: false,
+        parts: rest,
+        this: true,
+        original: element.tag,
+        loc: element.loc
+      };
+    } else {
+      return null;
+    }
+  }
+
+  function isComponent(element) {
+    var open = element.tag.charAt(0);
+    var isPath = element.tag.indexOf('.') > -1;
+    var isUpperCase = open === open.toUpperCase() && open !== open.toLowerCase();
+    return isUpperCase && !isPath || !!destructureDynamicComponent(element);
+  }
+
+  function isNamedBlock(element) {
+    var open = element.tag.charAt(0);
+    return open === ':';
+  }
+
+  function assertIsSimplePath(path, loc, context) {
+    if (path.type !== 'PathExpression') {
+      throw new _syntax.SyntaxError("`" + path.type + "` is not a valid " + context + " on line " + loc.start.line + ".", path.loc);
+    }
+
+    if (!isSimplePath(path)) {
+      throw new _syntax.SyntaxError("`" + path.original + "` is not a valid name for a " + context + " on line " + loc.start.line + ".", path.loc);
+    }
+  }
+
+  function assertValidYield(statement) {
+    var pairs = statement.hash.pairs;
+
+    if (pairs.length === 1 && pairs[0].key !== 'to' || pairs.length > 1) {
+      throw new _syntax.SyntaxError("yield only takes a single named argument: 'to'", statement.loc);
+    } else if (pairs.length === 1 && pairs[0].value.type !== 'StringLiteral') {
+      throw new _syntax.SyntaxError("you can only yield to a literal value", statement.loc);
+    } else if (pairs.length === 0) {
+      return 'default';
+    } else {
+      return pairs[0].value.value;
+    }
+  }
+
+  function assertValidPartial(statement) {
+    var params = statement.params,
+        hash = statement.hash,
+        escaped = statement.escaped,
+        loc = statement.loc;
+
+    if (params && params.length !== 1) {
+      throw new _syntax.SyntaxError("Partial found with no arguments. You must specify a template name. (on line " + loc.start.line + ")", statement.loc);
+    } else if (hash && hash.pairs.length > 0) {
+      throw new _syntax.SyntaxError("partial does not take any named arguments (on line " + loc.start.line + ")", statement.loc);
+    } else if (!escaped) {
+      throw new _syntax.SyntaxError("{{{partial ...}}} is not supported, please use {{partial ...}} instead (on line " + loc.start.line + ")", statement.loc);
+    }
+
+    return params;
+  }
+
+  function assertValidHasBlockUsage(type, call) {
+    var params = call.params,
+        hash = call.hash,
+        loc = call.loc;
+
+    if (hash && hash.pairs.length > 0) {
+      throw new _syntax.SyntaxError(type + " does not take any named arguments", call.loc);
+    }
+
+    if (params.length === 0) {
+      return 'default';
+    } else if (params.length === 1) {
+      var param = params[0];
+
+      if (param.type === 'StringLiteral') {
+        return param.value;
+      } else {
+        throw new _syntax.SyntaxError("you can only yield to a literal value (on line " + loc.start.line + ")", call.loc);
+      }
+    } else {
+      throw new _syntax.SyntaxError(type + " only takes a single positional argument (on line " + loc.start.line + ")", call.loc);
+    }
+  }
+
+  function assertValidDebuggerUsage(statement) {
+    var params = statement.params,
+        hash = statement.hash;
+
+    if (hash && hash.pairs.length > 0) {
+      throw new _syntax.SyntaxError("debugger does not take any named arguments", statement.loc);
+    }
+
+    if (params.length === 0) {
+      return 'default';
+    } else {
+      throw new _syntax.SyntaxError("debugger does not take any positional arguments", statement.loc);
+    }
+  }
+
+  function mustacheContext(body) {
+    if (body.type === 'PathExpression') {
+      if (body.parts.length > 1 || body.data) {
+        return 1
+        /* Expression */
+        ;
+      } else {
+          return 0
+          /* AppendSingleId */
+          ;
+        }
+    } else {
+        return 1
+        /* Expression */
+        ;
+      }
+  }
+
+  var defaultId = function () {
+    if (typeof _nodeModule.require === 'function') {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        var crypto = (0, _nodeModule.require)('crypto');
+
+        var idFn = function idFn(src) {
+          var hash = crypto.createHash('sha1');
+          hash.update(src, 'utf8'); // trim to 6 bytes of data (2^48 - 1)
+
+          return hash.digest('base64').substring(0, 8);
+        };
+
+        idFn('test');
+        return idFn;
+      } catch (e) {}
+    }
+
+    return function idFn() {
+      return null;
+    };
+  }();
+
+  _exports.defaultId = defaultId;
+  var defaultOptions = {
+    id: defaultId,
+    meta: {}
+  };
+
+  function precompile(string, options) {
+    if (options === void 0) {
+      options = defaultOptions;
+    }
+
+    var ast = (0, _syntax.preprocess)(string, options);
+    var _options = options,
+        meta = _options.meta;
+
+    var _TemplateCompiler$com = TemplateCompiler.compile(ast, string, options),
+        block = _TemplateCompiler$com.block;
+
+    var idFn = options.id || defaultId;
+    var blockJSON = JSON.stringify(block.toJSON());
+    var templateJSONObject = {
+      id: idFn(JSON.stringify(meta) + blockJSON),
+      block: blockJSON,
+      meta: meta
+    }; // JSON is javascript
+
+    return JSON.stringify(templateJSONObject);
   }
 
   var WireFormatDebugger = /*#__PURE__*/function () {
@@ -5994,102 +6101,112 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
           case 1
           /* Append */
           :
-            return ['append', this.formatOpcode(opcode[1]), opcode[2]];
+            return ['append', this.formatOpcode(opcode[1])];
 
-          case 5
+          case 2
+          /* TrustingAppend */
+          :
+            return ['trusting-append', this.formatOpcode(opcode[1])];
+
+          case 6
           /* Block */
           :
             return ['block', this.formatOpcode(opcode[1]), this.formatParams(opcode[2]), this.formatHash(opcode[3]), this.formatBlocks(opcode[4])];
 
-          case 9
+          case 10
           /* OpenElement */
           :
-            return ['open-element', opcode[1], opcode[2]];
+            return ['open-element', inflateTagName(opcode[1])];
 
           case 11
+          /* OpenElementWithSplat */
+          :
+            return ['open-element-with-splat', inflateTagName(opcode[1])];
+
+          case 13
           /* CloseElement */
           :
             return ['close-element'];
 
-          case 10
+          case 12
           /* FlushElement */
           :
             return ['flush-element'];
 
-          case 12
+          case 14
           /* StaticAttr */
           :
-            return ['static-attr', opcode[1], opcode[2], opcode[3]];
+            return ['static-attr', inflateAttrName(opcode[1]), opcode[2], opcode[3]];
 
-          case 23
+          case 24
           /* StaticComponentAttr */
           :
-            return ['static-component-attr', opcode[1], opcode[2], opcode[3]];
-
-          case 13
-          /* DynamicAttr */
-          :
-            return ['dynamic-attr', opcode[1], this.formatOpcode(opcode[2]), opcode[3]];
-
-          case 14
-          /* ComponentAttr */
-          :
-            return ['component-attr', opcode[1], this.formatOpcode(opcode[2]), opcode[3]];
+            return ['static-component-attr', inflateAttrName(opcode[1]), opcode[2], opcode[3]];
 
           case 15
+          /* DynamicAttr */
+          :
+            return ['dynamic-attr', inflateAttrName(opcode[1]), this.formatOpcode(opcode[2]), opcode[3]];
+
+          case 16
+          /* ComponentAttr */
+          :
+            return ['component-attr', inflateAttrName(opcode[1]), this.formatOpcode(opcode[2]), opcode[3]];
+
+          case 17
           /* AttrSplat */
           :
             return ['attr-splat'];
 
-          case 16
+          case 18
           /* Yield */
           :
             return ['yield', opcode[1], this.formatParams(opcode[2])];
 
-          case 17
+          case 19
           /* Partial */
           :
             return ['partial', this.formatOpcode(opcode[1]), opcode[2]];
 
-          case 18
+          case 20
           /* DynamicArg */
           :
             return ['dynamic-arg', opcode[1], this.formatOpcode(opcode[2])];
 
-          case 19
+          case 21
           /* StaticArg */
           :
             return ['static-arg', opcode[1], this.formatOpcode(opcode[2])];
 
-          case 20
+          case 22
           /* TrustingDynamicAttr */
           :
-            return ['trusting-dynamic-attr', opcode[1], this.formatOpcode(opcode[2]), opcode[3]];
+            return ['trusting-dynamic-attr', inflateAttrName(opcode[1]), this.formatOpcode(opcode[2]), opcode[3]];
 
-          case 21
+          case 23
           /* TrustingComponentAttr */
           :
-            return ['trusting-component-attr', opcode[1], this.formatOpcode(opcode[2]), opcode[3]];
+            return ['trusting-component-attr', inflateAttrName(opcode[1]), this.formatOpcode(opcode[2]), opcode[3]];
 
-          case 22
+          case 26
           /* Debugger */
           :
             return ['debugger', opcode[1]];
 
-          case 2
+          case 3
           /* Comment */
           :
             return ['comment', opcode[1]];
 
-          case 3
+          case 4
           /* Modifier */
           :
-            return ['modifier', this.formatOpcode(opcode[1]), this.formatParams(opcode[4]), this.formatHash(opcode[5])];
+            return ['modifier', this.formatOpcode(opcode[1]), this.formatParams(opcode[2]), this.formatHash(opcode[3])];
 
-          case 7
+          case 8
           /* Component */
           :
-            return ['component', opcode[1], this.formatAttrs(opcode[2]), this.formatHash(opcode[3]), this.formatBlocks(opcode[4])];
+            return ['component', this.formatOpcode(opcode[1]), this.formatAttrs(opcode[2]), this.formatHash(opcode[3]), this.formatBlocks(opcode[4])];
           // case Op.DynamicComponent:
           //   return [
           //     'dynamic-component',
@@ -6099,55 +6216,96 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
           //     this.formatBlocks(opcode[4]),
           //   ];
 
-          case 24
-          /* GetSymbol */
-          :
-            return ['get-symbol', this.program.symbols[opcode[1]], opcode[1]];
-
-          case 25
-          /* GetFree */
-          :
-            return ['get-free', this.program.upvars[opcode[1]]];
-
-          case 26
-          /* GetContextualFree */
-          :
-            return ['get-contextual-free', this.program.upvars[opcode[1]], opcode[2]];
-
           case 27
-          /* GetPath */
-          :
-            return ['get-path', this.formatOpcode(opcode[1]), opcode[2]];
-
-          case 28
           /* HasBlock */
           :
-            return ['has-block', opcode[1]];
+            return ['has-block', this.formatOpcode(opcode[1])];
 
-          case 29
+          case 28
           /* HasBlockParams */
           :
-            return ['has-block-params', opcode[1]];
+            return ['has-block-params', this.formatOpcode(opcode[1])];
 
-          case 30
+          case 29
           /* Undefined */
           :
             return ['undefined'];
 
-          case 31
+          case 30
           /* Call */
           :
-            return ['call', this.formatOpcode(opcode[3]), this.formatParams(opcode[4]), this.formatHash(opcode[5])];
+            return ['call', this.formatOpcode(opcode[1]), this.formatParams(opcode[2]), this.formatHash(opcode[3])];
 
-          case 32
+          case 31
           /* Concat */
           :
             return ['concat', this.formatParams(opcode[1])];
 
           default:
             {
-              var opName = opcode[0];
-              throw (0, _util.assertNever)(opName, "unexpected " + opName);
+              var op = opcode[0],
+                  sym = opcode[1],
+                  path = opcode[2];
+              var opName;
+              var varName;
+
+              if (op === 32
+              /* GetSymbol */
+              ) {
+                  varName = this.program.symbols[sym];
+                  opName = 'get-symbol';
+                } else {
+                varName = this.program.upvars[sym];
+
+                switch (op) {
+                  case 33
+                  /* GetFree */
+                  :
+                    opName = 'get-free';
+                    break;
+
+                  case 34
+                  /* GetFreeInAppendSingleId */
+                  :
+                    opName = 'get-free-in-append-single-id';
+                    break;
+
+                  case 37
+                  /* GetFreeInBlockHead */
+                  :
+                    opName = 'get-free-in-block-head';
+                    break;
+
+                  case 36
+                  /* GetFreeInCallHead */
+                  :
+                    opName = 'get-free-in-call-head';
+                    break;
+
+                  case 39
+                  /* GetFreeInComponentHead */
+                  :
+                    opName = 'get-free-in-component-head';
+                    break;
+
+                  case 35
+                  /* GetFreeInExpression */
+                  :
+                    opName = 'get-free-in-expression';
+                    break;
+
+                  case 38
+                  /* GetFreeInModifierHead */
+                  :
+                    opName = 'get-free-in-modifier-head';
+                    break;
+
+                  default:
+                    return (0, _util.exhausted)(op);
+                }
+              }
+
+              return path ? [opName, varName, path] : [opName, varName];
             }
         }
       } else {
@@ -7809,7 +7967,7 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
         var result = this.options.override(node, this.options);
 
         if (typeof result === 'string') {
-          if (ensureLeadingWhitespace && NON_WHITESPACE.test(result[0])) {
+          if (ensureLeadingWhitespace && result !== '' && NON_WHITESPACE.test(result[0])) {
             result = " " + result;
           }
 
@@ -9785,47 +9943,47 @@ define("@glimmer/wire-format", ["exports"], function (_exports) {
   } // Statements
 
 
-  var isFlushElement = is(10
+  var isFlushElement = is(12
   /* FlushElement */
   );
   _exports.isFlushElement = isFlushElement;
 
   function isAttribute(val) {
-    return val[0] === 12
+    return val[0] === 14
     /* StaticAttr */
-    || val[0] === 13
-    /* DynamicAttr */
-    || val[0] === 20
-    /* TrustingDynamicAttr */
-    || val[0] === 14
-    /* ComponentAttr */
-    || val[0] === 23
-    /* StaticComponentAttr */
-    || val[0] === 21
-    /* TrustingComponentAttr */
     || val[0] === 15
+    /* DynamicAttr */
+    || val[0] === 22
+    /* TrustingDynamicAttr */
+    || val[0] === 16
+    /* ComponentAttr */
+    || val[0] === 24
+    /* StaticComponentAttr */
+    || val[0] === 23
+    /* TrustingComponentAttr */
+    || val[0] === 17
     /* AttrSplat */
-    || val[0] === 3
+    || val[0] === 4
     /* Modifier */
     ;
   }
 
   function isArgument(val) {
-    return val[0] === 19
+    return val[0] === 21
     /* StaticArg */
-    || val[0] === 18
+    || val[0] === 20
     /* DynamicArg */
     ;
   }
 
   function isHelper(expr) {
-    return Array.isArray(expr) && expr[0] === 31
+    return Array.isArray(expr) && expr[0] === 30
     /* Call */
     ;
   } // Expressions
 
 
-  var isGet = is(24
+  var isGet = is(32
   /* GetSymbol */
   );
   _exports.isGet = isGet;
@@ -11871,7 +12029,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.18.0";
+  var _default = "3.18.1";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {
