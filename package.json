@@ -36,7 +36,7 @@
     "@ember/test-helpers": "1.7.1",
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
-    "@typescript-eslint/parser": "2.31.0",
+    "@typescript-eslint/parser": "2.34.0",
     "ava": "^3.8.1",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.2",
