@@ -17,9 +17,9 @@ define("ember-cli-fastboot/instance-initializers/clear-double-boot", ["exports"]
   // application will replace the pre-rendered output
   function clearHtml() {
     let current = document.getElementById('fastboot-body-start');
+    let endMarker = document.getElementById('fastboot-body-end');
 
-    if (current) {
-      let endMarker = document.getElementById('fastboot-body-end');
+    if (current && endMarker) {
       let shoeboxNodes = document.querySelectorAll('[type="fastboot/shoebox"]');
       let shoeboxNodesArray = []; // Note that IE11 doesn't support more concise options like Array.from, so we have to do something like this
 

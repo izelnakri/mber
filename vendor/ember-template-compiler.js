@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.19.0
+ * @version   3.20.1
  */
 
 /*globals process */
@@ -355,7 +355,7 @@ define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-fea
     if (typeof EmberENV !== 'object' || EmberENV === null) return;
 
     for (var flag in EmberENV) {
-      if (!EmberENV.hasOwnProperty(flag) || flag === 'EXTEND_PROTOTYPES' || flag === 'EMBER_LOAD_HOOKS') continue;
+      if (!Object.prototype.hasOwnProperty.call(EmberENV, flag) || flag === 'EXTEND_PROTOTYPES' || flag === 'EMBER_LOAD_HOOKS') continue;
       var defaultValue = ENV[flag];
 
       if (defaultValue === true) {
@@ -394,7 +394,7 @@ define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-fea
 
     if (typeof EMBER_LOAD_HOOKS === 'object' && EMBER_LOAD_HOOKS !== null) {
       for (var hookName in EMBER_LOAD_HOOKS) {
-        if (!EMBER_LOAD_HOOKS.hasOwnProperty(hookName)) continue;
+        if (!Object.prototype.hasOwnProperty.call(EMBER_LOAD_HOOKS, hookName)) continue;
         var hooks = EMBER_LOAD_HOOKS[hookName];
 
         if (Array.isArray(hooks)) {
@@ -409,7 +409,7 @@ define("@ember/-internals/environment/index", ["exports", "@ember/deprecated-fea
 
     if (typeof FEATURES === 'object' && FEATURES !== null) {
       for (var feature in FEATURES) {
-        if (!FEATURES.hasOwnProperty(feature)) continue;
+        if (!Object.prototype.hasOwnProperty.call(FEATURES, feature)) continue;
         ENV.FEATURES[feature] = FEATURES[feature] === true;
       }
     }
@@ -1342,7 +1342,7 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     value: true
   });
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_GLIMMER_IN_ELEMENT = _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_NAMED_BLOCKS = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_CACHE_API = _exports.EMBER_GLIMMER_IN_ELEMENT = _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_CUSTOM_COMPONENT_ARG_PROXY = _exports.EMBER_MODULE_UNIFICATION = _exports.EMBER_NAMED_BLOCKS = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -1362,7 +1362,8 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_CUSTOM_COMPONENT_ARG_PROXY: true,
     EMBER_GLIMMER_SET_COMPONENT_TEMPLATE: true,
     EMBER_ROUTING_MODEL_ARG: true,
-    EMBER_GLIMMER_IN_ELEMENT: false
+    EMBER_GLIMMER_IN_ELEMENT: true,
+    EMBER_CACHE_API: false
   };
   /**
     The hash of enabled Canary features. Add to this, any canary features
@@ -1430,6 +1431,8 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_ROUTING_MODEL_ARG = EMBER_ROUTING_MODEL_ARG;
   var EMBER_GLIMMER_IN_ELEMENT = featureValue(FEATURES.EMBER_GLIMMER_IN_ELEMENT);
   _exports.EMBER_GLIMMER_IN_ELEMENT = EMBER_GLIMMER_IN_ELEMENT;
+  var EMBER_CACHE_API = featureValue(FEATURES.EMBER_CACHE_API);
+  _exports.EMBER_CACHE_API = EMBER_CACHE_API;
 });
 define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn", "@ember/debug/lib/capture-render-tree"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2, _captureRenderTree) {
   "use strict";
@@ -1917,7 +1920,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
         if (error.stack) {
           if (error['arguments']) {
             // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^\(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^\)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
             stack.shift();
           } else {
             // Firefox
@@ -2429,8 +2432,6 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
   var ProgramSymbolTable = /*#__PURE__*/function (_SymbolTable) {
     (0, _emberBabel.inheritsLoose)(ProgramSymbolTable, _SymbolTable);
 
-    var _super = (0, _emberBabel.createSuper)(ProgramSymbolTable);
-
     function ProgramSymbolTable() {
       var _this2;
 
@@ -2507,8 +2508,6 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
 
   var BlockSymbolTable = /*#__PURE__*/function (_SymbolTable2) {
     (0, _emberBabel.inheritsLoose)(BlockSymbolTable, _SymbolTable2);
-
-    var _super2 = (0, _emberBabel.createSuper)(BlockSymbolTable);
 
     function BlockSymbolTable(parent, symbols, slots) {
       var _this3;
@@ -4378,8 +4377,6 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
   var InlineBlock = /*#__PURE__*/function (_Block) {
     (0, _emberBabel.inheritsLoose)(InlineBlock, _Block);
 
-    var _super3 = (0, _emberBabel.createSuper)(InlineBlock);
-
     function InlineBlock(table) {
       var _this5;
 
@@ -4403,8 +4400,6 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
   var NamedBlock = /*#__PURE__*/function (_InlineBlock) {
     (0, _emberBabel.inheritsLoose)(NamedBlock, _InlineBlock);
 
-    var _super4 = (0, _emberBabel.createSuper)(NamedBlock);
-
     function NamedBlock(name, table) {
       var _this6;
 
@@ -4418,8 +4413,6 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
 
   var TemplateBlock = /*#__PURE__*/function (_Block2) {
     (0, _emberBabel.inheritsLoose)(TemplateBlock, _Block2);
-
-    var _super5 = (0, _emberBabel.createSuper)(TemplateBlock);
 
     function TemplateBlock(symbolTable) {
       var _this7;
@@ -4454,8 +4447,6 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
 
   var ComponentBlock = /*#__PURE__*/function (_Block3) {
     (0, _emberBabel.inheritsLoose)(ComponentBlock, _Block3);
-
-    var _super6 = (0, _emberBabel.createSuper)(ComponentBlock);
 
     function ComponentBlock(tag, table, selfClosing) {
       var _this8;
@@ -7158,8 +7149,6 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
   var HandlebarsNodeVisitors = /*#__PURE__*/function (_Parser) {
     (0, _emberBabel.inheritsLoose)(HandlebarsNodeVisitors, _Parser);
 
-    var _super = (0, _emberBabel.createSuper)(HandlebarsNodeVisitors);
-
     function HandlebarsNodeVisitors() {
       return _Parser.apply(this, arguments) || this;
     }
@@ -8595,8 +8584,6 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
   var TokenizerEventHandlers = /*#__PURE__*/function (_HandlebarsNodeVisito) {
     (0, _emberBabel.inheritsLoose)(TokenizerEventHandlers, _HandlebarsNodeVisito);
 
-    var _super2 = (0, _emberBabel.createSuper)(TokenizerEventHandlers);
-
     function TokenizerEventHandlers() {
       var _this7;
 
@@ -8935,21 +8922,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
   _exports.assign = assign;
   _exports.fillNulls = fillNulls;
   _exports.values = values;
-  _exports.isDestroyable = isDestroyable;
-  _exports.isStringDestroyable = isStringDestroyable;
   _exports.clearElement = clearElement;
-  _exports.isDrop = isDrop;
-  _exports.associate = associate;
-  _exports.associateDestructor = associateDestructor;
-  _exports.peekAssociated = peekAssociated;
-  _exports.takeAssociated = takeAssociated;
-  _exports.willDestroyAssociated = willDestroyAssociated;
-  _exports.didDestroyAssociated = didDestroyAssociated;
-  _exports.destructor = destructor;
-  _exports.snapshot = snapshot;
-  _exports.debugDropTree = debugDropTree;
-  _exports.printDropTree = printDropTree;
-  _exports.printDrop = printDrop;
   _exports.keys = keys;
   _exports.unwrap = unwrap;
   _exports.expect = expect;
@@ -8967,7 +8940,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
   _exports.extractHandle = extractHandle;
   _exports.isOkHandle = isOkHandle;
   _exports.isErrHandle = isErrHandle;
-  _exports.symbol = _exports.tuple = _exports.ListContentsDestructor = _exports.DESTRUCTORS = _exports.CHILDREN = _exports.DID_DROP = _exports.WILL_DROP = _exports.LINKED = _exports.DESTROY = _exports.debugToString = _exports.ListSlice = _exports.ListNode = _exports.LinkedList = _exports.EMPTY_SLICE = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
+  _exports.symbol = _exports.tuple = _exports.debugToString = _exports.ListSlice = _exports.ListNode = _exports.LinkedList = _exports.EMPTY_SLICE = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
   var EMPTY_ARRAY = Object.freeze([]); // import Logger from './logger';
   // let alreadyWarned = false;
 
@@ -9074,56 +9047,6 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
 
   _exports.Stack = StackImpl;
 
-  function keys(obj) {
-    return Object.keys(obj);
-  }
-
-  function unwrap(val) {
-    if (val === null || val === undefined) throw new Error("Expected value to be present");
-    return val;
-  }
-
-  function expect(val, message) {
-    if (val === null || val === undefined) throw new Error(message);
-    return val;
-  }
-
-  function unreachable(message) {
-    if (message === void 0) {
-      message = 'unreachable';
-    }
-
-    return new Error(message);
-  }
-
-  function exhausted(value) {
-    throw new Error("Exhausted " + value);
-  }
-
-  var tuple = function tuple() {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    return args;
-  };
-
-  _exports.tuple = tuple;
-  var symbol = typeof Symbol !== 'undefined' ? Symbol : function (key) {
-    return "__" + key + Math.floor(Math.random() * Date.now()) + "__";
-  };
-  _exports.symbol = symbol;
-  var DESTROY = symbol('DESTROY');
-  _exports.DESTROY = DESTROY;
-
-  function isDestroyable(value) {
-    return !!(value && value[DESTROY] !== undefined);
-  }
-
-  function isStringDestroyable(value) {
-    return !!(value && typeof value === 'object' && typeof value.destroy === 'function');
-  }
-
   function clearElement(parent) {
     var current = parent.firstChild;
 
@@ -9141,299 +9064,6 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
     return node.nodeValue === SERIALIZATION_FIRST_NODE_STRING;
   }
 
-  var LINKED = new WeakMap();
-  _exports.LINKED = LINKED;
-  var WILL_DROP = symbol('WILL_DROP');
-  _exports.WILL_DROP = WILL_DROP;
-  var DID_DROP = symbol('DID_DROP');
-  _exports.DID_DROP = DID_DROP;
-  var CHILDREN = symbol('CHILDREN');
-  _exports.CHILDREN = CHILDREN;
-  var DESTRUCTORS = new WeakMap();
-  _exports.DESTRUCTORS = DESTRUCTORS;
-
-  function isDrop(value) {
-    if (value === null || typeof value !== 'object') return false;
-    return value[DID_DROP] !== undefined;
-  }
-
-  function associate(parent, child) {
-    associateDestructor(parent, destructor(child));
-  }
-
-  function associateDestructor(parent, child) {
-    var associated = LINKED.get(parent);
-
-    if (!associated) {
-      associated = new Set();
-      LINKED.set(parent, associated);
-    }
-
-    associated.add(child);
-  }
-
-  function peekAssociated(parent) {
-    return LINKED.get(parent) || null;
-  }
-
-  function takeAssociated(parent) {
-    var linked = LINKED.get(parent);
-
-    if (linked && linked.size > 0) {
-      LINKED.delete(parent);
-      return linked;
-    } else {
-      return null;
-    }
-  }
-
-  function willDestroyAssociated(parent) {
-    var associated = LINKED.get(parent);
-
-    if (associated) {
-      associated.forEach(function (item) {
-        item[WILL_DROP]();
-      });
-    }
-  }
-
-  function didDestroyAssociated(parent) {
-    var associated = LINKED.get(parent);
-
-    if (associated) {
-      associated.forEach(function (item) {
-        item[DID_DROP]();
-        associated.delete(item);
-      });
-    }
-  }
-
-  function destructor(value) {
-    var d = DESTRUCTORS.get(value);
-
-    if (!d) {
-      if (isDestroyable(value)) {
-        d = new DestroyableDestructor(value);
-      } else if (isStringDestroyable(value)) {
-        d = new StringDestroyableDestructor(value);
-      } else {
-        d = new SimpleDestructor(value);
-      }
-
-      DESTRUCTORS.set(value, d);
-    }
-
-    return d;
-  }
-
-  function snapshot(values) {
-    return new SnapshotDestructor(values);
-  }
-
-  var SnapshotDestructor = /*#__PURE__*/function () {
-    function SnapshotDestructor(destructors) {
-      this.destructors = destructors;
-    }
-
-    var _proto3 = SnapshotDestructor.prototype;
-
-    _proto3[WILL_DROP] = function () {
-      this.destructors.forEach(function (item) {
-        return item[WILL_DROP]();
-      });
-    };
-
-    _proto3[DID_DROP] = function () {
-      this.destructors.forEach(function (item) {
-        return item[DID_DROP]();
-      });
-    };
-
-    _proto3.toString = function toString() {
-      return 'SnapshotDestructor';
-    };
-
-    (0, _emberBabel.createClass)(SnapshotDestructor, [{
-      key: CHILDREN,
-      get: function get() {
-        return this.destructors;
-      }
-    }]);
-    return SnapshotDestructor;
-  }();
-
-  var DestroyableDestructor = /*#__PURE__*/function () {
-    function DestroyableDestructor(inner) {
-      this.inner = inner;
-    }
-
-    var _proto4 = DestroyableDestructor.prototype;
-
-    _proto4[WILL_DROP] = function () {
-      willDestroyAssociated(this.inner);
-    };
-
-    _proto4[DID_DROP] = function () {
-      this.inner[DESTROY]();
-      didDestroyAssociated(this.inner);
-    };
-
-    _proto4.toString = function toString() {
-      return 'DestroyableDestructor';
-    };
-
-    (0, _emberBabel.createClass)(DestroyableDestructor, [{
-      key: CHILDREN,
-      get: function get() {
-        return LINKED.get(this.inner) || [];
-      }
-    }]);
-    return DestroyableDestructor;
-  }();
-
-  var StringDestroyableDestructor = /*#__PURE__*/function () {
-    function StringDestroyableDestructor(inner) {
-      this.inner = inner;
-    }
-
-    var _proto5 = StringDestroyableDestructor.prototype;
-
-    _proto5[WILL_DROP] = function () {
-      if (typeof this.inner.willDestroy === 'function') {
-        this.inner.willDestroy();
-      }
-
-      willDestroyAssociated(this.inner);
-    };
-
-    _proto5[DID_DROP] = function () {
-      this.inner.destroy();
-      didDestroyAssociated(this.inner);
-    };
-
-    _proto5.toString = function toString() {
-      return 'StringDestroyableDestructor';
-    };
-
-    (0, _emberBabel.createClass)(StringDestroyableDestructor, [{
-      key: CHILDREN,
-      get: function get() {
-        return LINKED.get(this.inner) || [];
-      }
-    }]);
-    return StringDestroyableDestructor;
-  }();
-
-  var SimpleDestructor = /*#__PURE__*/function () {
-    function SimpleDestructor(inner) {
-      this.inner = inner;
-    }
-
-    var _proto6 = SimpleDestructor.prototype;
-
-    _proto6[WILL_DROP] = function () {
-      willDestroyAssociated(this.inner);
-    };
-
-    _proto6[DID_DROP] = function () {
-      didDestroyAssociated(this.inner);
-    };
-
-    _proto6.toString = function toString() {
-      return 'SimpleDestructor';
-    };
-
-    (0, _emberBabel.createClass)(SimpleDestructor, [{
-      key: CHILDREN,
-      get: function get() {
-        return LINKED.get(this.inner) || [];
-      }
-    }]);
-    return SimpleDestructor;
-  }();
-
-  var ListContentsDestructor = /*#__PURE__*/function () {
-    function ListContentsDestructor(inner) {
-      this.inner = inner;
-    }
-
-    var _proto7 = ListContentsDestructor.prototype;
-
-    _proto7[WILL_DROP] = function () {
-      this.inner.forEachNode(function (d) {
-        return destructor(d)[WILL_DROP]();
-      });
-    };
-
-    _proto7[DID_DROP] = function () {
-      this.inner.forEachNode(function (d) {
-        return destructor(d)[DID_DROP]();
-      });
-    };
-
-    _proto7.toString = function toString() {
-      return 'ListContentsDestructor';
-    };
-
-    (0, _emberBabel.createClass)(ListContentsDestructor, [{
-      key: CHILDREN,
-      get: function get() {
-        var out = [];
-        this.inner.forEachNode(function (d) {
-          return out.push.apply(out, destructor(d)[CHILDREN]);
-        });
-        return out;
-      }
-    }]);
-    return ListContentsDestructor;
-  }();
-
-  _exports.ListContentsDestructor = ListContentsDestructor;
-
-  function debugDropTree(inner) {
-    var hasDrop = isDrop(inner);
-    var rawChildren = LINKED.get(inner) || null;
-    var children = null;
-
-    if (rawChildren) {
-      children = [];
-
-      for (var _iterator = (0, _emberBabel.createForOfIteratorHelperLoose)(rawChildren), _step; !(_step = _iterator()).done;) {
-        var child = _step.value;
-        children.push(debugDropTree(child));
-      }
-    }
-
-    var obj = Object.create(null);
-    obj.inner = inner;
-
-    if (children) {
-      obj.children = children;
-    }
-
-    obj.hasDrop = hasDrop;
-    return obj;
-  }
-
-  function printDropTree(inner) {
-    printDrop(destructor(inner));
-  }
-
-  function printDrop(inner) {
-    console.group(String(inner));
-    console.log(inner);
-    var children = inner[CHILDREN] || null;
-
-    if (children) {
-      for (var _iterator2 = (0, _emberBabel.createForOfIteratorHelperLoose)(children), _step2; !(_step2 = _iterator2()).done;) {
-        var child = _step2.value;
-        printDrop(child);
-      }
-    }
-
-    console.groupEnd();
-  }
-
   var ListNode = function ListNode(value) {
     this.next = null;
     this.prev = null;
@@ -9447,21 +9077,21 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       this.clear();
     }
 
-    var _proto8 = LinkedList.prototype;
+    var _proto3 = LinkedList.prototype;
 
-    _proto8.head = function head() {
+    _proto3.head = function head() {
       return this._head;
     };
 
-    _proto8.tail = function tail() {
+    _proto3.tail = function tail() {
       return this._tail;
     };
 
-    _proto8.clear = function clear() {
+    _proto3.clear = function clear() {
       this._head = this._tail = null;
     };
 
-    _proto8.toArray = function toArray() {
+    _proto3.toArray = function toArray() {
       var out = [];
       this.forEachNode(function (n) {
         return out.push(n);
@@ -9469,11 +9099,11 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       return out;
     };
 
-    _proto8.nextNode = function nextNode(node) {
+    _proto3.nextNode = function nextNode(node) {
       return node.next;
     };
 
-    _proto8.forEachNode = function forEachNode(callback) {
+    _proto3.forEachNode = function forEachNode(callback) {
       var node = this._head;
 
       while (node !== null) {
@@ -9482,7 +9112,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       }
     };
 
-    _proto8.insertBefore = function insertBefore(node, reference) {
+    _proto3.insertBefore = function insertBefore(node, reference) {
       if (reference === void 0) {
         reference = null;
       }
@@ -9495,7 +9125,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       return node;
     };
 
-    _proto8.append = function append(node) {
+    _proto3.append = function append(node) {
       var tail = this._tail;
 
       if (tail) {
@@ -9509,34 +9139,12 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       return this._tail = node;
     };
 
-    _proto8.remove = function remove(node) {
+    _proto3.remove = function remove(node) {
       if (node.prev) node.prev.next = node.next;else this._head = node.next;
       if (node.next) node.next.prev = node.prev;else this._tail = node.prev;
       return node;
     };
 
-    _proto8[WILL_DROP] = function () {
-      this.forEachNode(function (d) {
-        return destructor(d)[WILL_DROP]();
-      });
-    };
-
-    _proto8[DID_DROP] = function () {
-      this.forEachNode(function (d) {
-        return destructor(d)[DID_DROP]();
-      });
-    };
-
-    (0, _emberBabel.createClass)(LinkedList, [{
-      key: CHILDREN,
-      get: function get() {
-        var out = [];
-        this.forEachNode(function (d) {
-          return out.push.apply(out, destructor(d)[CHILDREN]);
-        });
-        return out;
-      }
-    }]);
     return LinkedList;
   }();
 
@@ -9548,9 +9156,9 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       this._tail = tail;
     }
 
-    var _proto9 = ListSlice.prototype;
+    var _proto4 = ListSlice.prototype;
 
-    _proto9.forEachNode = function forEachNode(callback) {
+    _proto4.forEachNode = function forEachNode(callback) {
       var node = this._head;
 
       while (node !== null) {
@@ -9559,15 +9167,15 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       }
     };
 
-    _proto9.head = function head() {
+    _proto4.head = function head() {
       return this._head;
     };
 
-    _proto9.tail = function tail() {
+    _proto4.tail = function tail() {
       return this._tail;
     };
 
-    _proto9.toArray = function toArray() {
+    _proto4.toArray = function toArray() {
       var out = [];
       this.forEachNode(function (n) {
         return out.push(n);
@@ -9575,7 +9183,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
       return out;
     };
 
-    _proto9.nextNode = function nextNode(node) {
+    _proto4.nextNode = function nextNode(node) {
       if (node === this._tail) return null;
       return node.next;
     };
@@ -9624,6 +9232,46 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
     return vals;
   }
 
+  function keys(obj) {
+    return Object.keys(obj);
+  }
+
+  function unwrap(val) {
+    if (val === null || val === undefined) throw new Error("Expected value to be present");
+    return val;
+  }
+
+  function expect(val, message) {
+    if (val === null || val === undefined) throw new Error(message);
+    return val;
+  }
+
+  function unreachable(message) {
+    if (message === void 0) {
+      message = 'unreachable';
+    }
+
+    return new Error(message);
+  }
+
+  function exhausted(value) {
+    throw new Error("Exhausted " + value);
+  }
+
+  var tuple = function tuple() {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return args;
+  };
+
+  _exports.tuple = tuple;
+  var symbol = typeof Symbol !== 'undefined' ? Symbol : function (key) {
+    return "__" + key + Math.floor(Math.random() * Date.now()) + "__";
+  };
+  _exports.symbol = symbol;
+
   function strip(strings) {
     var out = '';
 
@@ -9649,16 +9297,16 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
 
     var min = Infinity;
 
-    for (var _iterator3 = (0, _emberBabel.createForOfIteratorHelperLoose)(lines), _step3; !(_step3 = _iterator3()).done;) {
-      var line = _step3.value;
+    for (var _iterator = (0, _emberBabel.createForOfIteratorHelperLoose)(lines), _step; !(_step = _iterator()).done;) {
+      var line = _step.value;
       var leading = line.match(/^\s*/)[0].length;
       min = Math.min(min, leading);
     }
 
     var stripped = [];
 
-    for (var _iterator4 = (0, _emberBabel.createForOfIteratorHelperLoose)(lines), _step4; !(_step4 = _iterator4()).done;) {
-      var _line = _step4.value;
+    for (var _iterator2 = (0, _emberBabel.createForOfIteratorHelperLoose)(lines), _step2; !(_step2 = _iterator2()).done;) {
+      var _line = _step2.value;
       stripped.push(_line.slice(min));
     }
 
@@ -11248,9 +10896,17 @@ define("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
           if (!(0, _utils.isPath)(node.path)) return;
 
           if (node.path.original === 'in-element') {
-            if (false
+            if (true
             /* EMBER_GLIMMER_IN_ELEMENT */
             ) {
+                var originalValue = node.params[0];
+
+                if (originalValue) {
+                  var subExpr = b.sexpr('-in-el-null', [originalValue]);
+                  node.params.shift();
+                  node.params.unshift(subExpr);
+                }
+
                 node.hash.pairs.forEach(function (pair) {
                   if (pair.key === 'insertBefore') {
                     (true && !(pair.value.type === 'NullLiteral' || pair.value.type === 'UndefinedLiteral') && (0, _debug.assert)("Can only pass null to insertBefore in in-element, received: " + JSON.stringify(pair.value), pair.value.type === 'NullLiteral' || pair.value.type === 'UndefinedLiteral'));
@@ -11260,13 +10916,13 @@ define("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
               (true && !(false) && (0, _debug.assert)(assertMessage(moduleName, node)));
             }
           } else if (node.path.original === '-in-element') {
-            if (false
+            if (true
             /* EMBER_GLIMMER_IN_ELEMENT */
             ) {
                 var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
                 (true && !(false) && (0, _debug.deprecate)("The use of the private `{{-in-element}}` is deprecated, please refactor to the public `{{in-element}}`. " + sourceInformation, false, {
                   id: 'glimmer.private-in-element',
-                  until: '4.0.0'
+                  until: '3.25.0'
                 }));
               }
 
@@ -12043,7 +11699,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.19.0";
+  var _default = "3.20.1";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {
