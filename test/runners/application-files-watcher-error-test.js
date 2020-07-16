@@ -352,7 +352,7 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
   t.true(getBuildingNotificationCount(stdout, 'application.js') === 7);
   t.true(getBuiltNotificationCount(stdout, 'application.js', environment) === 3);
   // t.true(stdoutOccurenceCount(stdout, /application\.js build error!/g) === 8);
-  t.true(stdoutOccurenceCount(stdout, /Unclosed element `h1`/g) === 1); // NOTE: this doesnt tell which file!!
+  t.true(stdoutOccurenceCount(stdout, /Error: Unclosed element `h1`/g) === 1); // NOTE: this doesnt tell which file!!
 
   t.true(firstContent === (await readApplicationJS()));
 
