@@ -95289,6 +95289,21 @@ define("ember-resolver/utils/class-factory", ["exports"], function (_exports) {
     };
   }
 });
+define("ember-resolver/utils/make-dictionary", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = makeDictionary;
+
+  function makeDictionary() {
+    let cache = Object.create(null);
+    cache['_dict'] = null;
+    delete cache['_dict'];
+    return cache;
+  }
+});
 define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "ember-resolver/resolvers/classic/index"], function (_exports, _index) {
   "use strict";
 
@@ -95395,7 +95410,7 @@ define("ember-resolver/resolvers/classic/container-debug-adapter", ["exports", "
 
   _exports.default = _default;
 });
-define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/utils/class-factory"], function (_exports, _classFactory) {
+define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/utils/class-factory", "ember-resolver/utils/make-dictionary"], function (_exports, _classFactory, _makeDictionary) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -95448,25 +95463,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
     let prefix, type, name;
     let fullNameParts = fullName.split('@');
 
-    if (fullNameParts.length === 3) {
-      if (fullNameParts[0].length === 0) {
-        // leading scoped namespace: `@scope/pkg@type:name`
-        prefix = "@".concat(fullNameParts[1]);
-        let prefixParts = fullNameParts[2].split(':');
-        type = prefixParts[0];
-        name = prefixParts[1];
-      } else {
-        // interweaved scoped namespace: `type:@scope/pkg@name`
-        prefix = "@".concat(fullNameParts[1]);
-        type = fullNameParts[0].slice(0, -1);
-        name = fullNameParts[2];
-      }
-
-      if (type === 'template:components') {
-        name = "components/".concat(name);
-        type = 'template';
-      }
-    } else if (fullNameParts.length === 2) {
+    if (fullNameParts.length === 2) {
       let prefixParts = fullNameParts[0].split(':');
 
       if (prefixParts.length === 2) {
@@ -95556,8 +95553,8 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
         this._moduleRegistry = new ModuleRegistry();
       }
 
-      this._normalizeCache = Object.create(null);
-      this.pluralizedTypes = this.pluralizedTypes || Object.create(null);
+      this._normalizeCache = (0, _makeDictionary.default)();
+      this.pluralizedTypes = this.pluralizedTypes || (0, _makeDictionary.default)();
 
       if (!this.pluralizedTypes.config) {
         this.pluralizedTypes.config = 'config';
@@ -95600,7 +95597,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       if (split.length > 1) {
         let type = split[0];
 
-        if (type === 'component' || type === 'helper' || type === 'modifier' || type === 'template' && split[1].indexOf('components/') === 0) {
+        if (type === 'component' || type === 'helper' || type === 'template' && split[1].indexOf('components/') === 0) {
           return type + ':' + split[1].replace(/_/g, '-');
         } else {
           return type + ':' + Ember.String.dasherize(split[1].replace(/\./g, '/'));
@@ -95816,7 +95813,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
     knownForType(type) {
       let moduleKeys = this._moduleRegistry.moduleNames();
 
-      let items = Object.create(null);
+      let items = (0, _makeDictionary.default)();
 
       for (let index = 0, length = moduleKeys.length; index < length; index++) {
         let moduleName = moduleKeys[index];
@@ -95871,6 +95868,484 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
   });
   Resolver.reopenClass({
     moduleBasedResolver: true
+  });
+  var _default = Resolver;
+  _exports.default = _default;
+});
+define("ember-resolver/ember-config", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = generateConfig;
+
+  /*
+   * This config describes canonical Ember, as described in the
+   * module unification spec:
+   *
+   *   https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md
+   *
+   */
+  function generateConfig(name) {
+    return {
+      app: {
+        name,
+        rootName: name
+      },
+      types: {
+        adapter: {
+          definitiveCollection: 'models'
+        },
+        application: {
+          definitiveCollection: 'main'
+        },
+        config: {
+          definitiveCollection: 'config'
+        },
+        controller: {
+          definitiveCollection: 'routes'
+        },
+        component: {
+          definitiveCollection: 'components'
+        },
+        'component-lookup': {
+          definitiveCollection: 'main'
+        },
+        'component-manager': {
+          definitiveCollection: 'component-managers'
+        },
+        event_dispatcher: {
+          definitiveCollection: 'main'
+        },
+        helper: {
+          definitiveCollection: 'components'
+        },
+        initializer: {
+          definitiveCollection: 'initializers'
+        },
+        'instance-initializers': {
+          definitiveCollection: 'instance-initializer'
+        },
+        location: {
+          definitiveCollection: 'main'
+        },
+        model: {
+          definitiveCollection: 'models'
+        },
+        modifier: {
+          definitiveCollection: 'components'
+        },
+        'modifier-manager': {
+          definitiveCollection: 'modifier-managers'
+        },
+        partial: {
+          definitiveCollection: 'partials'
+        },
+        renderer: {
+          definitiveCollection: 'main'
+        },
+        route: {
+          definitiveCollection: 'routes'
+        },
+        router: {
+          definitiveCollection: 'main'
+        },
+        'route-map': {
+          definitiveCollection: 'main'
+        },
+        serializer: {
+          definitiveCollection: 'models'
+        },
+        service: {
+          definitiveCollection: 'services'
+        },
+        template: {
+          definitiveCollection: 'components'
+        },
+        'template-compiler': {
+          definitiveCollection: 'main'
+        },
+        transform: {
+          definitiveCollection: 'transforms'
+        },
+        view: {
+          definitiveCollection: 'views'
+        },
+        '-view-registry': {
+          definitiveCollection: 'main'
+        },
+        '-bucket-cache': {
+          definitiveCollection: 'main'
+        },
+        '-environment': {
+          definitiveCollection: 'main'
+        },
+        '-application-instance': {
+          definitiveCollection: 'main'
+        }
+      },
+      collections: {
+        'main': {
+          types: ['router', '-bucket-cache', 'component-lookup', '-view-registry', 'event_dispatcher', 'application', 'location', 'renderer', '-environment', '-application-instance', 'route-map']
+        },
+        components: {
+          group: 'ui',
+          privateCollections: ['utils'],
+          types: ['component', 'helper', 'template', 'modifier']
+        },
+        'component-managers': {
+          types: ['component-manager']
+        },
+        config: {
+          unresolvable: true
+        },
+        initializers: {
+          group: 'init',
+          defaultType: 'initializer',
+          privateCollections: ['utils'],
+          types: ['initializer']
+        },
+        'instance-initializers': {
+          group: 'init',
+          defaultType: 'instance-initializer',
+          privateCollections: ['utils'],
+          types: ['instance-initializers']
+        },
+        models: {
+          group: 'data',
+          defaultType: 'model',
+          privateCollections: ['utils'],
+          types: ['model', 'adapter', 'serializer']
+        },
+        'modifier-managers': {
+          types: ['modifier-manager']
+        },
+        partials: {
+          group: 'ui',
+          defaultType: 'partial',
+          privateCollections: ['utils'],
+          types: ['partial']
+        },
+        routes: {
+          group: 'ui',
+          defaultType: 'route',
+          privateCollections: ['components', 'utils'],
+          types: ['route', 'controller', 'template']
+        },
+        services: {
+          defaultType: 'service',
+          privateCollections: ['utils'],
+          types: ['service']
+        },
+        utils: {
+          unresolvable: true
+        },
+        views: {
+          defaultType: 'view',
+          privateCollections: ['utils'],
+          types: ['view']
+        },
+        transforms: {
+          group: 'data',
+          defaultType: 'transform',
+          privateCollections: ['utils'],
+          types: ['transform']
+        }
+      }
+    };
+  }
+});
+define("ember-resolver/module-registries/requirejs", ["exports", "@glimmer/di"], function (_exports, _di) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  class RequireJSRegistry {
+    constructor(config, modulePrefix, require = self.requirejs) {
+      this._config = config;
+      this._modulePrefix = modulePrefix;
+      this._require = require;
+    }
+
+    _baseSegments(s) {
+      let collectionDefinition = this._config.collections[s.collection];
+      let group = collectionDefinition && collectionDefinition.group;
+      let segments = [s.rootName, this._modulePrefix];
+
+      if (group) {
+        segments.push(group);
+      } // Special case to handle definitiveCollection for templates
+      // eventually want to find a better way to address.
+      // Dgeb wants to find a better way to handle these
+      // in config without needing definitiveCollection.
+
+
+      let ignoreCollection = s.type === 'template' && s.collection === 'routes' && s.namespace === 'components';
+
+      if (s.collection !== 'main' && !ignoreCollection) {
+        segments.push(s.collection);
+      }
+
+      if (s.namespace) {
+        segments.push(s.namespace);
+      }
+
+      if (s.name !== 'main' || s.collection !== 'main') {
+        segments.push(s.name);
+      }
+
+      return segments;
+    }
+
+    _detectModule(specifier, lookupDefault, lookupNamed) {
+      let segments = this._baseSegments(specifier);
+
+      let basePath = "".concat(segments.join('/'));
+      let typedPath = "".concat(basePath, "/").concat(specifier.type);
+      let lookupResult = lookupDefault(typedPath);
+
+      if (!lookupResult) {
+        if (this._checkDefaultType(specifier)) {
+          lookupResult = lookupDefault(basePath);
+        } else {
+          lookupResult = lookupNamed(basePath);
+        }
+      }
+
+      return lookupResult;
+    }
+
+    _checkDefaultType(specifier) {
+      let collection = this._config.collections[specifier.collection];
+      return collection && collection.defaultType && collection.defaultType === specifier.type;
+    }
+
+    has(specifierString) {
+      let specifier = (0, _di.deserializeSpecifier)(specifierString);
+      /* return a boolean */
+
+      return this._detectModule(specifier, path => {
+        return path in this._require.entries;
+      }, path => {
+        if (path in this._require.entries) {
+          let result = this._require(path);
+
+          return specifier.type in result;
+        }
+      });
+    }
+
+    get(specifierString) {
+      let specifier = (0, _di.deserializeSpecifier)(specifierString);
+      /* return an export */
+
+      let moduleExport = this._detectModule(specifier, path => {
+        return path in this._require.entries && this._require(path).default;
+      }, path => {
+        return path in this._require.entries && this._require(path)[specifier.type];
+      });
+
+      return moduleExport;
+    }
+
+  }
+
+  _exports.default = RequireJSRegistry;
+});
+define("ember-resolver/resolvers/fallback/index", ["exports", "ember-resolver", "ember-resolver/resolvers/glimmer-wrapper"], function (_exports, _emberResolver, _glimmerWrapper) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  var _default = _glimmerWrapper.default.extend({
+    init(options) {
+      this._super(options);
+
+      this._fallback = _emberResolver.default.create(Ember.assign({
+        namespace: {
+          modulePrefix: this.config.app.name
+        }
+      }, options));
+    },
+
+    resolve(name) {
+      let result = this._super(name);
+
+      return result || this._fallback.resolve(this._fallback.normalize(name));
+    }
+
+  });
+
+  _exports.default = _default;
+});
+define("ember-resolver/resolvers/glimmer-wrapper/index", ["exports", "@glimmer/resolver/resolver", "ember-resolver/module-registries/requirejs"], function (_exports, _resolver, _requirejs) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = void 0;
+
+  function slasherize(dotted) {
+    return dotted.replace(/\./g, '/');
+  }
+
+  const TEMPLATE_TO_PARTIAL = /^template:(.*\/)?_([\w-]+)/;
+
+  function isAbsoluteSpecifier(specifier) {
+    return specifier.indexOf(':/') !== -1;
+  }
+
+  function cleanupEmberSpecifier(specifier, source, _namespace) {
+    let [type, name] = specifier.split(':');
+
+    if (!name) {
+      return [specifier, null];
+    }
+
+    if (type === 'component' && name) {
+      specifier = "".concat(type, ":").concat(name);
+    } else if (type === 'service') {
+      /* Services may be camelCased */
+      specifier = "service:".concat(Ember.String.dasherize(name));
+    } else if (type === 'route') {
+      /* Routes may have.dot.paths */
+      specifier = "route:".concat(slasherize(name));
+    } else if (type === 'controller') {
+      /* Controllers may have.dot.paths */
+      specifier = "controller:".concat(slasherize(name));
+    } else if (type === 'template') {
+      if (name && name.indexOf('components/') === 0) {
+        let sliced = name.slice(11);
+        specifier = "template:".concat(sliced);
+      } else {
+        /*
+         * Ember partials are looked up as templates. Here we replace the template
+         * resolution with a partial resolute when appropriate. Try to keep this
+         * code as "pay-go" as possible.
+         */
+        let match = TEMPLATE_TO_PARTIAL.exec(specifier);
+
+        if (match) {
+          let namespace = match[1] || '';
+          let name = match[2];
+          specifier = "partial:".concat(namespace).concat(name);
+        } else {
+          if (source) {
+            throw new Error("Cannot look up a route template ".concat(specifier, " with a source"));
+          }
+          /*
+           * Templates for routes must be looked up with a source. They may
+           * have dots.in.paths
+           */
+
+
+          specifier = "template";
+          source = "route:/".concat(_namespace, "/routes/").concat(slasherize(name));
+        }
+      }
+    }
+
+    return [specifier, source];
+  }
+
+  const normalize = !true
+  /* DEBUG */
+  ? null : function (fullName) {
+    // This method is called by `Registry#validateInjections` in dev mode.
+    // https://github.com/ember-cli/ember-resolver/issues/299
+    if (fullName) {
+      const [type, name] = fullName.split(':', 2);
+
+      if (name && (type === 'service' || type === 'controller')) {
+        return "".concat(type, ":").concat(Ember.String.dasherize(name));
+      }
+    }
+
+    return fullName;
+  };
+  /*
+   * Wrap the @glimmer/resolver in Ember's resolver API. Although
+   * this code extends from the DefaultResolver, it should never
+   * call `_super` or call into that code.
+   */
+
+  const Resolver = Ember.DefaultResolver.extend({
+    init() {
+      this._super(...arguments);
+
+      this._configRootName = this.config.app.rootName || 'app';
+
+      if (!this.glimmerModuleRegistry) {
+        this.glimmerModuleRegistry = new _requirejs.default(this.config, 'src');
+      }
+
+      this._glimmerResolver = new _resolver.default(this.config, this.glimmerModuleRegistry);
+    },
+
+    normalize,
+
+    expandLocalLookup(specifier, source, namespace) {
+      if (isAbsoluteSpecifier(specifier)) {
+        return specifier; // specifier is absolute
+      }
+
+      if (source || namespace) {
+        let rootName = namespace || this._configRootName;
+        let [type] = specifier.split(':');
+        /*
+         * Ember components require their lookupString to be massaged. Make this
+         * as "pay-go" as possible.
+         */
+
+        if (namespace) {
+          // This is only required because:
+          // https://github.com/glimmerjs/glimmer-di/issues/45
+          source = "".concat(type, ":/").concat(rootName, "/");
+        } else if (source) {
+          // make absolute
+          let parts = source.split(':src/ui/');
+          source = "".concat(parts[0], ":/").concat(rootName, "/").concat(parts[1]);
+          source = source.split('/template.hbs')[0];
+        }
+
+        let [_specifier, _source] = cleanupEmberSpecifier(specifier, source, rootName);
+
+        let absoluteSpecifier = this._glimmerResolver.identify(_specifier, _source);
+
+        if (absoluteSpecifier) {
+          return absoluteSpecifier;
+        }
+
+        absoluteSpecifier = this._glimmerResolver.identify(_specifier);
+
+        if (absoluteSpecifier) {
+          return specifier;
+        }
+      }
+
+      return specifier;
+    },
+
+    resolve(specifier) {
+      let source = null;
+
+      if (!isAbsoluteSpecifier(specifier)) {
+        let [_specifier, _source] = cleanupEmberSpecifier(specifier, source, this._configRootName);
+        specifier = _specifier;
+        source = _source;
+      }
+
+      return this._glimmerResolver.resolve(specifier, source);
+    }
+
   });
   var _default = Resolver;
   _exports.default = _default;

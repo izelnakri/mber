@@ -10770,7 +10770,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
         define('qunit-dom', [], vendorModule);
       })();
     
-define("ember-test-waiters/ember-test-waiters/build-waiter", ["exports", "ember-test-waiters/ember-test-waiters/token", "ember-test-waiters/ember-test-waiters/waiter-manager"], function (_exports, _token, _waiterManager) {
+define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters/token", "ember-test-waiters/waiter-manager"], function (_exports, _token, _waiterManager) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -10935,7 +10935,7 @@ define("ember-test-waiters/ember-test-waiters/build-waiter", ["exports", "ember-
     return new TestWaiterImpl(name);
   }
 });
-define("ember-test-waiters/ember-test-waiters/index", ["exports", "ember-test-waiters/ember-test-waiters/types", "ember-test-waiters/ember-test-waiters/waiter-manager", "ember-test-waiters/ember-test-waiters/build-waiter", "ember-test-waiters/ember-test-waiters/wait-for-promise"], function (_exports, _types, _waiterManager, _buildWaiter, _waitForPromise) {
+define("ember-test-waiters/index", ["exports", "ember-test-waiters/types", "ember-test-waiters/waiter-manager", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _types, _waiterManager, _buildWaiter, _waitForPromise) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -11038,7 +11038,7 @@ define("ember-test-waiters/ember-test-waiters/index", ["exports", "ember-test-wa
     }
   });
 });
-define("ember-test-waiters/ember-test-waiters/token", ["exports"], function (_exports) {
+define("ember-test-waiters/token", ["exports"], function (_exports) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -11056,7 +11056,7 @@ define("ember-test-waiters/ember-test-waiters/token", ["exports"], function (_ex
 
   _exports.default = Token;
 });
-define("ember-test-waiters/ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/ember-test-waiters/build-waiter"], function (_exports, _buildWaiter) {
+define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/build-waiter"], function (_exports, _buildWaiter) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -11105,7 +11105,7 @@ define("ember-test-waiters/ember-test-waiters/wait-for-promise", ["exports", "em
     return result;
   }
 });
-define("ember-test-waiters/ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
+define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -11213,7 +11213,10 @@ define("ember-test-waiters/ember-test-waiters/waiter-manager", ["exports"], func
     return state.pending > 0;
   }
 });
-define("ember-test-waiters/@ember/test-waiters/index", ["exports", "ember-test-waiters"], function (_exports, _emberTestWaiters) {
+define("ember-test-waiters/types/index", [], function () {
+  "use strict";
+});
+define("@ember/test-waiters/index", ["exports", "ember-test-waiters"], function (_exports, _emberTestWaiters) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -11228,9 +11231,6 @@ define("ember-test-waiters/@ember/test-waiters/index", ["exports", "ember-test-w
       }
     });
   });
-});
-define("ember-test-waiters/ember-test-waiters/types/index", [], function () {
-  "use strict";
 });
 define("@ember/test-helpers/-tuple", ["exports"], function (_exports) {
   "use strict";
