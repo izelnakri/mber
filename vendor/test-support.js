@@ -1,12 +1,12 @@
 define = window.define;require = window.require;(function() {
 /*!
  * @overview  Ember - JavaScript Application Framework
- * @copyright Copyright 2011-2019 Tilde Inc. and contributors
+ * @copyright Copyright 2011-2020 Tilde Inc. and contributors
  *            Portions Copyright 2006-2011 Strobe Inc.
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.18.1
+ * @version   3.20.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -584,7 +584,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
         if (error.stack) {
           if (error['arguments']) {
             // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^\(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^\)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
             stack.shift();
           } else {
             // Firefox
@@ -2692,14 +2692,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 })();
 
 /*!
- * QUnit 2.10.0
+ * QUnit 2.10.1
  * https://qunitjs.com/
  *
  * Copyright jQuery Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2020-05-02T22:51Z
+ * Date: 2020-07-04T23:21Z
  */
 (function (global$1) {
   'use strict';
@@ -6974,7 +6974,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
   QUnit.isLocal = !(defined.document && window$1.location.protocol !== "file:");
 
   // Expose the current QUnit version
-  QUnit.version = "2.10.0";
+  QUnit.version = "2.10.1";
 
   extend(QUnit, {
   	on: on,
@@ -10776,7 +10776,16 @@ define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters/token"
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
+  _exports._resetWaiterNames = _resetWaiterNames;
   _exports.default = buildWaiter;
+  const WAITER_NAME_PATTERN = /^[^:]*:?.*/;
+  let WAITER_NAMES = true
+  /* DEBUG */
+  ? new Set() : undefined;
+
+  function _resetWaiterNames() {
+    WAITER_NAMES = new Set();
+  }
 
   function getNextToken() {
     return new _token.default();
@@ -10886,7 +10895,7 @@ define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters/token"
    * @example
    *
    * import Component from '@ember/component';
-   * import { buildWaiter } from 'ember-test-waiters';
+   * import { buildWaiter } from '@ember/test-waiters';
    *
    * if (DEBUG) {
    *   let waiter = buildWaiter('friend-waiter');
@@ -10908,10 +10917,22 @@ define("ember-test-waiters/build-waiter", ["exports", "ember-test-waiters/token"
     if (true
     /* DEBUG */
     ) {
-      return new TestWaiterImpl(name);
+      (true && Ember.warn("The waiter name '".concat(name, "' is already in use"), !WAITER_NAMES.has(name), {
+        id: 'ember-test-waiters.duplicate-waiter-name'
+      }));
+      WAITER_NAMES.add(name);
     }
 
-    return new NoopTestWaiter(name);
+    if (!true
+    /* DEBUG */
+    ) {
+      return new NoopTestWaiter(name);
+    }
+
+    (true && Ember.warn("You must provide a name that contains a descriptive prefix separated by a colon.\n\n      Example: ember-fictitious-addon:some-file\n\n      You passed: ".concat(name), WAITER_NAME_PATTERN.test(name), {
+      id: 'ember-test-waiters.invalid-waiter-name'
+    }));
+    return new TestWaiterImpl(name);
   }
 });
 define("ember-test-waiters/index", ["exports", "ember-test-waiters/types", "ember-test-waiters/waiter-manager", "ember-test-waiters/build-waiter", "ember-test-waiters/wait-for-promise"], function (_exports, _types, _waiterManager, _buildWaiter, _waitForPromise) {
@@ -11004,6 +11025,12 @@ define("ember-test-waiters/index", ["exports", "ember-test-waiters/types", "embe
       return _buildWaiter.default;
     }
   });
+  Object.defineProperty(_exports, "_resetWaiterNames", {
+    enumerable: true,
+    get: function () {
+      return _buildWaiter._resetWaiterNames;
+    }
+  });
   Object.defineProperty(_exports, "waitForPromise", {
     enumerable: true,
     get: function () {
@@ -11036,7 +11063,7 @@ define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/bu
     value: true
   });
   _exports.default = waitForPromise;
-  const PROMISE_WAITER = (0, _buildWaiter.default)('promise-waiter');
+  const PROMISE_WAITER = (0, _buildWaiter.default)('ember-test-waiters:promise-waiter');
 
   /**
    * A convenient utility function to simplify waiting for a promise.
@@ -11048,7 +11075,7 @@ define("ember-test-waiters/wait-for-promise", ["exports", "ember-test-waiters/bu
    * @example
    *
    * import Component from '@ember/component';
-   * import { waitForPromise } from 'ember-test-waiters';
+   * import { waitForPromise } from '@ember/test-waiters';
    *
    * export default class Friendz extends Component {
    *   didInsertElement() {
@@ -11188,6 +11215,22 @@ define("ember-test-waiters/waiter-manager", ["exports"], function (_exports) {
 });
 define("ember-test-waiters/types/index", [], function () {
   "use strict";
+});
+define("@ember/test-waiters/index", ["exports", "ember-test-waiters"], function (_exports, _emberTestWaiters) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  Object.keys(_emberTestWaiters).forEach(function (key) {
+    if (key === "default" || key === "__esModule") return;
+    Object.defineProperty(_exports, key, {
+      enumerable: true,
+      get: function () {
+        return _emberTestWaiters[key];
+      }
+    });
+  });
 });
 define("@ember/test-helpers/-tuple", ["exports"], function (_exports) {
   "use strict";
@@ -12538,20 +12581,12 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
   /*
     {{outlet}}
   */
-  {
-    id: "Lvsp1nVR",
-    block: "{\"symbols\":[],\"statements\":[[1,[30,[36,1],[[30,[36,0],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}",
-    meta: {}
-  });
+  {"id":"Lvsp1nVR","block":"{\"symbols\":[],\"statements\":[[1,[30,[36,1],[[30,[36,0],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}","meta":{}});
   const EMPTY_TEMPLATE = Ember.HTMLBars.template(
   /*
     
   */
-  {
-    id: "cgf6XJaX",
-    block: "{\"symbols\":[],\"statements\":[],\"hasEval\":false,\"upvars\":[]}",
-    meta: {}
-  }); // eslint-disable-next-line require-jsdoc
+  {"id":"cgf6XJaX","block":"{\"symbols\":[],\"statements\":[],\"hasEval\":false,\"upvars\":[]}","meta":{}}); // eslint-disable-next-line require-jsdoc
 
   function isRenderingTestContext(context) {
     return (0, _setupContext.isTestContext)(context) && typeof context.render === 'function' && typeof context.clearRender === 'function';

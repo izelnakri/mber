@@ -32,13 +32,13 @@ function buildTestVendorCSS() {
 
     Promise.all([
       fs.readFile(`${MODULE_PATH}/qunit/qunit/qunit.css`),
-      fs.readFile(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/test-container-styles.css`)
+      fs.readFile(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/test-container-styles.css`),
     ])
       .then((cssFiles) => {
         return compileScssAsync({
           data: cssFiles.join('\n'),
           outputStyle: 'compressed',
-          sourceMap: true
+          sourceMap: true,
         });
       })
       .then((result) => {
@@ -68,21 +68,24 @@ function buildTestVendorJS() {
     const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
     const timer = countTime();
 
-    const waiterIndexPath = `${MODULE_PATH}/ember-test-waiters/addon/index.ts`;
-    const indexContent = await fs.readFile(waiterIndexPath);
+    // const waiterIndexPath = `${MODULE_PATH}/ember-test-waiters/addon/index.ts`;
+    // const indexContent = await fs.readFile(waiterIndexPath);
 
-    await fs.writeFile(
-      waiterIndexPath,
-      indexContent.toString().replace("export * from './types';", '')
-    );
+    // await fs.writeFile(
+    //   waiterIndexPath,
+    //   indexContent.toString().replace("export * from './types';", '')
+    // );
 
     return Promise.all([
       fs.readFile(`${VENDOR_PATH}/ember-testing.js`),
       fs.readFile(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       fs.readFile(`${MODULE_PATH}/qunit/qunit/qunit.js`),
       fs.readFile(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/qunit-configuration.js`),
-      transpileNPMImports('qunit-dom', 'node_modules/qunit-dom/dist/qunit-dom.js', { transpile: false }),
-      importAddonFolderToAMD('ember-test-waiters', 'ember-test-waiters/addon'),
+      transpileNPMImports('qunit-dom', 'node_modules/qunit-dom/dist/qunit-dom.js', {
+        transpile: false,
+      }),
+      importAddonFolderToAMD('ember-test-waiters', 'ember-test-waiters/addon/ember-test-waiters'),
+      importAddonFolderToAMD('@ember/test-waiters', 'ember-test-waiters/addon/@ember/test-waiters'),
       importAddonFolderToAMD(
         '@ember/test-helpers',
         '@ember/test-helpers/addon-test-support/@ember/test-helpers'
@@ -97,7 +100,7 @@ function buildTestVendorJS() {
         'ember-test-helpers',
         '@ember/test-helpers/addon-test-support/ember-test-helpers'
       ),
-      importAddonFolderToAMD('qunit', 'ember-qunit/addon-test-support/qunit')
+      importAddonFolderToAMD('qunit', 'ember-qunit/addon-test-support/qunit'),
     ])
       .then((jsContents) => {
         return fs.writeFile(
@@ -121,7 +124,7 @@ function buildTestVendorJS() {
 
           resolve({
             message: `BUILT: ${JS_FILENAME} in ${timePassed}ms [${formatSize(fileBuffer.length)}]`,
-            fileBuffer: fileBuffer
+            fileBuffer: fileBuffer,
           });
         });
       });
