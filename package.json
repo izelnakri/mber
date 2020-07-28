@@ -78,7 +78,7 @@
     "ansi-colors": "^4.1.1",
     "babel-eslint": "^10.1.0",
     "babel-plugin-debug-macros": "^0.3.2",
-    "babel-plugin-ember-modules-api-polyfill": "^2.13.4",
+    "babel-plugin-ember-modules-api-polyfill": "^3.0.0",
     "babel-plugin-filter-imports": "^4.0.0",
     "babel-plugin-htmlbars-inline-precompile": "^4.1.0",
     "babel-plugin-module-resolver": "^4.0.0",
