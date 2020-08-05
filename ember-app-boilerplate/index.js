@@ -1,6 +1,6 @@
 import app from 'mber';
 
-export default function(ENV) {
+export default function (ENV) {
   const { environment } = ENV;
 
   // app.import('node_modules/jquery/dist/jquery.min.js', {

@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.1
+ * @version   3.20.3
  */
 
 /*globals process */
@@ -8940,7 +8940,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
   _exports.extractHandle = extractHandle;
   _exports.isOkHandle = isOkHandle;
   _exports.isErrHandle = isErrHandle;
-  _exports.symbol = _exports.tuple = _exports.debugToString = _exports.ListSlice = _exports.ListNode = _exports.LinkedList = _exports.EMPTY_SLICE = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
+  _exports.symbol = _exports.tuple = _exports.verifySteps = _exports.logStep = _exports.endTestSteps = _exports.beginTestSteps = _exports.debugToString = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
   var EMPTY_ARRAY = Object.freeze([]); // import Logger from './logger';
   // let alreadyWarned = false;
 
@@ -9064,136 +9064,6 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
     return node.nodeValue === SERIALIZATION_FIRST_NODE_STRING;
   }
 
-  var ListNode = function ListNode(value) {
-    this.next = null;
-    this.prev = null;
-    this.value = value;
-  };
-
-  _exports.ListNode = ListNode;
-
-  var LinkedList = /*#__PURE__*/function () {
-    function LinkedList() {
-      this.clear();
-    }
-
-    var _proto3 = LinkedList.prototype;
-
-    _proto3.head = function head() {
-      return this._head;
-    };
-
-    _proto3.tail = function tail() {
-      return this._tail;
-    };
-
-    _proto3.clear = function clear() {
-      this._head = this._tail = null;
-    };
-
-    _proto3.toArray = function toArray() {
-      var out = [];
-      this.forEachNode(function (n) {
-        return out.push(n);
-      });
-      return out;
-    };
-
-    _proto3.nextNode = function nextNode(node) {
-      return node.next;
-    };
-
-    _proto3.forEachNode = function forEachNode(callback) {
-      var node = this._head;
-
-      while (node !== null) {
-        callback(node);
-        node = node.next;
-      }
-    };
-
-    _proto3.insertBefore = function insertBefore(node, reference) {
-      if (reference === void 0) {
-        reference = null;
-      }
-
-      if (reference === null) return this.append(node);
-      if (reference.prev) reference.prev.next = node;else this._head = node;
-      node.prev = reference.prev;
-      node.next = reference;
-      reference.prev = node;
-      return node;
-    };
-
-    _proto3.append = function append(node) {
-      var tail = this._tail;
-
-      if (tail) {
-        tail.next = node;
-        node.prev = tail;
-        node.next = null;
-      } else {
-        this._head = node;
-      }
-
-      return this._tail = node;
-    };
-
-    _proto3.remove = function remove(node) {
-      if (node.prev) node.prev.next = node.next;else this._head = node.next;
-      if (node.next) node.next.prev = node.prev;else this._tail = node.prev;
-      return node;
-    };
-
-    return LinkedList;
-  }();
-
-  _exports.LinkedList = LinkedList;
-
-  var ListSlice = /*#__PURE__*/function () {
-    function ListSlice(head, tail) {
-      this._head = head;
-      this._tail = tail;
-    }
-
-    var _proto4 = ListSlice.prototype;
-
-    _proto4.forEachNode = function forEachNode(callback) {
-      var node = this._head;
-
-      while (node !== null) {
-        callback(node);
-        node = this.nextNode(node);
-      }
-    };
-
-    _proto4.head = function head() {
-      return this._head;
-    };
-
-    _proto4.tail = function tail() {
-      return this._tail;
-    };
-
-    _proto4.toArray = function toArray() {
-      var out = [];
-      this.forEachNode(function (n) {
-        return out.push(n);
-      });
-      return out;
-    };
-
-    _proto4.nextNode = function nextNode(node) {
-      if (node === this._tail) return null;
-      return node.next;
-    };
-
-    return ListSlice;
-  }();
-
-  _exports.ListSlice = ListSlice;
-  var EMPTY_SLICE = new ListSlice(null, null);
-  _exports.EMPTY_SLICE = EMPTY_SLICE;
   var objKeys = Object.keys;
 
   function assign(obj) {
@@ -9565,6 +9435,14 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
 
   var debugToString$1 = debugToString;
   _exports.debugToString = debugToString$1;
+  var beginTestSteps;
+  _exports.beginTestSteps = beginTestSteps;
+  var endTestSteps;
+  _exports.endTestSteps = endTestSteps;
+  var verifySteps;
+  _exports.verifySteps = verifySteps;
+  var logStep;
+  _exports.logStep = logStep;
 
   function assertNever(value, desc) {
     if (desc === void 0) {
@@ -11699,7 +11577,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.20.1";
+  var _default = "3.20.3";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {
