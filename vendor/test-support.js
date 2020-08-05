@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.1
+ * @version   3.20.3
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -9540,6 +9540,29 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
       this.pushResult({ result: result, actual: actual, expected: expected, message: message });
   }
 
+  function isValid(message, options) {
+      if (options === void 0) { options = {}; }
+      var element = this.findTargetElement();
+      if (!element)
+          return;
+      if (!(element instanceof HTMLFormElement ||
+          element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement ||
+          element instanceof HTMLButtonElement ||
+          element instanceof HTMLOutputElement ||
+          element instanceof HTMLSelectElement)) {
+          throw new TypeError("Unexpected Element Type: " + element.toString());
+      }
+      var validity = element.reportValidity() === true;
+      var result = validity === !options.inverted;
+      var actual = validity ? 'valid' : 'not valid';
+      var expected = options.inverted ? 'not valid' : 'valid';
+      if (!message) {
+          message = "Element " + elementToString(this.target) + " is " + actual;
+      }
+      this.pushResult({ result: result, actual: actual, expected: expected, message: message });
+  }
+
   // Visible logic based on jQuery's
   // https://github.com/jquery/jquery/blob/4a2bcc27f9c3ee24b3effac0fbe1285d1ee23cc5/src/css/hiddenVisibleSelectors.js#L11-L13
   function visible(el) {
@@ -9787,6 +9810,42 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
        */
       DOMAssertions.prototype.isNotRequired = function (message) {
           notRequired.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} passes validation
+       *
+       * Validity is determined by asserting that:
+       *
+       * - `element.reportValidity() === true`
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.input').isValid();
+       *
+       * @see {@link #isValid}
+       */
+      DOMAssertions.prototype.isValid = function (message) {
+          isValid.call(this, message);
+          return this;
+      };
+      /**
+       * Assert that the {@link HTMLElement} does not pass validation
+       *
+       * Validity is determined by asserting that:
+       *
+       * - `element.reportValidity() === true`
+       *
+       * @param {string?} message
+       *
+       * @example
+       * assert.dom('.input').isNotValid();
+       *
+       * @see {@link #isValid}
+       */
+      DOMAssertions.prototype.isNotValid = function (message) {
+          isValid.call(this, message, { inverted: true });
           return this;
       };
       /**
@@ -10134,7 +10193,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
        * Assert that the [HTMLElement][] has the `expected` style declarations using
        * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
        *
-       * @name hasStyle
        * @param {object} expected
        * @param {string?} message
        *
@@ -10153,7 +10211,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
        * Assert that the pseudo element for `selector` of the [HTMLElement][] has the `expected` style declarations using
        * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
        *
-       * @name hasPseudoElementStyle
        * @param {string} selector
        * @param {object} expected
        * @param {string?} message
@@ -10188,7 +10245,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
        * Assert that the [HTMLElement][] does not have the `expected` style declarations using
        * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
        *
-       * @name doesNotHaveStyle
        * @param {object} expected
        * @param {string?} message
        *
@@ -10207,7 +10263,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
        * Assert that the pseudo element for `selector` of the [HTMLElement][] does not have the `expected` style declarations using
        * [`window.getComputedStyle`](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).
        *
-       * @name doesNotHavePseudoElementStyle
        * @param {string} selector
        * @param {object} expected
        * @param {string?} message
@@ -10737,7 +10792,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
           get: function () {
               return elementToString(this.target);
           },
-          enumerable: true,
+          enumerable: false,
           configurable: true
       });
       return DOMAssertions;
@@ -10749,7 +10804,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
           throw new Error(rootElement + " is not a valid root element");
       }
       rootElement = rootElement || this.dom.rootElement || document;
-      return new DOMAssertions(target || rootElement, rootElement, this);
+      if (arguments.length === 0) {
+          target = rootElement;
+      }
+      return new DOMAssertions(target, rootElement, this);
   };
   function isValidRootElement(element) {
       return (!element ||

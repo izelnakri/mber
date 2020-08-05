@@ -995,26 +995,13 @@ define("@glimmer/component/-private/base-component-manager", ["exports", "@glimm
     }, _temp;
   }
 });
-define("@glimmer/component/-private/component", ["exports", "@glimmer/component/-private/owner"], function (_exports, _owner) {
+define("@glimmer/component/-private/component", ["exports", "@glimmer/component/-private/owner", "@glimmer/component/-private/destroyables"], function (_exports, _owner, _destroyables) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.setDestroying = setDestroying;
-  _exports.setDestroyed = setDestroyed;
   _exports.default = _exports.ARGS_SET = void 0;
-  const DESTROYING = new WeakMap();
-  const DESTROYED = new WeakMap();
-
-  function setDestroying(component) {
-    DESTROYING.set(component, true);
-  }
-
-  function setDestroyed(component) {
-    DESTROYED.set(component, true);
-  }
-
   let ARGS_SET;
   _exports.ARGS_SET = ARGS_SET;
 
@@ -1168,8 +1155,6 @@ define("@glimmer/component/-private/component", ["exports", "@glimmer/component/
 
       this.args = args;
       (0, _owner.setOwner)(this, owner);
-      DESTROYING.set(this, false);
-      DESTROYED.set(this, false);
     }
     /**
      * Named arguments passed to the component from its parent component.
@@ -1198,11 +1183,11 @@ define("@glimmer/component/-private/component", ["exports", "@glimmer/component/
 
 
     get isDestroying() {
-      return DESTROYING.get(this);
+      return (0, _destroyables.isDestroying)(this);
     }
 
     get isDestroyed() {
-      return DESTROYED.get(this);
+      return (0, _destroyables.isDestroyed)(this);
     }
     /**
      * Called before the component has been removed from the DOM.
@@ -1215,7 +1200,36 @@ define("@glimmer/component/-private/component", ["exports", "@glimmer/component/
 
   _exports.default = BaseComponent;
 });
-define("@glimmer/component/-private/ember-component-manager", ["exports", "ember-compatibility-helpers", "@glimmer/component/-private/base-component-manager", "@glimmer/component/-private/component"], function (_exports, _emberCompatibilityHelpers, _baseComponentManager, _component) {
+define("@glimmer/component/-private/destroyables", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.setDestroying = setDestroying;
+  _exports.setDestroyed = setDestroyed;
+  _exports.isDestroying = isDestroying;
+  _exports.isDestroyed = isDestroyed;
+  const DESTROYING = new WeakMap();
+  const DESTROYED = new WeakMap(); // TODO: remove once glimmer.js is updated to glimmer-vm 0.54.0+ and can use the destroyables API directly
+
+  function setDestroying(component) {
+    DESTROYING.set(component, true);
+  }
+
+  function setDestroyed(component) {
+    DESTROYED.set(component, true);
+  }
+
+  function isDestroying(component) {
+    return DESTROYING.has(component);
+  }
+
+  function isDestroyed(component) {
+    return DESTROYED.has(component);
+  }
+});
+define("@glimmer/component/-private/ember-component-manager", ["exports", "ember-compatibility-helpers", "@glimmer/component/-private/base-component-manager", "@glimmer/component/-private/destroyables"], function (_exports, _emberCompatibilityHelpers, _baseComponentManager, _destroyables) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -1230,6 +1244,29 @@ define("@glimmer/component/-private/ember-component-manager", ["exports", "ember
     destructor: true,
     asyncLifecycleCallbacks: false
   });
+  const scheduledDestroyComponent = (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') ? undefined : (component, meta) => {
+    if (component.isDestroyed) {
+      return;
+    }
+
+    Ember.destroy(component);
+    meta.setSourceDestroyed();
+    (0, _destroyables.setDestroyed)(component);
+  };
+  const destroy = (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') // @ts-ignore
+  ? Ember.__loader.require('@glimmer/runtime').destroy : component => {
+    if (component.isDestroying) {
+      return;
+    }
+
+    let meta = Ember.meta(component);
+    meta.setSourceDestroying();
+    (0, _destroyables.setDestroying)(component);
+    Ember.run.schedule('actions', component, component.willDestroy);
+    Ember.run.schedule('destroy', void 0, scheduledDestroyComponent, component, meta);
+  };
+  const registerDestructor = (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') // @ts-ignore
+  ? Ember.__loader.require('@glimmer/runtime').registerDestructor : undefined;
   /**
    * This component manager runs in Ember.js environments and extends the base component manager to:
    *
@@ -1238,28 +1275,22 @@ define("@glimmer/component/-private/ember-component-manager", ["exports", "ember
    */
 
   class EmberGlimmerComponentManager extends (0, _baseComponentManager.default)(Ember.setOwner, Ember.getOwner, CAPABILITIES) {
-    destroyComponent(component) {
-      if (component.isDestroying) {
-        return;
+    createComponent(ComponentClass, args) {
+      const component = super.createComponent(ComponentClass, args);
+
+      if ((0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4')) {
+        registerDestructor(component, () => {
+          component.willDestroy();
+        });
       }
 
-      let meta = Ember.meta(component);
-      meta.setSourceDestroying();
-      (0, _component.setDestroying)(component);
-      Ember.run.schedule('actions', component, component.willDestroy);
-      Ember.run.schedule('destroy', this, scheduledDestroyComponent, component, meta);
+      return component;
     }
 
-  }
-
-  function scheduledDestroyComponent(component, meta) {
-    if (component.isDestroyed) {
-      return;
+    destroyComponent(component) {
+      destroy(component);
     }
 
-    Ember.destroy(component);
-    meta.setSourceDestroyed();
-    (0, _component.setDestroyed)(component);
   }
 
   // In Ember 3.12 and earlier, the updateComponent hook was mandatory.
@@ -1306,7 +1337,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.1
+ * @version   3.20.3
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -19364,7 +19395,7 @@ define("@ember/-internals/routing/lib/location/history_location", ["exports", "@
       var base = document.querySelector('base');
       var baseURL = '';
 
-      if (base) {
+      if (base !== null && base.hasAttribute('href')) {
         baseURL = base.getAttribute('href');
       }
 
@@ -47622,7 +47653,7 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
     value: true
   });
   _exports.isModified = isModified;
-  _exports.IterableImpl = _exports.IterationItemReference = _exports.PropertyReference = _exports.HelperRootReference = _exports.ComponentRootReference = _exports.RootReference = _exports.UPDATE_REFERENCED_VALUE = _exports.IteratorSynchronizer = _exports.ReferenceIterator = _exports.IterationArtifacts = _exports.END = _exports.ListItem = _exports.ConstReference = _exports.ReferenceCache = _exports.CachedReference = void 0;
+  _exports.IterationItemReference = _exports.PropertyReference = _exports.HelperRootReference = _exports.ComponentRootReference = _exports.RootReference = _exports.UPDATE_REFERENCED_VALUE = _exports.IterableReference = _exports.ConstReference = _exports.ReferenceCache = _exports.CachedReference = void 0;
 
   class CachedReference {
     constructor() {
@@ -47746,345 +47777,6 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
   }
 
   _exports.ConstReference = ConstReference;
-
-  class ListItem extends _util.ListNode {
-    constructor(iterable, result) {
-      super(iterable.valueReferenceFor(result));
-      this.retained = false;
-      this.seen = false;
-      this.key = result.key;
-      this.iterable = iterable;
-      this.memo = iterable.memoReferenceFor(result);
-    }
-
-    update(item) {
-      this.retained = true;
-      this.iterable.updateValueReference(this.value, item);
-      this.iterable.updateMemoReference(this.memo, item);
-    }
-
-    shouldRemove() {
-      return !this.retained;
-    }
-
-    reset() {
-      this.retained = false;
-      this.seen = false;
-    }
-
-  }
-
-  _exports.ListItem = ListItem;
-
-  class IterationArtifacts {
-    constructor(iterable) {
-      this.iterator = null;
-      this.map = new Map();
-      this.list = new _util.LinkedList();
-      this.tag = iterable.tag;
-      this.iterable = iterable;
-    }
-
-    isEmpty() {
-      var iterator = this.iterator = this.iterable.iterate();
-      return iterator.isEmpty();
-    }
-
-    iterate() {
-      var iterator;
-
-      if (this.iterator === null) {
-        iterator = this.iterable.iterate();
-      } else {
-        iterator = this.iterator;
-      }
-
-      this.iterator = null;
-      return iterator;
-    }
-
-    advanceToKey(key, current) {
-      var seek = current;
-
-      while (seek !== null && seek.key !== key) {
-        seek = this.advanceNode(seek);
-      }
-
-      return seek;
-    }
-
-    has(key) {
-      return this.map.has(key);
-    }
-
-    get(key) {
-      return this.map.get(key);
-    }
-
-    wasSeen(key) {
-      var node = this.map.get(key);
-      return node !== undefined && node.seen;
-    }
-
-    update(item) {
-      var found = this.get(item.key);
-      found.update(item);
-      return found;
-    }
-
-    append(item) {
-      var {
-        map,
-        list,
-        iterable
-      } = this;
-      var node = new ListItem(iterable, item);
-      map.set(item.key, node);
-      list.append(node);
-      return node;
-    }
-
-    insertBefore(item, reference) {
-      var {
-        map,
-        list,
-        iterable
-      } = this;
-      var node = new ListItem(iterable, item);
-      map.set(item.key, node);
-      node.retained = true;
-      list.insertBefore(node, reference);
-      return node;
-    }
-
-    move(item, reference) {
-      var {
-        list
-      } = this;
-      item.retained = true;
-      list.remove(item);
-      list.insertBefore(item, reference);
-    }
-
-    remove(item) {
-      var {
-        list
-      } = this;
-      list.remove(item);
-      this.map.delete(item.key);
-    }
-
-    nextNode(item) {
-      return this.list.nextNode(item);
-    }
-
-    advanceNode(item) {
-      item.seen = true;
-      return this.list.nextNode(item);
-    }
-
-    head() {
-      return this.list.head();
-    }
-
-  }
-
-  _exports.IterationArtifacts = IterationArtifacts;
-
-  class ReferenceIterator {
-    // if anyone needs to construct this object with something other than
-    // an iterable, let @wycats know.
-    constructor(iterable) {
-      this.iterator = null;
-      var artifacts = new IterationArtifacts(iterable);
-      this.artifacts = artifacts;
-    }
-
-    next() {
-      var {
-        artifacts
-      } = this;
-      var iterator = this.iterator = this.iterator || artifacts.iterate();
-      var item = iterator.next();
-      if (item === null) return null;
-      return artifacts.append(item);
-    }
-
-  }
-
-  _exports.ReferenceIterator = ReferenceIterator;
-  var Phase;
-
-  (function (Phase) {
-    Phase[Phase["Append"] = 0] = "Append";
-    Phase[Phase["Prune"] = 1] = "Prune";
-    Phase[Phase["Done"] = 2] = "Done";
-  })(Phase || (Phase = {}));
-
-  var END = (0, _util.symbol)('END');
-  _exports.END = END;
-
-  class IteratorSynchronizer {
-    constructor({
-      target,
-      artifacts,
-      env
-    }) {
-      this.target = target;
-      this.artifacts = artifacts;
-      this.iterator = artifacts.iterate();
-      this.current = artifacts.head();
-      this.env = env;
-    }
-
-    sync() {
-      var phase = Phase.Append;
-
-      while (true) {
-        switch (phase) {
-          case Phase.Append:
-            phase = this.nextAppend();
-            break;
-
-          case Phase.Prune:
-            phase = this.nextPrune();
-            break;
-
-          case Phase.Done:
-            this.nextDone();
-            return;
-        }
-      }
-    }
-
-    advanceToKey(key) {
-      var {
-        current,
-        artifacts
-      } = this;
-      if (current === null) return;
-      var next = artifacts.advanceNode(current);
-
-      if (next.key === key) {
-        this.current = artifacts.advanceNode(next);
-        return;
-      }
-
-      var seek = artifacts.advanceToKey(key, current);
-
-      if (seek) {
-        this.move(seek, current);
-        this.current = artifacts.nextNode(current);
-      }
-    }
-
-    move(item, reference) {
-      if (item.next !== reference) {
-        this.artifacts.move(item, reference);
-        this.target.move(this.env, item.key, item.value, item.memo, reference ? reference.key : END);
-      }
-    }
-
-    nextAppend() {
-      var {
-        iterator,
-        current,
-        artifacts
-      } = this;
-      var item = iterator.next();
-
-      if (item === null) {
-        return this.startPrune();
-      }
-
-      var {
-        key
-      } = item;
-
-      if (current !== null && current.key === key) {
-        this.nextRetain(item, current);
-      } else if (artifacts.has(key)) {
-        this.nextMove(item);
-      } else {
-        this.nextInsert(item);
-      }
-
-      return Phase.Append;
-    }
-
-    nextRetain(item, current) {
-      var {
-        artifacts
-      } = this; // current = expect(current, 'BUG: current is empty');
-
-      current.update(item);
-      this.current = artifacts.nextNode(current);
-      this.target.retain(this.env, item.key, current.value, current.memo);
-    }
-
-    nextMove(item) {
-      var {
-        current,
-        artifacts
-      } = this;
-      var {
-        key
-      } = item;
-      var found = artifacts.update(item);
-
-      if (artifacts.wasSeen(key)) {
-        this.move(found, current);
-      } else {
-        this.advanceToKey(key);
-      }
-    }
-
-    nextInsert(item) {
-      var {
-        artifacts,
-        target,
-        current
-      } = this;
-      var node = artifacts.insertBefore(item, current);
-      target.insert(this.env, node.key, node.value, node.memo, current ? current.key : null);
-    }
-
-    startPrune() {
-      this.current = this.artifacts.head();
-      return Phase.Prune;
-    }
-
-    nextPrune() {
-      var {
-        artifacts,
-        target,
-        current
-      } = this;
-
-      if (current === null) {
-        return Phase.Done;
-      }
-
-      var node = current;
-      this.current = artifacts.nextNode(node);
-
-      if (node.shouldRemove()) {
-        artifacts.remove(node);
-        target.delete(this.env, node.key);
-      } else {
-        node.reset();
-      }
-
-      return Phase.Prune;
-    }
-
-    nextDone() {
-      this.target.done(this.env);
-    }
-
-  }
-
-  _exports.IteratorSynchronizer = IteratorSynchronizer;
   var UPDATE_REFERENCED_VALUE = (0, _util.symbol)('UPDATE_REFERENCED_VALUE');
   /**
    * RootReferences refer to a constant root value within a template. For
@@ -48519,15 +48211,36 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
     };
   }
 
-  class IterableImpl {
+  class IterableReference {
     constructor(parentRef, key, env) {
       this.parentRef = parentRef;
       this.key = key;
       this.env = env;
+      this.iterator = null;
       this.tag = parentRef.tag;
     }
 
-    iterate() {
+    value() {
+      return !this.isEmpty();
+    }
+
+    isEmpty() {
+      var iterator = this.iterator = this.createIterator();
+      return iterator.isEmpty();
+    }
+
+    next() {
+      var iterator = this.iterator;
+      var item = iterator.next();
+
+      if (item === null) {
+        this.iterator = null;
+      }
+
+      return item;
+    }
+
+    createIterator() {
       var {
         parentRef,
         key,
@@ -48549,35 +48262,19 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
       return new IteratorWrapper(maybeIterator, keyFor);
     }
 
-    valueReferenceFor(item) {
+    childRefFor(key, value) {
       var {
         parentRef,
         env
       } = this;
-      return new IterationItemReference(parentRef, item.value, item.memo, env);
-    }
-
-    updateValueReference(reference, item) {
-      reference.update(item.value);
-    }
-
-    memoReferenceFor(item) {
-      var {
-        parentRef,
-        env
-      } = this;
-      return new IterationItemReference(parentRef, item.memo, true
+      return new IterationItemReference(parentRef, value, true
       /* DEBUG */
-      ? `(key: ${(0, _util.debugToString)(item.key)}` : '', env);
-    }
-
-    updateMemoReference(reference, item) {
-      reference.update(item.memo);
+      ? `(key: ${(0, _util.debugToString)(key)}` : '', env);
     }
 
   }
 
-  _exports.IterableImpl = IterableImpl;
+  _exports.IterableReference = IterableReference;
 
   class IteratorWrapper {
     constructor(inner, keyFor) {
@@ -48969,13 +48666,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }
 
   function isDestroying(destroyable) {
-    return getDestroyableMeta(destroyable).state >= 1
+    var meta = DESTROYABLE_META.get(destroyable);
+    return meta === undefined ? false : meta.state >= 1
     /* Destroying */
     ;
   }
 
   function isDestroyed(destroyable) {
-    return getDestroyableMeta(destroyable).state === 2
+    var meta = DESTROYABLE_META.get(destroyable);
+    return meta === undefined ? false : meta.state >= 2
     /* Destroyed */
     ;
   } ////////////
@@ -49464,12 +49163,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     firstNode() {
-      var head = this.boundList.head();
+      var head = this.boundList[0];
       return head.firstNode();
     }
 
     lastNode() {
-      var tail = this.boundList.tail();
+      var boundList = this.boundList;
+      var tail = boundList[boundList.length - 1];
       return tail.lastNode();
     }
 
@@ -50585,14 +50285,6 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       }
     }
 
-    iterableFor(ref, inputKey) {
-      // TODO: We should add an assertion here to verify that we are passed a
-      // TemplatePathReference, but we can only do that once we remove
-      // or significantly rewrite @glimmer/object-reference
-      var key = inputKey === null ? '@identity' : String(inputKey);
-      return new _reference.IterableImpl(ref, key, this);
-    }
-
     toConditionalReference(input) {
       return new ConditionalReference(input, this.delegate.toBool);
     }
@@ -50858,14 +50550,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
   }
 
-  class UpdatingOpcode extends AbstractOpcode {
-    constructor() {
-      super(...arguments);
-      this.next = null;
-      this.prev = null;
-    }
-
-  }
+  class UpdatingOpcode extends AbstractOpcode {}
   /**
    * These utility functions are related to @glimmer/validator, but they aren't
    * meant to be consumed publicly. They exist as an optimization, and pull in
@@ -50878,7 +50563,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   function combineTagged(tagged) {
     var optimized = [];
 
-    for (var i = 0, l = tagged.length; i < l; i++) {
+    for (var i = 0; i < tagged.length; i++) {
       var tag = tagged[i].tag;
       if (tag === _validator.CONSTANT_TAG) continue;
       optimized.push(tag);
@@ -50887,14 +50572,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     return (0, _validator.createCombinatorTag)(optimized);
   }
 
-  function combineSlice(slice) {
+  function combineFromIndex(tagged, startIndex) {
     var optimized = [];
-    var node = slice.head();
 
-    while (node !== null) {
-      var tag = node.tag;
-      if (tag !== _validator.CONSTANT_TAG) optimized.push(tag);
-      node = slice.nextNode(node);
+    for (var i = startIndex; i < tagged.length; i++) {
+      var tag = tagged[i].tag;
+      if (tag === _validator.CONSTANT_TAG) continue;
+      optimized.push(tag);
     }
 
     return (0, _validator.createCombinatorTag)(optimized);
@@ -51676,12 +51360,17 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }
 
   class JumpIfNotModifiedOpcode extends UpdatingOpcode {
-    constructor(tag, target) {
+    constructor(index) {
       super();
-      this.target = target;
+      this.index = index;
       this.type = 'jump-if-not-modified';
+      this.tag = _validator.CONSTANT_TAG;
+      this.lastRevision = _validator.INITIAL;
+    }
+
+    finalize(tag, target) {
       this.tag = tag;
-      this.lastRevision = (0, _validator.valueForTag)(tag);
+      this.target = target;
     }
 
     evaluate(vm) {
@@ -51712,25 +51401,6 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
     evaluate() {
       this.target.didModify();
-    }
-
-  }
-
-  class LabelOpcode {
-    constructor(label) {
-      this.tag = _validator.CONSTANT_TAG;
-      this.type = 'label';
-      this.label = null;
-      this.prev = null;
-      this.next = null;
-      (0, _util.initializeGuid)(this);
-      this.label = label;
-    }
-
-    evaluate() {}
-
-    inspect() {
-      return `${this.label} [${this._guid}]`;
     }
 
   }
@@ -52825,29 +52495,21 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       vm.call((0, _util.unwrapHandle)(vmHandle));
     }
   }, 'jit');
-
-  class IterablePresenceReference {
-    constructor(artifacts) {
-      this.tag = artifacts.tag;
-      this.artifacts = artifacts;
-    }
-
-    value() {
-      return !this.artifacts.isEmpty();
-    }
-
-  }
-
   APPEND_OPCODES.add(74
   /* PutIterator */
   , vm => {
     var stack = vm.stack;
     var listRef = stack.pop();
-    var key = stack.pop();
-    var iterable = vm.env.iterableFor(listRef, key.value());
-    var iterator = new _reference.ReferenceIterator(iterable);
-    stack.push(iterator);
-    stack.push(new IterablePresenceReference(iterator.artifacts));
+    var keyRef = stack.pop();
+    var keyValue = keyRef.value();
+    var key = keyValue === null ? '@identity' : String(keyValue);
+    var iterableRef = new _reference.IterableReference(listRef, key, vm.env); // Push the first time to push the iterator onto the stack for iteration
+
+    stack.push(iterableRef); // Push the second time to push it as a reference for presence in general
+    // (e.g whether or not it is empty). This reference will be used to skip
+    // iteration entirely.
+
+    stack.push(iterableRef);
   });
   APPEND_OPCODES.add(72
   /* EnterList */
@@ -52867,11 +52529,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: breaks
   }) => {
     var stack = vm.stack;
-    var item = stack.peek().next();
+    var iterable = stack.peek();
+    var item = iterable.next();
 
     if (item) {
-      var tryOpcode = vm.enterItem(item.memo, item.value);
-      vm.registerItem(item.key, tryOpcode);
+      var opcode = vm.enterItem(iterable, item);
+      vm.registerItem(opcode);
     } else {
       vm.goto(breaks);
     }
@@ -53785,7 +53448,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         if (frameStack.isEmpty()) break;
         var opcode = this.frame.nextStatement();
 
-        if (opcode === null) {
+        if (opcode === undefined) {
           frameStack.pop();
           continue;
         }
@@ -53798,8 +53461,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       return this.frameStack.current;
     }
 
-    goto(op) {
-      this.frame.goto(op);
+    goto(index) {
+      this.frame.goto(index);
     }
 
     try(ops, handler) {
@@ -53833,8 +53496,6 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.state = state;
       this.runtime = runtime;
       this.type = 'block';
-      this.next = null;
-      this.prev = null;
       this.children = children;
       this.bounds = bounds;
     }
@@ -53865,7 +53526,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     didInitializeChildren() {
-      (0, _validator.updateTag)(this._tag, combineSlice(this.children));
+      (0, _validator.updateTag)(this._tag, combineTagged(this.children));
     }
 
     evaluate(vm) {
@@ -53876,167 +53537,252 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       var {
         state,
         bounds,
-        children,
-        prev,
-        next,
         runtime
       } = this;
       destroyChildren(this);
-      children.clear();
       var elementStack = NewElementBuilder.resume(runtime.env, bounds);
       var vm = state.resume(runtime, elementStack);
-      var updating = new _util.LinkedList();
+      var updating = [];
+      var children = this.children = [];
       var result = vm.execute(vm => {
         vm.pushUpdating(updating);
         vm.updateWith(this);
         vm.pushUpdating(children);
       });
       associateDestroyableChild(this, result.drop);
-      this.prev = prev;
-      this.next = next;
     }
 
   }
 
-  class ListRevalidationDelegate {
-    constructor(opcode, marker) {
-      this.opcode = opcode;
-      this.marker = marker;
-      this.didInsert = false;
-      this.didDelete = false;
-      this.map = opcode.map;
-      this.updating = opcode['children'];
+  class ListItemOpcode extends TryOpcode {
+    constructor(state, runtime, bounds, key, memo, value) {
+      super(state, runtime, bounds, []);
+      this.key = key;
+      this.memo = memo;
+      this.value = value;
+      this.retained = false;
+      this.index = -1;
     }
 
-    insert(_env, key, item, memo, before) {
-      var {
-        map,
-        opcode,
-        updating
-      } = this;
-      var nextSibling = null;
-      var reference = null;
-      reference = map.get(before);
-      nextSibling = reference !== undefined ? reference['bounds'].firstNode() : this.marker;
-      var vm = opcode.vmForInsertion(nextSibling);
-      var tryOpcode = null;
-      vm.execute(vm => {
-        vm.pushUpdating();
-        tryOpcode = vm.enterItem(memo, item);
-        map.set(key, tryOpcode);
-      });
-      updating.insertBefore(tryOpcode, reference); // TODO: We ignore the `result` from the updating VM here because it returns
-      // a RenderResultImpl, which doesn't fit into our updating list, and is
-      // difficult to destroy dynamically. This points to the RenderResultImpl
-      // itself being a problematic construct for re-rendering _within_ the VM.
-      // We should refactor this so that we can get a TryOpcode directly instead,
-      // ideally.
-
-      associateDestroyableChild(opcode, tryOpcode);
-      this.didInsert = true;
+    updateReferences(item) {
+      this.retained = true;
+      this.value.update(item.value);
+      this.memo.update(item.memo);
     }
 
-    retain(_env, _key, _item, _memo) {}
-
-    move(_env, key, _item, _memo, before) {
-      var {
-        map,
-        updating
-      } = this;
-      var entry = map.get(key);
-
-      if (before === _reference.END) {
-        move(entry, this.marker);
-        updating.remove(entry);
-        updating.append(entry);
-      } else {
-        var reference = map.get(before);
-        move(entry, reference.firstNode());
-        updating.remove(entry);
-        updating.insertBefore(entry, reference);
-      }
+    shouldRemove() {
+      return !this.retained;
     }
 
-    delete(_env, key) {
-      var {
-        map,
-        updating
-      } = this;
-      var opcode = map.get(key);
-      destroy(opcode);
-      clear(opcode);
-      updating.remove(opcode);
-      map.delete(key);
-      this.didDelete = true;
-    }
-
-    done() {
-      this.opcode.didInitializeChildren(this.didInsert || this.didDelete);
+    reset() {
+      this.retained = false;
     }
 
   }
 
   class ListBlockOpcode extends BlockOpcode {
-    constructor(state, runtime, bounds, children, artifacts) {
+    constructor(state, runtime, bounds, children, iterableRef) {
       super(state, runtime, bounds, children);
+      this.iterableRef = iterableRef;
       this.type = 'list-block';
-      this.map = new Map();
       this.lastIterated = _validator.INITIAL;
-      this.artifacts = artifacts;
+      this.opcodeMap = new Map();
+      this.marker = null;
 
       var _tag = this._tag = (0, _validator.createUpdatableTag)();
 
-      this.tag = (0, _validator.combine)([artifacts.tag, _tag]);
+      this.tag = (0, _validator.combine)([iterableRef.tag, _tag]);
     }
 
-    didInitializeChildren(listDidChange = true) {
-      this.lastIterated = (0, _validator.valueForTag)(this.artifacts.tag);
+    initializeChild(opcode) {
+      opcode.index = this.children.length - 1;
+      this.opcodeMap.set(opcode.key, opcode);
+    }
 
-      if (listDidChange) {
-        (0, _validator.updateTag)(this._tag, combineSlice(this.children));
-      }
+    didInitializeChildren() {
+      this.lastIterated = (0, _validator.valueForTag)(this.tag);
+      (0, _validator.updateTag)(this._tag, combineTagged(this.children));
     }
 
     evaluate(vm) {
       var {
-        artifacts,
+        iterableRef,
         lastIterated
       } = this;
 
-      if (!(0, _validator.validateTag)(artifacts.tag, lastIterated)) {
+      if (!(0, _validator.validateTag)(iterableRef.tag, lastIterated)) {
         var {
           bounds
         } = this;
         var {
           dom
         } = vm;
-        var marker = dom.createComment('');
+        var marker = this.marker = dom.createComment('');
         dom.insertAfter(bounds.parentElement(), marker, bounds.lastNode());
-        var target = new ListRevalidationDelegate(this, marker);
-        var synchronizer = new _reference.IteratorSynchronizer({
-          target,
-          artifacts,
-          env: vm.env
-        });
-        synchronizer.sync();
+        var didChange = this.sync();
         this.parentElement().removeChild(marker);
+        this.marker = null;
+
+        if (didChange) {
+          (0, _validator.updateTag)(this._tag, combineTagged(this.children));
+        }
+
+        this.lastIterated = (0, _validator.valueForTag)(this.iterableRef.tag);
       } // Run now-updated updating opcodes
 
 
       super.evaluate(vm);
     }
 
-    vmForInsertion(nextSibling) {
+    sync() {
       var {
+        iterableRef,
+        opcodeMap: itemMap,
+        children
+      } = this;
+      var currentOpcodeIndex = 0;
+      var seenIndex = 0;
+      var didChange = false;
+      this.children = this.bounds.boundList = [];
+
+      while (true) {
+        var item = iterableRef.next();
+        if (item === null) break;
+        var opcode = children[currentOpcodeIndex];
+        var {
+          key
+        } = item; // Items that have already been found and moved will already be retained,
+        // we can continue until we find the next unretained item
+
+        while (opcode !== undefined && opcode.retained === true) {
+          opcode = children[++currentOpcodeIndex];
+        }
+
+        if (opcode !== undefined && opcode.key === key) {
+          this.retainItem(opcode, item);
+          currentOpcodeIndex++;
+        } else if (itemMap.has(key)) {
+          var itemOpcode = itemMap.get(key); // The item opcode was seen already, so we should move it.
+
+          if (itemOpcode.index < seenIndex) {
+            this.moveItem(itemOpcode, item, opcode);
+          } else {
+            // Update the seen index, we are going to be moving this item around
+            // so any other items that come before it will likely need to move as
+            // well.
+            seenIndex = itemOpcode.index;
+            var seenUnretained = false; // iterate through all of the opcodes between the current position and
+            // the position of the item's opcode, and determine if they are all
+            // retained.
+
+            for (var i = currentOpcodeIndex + 1; i < seenIndex; i++) {
+              if (children[i].retained === false) {
+                seenUnretained = true;
+                break;
+              }
+            } // If we have seen only retained opcodes between this and the matching
+            // opcode, it means that all the opcodes in between have been moved
+            // already, and we can safely retain this item's opcode.
+
+
+            if (seenUnretained === false) {
+              this.retainItem(itemOpcode, item);
+              currentOpcodeIndex = seenIndex + 1;
+            } else {
+              this.moveItem(itemOpcode, item, opcode);
+              currentOpcodeIndex++;
+            }
+          }
+        } else {
+          didChange = true;
+          this.insertItem(item, opcode);
+        }
+      }
+
+      for (var _i7 = 0; _i7 < children.length; _i7++) {
+        var _opcode = children[_i7];
+
+        if (_opcode.retained === false) {
+          didChange = true;
+          this.deleteItem(_opcode);
+        } else {
+          _opcode.reset();
+        }
+      }
+
+      return didChange;
+    }
+
+    retainItem(opcode, item) {
+      var {
+        children
+      } = this;
+      opcode.memo.update(item.memo);
+      opcode.value.update(item.value);
+      opcode.retained = true;
+      opcode.index = children.length;
+      children.push(opcode);
+    }
+
+    insertItem(item, before) {
+      var {
+        opcodeMap,
         bounds,
         state,
-        runtime
+        runtime,
+        iterableRef,
+        children
       } = this;
+      var {
+        key
+      } = item;
+      var nextSibling = before === undefined ? this.marker : before.firstNode();
       var elementStack = NewElementBuilder.forInitialRender(runtime.env, {
         element: bounds.parentElement(),
         nextSibling
       });
-      return state.resume(runtime, elementStack);
+      var vm = state.resume(runtime, elementStack);
+      vm.execute(vm => {
+        vm.pushUpdating();
+        var opcode = vm.enterItem(iterableRef, item);
+        opcode.index = children.length;
+        children.push(opcode);
+        opcodeMap.set(key, opcode);
+        associateDestroyableChild(this, opcode);
+      });
+    }
+
+    moveItem(opcode, item, before) {
+      var {
+        children
+      } = this;
+      opcode.memo.update(item.memo);
+      opcode.value.update(item.value);
+      opcode.retained = true;
+      var currentSibling, nextSibling;
+
+      if (before === undefined) {
+        move(opcode, this.marker);
+      } else {
+        currentSibling = opcode.lastNode().nextSibling;
+        nextSibling = before.firstNode(); // Items are moved throughout the algorithm, so there are cases where the
+        // the items already happen to be siblings (e.g. an item in between was
+        // moved before this move happened). Check to see if they are siblings
+        // first before doing the move.
+
+        if (currentSibling !== nextSibling) {
+          move(opcode, nextSibling);
+        }
+      }
+
+      opcode.index = children.length;
+      children.push(opcode);
+    }
+
+    deleteItem(opcode) {
+      destroy(opcode);
+      clear(opcode);
+      this.opcodeMap.delete(opcode.key);
     }
 
   }
@@ -54045,20 +53791,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     constructor(ops, exceptionHandler) {
       this.ops = ops;
       this.exceptionHandler = exceptionHandler;
-      this.current = ops.head();
+      this.current = 0;
     }
 
-    goto(op) {
-      this.current = op;
+    goto(index) {
+      this.current = index;
     }
 
     nextStatement() {
-      var {
-        current,
-        ops
-      } = this;
-      if (current) this.current = ops.nextNode(current);
-      return current;
+      return this.ops[this.current++];
     }
 
     handleException() {
@@ -54464,52 +54205,59 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     beginCacheGroup() {
-      this[STACKS].cache.push(this.updating().tail());
+      var opcodes = this.updating();
+      var guard = new JumpIfNotModifiedOpcode(opcodes.length);
+      opcodes.push(guard);
+      this[STACKS].cache.push(guard);
     }
 
     commitCacheGroup() {
-      var END$$1 = new LabelOpcode('END');
       var opcodes = this.updating();
-      var marker = this[STACKS].cache.pop();
-      var head = marker ? opcodes.nextNode(marker) : opcodes.head();
-      var tail = opcodes.tail();
-      var tag = combineSlice(new _util.ListSlice(head, tail));
-      var guard = new JumpIfNotModifiedOpcode(tag, END$$1);
-      opcodes.insertBefore(guard, head);
-      opcodes.append(new DidModifyOpcode(guard));
-      opcodes.append(END$$1);
+      var guard = this[STACKS].cache.pop();
+      var startIndex = guard.index;
+      var tag = combineFromIndex(opcodes, startIndex);
+      opcodes.push(new DidModifyOpcode(guard));
+      guard.finalize(tag, opcodes.length);
     }
 
     enter(args) {
-      var updating = new _util.LinkedList();
+      var updating = [];
       var state = this.capture(args);
       var block = this.elements().pushUpdatableBlock();
       var tryOpcode = new TryOpcode(state, this.runtime, block, updating);
       this.didEnter(tryOpcode);
     }
 
-    enterItem(memo, value) {
-      var stack = this.stack;
-      stack.push(value);
-      stack.push(memo);
+    enterItem(iterableRef, {
+      key,
+      value,
+      memo
+    }) {
+      var {
+        stack
+      } = this;
+      var valueRef = iterableRef.childRefFor(key, value);
+      var memoRef = iterableRef.childRefFor(key, memo);
+      stack.push(valueRef);
+      stack.push(memoRef);
       var state = this.capture(2);
       var block = this.elements().pushUpdatableBlock();
-      var opcode = new TryOpcode(state, this.runtime, block, new _util.LinkedList());
+      var opcode = new ListItemOpcode(state, this.runtime, block, key, memoRef, valueRef);
       this.didEnter(opcode);
       return opcode;
     }
 
-    registerItem(key, opcode) {
-      this.listBlock().map.set(key, opcode);
+    registerItem(opcode) {
+      this.listBlock().initializeChild(opcode);
     }
 
     enterList(offset) {
-      var updating = new _util.LinkedList();
+      var updating = [];
       var addr = this[INNER_VM].target(offset);
       var state = this.capture(0, addr);
       var list = this.elements().pushBlockList(updating);
-      var artifacts = this.stack.peek().artifacts;
-      var opcode = new ListBlockOpcode(state, this.runtime, list, updating, artifacts);
+      var iterableRef = this.stack.peek();
+      var opcode = new ListBlockOpcode(state, this.runtime, list, updating, iterableRef);
       this[STACKS].list.push(opcode);
       this.didEnter(opcode);
     }
@@ -54525,7 +54273,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this[DESTROYABLE_STACK].pop();
       this.elements().popBlock();
       this.popUpdating();
-      var parent = this.updating().tail();
+      var updating = this.updating();
+      var parent = updating[updating.length - 1];
       parent.didInitializeChildren();
     }
 
@@ -54534,7 +54283,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this[STACKS].list.pop();
     }
 
-    pushUpdating(list = new _util.LinkedList()) {
+    pushUpdating(list = []) {
       this[STACKS].updating.push(list);
     }
 
@@ -54543,7 +54292,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     updateWith(opcode) {
-      this.updating().append(opcode);
+      this.updating().push(opcode);
     }
 
     listBlock() {
@@ -55455,7 +55204,7 @@ define("@glimmer/util", ["exports"], function (_exports) {
   _exports.extractHandle = extractHandle;
   _exports.isOkHandle = isOkHandle;
   _exports.isErrHandle = isErrHandle;
-  _exports.symbol = _exports.tuple = _exports.debugToString = _exports.ListSlice = _exports.ListNode = _exports.LinkedList = _exports.EMPTY_SLICE = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
+  _exports.symbol = _exports.tuple = _exports.verifySteps = _exports.logStep = _exports.endTestSteps = _exports.beginTestSteps = _exports.debugToString = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
   var EMPTY_ARRAY = Object.freeze([]); // import Logger from './logger';
   // let alreadyWarned = false;
 
@@ -55571,125 +55320,6 @@ define("@glimmer/util", ["exports"], function (_exports) {
     return node.nodeValue === SERIALIZATION_FIRST_NODE_STRING;
   }
 
-  class ListNode {
-    constructor(value) {
-      this.next = null;
-      this.prev = null;
-      this.value = value;
-    }
-
-  }
-
-  _exports.ListNode = ListNode;
-
-  class LinkedList {
-    constructor() {
-      this.clear();
-    }
-
-    head() {
-      return this._head;
-    }
-
-    tail() {
-      return this._tail;
-    }
-
-    clear() {
-      this._head = this._tail = null;
-    }
-
-    toArray() {
-      var out = [];
-      this.forEachNode(n => out.push(n));
-      return out;
-    }
-
-    nextNode(node) {
-      return node.next;
-    }
-
-    forEachNode(callback) {
-      var node = this._head;
-
-      while (node !== null) {
-        callback(node);
-        node = node.next;
-      }
-    }
-
-    insertBefore(node, reference = null) {
-      if (reference === null) return this.append(node);
-      if (reference.prev) reference.prev.next = node;else this._head = node;
-      node.prev = reference.prev;
-      node.next = reference;
-      reference.prev = node;
-      return node;
-    }
-
-    append(node) {
-      var tail = this._tail;
-
-      if (tail) {
-        tail.next = node;
-        node.prev = tail;
-        node.next = null;
-      } else {
-        this._head = node;
-      }
-
-      return this._tail = node;
-    }
-
-    remove(node) {
-      if (node.prev) node.prev.next = node.next;else this._head = node.next;
-      if (node.next) node.next.prev = node.prev;else this._tail = node.prev;
-      return node;
-    }
-
-  }
-
-  _exports.LinkedList = LinkedList;
-
-  class ListSlice {
-    constructor(head, tail) {
-      this._head = head;
-      this._tail = tail;
-    }
-
-    forEachNode(callback) {
-      var node = this._head;
-
-      while (node !== null) {
-        callback(node);
-        node = this.nextNode(node);
-      }
-    }
-
-    head() {
-      return this._head;
-    }
-
-    tail() {
-      return this._tail;
-    }
-
-    toArray() {
-      var out = [];
-      this.forEachNode(n => out.push(n));
-      return out;
-    }
-
-    nextNode(node) {
-      if (node === this._tail) return null;
-      return node.next;
-    }
-
-  }
-
-  _exports.ListSlice = ListSlice;
-  var EMPTY_SLICE = new ListSlice(null, null);
-  _exports.EMPTY_SLICE = EMPTY_SLICE;
   var {
     keys: objKeys
   } = Object;
@@ -56033,6 +55663,14 @@ define("@glimmer/util", ["exports"], function (_exports) {
 
   var debugToString$1 = debugToString;
   _exports.debugToString = debugToString$1;
+  var beginTestSteps;
+  _exports.beginTestSteps = beginTestSteps;
+  var endTestSteps;
+  _exports.endTestSteps = endTestSteps;
+  var verifySteps;
+  _exports.verifySteps = verifySteps;
+  var logStep;
+  _exports.logStep = logStep;
 
   function assertNever(value, desc = 'unexpected unreachable branch') {
     console.log('unreachable', value);
@@ -61538,7 +61176,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.20.1";
+  var _default = "3.20.3";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
@@ -63103,7 +62741,7 @@ define("router_js", ["exports", "@ember/polyfills", "rsvp", "route-recognizer"],
 
     };
 
-    if (Object.isFrozen(routeInfo) || routeInfo.hasOwnProperty('attributes')) {
+    if (!Object.isExtensible(routeInfo) || routeInfo.hasOwnProperty('attributes')) {
       return Object.freeze((0, _polyfills.assign)({}, routeInfo, attributes));
     }
 
@@ -63126,7 +62764,7 @@ define("router_js", ["exports", "@ember/polyfills", "rsvp", "route-recognizer"],
 
     };
 
-    if (Object.isFrozen(routeInfo) || routeInfo.hasOwnProperty('metadata')) {
+    if (!Object.isExtensible(routeInfo) || routeInfo.hasOwnProperty('metadata')) {
       return Object.freeze((0, _polyfills.assign)({}, routeInfo, metadata));
     }
 
@@ -63907,11 +63545,14 @@ define("router_js", ["exports", "@ember/polyfills", "rsvp", "route-recognizer"],
         this.toReadOnlyInfos(newTransition, newState);
         this.routeWillChange(newTransition);
         newTransition.promise = newTransition.promise.then(result => {
-          this._updateURL(newTransition, oldState);
+          if (!newTransition.isAborted) {
+            this._updateURL(newTransition, oldState);
 
-          this.didTransition(this.currentRouteInfos);
-          this.toInfos(newTransition, newState.routeInfos, true);
-          this.routeDidChange(newTransition);
+            this.didTransition(this.currentRouteInfos);
+            this.toInfos(newTransition, newState.routeInfos, true);
+            this.routeDidChange(newTransition);
+          }
+
           return result;
         }, null, promiseLabel('Transition complete'));
         return newTransition;

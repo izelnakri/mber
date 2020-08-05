@@ -9,12 +9,10 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
   (factory((global.WHATWGFetch = {})));
-}(this, (function (exports) {
+}(this, (function (exports) { 'use strict';
 
-  var global = (function(self) {
-    return self
-    // eslint-disable-next-line no-invalid-this
-  })(typeof self !== 'undefined' ? self : this);
+  var global = (typeof self !== 'undefined' && self) || (typeof global !== 'undefined' && global);
+
   var support = {
     searchParams: 'URLSearchParams' in global,
     iterable: 'Symbol' in global && 'iterator' in Symbol,
@@ -289,7 +287,20 @@
 
       this.arrayBuffer = function() {
         if (this._bodyArrayBuffer) {
-          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
+          var isConsumed = consumed(this);
+          if (isConsumed) {
+            return isConsumed
+          }
+          if (ArrayBuffer.isView(this._bodyArrayBuffer)) {
+            return Promise.resolve(
+              this._bodyArrayBuffer.buffer.slice(
+                this._bodyArrayBuffer.byteOffset,
+                this._bodyArrayBuffer.byteOffset + this._bodyArrayBuffer.byteLength
+              )
+            )
+          } else {
+            return Promise.resolve(this._bodyArrayBuffer)
+          }
         } else {
           return this.blob().then(readBlobAsArrayBuffer)
         }
@@ -335,6 +346,10 @@
   }
 
   function Request(input, options) {
+    if (!(this instanceof Request)) {
+      throw new TypeError('Please use the "new" operator, this DOM object constructor cannot be called as a function.')
+    }
+
     options = options || {};
     var body = options.body;
 
@@ -427,6 +442,9 @@
   Body.call(Request.prototype);
 
   function Response(bodyInit, options) {
+    if (!(this instanceof Response)) {
+      throw new TypeError('Please use the "new" operator, this DOM object constructor cannot be called as a function.')
+    }
     if (!options) {
       options = {};
     }
@@ -468,8 +486,9 @@
   };
 
   exports.DOMException = global.DOMException;
-
-  if (typeof exports.DOMException !== 'function') {
+  try {
+    new exports.DOMException();
+  } catch (err) {
     exports.DOMException = function(message, name) {
       this.message = message;
       this.name = name;
@@ -553,9 +572,15 @@
         }
       }
 
-      request.headers.forEach(function(value, name) {
-        xhr.setRequestHeader(name, value);
-      });
+      if (init && typeof init.headers === 'object' && !(init.headers instanceof Headers)) {
+        Object.getOwnPropertyNames(init.headers).forEach(function(name) {
+          xhr.setRequestHeader(name, normalizeValue(init.headers[name]));
+        });
+      } else {
+        request.headers.forEach(function(value, name) {
+          xhr.setRequestHeader(name, value);
+        });
+      }
 
       if (request.signal) {
         request.signal.addEventListener('abort', abortXhr);
