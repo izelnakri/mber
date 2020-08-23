@@ -1337,7 +1337,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.3
+ * @version   3.20.4
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -1649,7 +1649,9 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
     value: true
   });
   _exports.privatize = privatize;
-  _exports.FACTORY_FOR = _exports.Container = _exports.Registry = void 0;
+  _exports.getFactoryFor = getFactoryFor;
+  _exports.setFactoryFor = setFactoryFor;
+  _exports.INIT_FACTORY = _exports.Container = _exports.Registry = void 0;
   var leakTracking;
   var containers;
 
@@ -1825,9 +1827,9 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
 
     ownerInjection() {
-      return {
-        [_owner.OWNER]: this.owner
-      };
+      var injection = {};
+      (0, _owner.setOwner)(injection, this.owner);
+      return injection;
     }
     /**
      Given a fullName, return the corresponding factory. The consumer of the factory
@@ -1900,8 +1902,7 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
         }
 
       };
-      var proxy = new Proxy(proxiedManager, validator);
-      FACTORY_FOR.set(proxy, manager);
+      return new Proxy(proxiedManager, validator);
     }
 
     return manager;
@@ -2043,10 +2044,6 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
     var hash = result.injections;
 
-    if (hash === undefined) {
-      hash = result.injections = {};
-    }
-
     for (var i = 0; i < injections.length; i++) {
       var {
         property,
@@ -2069,8 +2066,10 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
   }
 
   function buildInjections(container, typeInjections, injections) {
+    var injectionsHash = {};
+    (0, _owner.setOwner)(injectionsHash, container.owner);
     var result = {
-      injections: undefined,
+      injections: injectionsHash,
       isDynamic: false
     };
 
@@ -2125,8 +2124,16 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
     }
   }
 
-  var FACTORY_FOR = new WeakMap();
-  _exports.FACTORY_FOR = FACTORY_FOR;
+  var INIT_FACTORY = (0, _utils.symbol)('INIT_FACTORY');
+  _exports.INIT_FACTORY = INIT_FACTORY;
+
+  function getFactoryFor(obj) {
+    return obj[INIT_FACTORY];
+  }
+
+  function setFactoryFor(obj, factory) {
+    obj[INIT_FACTORY] = factory;
+  }
 
   class FactoryManager {
     constructor(container, factory, fullName, normalizedName) {
@@ -2137,7 +2144,7 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
       this.normalizedName = normalizedName;
       this.madeToString = undefined;
       this.injections = undefined;
-      FACTORY_FOR.set(this, this);
+      setFactoryFor(this, this);
     }
 
     toString() {
@@ -2157,24 +2164,23 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
         throw new Error(`Can not create new instances after the owner has been destroyed (you attempted to create ${this.fullName})`);
       }
 
-      var injectionsCache = this.injections;
+      var props = this.injections;
 
-      if (injectionsCache === undefined) {
+      if (props === undefined) {
         var {
           injections,
           isDynamic
         } = injectionsFor(this.container, this.normalizedName);
-        injectionsCache = injections;
+        setFactoryFor(injections, this);
+        props = injections;
 
         if (!isDynamic) {
           this.injections = injections;
         }
       }
 
-      var props = injectionsCache;
-
       if (options !== undefined) {
-        props = (0, _polyfills.assign)({}, injectionsCache, options);
+        props = (0, _polyfills.assign)({}, props, options);
       }
 
       if (true
@@ -2190,35 +2196,10 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
         }
 
         validationCache[this.fullName] = true;
+        (true && !(typeof this.class.create === 'function') && (0, _debug.assert)(`Failed to create an instance of '${this.normalizedName}'. Most likely an improperly defined class or an invalid module export.`, typeof this.class.create === 'function'));
       }
 
-      if (!this.class.create) {
-        throw new Error(`Failed to create an instance of '${this.normalizedName}'. Most likely an improperly defined class or an invalid module export.`);
-      } // required to allow access to things like
-      // the customized toString, _debugContainerKey,
-      // owner, etc. without a double extend and without
-      // modifying the objects properties
-
-
-      if (typeof this.class._initFactory === 'function') {
-        this.class._initFactory(this);
-      } else {
-        // in the non-EmberObject case we need to still setOwner
-        // this is required for supporting glimmer environment and
-        // template instantiation which rely heavily on
-        // `options[OWNER]` being passed into `create`
-        // TODO: clean this up, and remove in future versions
-        if (options === undefined || props === undefined) {
-          // avoid mutating `props` here since they are the cached injections
-          props = (0, _polyfills.assign)({}, props);
-        }
-
-        (0, _owner.setOwner)(props, this.owner);
-      }
-
-      var instance = this.class.create(props);
-      FACTORY_FOR.set(instance, this);
-      return instance;
+      return this.class.create(props);
     }
 
   }
@@ -3929,10 +3910,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
   });
   _exports.RootTemplate = RootTemplate;
+  var ARGS = (0, _utils.enumerableSymbol)('ARGS');
+  var HAS_BLOCK = (0, _utils.enumerableSymbol)('HAS_BLOCK');
   var DIRTY_TAG = (0, _utils.symbol)('DIRTY_TAG');
-  var ARGS = (0, _utils.symbol)('ARGS');
   var IS_DISPATCHING_ATTRS = (0, _utils.symbol)('IS_DISPATCHING_ATTRS');
-  var HAS_BLOCK = (0, _utils.symbol)('HAS_BLOCK');
   var BOUNDS = (0, _utils.symbol)('BOUNDS');
   /**
   @module @ember/component
@@ -4901,7 +4882,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     isComponentFactory: true,
     positionalParams: []
   });
-  (0, _runtime.setFrameworkClass)(Component);
   var layout = template({
     "id": "SWbqsLhV",
     "block": "{\"symbols\":[],\"statements\":[],\"hasEval\":false,\"upvars\":[]}",
@@ -6272,7 +6252,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   _exports.Helper = Helper;
   Helper.isHelperFactory = true;
-  (0, _runtime.setFrameworkClass)(Helper);
 
   class Wrapper {
     constructor(compute) {
@@ -8198,9 +8177,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       this.component = component;
       var manager = new RootComponentManager(component);
       this.manager = manager;
-
-      var factory = _container.FACTORY_FOR.get(component);
-
+      var factory = (0, _container.getFactoryFor)(component);
       this.state = {
         name: factory.fullName.slice(10),
         capabilities: ROOT_CAPABILITIES,
@@ -8878,10 +8855,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           // should always cause updates if they are consumed and then changed
 
           if ((0, _validator.isTracking)()) {
-            (0, _validator.consumeTag)((0, _metal.tagForProperty)(obj, key));
+            (0, _validator.consumeTag)((0, _validator.tagFor)(obj, key));
 
-            if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
-              (0, _validator.consumeTag)((0, _metal.tagForProperty)(value, '[]'));
+            if (Array.isArray(value)) {
+              (0, _validator.consumeTag)((0, _validator.tagFor)(value, '[]'));
             }
           }
 
@@ -9012,8 +8989,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   function toBool(predicate) {
     if ((0, _utils.isProxy)(predicate)) {
+      (0, _validator.consumeTag)((0, _metal.tagForProperty)(predicate, 'content'));
       return Boolean((0, _metal.get)(predicate, 'isTruthy'));
     } else if ((0, _runtime.isArray)(predicate)) {
+      (0, _validator.consumeTag)((0, _metal.tagForProperty)(predicate, '[]'));
       return predicate.length !== 0;
     } else {
       return Boolean(predicate);
@@ -9090,6 +9069,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     constructor(owner, isInteractive) {
       this.toBool = toBool;
       this.toIterator = toIterator;
+      this.getProp = _metal._getProp;
       this.getPath = _metal.get;
       this.setPath = _metal.set;
       this.extra = new EmberEnvironmentExtra(owner);
@@ -9726,7 +9706,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
     value() {
       var iterable = this.inner.value();
-      var tag = (0, _metal.tagForProperty)(iterable, '[]');
+      var tag = (0, _utils.isObject)(iterable) ? (0, _metal.tagForProperty)(iterable, '[]') : _validator.CONSTANT_TAG;
       (0, _validator.updateTag)(this.valueTag, tag);
       return iterable;
     }
@@ -12986,15 +12966,15 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   _exports.Renderer = Renderer;
 
   class InertRenderer extends Renderer {
-    static create({
-      [_owner.OWNER]: owner,
-      document,
-      env,
-      rootTemplate,
-      _viewRegistry,
-      builder
-    }) {
-      return new this(owner, document, env, rootTemplate, _viewRegistry, false, builder);
+    static create(props) {
+      var {
+        document,
+        env,
+        rootTemplate,
+        _viewRegistry,
+        builder
+      } = props;
+      return new this((0, _owner.getOwner)(props), document, env, rootTemplate, _viewRegistry, false, builder);
     }
 
     getElement(_view) {
@@ -13006,15 +12986,15 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   _exports.InertRenderer = InertRenderer;
 
   class InteractiveRenderer extends Renderer {
-    static create({
-      [_owner.OWNER]: owner,
-      document,
-      env,
-      rootTemplate,
-      _viewRegistry,
-      builder
-    }) {
-      return new this(owner, document, env, rootTemplate, _viewRegistry, true, builder);
+    static create(props) {
+      var {
+        document,
+        env,
+        rootTemplate,
+        _viewRegistry,
+        builder
+      } = props;
+      return new this((0, _owner.getOwner)(props), document, env, rootTemplate, _viewRegistry, true, builder);
     }
 
     getElement(view) {
@@ -13403,7 +13383,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         renderer,
         template: templateFactory$$1
       } = options;
-      var owner = options[_owner.OWNER];
+      var owner = (0, _owner.getOwner)(options);
       var template = templateFactory$$1(owner);
       return new OutletView(_environment, renderer, owner, template);
     }
@@ -13700,6 +13680,7 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
   var currentListenerVersion = 1;
 
   class Meta {
+    // DEBUG
     constructor(obj) {
       this._listenersVersion = 1;
       this._inheritedEnd = -1;
@@ -13709,12 +13690,15 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       /* DEBUG */
       ) {
         counters.metaInstantiated++;
-        this._values = undefined;
       }
 
       this._parent = undefined;
       this._descriptors = undefined;
-      this._mixins = undefined; // initial value for all flags right now is false
+      this._mixins = undefined;
+      this._lazyChains = undefined;
+      this._values = undefined;
+      this._tags = undefined;
+      this._revisions = undefined; // initial value for all flags right now is false
       // see FLAGS const for detailed list of flags used
 
       this._isInit = false; // used only internally
@@ -13825,6 +13809,28 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       return false;
     }
 
+    valueFor(key) {
+      var values = this._values;
+      return values !== undefined ? values[key] : undefined;
+    }
+
+    setValueFor(key, value) {
+      var values = this._getOrCreateOwnMap('_values');
+
+      values[key] = value;
+    }
+
+    revisionFor(key) {
+      var revisions = this._revisions;
+      return revisions !== undefined ? revisions[key] : undefined;
+    }
+
+    setRevisionFor(key, revision) {
+      var revisions = this._getOrCreateOwnMap('_revisions');
+
+      revisions[key] = revision;
+    }
+
     writableLazyChainsFor(key) {
       if (true
       /* DEBUG */
@@ -13834,11 +13840,13 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
 
       var lazyChains = this._getOrCreateOwnMap('_lazyChains');
 
-      if (!(key in lazyChains)) {
-        lazyChains[key] = Object.create(null);
+      var chains = lazyChains[key];
+
+      if (chains === undefined) {
+        chains = lazyChains[key] = [];
       }
 
-      return lazyChains[key];
+      return chains;
     }
 
     readableLazyChainsFor(key) {
@@ -14310,15 +14318,15 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     value: true
   });
   _exports.computed = computed;
+  _exports.autoComputed = autoComputed;
   _exports.isComputed = isComputed;
-  _exports.getCacheFor = getCacheFor;
   _exports.getCachedValueFor = getCachedValueFor;
-  _exports.peekCacheFor = peekCacheFor;
   _exports.alias = alias;
   _exports.deprecateProperty = deprecateProperty;
   _exports._getPath = _getPath;
   _exports.get = get;
   _exports.getWithDefault = getWithDefault;
+  _exports._getProp = _getProp;
   _exports.set = set;
   _exports.trySet = trySet;
   _exports.objectAt = objectAt;
@@ -14350,7 +14358,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   _exports.descriptorForProperty = descriptorForProperty;
   _exports.isClassicDecorator = isClassicDecorator;
   _exports.setClassicDecorator = setClassicDecorator;
-  _exports.getChainTagsForKey = getChainTagsForKey;
   _exports.getProperties = getProperties;
   _exports.setProperties = setProperties;
   _exports.expandProperties = expandProperties;
@@ -14394,69 +14401,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     }
   });
   _exports.NAMESPACES_BY_ID = _exports.NAMESPACES = _exports.CUSTOM_TAG_FOR = _exports.DEBUG_INJECTION_FUNCTIONS = _exports.aliasMethod = _exports.Mixin = _exports.SYNC_OBSERVERS = _exports.ASYNC_OBSERVERS = _exports.Libraries = _exports.libraries = _exports.PROPERTY_DID_CHANGE = _exports.PROXY_CONTENT = _exports.ComputedProperty = _exports._globalsComputed = void 0;
-  var COMPUTED_PROPERTY_CACHED_VALUES = new WeakMap();
-  var COMPUTED_PROPERTY_LAST_REVISION = new WeakMap();
 
-  function getCacheFor(obj) {
-    var cache = COMPUTED_PROPERTY_CACHED_VALUES.get(obj);
-
-    if (cache === undefined) {
-      cache = new Map();
-      COMPUTED_PROPERTY_CACHED_VALUES.set(obj, cache);
-    }
-
-    return cache;
-  }
-  /**
-    Returns the cached value for a property, if one exists.
-    This can be useful for peeking at the value of a computed
-    property that is generated lazily, without accidentally causing
-    it to be created.
-  
-    @method cacheFor
-    @static
-    @for @ember/object/internals
-    @param {Object} obj the object whose property you want to check
-    @param {String} key the name of the property whose cached value you want
-      to return
-    @return {Object} the cached value
-    @public
-  */
-
-
-  function getCachedValueFor(obj, key) {
-    var cache = COMPUTED_PROPERTY_CACHED_VALUES.get(obj);
-
-    if (cache !== undefined) {
-      return cache.get(key);
-    }
-  }
-
-  function setLastRevisionFor(obj, key, revision) {
-    var cache = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
-
-    if (cache === undefined) {
-      cache = new Map();
-      COMPUTED_PROPERTY_LAST_REVISION.set(obj, cache);
-    }
-
-    cache.set(key, revision);
-  }
-
-  function getLastRevisionFor(obj, key) {
-    var cache = COMPUTED_PROPERTY_LAST_REVISION.get(obj);
-
-    if (cache === undefined) {
-      return 0;
-    } else {
-      var revision = cache.get(key);
-      return revision === undefined ? 0 : revision;
-    }
-  }
-
-  function peekCacheFor(obj) {
-    return COMPUTED_PROPERTY_CACHED_VALUES.get(obj);
-  }
   /**
   @module @ember/object
   */
@@ -14492,8 +14437,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     @param {Boolean} once A flag whether a function should only be called once
     @public
   */
-
-
   function addListener(obj, eventName, target, method, once, sync = true) {
     (true && !(Boolean(obj) && Boolean(eventName)) && (0, _debug.assert)('You must pass at least an object and event name to addListener', Boolean(obj) && Boolean(eventName)));
 
@@ -14580,7 +14523,9 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         target = obj;
       }
 
-      if ('string' === typeof method) {
+      var type = typeof method;
+
+      if (type === 'string' || type === 'symbol') {
         method = target[method];
       }
 
@@ -14726,7 +14671,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       activeObservers.get(eventName).count++;
     } else {
       var [path] = eventName.split(':');
-      var tag = (0, _validator.combine)(getChainTagsForKey(target, path, true));
+      var tag = getChainTagsForKey(target, path, (0, _validator.tagMetaFor)(target), (0, _meta2.peekMeta)(target));
       activeObservers.set(eventName, {
         count: 1,
         path,
@@ -14789,14 +14734,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   function revalidateObservers(target) {
     if (ASYNC_OBSERVERS.has(target)) {
       ASYNC_OBSERVERS.get(target).forEach(observer => {
-        observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path, true));
+        observer.tag = getChainTagsForKey(target, observer.path, (0, _validator.tagMetaFor)(target), (0, _meta2.peekMeta)(target));
         observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
       });
     }
 
     if (SYNC_OBSERVERS.has(target)) {
       SYNC_OBSERVERS.get(target).forEach(observer => {
-        observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path, true));
+        observer.tag = getChainTagsForKey(target, observer.path, (0, _validator.tagMetaFor)(target), (0, _meta2.peekMeta)(target));
         observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
       });
     }
@@ -14820,7 +14765,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
             try {
               sendEvent(target, eventName, [target, observer.path], undefined, meta$$1);
             } finally {
-              observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path, true));
+              observer.tag = getChainTagsForKey(target, observer.path, (0, _validator.tagMetaFor)(target), (0, _meta2.peekMeta)(target));
               observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
             }
           };
@@ -14847,7 +14792,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
             observer.suspended = true;
             sendEvent(target, eventName, [target, observer.path], undefined, meta$$1);
           } finally {
-            observer.tag = (0, _validator.combine)(getChainTagsForKey(target, observer.path, true));
+            observer.tag = getChainTagsForKey(target, observer.path, (0, _validator.tagMetaFor)(target), (0, _meta2.peekMeta)(target));
             observer.lastRevision = (0, _validator.valueForTag)(observer.tag);
             observer.suspended = false;
           }
@@ -14875,31 +14820,22 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     if (ASYNC_OBSERVERS.size > 0) ASYNC_OBSERVERS.delete(target);
   }
 
-  var CUSTOM_TAG_FOR = (0, _utils.symbol)('CUSTOM_TAG_FOR'); // This is exported for `@tracked`, but should otherwise be avoided. Use `tagForObject`.
+  var CUSTOM_TAG_FOR = (0, _utils.enumerableSymbol)('CUSTOM_TAG_FOR'); // This is exported for `@tracked`, but should otherwise be avoided. Use `tagForObject`.
 
   _exports.CUSTOM_TAG_FOR = CUSTOM_TAG_FOR;
   var SELF_TAG = (0, _utils.symbol)('SELF_TAG');
 
-  function tagForProperty(obj, propertyKey, addMandatorySetter = false) {
-    if (!(0, _utils.isObject)(obj)) {
-      return _validator.CONSTANT_TAG;
-    }
-
+  function tagForProperty(obj, propertyKey, addMandatorySetter = false, meta$$1) {
     if (typeof obj[CUSTOM_TAG_FOR] === 'function') {
       return obj[CUSTOM_TAG_FOR](propertyKey, addMandatorySetter);
     }
 
-    var tag = (0, _validator.tagFor)(obj, propertyKey);
+    var tag = (0, _validator.tagFor)(obj, propertyKey, meta$$1);
 
     if (true
     /* DEBUG */
-    ) {
-      if (addMandatorySetter) {
-        (0, _utils.setupMandatorySetter)(tag, obj, propertyKey);
-      } // TODO: Replace this with something more first class for tracking tags in DEBUG
-
-
-      tag._propertyKey = propertyKey;
+    && addMandatorySetter) {
+      (0, _utils.setupMandatorySetter)(tag, obj, propertyKey);
     }
 
     return tag;
@@ -14929,7 +14865,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
    */
 
 
-  var PROPERTY_DID_CHANGE = (0, _utils.symbol)('PROPERTY_DID_CHANGE');
+  var PROPERTY_DID_CHANGE = (0, _utils.enumerableSymbol)('PROPERTY_DID_CHANGE');
   _exports.PROPERTY_DID_CHANGE = PROPERTY_DID_CHANGE;
   var deferred = 0;
   /**
@@ -15072,9 +15008,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     }
 
     sendEvent(array, '@array:change', [array, startIdx, removeAmt, addAmt]);
-    var cache = peekCacheFor(array);
 
-    if (cache !== undefined) {
+    if (meta$$1 !== null) {
       var length = array.length;
       var addedAmount = addAmt === -1 ? 0 : addAmt;
       var removedAmount = removeAmt === -1 ? 0 : removeAmt;
@@ -15082,11 +15017,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       var previousLength = length - delta;
       var normalStartIdx = startIdx < 0 ? previousLength + startIdx : startIdx;
 
-      if (cache.has('firstObject') && normalStartIdx === 0) {
+      if (meta$$1.revisionFor('firstObject') !== undefined && normalStartIdx === 0) {
         notifyPropertyChange(array, 'firstObject', meta$$1);
       }
 
-      if (cache.has('lastObject')) {
+      if (meta$$1.revisionFor('lastObject') !== undefined) {
         var previousLastIndex = previousLength - 1;
         var lastAffectedIndex = normalStartIdx + removedAmount;
 
@@ -15159,106 +15094,47 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return arrayObserversHelper(array, target, opts, removeListener, true);
   }
 
-  var DECORATOR_DESCRIPTOR_MAP = new WeakMap();
-  /**
-    Returns the CP descriptor associated with `obj` and `keyName`, if any.
-  
-    @method descriptorForProperty
-    @param {Object} obj the object to check
-    @param {String} keyName the key to check
-    @return {Descriptor}
-    @private
-  */
-
-  function descriptorForProperty(obj, keyName, _meta) {
-    (true && !(obj !== null) && (0, _debug.assert)('Cannot call `descriptorForProperty` on null', obj !== null));
-    (true && !(obj !== undefined) && (0, _debug.assert)('Cannot call `descriptorForProperty` on undefined', obj !== undefined));
-    (true && !(typeof obj === 'object' || typeof obj === 'function') && (0, _debug.assert)(`Cannot call \`descriptorForProperty\` on ${typeof obj}`, typeof obj === 'object' || typeof obj === 'function'));
-    var meta$$1 = _meta === undefined ? (0, _meta2.peekMeta)(obj) : _meta;
-
-    if (meta$$1 !== null) {
-      return meta$$1.peekDescriptors(keyName);
-    }
-  }
-
-  function descriptorForDecorator(dec) {
-    return DECORATOR_DESCRIPTOR_MAP.get(dec);
-  }
-  /**
-    Check whether a value is a decorator
-  
-    @method isClassicDecorator
-    @param {any} possibleDesc the value to check
-    @return {boolean}
-    @private
-  */
-
-
-  function isClassicDecorator(dec) {
-    return dec !== null && dec !== undefined && DECORATOR_DESCRIPTOR_MAP.has(dec);
-  }
-  /**
-    Set a value as a decorator
-  
-    @method setClassicDecorator
-    @param {function} decorator the value to mark as a decorator
-    @private
-  */
-
-
-  function setClassicDecorator(dec, value = true) {
-    DECORATOR_DESCRIPTOR_MAP.set(dec, value);
-  }
-
-  function finishLazyChains(obj, key, value) {
-    var meta$$1 = (0, _meta2.peekMeta)(obj);
-    var lazyTags = meta$$1 !== null ? meta$$1.readableLazyChainsFor(key) : undefined;
+  function finishLazyChains(meta$$1, key, value) {
+    var lazyTags = meta$$1.readableLazyChainsFor(key);
 
     if (lazyTags === undefined) {
       return;
     }
 
-    if (value === null || typeof value !== 'object' && typeof value !== 'function') {
-      for (var path in lazyTags) {
-        delete lazyTags[path];
+    if ((0, _utils.isObject)(value)) {
+      for (var i = 0; i < lazyTags.length; i++) {
+        var [tag, deps] = lazyTags[i];
+        (0, _validator.updateTag)(tag, getChainTagsForKey(value, deps, (0, _validator.tagMetaFor)(value), (0, _meta2.peekMeta)(value)));
       }
-
-      return;
     }
 
-    for (var _path in lazyTags) {
-      var tag = lazyTags[_path];
-      (0, _validator.updateTag)(tag, (0, _validator.combine)(getChainTagsForKey(value, _path)));
-      delete lazyTags[_path];
-    }
+    lazyTags.length = 0;
   }
 
-  function getChainTagsForKeys(obj, keys, addMandatorySetter = false) {
-    var chainTags = [];
+  function getChainTagsForKeys(obj, keys, tagMeta, meta$$1) {
+    var tags = [];
 
     for (var i = 0; i < keys.length; i++) {
-      chainTags.push(...getChainTagsForKey(obj, keys[i], addMandatorySetter));
+      getChainTags(tags, obj, keys[i], tagMeta, meta$$1);
     }
 
-    return chainTags;
+    return (0, _validator.combine)(tags);
   }
 
-  function getChainTagsForKey(obj, path, addMandatorySetter = false) {
-    var chainTags = [];
+  function getChainTagsForKey(obj, key, tagMeta, meta$$1) {
+    return (0, _validator.combine)(getChainTags([], obj, key, tagMeta, meta$$1));
+  }
+
+  function getChainTags(chainTags, obj, path, tagMeta, meta$$1) {
     var current = obj;
+    var currentTagMeta = tagMeta;
+    var currentMeta = meta$$1;
     var pathLength = path.length;
     var segmentEnd = -1; // prevent closures
 
     var segment, descriptor; // eslint-disable-next-line no-constant-condition
 
     while (true) {
-      var currentType = typeof current;
-
-      if (current === null || currentType !== 'object' && currentType !== 'function') {
-        // we've hit the end of the chain for now, break out
-        break;
-      }
-
       var lastSegmentEnd = segmentEnd + 1;
       segmentEnd = path.indexOf('.', lastSegmentEnd);
 
@@ -15302,37 +15178,30 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
           if (item) {
             (true && !(typeof item === 'object') && (0, _debug.assert)(`When using @each to observe the array \`${current.toString()}\`, the items in the array must be objects`, typeof item === 'object'));
-            chainTags.push(tagForProperty(item, segment, addMandatorySetter));
+            chainTags.push(tagForProperty(item, segment, true));
           }
         } // Push the tag for the array length itself
 
 
-        chainTags.push(tagForProperty(current, '[]', addMandatorySetter));
+        chainTags.push(tagForProperty(current, '[]', true, currentTagMeta));
         break;
-      } // TODO: Assert that current[segment] isn't an undecorated, non-MANDATORY_SETTER/dependentKeyCompat getter
+      }
 
-
-      var propertyTag = tagForProperty(current, segment, addMandatorySetter);
-      descriptor = descriptorForProperty(current, segment);
-      chainTags.push(propertyTag); // If the key was an alias, we should always get the next value in order to
-      // bootstrap the alias. This is because aliases, unlike other CPs, should
-      // always be in sync with the aliased value.
-
-      if (descriptor !== undefined && typeof descriptor.altKey === 'string') {
-        current = current[segment]; // We still need to break if we're at the end of the path.
-
-        if (segmentEnd === pathLength) {
-          break;
-        } // Otherwise, continue to process the next segment
-
-
-        continue;
-      } // If we're at the end of the path, processing the last segment, and it's
+      var propertyTag = tagForProperty(current, segment, true, currentTagMeta);
+      descriptor = currentMeta !== null ? currentMeta.peekDescriptors(segment) : undefined;
+      chainTags.push(propertyTag); // If we're at the end of the path, processing the last segment, and it's
       // not an alias, we should _not_ get the last value, since we already have
       // its tag. There's no reason to access it and do more work.
 
-
       if (segmentEnd === pathLength) {
+        // If the key was an alias, we should always get the next value in order to
+        // bootstrap the alias. This is because aliases, unlike other CPs, should
+        // always be in sync with the aliased value.
+        if (descriptor !== undefined && typeof descriptor.altKey === 'string') {
+          // tslint:disable-next-line: no-unused-expression
+          current[segment];
+        }
+
         break;
       }
 
@@ -15344,29 +15213,37 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         } else {
           current = current[segment];
         }
+      } else if (typeof descriptor.altKey === 'string') {
+        current = current[segment];
       } else {
         // If the descriptor is defined, then its a normal CP (not an alias, which
         // would have been handled earlier). We get the last revision to check if
         // the CP is still valid, and if so we use the cached value. If not, then
         // we create a lazy chain lookup, and the next time the CP is calculated,
         // it will update that lazy chain.
-        var lastRevision = getLastRevisionFor(current, segment);
+        var instanceMeta = currentMeta.source === current ? currentMeta : (0, _meta2.meta)(current);
+        var lastRevision = instanceMeta.revisionFor(segment);
 
-        if ((0, _validator.validateTag)(propertyTag, lastRevision)) {
-          current = peekCacheFor(current).get(segment);
+        if (lastRevision !== undefined && (0, _validator.validateTag)(propertyTag, lastRevision)) {
+          current = instanceMeta.valueFor(segment);
         } else {
-          var lazyChains = (0, _meta2.meta)(current).writableLazyChainsFor(segment);
+          // use metaFor here to ensure we have the meta for the instance
+          var lazyChains = instanceMeta.writableLazyChainsFor(segment);
           var rest = path.substr(segmentEnd + 1);
-          var placeholderTag = lazyChains[rest];
-
-          if (placeholderTag === undefined) {
-            placeholderTag = lazyChains[rest] = (0, _validator.createUpdatableTag)();
-          }
-
+          var placeholderTag = (0, _validator.createUpdatableTag)();
+          lazyChains.push([placeholderTag, rest]);
           chainTags.push(placeholderTag);
           break;
         }
       }
+
+      if (!(0, _utils.isObject)(current)) {
+        // we've hit the end of the chain for now, break out
+        break;
+      }
+
+      currentTagMeta = (0, _validator.tagMetaFor)(current);
+      currentMeta = (0, _meta2.peekMeta)(current);
     }
 
     if (true
@@ -15384,8 +15261,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       args.length === 3 && ( // Make sure the target is a class or object (prototype)
       typeof maybeTarget === 'function' || typeof maybeTarget === 'object' && maybeTarget !== null) && // Make sure the key is a string
       typeof maybeKey === 'string' && ( // Make sure the descriptor is the right shape
-      typeof maybeDesc === 'object' && maybeDesc !== null && 'enumerable' in maybeDesc && 'configurable' in maybeDesc || // TS compatibility
-      maybeDesc === undefined)
+      typeof maybeDesc === 'object' && maybeDesc !== null || maybeDesc === undefined)
     );
   }
 
@@ -15442,8 +15318,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   var CP_SETTER_FUNCS = new _polyfills._WeakSet();
 
   function makeComputedDecorator(desc, DecoratorClass) {
-    var decorator = function COMPUTED_DECORATOR(target, key, propertyDesc, maybeMeta, isClassicDecorator$$1) {
-      (true && !(isClassicDecorator$$1 || !propertyDesc || !propertyDesc.get || propertyDesc.get.toString().indexOf('CPGETTER_FUNCTION') === -1) && (0, _debug.assert)(`Only one computed property decorator can be applied to a class field or accessor, but '${key}' was decorated twice. You may have added the decorator to both a getter and setter, which is unnecessary.`, isClassicDecorator$$1 || !propertyDesc || !propertyDesc.get || propertyDesc.get.toString().indexOf('CPGETTER_FUNCTION') === -1));
+    var decorator = function COMPUTED_DECORATOR(target, key, propertyDesc, maybeMeta, isClassicDecorator) {
+      (true && !(isClassicDecorator || !propertyDesc || !propertyDesc.get || propertyDesc.get.toString().indexOf('CPGETTER_FUNCTION') === -1) && (0, _debug.assert)(`Only one computed property decorator can be applied to a class field or accessor, but '${key}' was decorated twice. You may have added the decorator to both a getter and setter, which is unnecessary.`, isClassicDecorator || !propertyDesc || !propertyDesc.get || propertyDesc.get.toString().indexOf('CPGETTER_FUNCTION') === -1));
       var meta$$1 = arguments.length === 3 ? (0, _meta2.meta)(target) : maybeMeta;
       desc.setup(target, key, propertyDesc, meta$$1);
       var computedDesc = {
@@ -15458,6 +15334,58 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     setClassicDecorator(decorator, desc);
     Object.setPrototypeOf(decorator, DecoratorClass.prototype);
     return decorator;
+  } /////////////
+
+
+  var DECORATOR_DESCRIPTOR_MAP = new WeakMap();
+  /**
+    Returns the CP descriptor associated with `obj` and `keyName`, if any.
+  
+    @method descriptorForProperty
+    @param {Object} obj the object to check
+    @param {String} keyName the key to check
+    @return {Descriptor}
+    @private
+  */
+
+  function descriptorForProperty(obj, keyName, _meta) {
+    (true && !(obj !== null) && (0, _debug.assert)('Cannot call `descriptorForProperty` on null', obj !== null));
+    (true && !(obj !== undefined) && (0, _debug.assert)('Cannot call `descriptorForProperty` on undefined', obj !== undefined));
+    (true && !(typeof obj === 'object' || typeof obj === 'function') && (0, _debug.assert)(`Cannot call \`descriptorForProperty\` on ${typeof obj}`, typeof obj === 'object' || typeof obj === 'function'));
+    var meta$$1 = _meta === undefined ? (0, _meta2.peekMeta)(obj) : _meta;
+
+    if (meta$$1 !== null) {
+      return meta$$1.peekDescriptors(keyName);
+    }
+  }
+
+  function descriptorForDecorator(dec) {
+    return DECORATOR_DESCRIPTOR_MAP.get(dec);
+  }
+  /**
+    Check whether a value is a decorator
+  
+    @method isClassicDecorator
+    @param {any} possibleDesc the value to check
+    @return {boolean}
+    @private
+  */
+
+
+  function isClassicDecorator(dec) {
+    return typeof dec === 'function' && DECORATOR_DESCRIPTOR_MAP.has(dec);
+  }
+  /**
+    Set a value as a decorator
+  
+    @method setClassicDecorator
+    @param {function} decorator the value to mark as a decorator
+    @private
+  */
+
+
+  function setClassicDecorator(dec, value = true) {
+    DECORATOR_DESCRIPTOR_MAP.set(dec, value);
   }
   /**
   @module @ember/object
@@ -15584,67 +15512,21 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   */
 
 
-  function defineProperty(obj, keyName, desc, data, meta$$1) {
-    if (meta$$1 === undefined) {
-      meta$$1 = (0, _meta2.meta)(obj);
-    }
-
+  function defineProperty(obj, keyName, desc, data, _meta) {
+    var meta$$1 = _meta === undefined ? (0, _meta2.meta)(obj) : _meta;
     var previousDesc = descriptorForProperty(obj, keyName, meta$$1);
     var wasDescriptor = previousDesc !== undefined;
 
     if (wasDescriptor) {
       previousDesc.teardown(obj, keyName, meta$$1);
-    } // used to track if the the property being defined be enumerable
-
-
-    var enumerable = true; // Ember.NativeArray is a normal Ember.Mixin that we mix into `Array.prototype` when prototype extensions are enabled
-    // mutating a native object prototype like this should _not_ result in enumerable properties being added (or we have significant
-    // issues with things like deep equality checks from test frameworks, or things like jQuery.extend(true, [], [])).
-    //
-    // this is a hack, and we should stop mutating the array prototype by default 😫
-
-    if (obj === Array.prototype) {
-      enumerable = false;
     }
 
-    var value;
-
     if (isClassicDecorator(desc)) {
-      var propertyDesc;
-
-      if (true
-      /* DEBUG */
-      ) {
-        propertyDesc = desc(obj, keyName, undefined, meta$$1, true);
-      } else {
-        propertyDesc = desc(obj, keyName, undefined, meta$$1);
-      }
-
-      Object.defineProperty(obj, keyName, propertyDesc); // pass the decorator function forward for backwards compat
-
-      value = desc;
-    } else if (desc === undefined || desc === null) {
-      value = data;
-
-      if (wasDescriptor || enumerable === false) {
-        Object.defineProperty(obj, keyName, {
-          configurable: true,
-          enumerable,
-          writable: true,
-          value
-        });
-      } else {
-        if (true
-        /* DEBUG */
-        ) {
-          (0, _utils.setWithMandatorySetter)(obj, keyName, data);
-        } else {
-          obj[keyName] = data;
-        }
-      }
+      defineDecorator(obj, keyName, desc, meta$$1);
+    } else if (desc === null || desc === undefined) {
+      defineValue(obj, keyName, data, wasDescriptor, true);
     } else {
-      value = desc; // fallback to ES5
-
+      // fallback to ES5
       Object.defineProperty(obj, keyName, desc);
     } // if key is being watched, override chains that
     // were initialized with the prototype
@@ -15652,13 +15534,44 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
     if (!meta$$1.isPrototypeMeta(obj)) {
       revalidateObservers(obj);
-    } // The `value` passed to the `didDefineProperty` hook is
-    // either the descriptor or data, whichever was passed.
-
-
-    if (typeof obj.didDefineProperty === 'function') {
-      obj.didDefineProperty(obj, keyName, value);
     }
+  }
+
+  function defineDecorator(obj, keyName, desc, meta$$1) {
+    var propertyDesc;
+
+    if (true
+    /* DEBUG */
+    ) {
+      propertyDesc = desc(obj, keyName, undefined, meta$$1, true);
+    } else {
+      propertyDesc = desc(obj, keyName, undefined, meta$$1);
+    }
+
+    Object.defineProperty(obj, keyName, propertyDesc); // pass the decorator function forward for backwards compat
+
+    return desc;
+  }
+
+  function defineValue(obj, keyName, value, wasDescriptor, enumerable = true) {
+    if (wasDescriptor === true || enumerable === false) {
+      Object.defineProperty(obj, keyName, {
+        configurable: true,
+        enumerable,
+        writable: true,
+        value
+      });
+    } else {
+      if (true
+      /* DEBUG */
+      ) {
+        (0, _utils.setWithMandatorySetter)(obj, keyName, value);
+      } else {
+        obj[keyName] = value;
+      }
+    }
+
+    return value;
   }
 
   var firstDotIndexCache = new _utils.Cache(1000, key => key.indexOf('.'));
@@ -15733,15 +15646,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     (true && !(obj !== undefined && obj !== null) && (0, _debug.assert)(`Cannot call get with '${keyName}' on an undefined object.`, obj !== undefined && obj !== null));
     (true && !(typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)) && (0, _debug.assert)(`The key provided to get must be a string or number, you passed ${keyName}`, typeof keyName === 'string' || typeof keyName === 'number' && !isNaN(keyName)));
     (true && !(typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0) && (0, _debug.assert)(`'this' in paths is not supported`, typeof keyName !== 'string' || keyName.lastIndexOf('this.', 0) !== 0));
+    return isPath(keyName) ? _getPath(obj, keyName) : _getProp(obj, keyName);
+  }
+
+  function _getProp(obj, keyName) {
     var type = typeof obj;
     var isObject$$1 = type === 'object';
     var isFunction = type === 'function';
     var isObjectLike = isObject$$1 || isFunction;
-
-    if (isPath(keyName)) {
-      return isObjectLike ? _getPath(obj, keyName) : undefined;
-    }
-
     var value;
 
     if (isObjectLike) {
@@ -15752,12 +15664,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       } else {
         value = obj[keyName];
       }
-    } else {
-      value = obj[keyName];
-    }
 
-    if (value === undefined) {
-      if (isObject$$1 && !(keyName in obj) && typeof obj.unknownProperty === 'function') {
+      if (value === undefined && isObject$$1 && !(keyName in obj) && typeof obj.unknownProperty === 'function') {
         if (true
         /* DEBUG */
         ) {
@@ -15768,21 +15676,18 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
           value = obj.unknownProperty(keyName);
         }
       }
-    }
 
-    if (isObjectLike && (0, _validator.isTracking)()) {
-      (0, _validator.consumeTag)(tagForProperty(obj, keyName)); // Add the tag of the returned value if it is an array, since arrays
-      // should always cause updates if they are consumed and then changed
+      if ((0, _validator.isTracking)()) {
+        (0, _validator.consumeTag)((0, _validator.tagFor)(obj, keyName));
 
-      if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
-        (0, _validator.consumeTag)(tagForProperty(value, '[]'));
-      } // Add the value of the content if the value is a proxy. This is because
-      // content changes the truthiness/falsiness of the proxy.
-
-
-      if ((0, _utils.isProxy)(value)) {
-        (0, _validator.consumeTag)(tagForProperty(value, 'content'));
+        if (Array.isArray(value)) {
+          // Add the tag of the returned value if it is an array, since arrays
+          // should always cause updates if they are consumed and then changed
+          (0, _validator.consumeTag)((0, _validator.tagFor)(value, '[]'));
+        }
       }
+    } else {
+      value = obj[keyName];
     }
 
     return value;
@@ -15797,7 +15702,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         return undefined;
       }
 
-      obj = get(obj, parts[i]);
+      obj = _getProp(obj, parts[i]);
     }
 
     return obj;
@@ -15831,6 +15736,37 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
     return value;
   }
+
+  _getProp('foo', 'a');
+
+  _getProp('foo', 1);
+
+  _getProp({}, 'a');
+
+  _getProp({}, 1);
+
+  _getProp({
+    unkonwnProperty() {}
+
+  }, 'a');
+
+  _getProp({
+    unkonwnProperty() {}
+
+  }, 1);
+
+  get({}, 'foo');
+  get({}, 'foo.bar');
+  var fakeProxy = {};
+  (0, _utils.setProxy)(fakeProxy);
+  (0, _validator.track)(() => _getProp({}, 'a'));
+  (0, _validator.track)(() => _getProp({}, 1));
+  (0, _validator.track)(() => _getProp({
+    a: []
+  }, 'a'));
+  (0, _validator.track)(() => _getProp({
+    a: fakeProxy
+  }, 'a'));
   /**
    @module @ember/object
   */
@@ -15857,7 +15793,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     @return {Object} the passed value.
     @public
   */
-
 
   function set(obj, keyName, value, tolerant) {
     (true && !(arguments.length === 3 || arguments.length === 4) && (0, _debug.assert)(`Set must be called with three or four arguments; an object, a property key, a value and tolerant true/false`, arguments.length === 3 || arguments.length === 4));
@@ -16220,6 +16155,262 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         }
       }
     }
+
+    _property(...passedArgs) {
+      var args = [];
+
+      function addArg(property) {
+        (true && (0, _debug.warn)(`Dependent keys containing @each only work one level deep. ` + `You used the key "${property}" which is invalid. ` + `Please create an intermediary computed property.`, DEEP_EACH_REGEX.test(property) === false, {
+          id: 'ember-metal.computed-deep-each'
+        }));
+        args.push(property);
+      }
+
+      for (var i = 0; i < passedArgs.length; i++) {
+        expandProperties(passedArgs[i], addArg);
+      }
+
+      this._dependentKeys = args;
+    }
+
+    get(obj, keyName) {
+      if (this._volatile) {
+        return this._getter.call(obj, keyName);
+      }
+
+      var meta$$1 = (0, _meta2.meta)(obj);
+      var tagMeta = (0, _validator.tagMetaFor)(obj);
+      var propertyTag = (0, _validator.tagFor)(obj, keyName, tagMeta);
+      var ret;
+      var revision = meta$$1.revisionFor(keyName);
+
+      if (revision !== undefined && (0, _validator.validateTag)(propertyTag, revision)) {
+        ret = meta$$1.valueFor(keyName);
+      } else {
+        // For backwards compatibility, we only throw if the CP has any dependencies. CPs without dependencies
+        // should be allowed, even after the object has been destroyed, which is why we check _dependentKeys.
+        (true && !(this._dependentKeys === undefined || !(0, _runtime.isDestroyed)(obj)) && (0, _debug.assert)(`Attempted to access the computed ${obj}.${keyName} on a destroyed object, which is not allowed`, this._dependentKeys === undefined || !(0, _runtime.isDestroyed)(obj)));
+        var {
+          _getter,
+          _dependentKeys
+        } = this; // Create a tracker that absorbs any trackable actions inside the CP
+
+        (0, _validator.untrack)(() => {
+          ret = _getter.call(obj, keyName);
+        });
+
+        if (_dependentKeys !== undefined) {
+          (0, _validator.updateTag)(propertyTag, getChainTagsForKeys(obj, _dependentKeys, tagMeta, meta$$1));
+        }
+
+        meta$$1.setValueFor(keyName, ret);
+        meta$$1.setRevisionFor(keyName, (0, _validator.valueForTag)(propertyTag));
+        finishLazyChains(meta$$1, keyName, ret);
+      }
+
+      (0, _validator.consumeTag)(propertyTag); // Add the tag of the returned value if it is an array, since arrays
+      // should always cause updates if they are consumed and then changed
+
+      if (Array.isArray(ret)) {
+        (0, _validator.consumeTag)((0, _validator.tagFor)(ret, '[]'));
+      }
+
+      return ret;
+    }
+
+    set(obj, keyName, value) {
+      if (this._readOnly) {
+        this._throwReadOnlyError(obj, keyName);
+      }
+
+      if (!this._setter) {
+        return this.clobberSet(obj, keyName, value);
+      }
+
+      if (this._volatile) {
+        return this.volatileSet(obj, keyName, value);
+      }
+
+      var meta$$1 = (0, _meta2.meta)(obj); // ensure two way binding works when the component has defined a computed
+      // property with both a setter and dependent keys, in that scenario without
+      // the sync observer added below the caller's value will never be updated
+      //
+      // See GH#18147 / GH#19028 for details.
+
+      if ( // ensure that we only run this once, while the component is being instantiated
+      meta$$1.isInitializing() && this._dependentKeys !== undefined && this._dependentKeys.length > 0 && // These two properties are set on Ember.Component
+      typeof obj[PROPERTY_DID_CHANGE] === 'function' && obj.isComponent) {
+        addObserver(obj, keyName, () => {
+          obj[PROPERTY_DID_CHANGE](keyName);
+        }, undefined, true);
+      }
+
+      var ret;
+
+      try {
+        beginPropertyChanges();
+        ret = this._set(obj, keyName, value, meta$$1);
+        finishLazyChains(meta$$1, keyName, ret);
+        var tagMeta = (0, _validator.tagMetaFor)(obj);
+        var propertyTag = (0, _validator.tagFor)(obj, keyName, tagMeta);
+        var {
+          _dependentKeys
+        } = this;
+
+        if (_dependentKeys !== undefined) {
+          (0, _validator.updateTag)(propertyTag, getChainTagsForKeys(obj, _dependentKeys, tagMeta, meta$$1));
+        }
+
+        meta$$1.setRevisionFor(keyName, (0, _validator.valueForTag)(propertyTag));
+      } finally {
+        endPropertyChanges();
+      }
+
+      return ret;
+    }
+
+    _throwReadOnlyError(obj, keyName) {
+      throw new _error.default(`Cannot set read-only property "${keyName}" on object: ${(0, _utils.inspect)(obj)}`);
+    }
+
+    clobberSet(obj, keyName, value) {
+      (true && !(false) && (0, _debug.deprecate)(`The ${(0, _utils.toString)(obj)}#${keyName} computed property was just overridden. This removes the computed property and replaces it with a plain value, and has been deprecated. If you want this behavior, consider defining a setter which does it manually.`, false, {
+        id: 'computed-property.override',
+        until: '4.0.0',
+        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-override'
+      }));
+      var cachedValue = (0, _meta2.meta)(obj).valueFor(keyName);
+      defineProperty(obj, keyName, null, cachedValue);
+      set(obj, keyName, value);
+      return value;
+    }
+
+    volatileSet(obj, keyName, value) {
+      return this._setter.call(obj, keyName, value);
+    }
+
+    _set(obj, keyName, value, meta$$1) {
+      var hadCachedValue = meta$$1.revisionFor(keyName) !== undefined;
+      var cachedValue = meta$$1.valueFor(keyName);
+      var ret;
+      var {
+        _setter
+      } = this;
+      setObserverSuspended(obj, keyName, true);
+
+      try {
+        ret = _setter.call(obj, keyName, value, cachedValue);
+      } finally {
+        setObserverSuspended(obj, keyName, false);
+      } // allows setter to return the same value that is cached already
+
+
+      if (hadCachedValue && cachedValue === ret) {
+        return ret;
+      }
+
+      meta$$1.setValueFor(keyName, ret);
+      notifyPropertyChange(obj, keyName, meta$$1, value);
+      return ret;
+    }
+    /* called before property is overridden */
+
+
+    teardown(obj, keyName, meta$$1) {
+      if (!this._volatile) {
+        if (meta$$1.revisionFor(keyName) !== undefined) {
+          meta$$1.setRevisionFor(keyName, undefined);
+          meta$$1.setValueFor(keyName, undefined);
+        }
+      }
+
+      super.teardown(obj, keyName, meta$$1);
+    }
+
+  }
+
+  _exports.ComputedProperty = ComputedProperty;
+
+  class AutoComputedProperty extends ComputedProperty {
+    get(obj, keyName) {
+      if (this._volatile) {
+        return this._getter.call(obj, keyName);
+      }
+
+      var meta$$1 = (0, _meta2.meta)(obj);
+      var tagMeta = (0, _validator.tagMetaFor)(obj);
+      var propertyTag = (0, _validator.tagFor)(obj, keyName, tagMeta);
+      var ret;
+      var revision = meta$$1.revisionFor(keyName);
+
+      if (revision !== undefined && (0, _validator.validateTag)(propertyTag, revision)) {
+        ret = meta$$1.valueFor(keyName);
+      } else {
+        (true && !(!(0, _runtime.isDestroyed)(obj)) && (0, _debug.assert)(`Attempted to access the computed ${obj}.${keyName} on a destroyed object, which is not allowed`, !(0, _runtime.isDestroyed)(obj)));
+        var {
+          _getter
+        } = this; // Create a tracker that absorbs any trackable actions inside the CP
+
+        var tag = (0, _validator.track)(() => {
+          ret = _getter.call(obj, keyName);
+        });
+        (0, _validator.updateTag)(propertyTag, tag);
+        meta$$1.setValueFor(keyName, ret);
+        meta$$1.setRevisionFor(keyName, (0, _validator.valueForTag)(propertyTag));
+        finishLazyChains(meta$$1, keyName, ret);
+      }
+
+      (0, _validator.consumeTag)(propertyTag); // Add the tag of the returned value if it is an array, since arrays
+      // should always cause updates if they are consumed and then changed
+
+      if (Array.isArray(ret)) {
+        (0, _validator.consumeTag)((0, _validator.tagFor)(ret, '[]', tagMeta));
+      }
+
+      return ret;
+    }
+
+  } // TODO: This class can be svelted once `meta` has been deprecated
+
+
+  class ComputedDecoratorImpl extends Function {
+    /**
+      Call on a computed property to set it into read-only mode. When in this
+      mode the computed property will throw an error when set.
+         Example:
+         ```javascript
+      import { computed, set } from '@ember/object';
+         class Person {
+        @computed().readOnly()
+        get guid() {
+          return 'guid-guid-guid';
+        }
+      }
+         let person = new Person();
+      set(person, 'guid', 'new-guid'); // will throw an exception
+      ```
+         Classic Class Example:
+         ```javascript
+      import EmberObject, { computed } from '@ember/object';
+         let Person = EmberObject.extend({
+        guid: computed(function() {
+          return 'guid-guid-guid';
+        }).readOnly()
+      });
+         let person = Person.create();
+      person.set('guid', 'new-guid'); // will throw an exception
+      ```
+         @method readOnly
+      @return {ComputedProperty} this
+      @chainable
+      @public
+    */
+    readOnly() {
+      var desc = descriptorForDecorator(this);
+      (true && !(!(desc._setter && desc._setter !== desc._getter)) && (0, _debug.assert)('Computed properties that define a setter using the new syntax cannot be read-only', !(desc._setter && desc._setter !== desc._getter)));
+      desc._readOnly = true;
+      return this;
+    }
     /**
       Call on a computed property to set it into non-cached mode. When in this
       mode the computed property will not automatically cache the return value.
@@ -16262,44 +16453,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         until: '4.0.0',
         url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-volatile'
       }));
-      this._volatile = true;
-    }
-    /**
-      Call on a computed property to set it into read-only mode. When in this
-      mode the computed property will throw an error when set.
-         Example:
-         ```javascript
-      import { computed, set } from '@ember/object';
-         class Person {
-        @computed().readOnly()
-        get guid() {
-          return 'guid-guid-guid';
-        }
-      }
-         let person = new Person();
-      set(person, 'guid', 'new-guid'); // will throw an exception
-      ```
-         Classic Class Example:
-         ```javascript
-      import EmberObject, { computed } from '@ember/object';
-         let Person = EmberObject.extend({
-        guid: computed(function() {
-          return 'guid-guid-guid';
-        }).readOnly()
-      });
-         let person = Person.create();
-      person.set('guid', 'new-guid'); // will throw an exception
-      ```
-         @method readOnly
-      @return {ComputedProperty} this
-      @chainable
-      @public
-    */
-
-
-    readOnly() {
-      this._readOnly = true;
-      (true && !(!(this._readOnly && this._setter && this._setter !== this._getter)) && (0, _debug.assert)('Computed properties that define a setter using the new syntax cannot be read-only', !(this._readOnly && this._setter && this._setter !== this._getter)));
+      descriptorForDecorator(this)._volatile = true;
+      return this;
     }
     /**
       Sets the dependent keys on this computed property. Pass any number of
@@ -16347,31 +16502,16 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     */
 
 
-    property(...passedArgs) {
+    property(...keys) {
       (true && !(false) && (0, _debug.deprecate)('Setting dependency keys using the `.property()` modifier has been deprecated. Pass the dependency keys directly to computed as arguments instead. If you are using `.property()` on a computed property macro, consider refactoring your macro to receive additional dependent keys in its initial declaration.', false, {
         id: 'computed-property.property',
         until: '4.0.0',
         url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-property'
       }));
 
-      this._property(...passedArgs);
-    }
+      descriptorForDecorator(this)._property(...keys);
 
-    _property(...passedArgs) {
-      var args = [];
-
-      function addArg(property) {
-        (true && (0, _debug.warn)(`Dependent keys containing @each only work one level deep. ` + `You used the key "${property}" which is invalid. ` + `Please create an intermediary computed property.`, DEEP_EACH_REGEX.test(property) === false, {
-          id: 'ember-metal.computed-deep-each'
-        }));
-        args.push(property);
-      }
-
-      for (var i = 0; i < passedArgs.length; i++) {
-        expandProperties(passedArgs[i], addArg);
-      }
-
-      this._dependentKeys = args;
+      return this;
     }
     /**
       In some cases, you may want to annotate computed properties with additional
@@ -16413,174 +16553,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     */
 
 
-    get(obj, keyName) {
-      if (this._volatile) {
-        return this._getter.call(obj, keyName);
-      }
-
-      var cache = getCacheFor(obj);
-      var propertyTag = tagForProperty(obj, keyName);
-      var ret;
-
-      if (cache.has(keyName) && (0, _validator.validateTag)(propertyTag, getLastRevisionFor(obj, keyName))) {
-        ret = cache.get(keyName);
-      } else {
-        // For backwards compatibility, we only throw if the CP has any dependencies. CPs without dependencies
-        // should be allowed, even after the object has been destroyed, which is why we check _dependentKeys.
-        (true && !(this._dependentKeys === undefined || !(0, _runtime.isDestroyed)(obj)) && (0, _debug.assert)(`Attempted to access the computed ${obj}.${keyName} on a destroyed object, which is not allowed`, this._dependentKeys === undefined || !(0, _runtime.isDestroyed)(obj)));
-        var upstreamTag = undefined;
-
-        if (this._auto === true) {
-          upstreamTag = (0, _validator.track)(() => {
-            ret = this._getter.call(obj, keyName);
-          });
-        } else {
-          // Create a tracker that absorbs any trackable actions inside the CP
-          (0, _validator.untrack)(() => {
-            ret = this._getter.call(obj, keyName);
-          });
-        }
-
-        if (this._dependentKeys !== undefined) {
-          var tag = (0, _validator.combine)(getChainTagsForKeys(obj, this._dependentKeys, true));
-          upstreamTag = upstreamTag === undefined ? tag : (0, _validator.combine)([upstreamTag, tag]);
-        }
-
-        if (upstreamTag !== undefined) {
-          (0, _validator.updateTag)(propertyTag, upstreamTag);
-        }
-
-        setLastRevisionFor(obj, keyName, (0, _validator.valueForTag)(propertyTag));
-        cache.set(keyName, ret);
-        finishLazyChains(obj, keyName, ret);
-      }
-
-      (0, _validator.consumeTag)(propertyTag); // Add the tag of the returned value if it is an array, since arrays
-      // should always cause updates if they are consumed and then changed
-
-      if (Array.isArray(ret) || (0, _utils.isEmberArray)(ret)) {
-        (0, _validator.consumeTag)(tagForProperty(ret, '[]'));
-      }
-
-      return ret;
-    }
-
-    set(obj, keyName, value) {
-      if (this._readOnly) {
-        this._throwReadOnlyError(obj, keyName);
-      }
-
-      if (!this._setter) {
-        return this.clobberSet(obj, keyName, value);
-      }
-
-      if (this._volatile) {
-        return this.volatileSet(obj, keyName, value);
-      }
-
-      var ret;
-
-      try {
-        beginPropertyChanges();
-        ret = this._set(obj, keyName, value);
-        finishLazyChains(obj, keyName, ret);
-        var propertyTag = tagForProperty(obj, keyName);
-
-        if (this._dependentKeys !== undefined) {
-          (0, _validator.updateTag)(propertyTag, (0, _validator.combine)(getChainTagsForKeys(obj, this._dependentKeys, true)));
-        }
-
-        setLastRevisionFor(obj, keyName, (0, _validator.valueForTag)(propertyTag));
-      } finally {
-        endPropertyChanges();
-      }
-
-      return ret;
-    }
-
-    _throwReadOnlyError(obj, keyName) {
-      throw new _error.default(`Cannot set read-only property "${keyName}" on object: ${(0, _utils.inspect)(obj)}`);
-    }
-
-    clobberSet(obj, keyName, value) {
-      (true && !(false) && (0, _debug.deprecate)(`The ${(0, _utils.toString)(obj)}#${keyName} computed property was just overridden. This removes the computed property and replaces it with a plain value, and has been deprecated. If you want this behavior, consider defining a setter which does it manually.`, false, {
-        id: 'computed-property.override',
-        until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-override'
-      }));
-      var cachedValue = getCachedValueFor(obj, keyName);
-      defineProperty(obj, keyName, null, cachedValue);
-      set(obj, keyName, value);
-      return value;
-    }
-
-    volatileSet(obj, keyName, value) {
-      return this._setter.call(obj, keyName, value);
-    }
-
-    _set(obj, keyName, value) {
-      var cache = getCacheFor(obj);
-      var hadCachedValue = cache.has(keyName);
-      var cachedValue = cache.get(keyName);
-      var ret;
-      setObserverSuspended(obj, keyName, true);
-
-      try {
-        ret = this._setter.call(obj, keyName, value, cachedValue);
-      } finally {
-        setObserverSuspended(obj, keyName, false);
-      } // allows setter to return the same value that is cached already
-
-
-      if (hadCachedValue && cachedValue === ret) {
-        return ret;
-      }
-
-      var meta$$1 = (0, _meta2.meta)(obj);
-      cache.set(keyName, ret);
-      notifyPropertyChange(obj, keyName, meta$$1, value);
-      return ret;
-    }
-    /* called before property is overridden */
-
-
-    teardown(obj, keyName, meta$$1) {
-      if (!this._volatile) {
-        var cache = peekCacheFor(obj);
-
-        if (cache !== undefined) {
-          cache.delete(keyName);
-        }
-      }
-
-      super.teardown(obj, keyName, meta$$1);
-    }
-
-    auto() {
-      this._auto = true;
-    }
-
-  } // TODO: This class can be svelted once `meta` has been deprecated
-
-
-  _exports.ComputedProperty = ComputedProperty;
-
-  class ComputedDecoratorImpl extends Function {
-    readOnly() {
-      descriptorForDecorator(this).readOnly();
-      return this;
-    }
-
-    volatile() {
-      descriptorForDecorator(this).volatile();
-      return this;
-    }
-
-    property(...keys) {
-      descriptorForDecorator(this).property(...keys);
-      return this;
-    }
-
     meta(meta$$1) {
       var prop = descriptorForDecorator(this);
 
@@ -16615,6 +16587,10 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
     return makeComputedDecorator(new ComputedProperty(args), ComputedDecoratorImpl);
   }
+
+  function autoComputed(...config) {
+    return makeComputedDecorator(new AutoComputedProperty(config), ComputedDecoratorImpl);
+  }
   /**
     Allows checking if a given property on an object is a computed property. For the most part,
     this doesn't matter (you would normally just access the property directly and use its value),
@@ -16637,6 +16613,14 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   var _globalsComputed = computed.bind(null);
 
   _exports._globalsComputed = _globalsComputed;
+
+  function getCachedValueFor(obj, key) {
+    var meta$$1 = (0, _meta2.peekMeta)(obj);
+
+    if (meta$$1) {
+      return meta$$1.valueFor(key);
+    }
+  }
 
   function alias(altKey) {
     (true && !(!isElementDescriptor(Array.prototype.slice.call(arguments))) && (0, _debug.assert)('You attempted to use @alias as a decorator directly, but it requires a `altKey` parameter', !isElementDescriptor(Array.prototype.slice.call(arguments))));
@@ -16678,24 +16662,22 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       super.setup(obj, keyName, propertyDesc, meta$$1);
     }
 
-    teardown(obj, keyName, meta$$1) {
-      super.teardown(obj, keyName, meta$$1);
-    }
-
     get(obj, keyName) {
       var ret;
-      var propertyTag = tagForProperty(obj, keyName); // We don't use the tag since CPs are not automatic, we just want to avoid
+      var meta$$1 = (0, _meta2.meta)(obj);
+      var tagMeta = (0, _validator.tagMetaFor)(obj);
+      var propertyTag = (0, _validator.tagFor)(obj, keyName, tagMeta); // We don't use the tag since CPs are not automatic, we just want to avoid
       // anything tracking while we get the altKey
 
       (0, _validator.untrack)(() => {
         ret = get(obj, this.altKey);
       });
-      var lastRevision = getLastRevisionFor(obj, keyName);
+      var lastRevision = meta$$1.revisionFor(keyName);
 
-      if (!(0, _validator.validateTag)(propertyTag, lastRevision)) {
-        (0, _validator.updateTag)(propertyTag, (0, _validator.combine)(getChainTagsForKey(obj, this.altKey, true)));
-        setLastRevisionFor(obj, keyName, (0, _validator.valueForTag)(propertyTag));
-        finishLazyChains(obj, keyName, ret);
+      if (lastRevision === undefined || !(0, _validator.validateTag)(propertyTag, lastRevision)) {
+        (0, _validator.updateTag)(propertyTag, getChainTagsForKey(obj, this.altKey, tagMeta, meta$$1));
+        meta$$1.setRevisionFor(keyName, (0, _validator.valueForTag)(propertyTag));
+        finishLazyChains(meta$$1, keyName, ret);
       }
 
       (0, _validator.consumeTag)(propertyTag);
@@ -17362,51 +17344,23 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     isArray
   } = Array;
 
-  function isMethod(obj) {
-    return 'function' === typeof obj && obj.isMethod !== false && obj !== Boolean && obj !== Object && obj !== Number && obj !== Array && obj !== Date && obj !== String;
-  }
-
-  function isAccessor(desc) {
-    return typeof desc.get === 'function' || typeof desc.set === 'function';
-  }
-
   function extractAccessors(properties) {
     if (properties !== undefined) {
-      var descriptors = (0, _utils.getOwnPropertyDescriptors)(properties);
-      var keys = Object.keys(descriptors);
-      var hasAccessors = keys.some(key => isAccessor(descriptors[key]));
+      var keys = Object.keys(properties);
 
-      if (hasAccessors) {
-        var extracted = {};
-        keys.forEach(key => {
-          var descriptor = descriptors[key];
+      for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var desc = Object.getOwnPropertyDescriptor(properties, key);
 
-          if (isAccessor(descriptor)) {
-            extracted[key] = nativeDescDecorator(descriptor);
-          } else {
-            extracted[key] = properties[key];
-          }
-        });
-        return extracted;
+        if (desc.get !== undefined || desc.set !== undefined) {
+          Object.defineProperty(properties, key, {
+            value: nativeDescDecorator(desc)
+          });
+        }
       }
     }
 
     return properties;
-  }
-
-  var CONTINUE = {};
-
-  function mixinProperties(mixinsMeta, mixin) {
-    if (mixin instanceof Mixin) {
-      if (mixinsMeta.hasMixin(mixin)) {
-        return CONTINUE;
-      }
-
-      mixinsMeta.addMixin(mixin);
-      return mixin.properties;
-    } else {
-      return mixin; // apply anonymous mixin properties
-    }
   }
 
   function concatenatedMixinProperties(concatProp, props, values, base) {
@@ -17420,76 +17374,79 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return concats;
   }
 
-  function giveDecoratorSuper(meta$$1, key, decorator, values, descs, base) {
-    var property = descriptorForDecorator(decorator);
-    var superProperty;
-
-    if (!(property instanceof ComputedProperty) || property._getter === undefined) {
-      return decorator;
-    } // Computed properties override methods, and do not call super to them
-
-
-    if (values[key] === undefined) {
-      // Find the original descriptor in a parent mixin
-      superProperty = descriptorForDecorator(descs[key]);
-    } // If we didn't find the original descriptor in a parent mixin, find
-    // it on the original object.
-
-
-    if (!superProperty) {
-      superProperty = descriptorForProperty(base, key, meta$$1);
-    }
-
-    if (superProperty === undefined || !(superProperty instanceof ComputedProperty)) {
+  function giveDecoratorSuper(key, decorator, property, descs) {
+    if (property === true) {
       return decorator;
     }
 
-    var get = (0, _utils.wrap)(property._getter, superProperty._getter);
+    var originalGetter = property._getter;
+
+    if (originalGetter === undefined) {
+      return decorator;
+    }
+
+    var superDesc = descs[key]; // Check to see if the super property is a decorator first, if so load its descriptor
+
+    var superProperty = typeof superDesc === 'function' ? descriptorForDecorator(superDesc) : superDesc;
+
+    if (superProperty === undefined || superProperty === true) {
+      return decorator;
+    }
+
+    var superGetter = superProperty._getter;
+
+    if (superGetter === undefined) {
+      return decorator;
+    }
+
+    var get = (0, _utils.wrap)(originalGetter, superGetter);
     var set;
+    var originalSetter = property._setter;
+    var superSetter = superProperty._setter;
 
-    if (superProperty._setter) {
-      if (property._setter) {
-        set = (0, _utils.wrap)(property._setter, superProperty._setter);
+    if (superSetter !== undefined) {
+      if (originalSetter !== undefined) {
+        set = (0, _utils.wrap)(originalSetter, superSetter);
       } else {
         // If the super property has a setter, we default to using it no matter what.
         // This is clearly very broken and weird, but it's what was here so we have
         // to keep it until the next major at least.
         //
         // TODO: Add a deprecation here.
-        set = superProperty._setter;
+        set = superSetter;
       }
     } else {
-      set = property._setter;
+      set = originalSetter;
     } // only create a new CP if we must
 
 
-    if (get !== property._getter || set !== property._setter) {
+    if (get !== originalGetter || set !== originalSetter) {
       // Since multiple mixins may inherit from the same parent, we need
       // to clone the computed property so that other mixins do not receive
       // the wrapped version.
-      var newProperty = Object.create(property);
-      newProperty._getter = get;
-      newProperty._setter = set;
+      var dependentKeys = property._dependentKeys || [];
+      var newProperty = new ComputedProperty([...dependentKeys, {
+        get,
+        set
+      }]);
+      newProperty._readOnly = property._readOnly;
+      newProperty._volatile = property._volatile;
+      newProperty._meta = property._meta;
+      newProperty.enumerable = property.enumerable;
       return makeComputedDecorator(newProperty, ComputedProperty);
     }
 
     return decorator;
   }
 
-  function giveMethodSuper(obj, key, method, values, descs) {
+  function giveMethodSuper(key, method, values, descs) {
     // Methods overwrite computed properties, and do not call super to them.
     if (descs[key] !== undefined) {
       return method;
     } // Find the original method in a parent mixin
 
 
-    var superMethod = values[key]; // If we didn't find the original value in a parent mixin, find it in
-    // the original object
-
-    if (superMethod === undefined && descriptorForProperty(obj, key) === undefined) {
-      superMethod = obj[key];
-    } // Only wrap the new method if the original method was a function
-
+    var superMethod = values[key]; // Only wrap the new method if the original method was a function
 
     if (typeof superMethod === 'function') {
       return (0, _utils.wrap)(method, superMethod);
@@ -17498,8 +17455,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return method;
   }
 
-  function applyConcatenatedProperties(obj, key, value, values) {
-    var baseValue = values[key] || obj[key];
+  function applyConcatenatedProperties(key, value, values) {
+    var baseValue = values[key];
     var ret = (0, _utils.makeArray)(baseValue).concat((0, _utils.makeArray)(value));
 
     if (true
@@ -17516,8 +17473,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return ret;
   }
 
-  function applyMergedProperties(obj, key, value, values) {
-    var baseValue = values[key] || obj[key];
+  function applyMergedProperties(key, value, values) {
+    var baseValue = values[key];
     (true && !(!isArray(value)) && (0, _debug.assert)(`You passed in \`${JSON.stringify(value)}\` as the value for \`${key}\` but \`${key}\` cannot be an Array`, !isArray(value)));
 
     if (!baseValue) {
@@ -17526,18 +17483,15 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
     var newBase = (0, _polyfills.assign)({}, baseValue);
     var hasFunction = false;
+    var props = Object.keys(value);
 
-    for (var prop in value) {
-      if (!Object.prototype.hasOwnProperty.call(value, prop)) {
-        continue;
-      }
-
+    for (var i = 0; i < props.length; i++) {
+      var prop = props[i];
       var propValue = value[prop];
 
-      if (isMethod(propValue)) {
-        // TODO: support for Computed Properties, etc?
+      if (typeof propValue === 'function') {
         hasFunction = true;
-        newBase[prop] = giveMethodSuper(obj, prop, propValue, baseValue, {});
+        newBase[prop] = giveMethodSuper(prop, propValue, baseValue, {});
       } else {
         newBase[prop] = propValue;
       }
@@ -17550,71 +17504,101 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     return newBase;
   }
 
-  function addNormalizedProperty(base, key, value, meta$$1, descs, values, concats, mergings) {
-    if (isClassicDecorator(value)) {
-      // Wrap descriptor function to implement _super() if needed
-      descs[key] = giveDecoratorSuper(meta$$1, key, value, values, descs, base);
-      values[key] = undefined;
-    } else {
-      if (concats && concats.indexOf(key) >= 0 || key === 'concatenatedProperties' || key === 'mergedProperties') {
-        value = applyConcatenatedProperties(base, key, value, values);
-      } else if (mergings && mergings.indexOf(key) > -1) {
-        value = applyMergedProperties(base, key, value, values);
-      } else if (isMethod(value)) {
-        value = giveMethodSuper(base, key, value, values, descs);
-      }
-
-      descs[key] = undefined;
-      values[key] = value;
-    }
-  }
-
-  function mergeMixins(mixins, meta$$1, descs, values, base, keys) {
-    var currentMixin, props, key, concats, mergings;
-
-    function removeKeys(keyName) {
-      delete descs[keyName];
-      delete values[keyName];
-    }
+  function mergeMixins(mixins, meta$$1, descs, values, base, keys, keysWithSuper) {
+    var currentMixin;
 
     for (var i = 0; i < mixins.length; i++) {
       currentMixin = mixins[i];
       (true && !(typeof currentMixin === 'object' && currentMixin !== null && Object.prototype.toString.call(currentMixin) !== '[object Array]') && (0, _debug.assert)(`Expected hash or Mixin instance, got ${Object.prototype.toString.call(currentMixin)}`, typeof currentMixin === 'object' && currentMixin !== null && Object.prototype.toString.call(currentMixin) !== '[object Array]'));
-      props = mixinProperties(meta$$1, currentMixin);
 
-      if (props === CONTINUE) {
-        continue;
-      }
-
-      if (props) {
-        // remove willMergeMixin after 3.4 as it was used for _actions
-        if (base.willMergeMixin) {
-          base.willMergeMixin(props);
+      if (MIXINS.has(currentMixin)) {
+        if (meta$$1.hasMixin(currentMixin)) {
+          continue;
         }
 
-        concats = concatenatedMixinProperties('concatenatedProperties', props, values, base);
-        mergings = concatenatedMixinProperties('mergedProperties', props, values, base);
+        meta$$1.addMixin(currentMixin);
+        var {
+          properties,
+          mixins: _mixins
+        } = currentMixin;
 
-        for (key in props) {
-          if (!Object.prototype.hasOwnProperty.call(props, key)) {
-            continue;
+        if (properties !== undefined) {
+          mergeProps(meta$$1, properties, descs, values, base, keys, keysWithSuper);
+        } else if (_mixins !== undefined) {
+          mergeMixins(_mixins, meta$$1, descs, values, base, keys, keysWithSuper);
+
+          if (currentMixin._without !== undefined) {
+            currentMixin._without.forEach(keyName => {
+              // deleting the key means we won't process the value
+              var index = keys.indexOf(keyName);
+
+              if (index !== -1) {
+                keys.splice(index, 1);
+              }
+            });
           }
-
-          keys.push(key);
-          addNormalizedProperty(base, key, props[key], meta$$1, descs, values, concats, mergings);
-        } // manually copy toString() because some JS engines do not enumerate it
-
-
-        if (Object.prototype.hasOwnProperty.call(props, 'toString')) {
-          base.toString = props.toString;
         }
-      } else if (currentMixin.mixins) {
-        mergeMixins(currentMixin.mixins, meta$$1, descs, values, base, keys);
+      } else {
+        mergeProps(meta$$1, currentMixin, descs, values, base, keys, keysWithSuper);
+      }
+    }
+  }
 
-        if (currentMixin._without) {
-          currentMixin._without.forEach(removeKeys);
+  function mergeProps(meta$$1, props, descs, values, base, keys, keysWithSuper) {
+    var concats = concatenatedMixinProperties('concatenatedProperties', props, values, base);
+    var mergings = concatenatedMixinProperties('mergedProperties', props, values, base);
+    var propKeys = Object.keys(props);
+
+    for (var i = 0; i < propKeys.length; i++) {
+      var key = propKeys[i];
+      var value = props[key];
+      if (value === undefined) continue;
+
+      if (keys.indexOf(key) === -1) {
+        keys.push(key);
+        var desc = meta$$1.peekDescriptors(key);
+
+        if (desc === undefined) {
+          // The superclass did not have a CP, which means it may have
+          // observers or listeners on that property.
+          var prev = values[key] = base[key];
+
+          if (typeof prev === 'function') {
+            updateObserversAndListeners(base, key, prev, false);
+          }
+        } else {
+          descs[key] = desc; // The super desc will be overwritten on descs, so save off the fact that
+          // there was a super so we know to Object.defineProperty when writing
+          // the value
+
+          keysWithSuper.push(key);
+          desc.teardown(base, key, meta$$1);
         }
       }
+
+      var isFunction = typeof value === 'function';
+
+      if (isFunction) {
+        var _desc2 = descriptorForDecorator(value);
+
+        if (_desc2 !== undefined) {
+          // Wrap descriptor function to implement _super() if needed
+          descs[key] = giveDecoratorSuper(key, value, _desc2, descs);
+          values[key] = undefined;
+          continue;
+        }
+      }
+
+      if (concats && concats.indexOf(key) >= 0 || key === 'concatenatedProperties' || key === 'mergedProperties') {
+        value = applyConcatenatedProperties(key, value, values);
+      } else if (mergings && mergings.indexOf(key) > -1) {
+        value = applyMergedProperties(key, value, values);
+      } else if (isFunction) {
+        value = giveMethodSuper(key, value, values, descs);
+      }
+
+      values[key] = value;
+      descs[key] = undefined;
     }
   }
 
@@ -17644,8 +17628,12 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   }
 
   function updateObserversAndListeners(obj, key, fn, add) {
-    var observers = (0, _utils.getObservers)(fn);
-    var listeners = (0, _utils.getListeners)(fn);
+    var meta$$1 = (0, _utils.observerListenerMetaFor)(fn);
+    if (meta$$1 === undefined) return;
+    var {
+      observers,
+      listeners
+    } = meta$$1;
 
     if (observers !== undefined) {
       var updateObserver = add ? addObserver : removeObserver;
@@ -17664,22 +17652,12 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     }
   }
 
-  function replaceObserversAndListeners(obj, key, prev, next) {
-    if (typeof prev === 'function') {
-      updateObserversAndListeners(obj, key, prev, false);
-    }
-
-    if (typeof next === 'function') {
-      updateObserversAndListeners(obj, key, next, true);
-    }
-  }
-
-  function applyMixin(obj, mixins) {
-    var descs = {};
-    var values = {};
+  function applyMixin(obj, mixins, _hideKeys = false) {
+    var descs = Object.create(null);
+    var values = Object.create(null);
     var meta$$1 = (0, _meta2.meta)(obj);
     var keys = [];
-    var key, value, desc;
+    var keysWithSuper = [];
     obj._super = _utils.ROOT; // Go through all mixins and hashes passed in, and:
     //
     // * Handle concatenated properties
@@ -17688,37 +17666,34 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     // * Set up computed property descriptors
     // * Copying `toString` in broken browsers
 
-    mergeMixins(mixins, meta$$1, descs, values, obj, keys);
+    mergeMixins(mixins, meta$$1, descs, values, obj, keys, keysWithSuper);
 
     for (var i = 0; i < keys.length; i++) {
-      key = keys[i];
-
-      if (key === 'constructor' || !Object.prototype.hasOwnProperty.call(values, key)) {
-        continue;
-      }
-
-      desc = descs[key];
-      value = values[key];
+      var key = keys[i];
+      var value = values[key];
+      var desc = descs[key];
 
       if (_deprecatedFeatures.ALIAS_METHOD) {
-        while (value && value instanceof AliasImpl) {
+        while (value !== undefined && isAlias(value)) {
           var followed = followMethodAlias(obj, value, descs, values);
           desc = followed.desc;
           value = followed.value;
         }
       }
 
-      if (desc === undefined && value === undefined) {
-        continue;
-      }
+      if (value !== undefined) {
+        if (typeof value === 'function') {
+          updateObserversAndListeners(obj, key, value, true);
+        }
 
-      if (descriptorForProperty(obj, key) !== undefined) {
-        replaceObserversAndListeners(obj, key, null, value);
-      } else {
-        replaceObserversAndListeners(obj, key, obj[key], value);
+        defineValue(obj, key, value, keysWithSuper.indexOf(key) !== -1, !_hideKeys);
+      } else if (desc !== undefined) {
+        defineDecorator(obj, key, desc, meta$$1);
       }
+    }
 
-      defineProperty(obj, key, desc, value, meta$$1);
+    if (!meta$$1.isPrototypeMeta(obj)) {
+      revalidateObservers(obj);
     }
 
     return obj;
@@ -17736,6 +17711,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     applyMixin(obj, args);
     return obj;
   }
+
+  var MIXINS = new _polyfills._WeakSet();
   /**
     The `Mixin` class allows you to create mixins, whose properties can be
     added to other classes. For instance,
@@ -17819,9 +17796,9 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     @public
   */
 
-
   class Mixin {
     constructor(mixins, properties) {
+      MIXINS.add(this);
       this.properties = extractAccessors(properties);
       this.mixins = buildMixinsArray(mixins);
       this.ownerConstructor = undefined;
@@ -17850,7 +17827,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
 
     static create(...args) {
-      // ES6TODO: this relies on a global state?
       setUnprocessedMixins();
       var M = this;
       return new M(args, undefined);
@@ -17905,8 +17881,13 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     */
 
 
-    apply(obj) {
-      return applyMixin(obj, [this]);
+    apply(obj, _hideKeys = false) {
+      // Ember.NativeArray is a normal Ember.Mixin that we mix into `Array.prototype` when prototype extensions are enabled
+      // mutating a native object prototype like this should _not_ result in enumerable properties being added (or we have significant
+      // issues with things like deep equality checks from test frameworks, or things like jQuery.extend(true, [], [])).
+      //
+      // _hideKeys disables enumerablity when applying the mixin. This is a hack, and we should stop mutating the array prototype by default 😫
+      return applyMixin(obj, [this], _hideKeys);
     }
 
     applyPartial(obj) {
@@ -17925,7 +17906,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         return false;
       }
 
-      if (obj instanceof Mixin) {
+      if (MIXINS.has(obj)) {
         return _detect(obj, this);
       }
 
@@ -17967,7 +17948,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         var x = mixins[i];
         (true && !(typeof x === 'object' && x !== null && Object.prototype.toString.call(x) !== '[object Array]') && (0, _debug.assert)(`Expected hash or Mixin instance, got ${Object.prototype.toString.call(x)}`, typeof x === 'object' && x !== null && Object.prototype.toString.call(x) !== '[object Array]'));
 
-        if (x instanceof Mixin) {
+        if (MIXINS.has(x)) {
           m[i] = x;
         } else {
           m[i] = new Mixin(undefined, x);
@@ -18027,11 +18008,19 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   }
 
   var AliasImpl;
+  var isAlias;
 
   if (_deprecatedFeatures.ALIAS_METHOD) {
+    var ALIASES = new _polyfills._WeakSet();
+
+    isAlias = alias => {
+      return ALIASES.has(alias);
+    };
+
     AliasImpl = class AliasImpl {
       constructor(methodName) {
         this.methodName = methodName;
+        ALIASES.add(this);
       }
 
     };
@@ -18102,10 +18091,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     (true && !(typeof sync === 'boolean') && (0, _debug.assert)('observer called without sync', typeof sync === 'boolean'));
     var paths = [];
 
-    var addWatchedProperty = path => paths.push(path);
-
     for (var i = 0; i < dependentKeys.length; ++i) {
-      expandProperties(dependentKeys[i], addWatchedProperty);
+      expandProperties(dependentKeys[i], path => paths.push(path));
     }
 
     (0, _utils.setObservers)(func, {
@@ -18223,8 +18210,8 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         var value = getter(this); // Add the tag of the returned value if it is an array, since arrays
         // should always cause updates if they are consumed and then changed
 
-        if (Array.isArray(value) || (0, _utils.isEmberArray)(value)) {
-          (0, _validator.consumeTag)(tagForProperty(value, '[]'));
+        if (Array.isArray(value)) {
+          (0, _validator.consumeTag)((0, _validator.tagFor)(value, '[]'));
         }
 
         return value;
@@ -18364,7 +18351,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   */
 
 });
-define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils"], function (_exports, _utils) {
+define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils", "@ember/debug"], function (_exports, _utils, _debug) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -18372,11 +18359,13 @@ define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils"], 
   });
   _exports.getOwner = getOwner;
   _exports.setOwner = setOwner;
-  _exports.OWNER = void 0;
+  _exports.OWNER = _exports.LEGACY_OWNER = void 0;
 
   /**
   @module @ember/application
   */
+  var LEGACY_OWNER = (0, _utils.enumerableSymbol)('LEGACY_OWNER');
+  _exports.LEGACY_OWNER = LEGACY_OWNER;
   var OWNER = (0, _utils.symbol)('OWNER');
   /**
     Framework objects in an Ember application (components, services, routes, etc.)
@@ -18426,7 +18415,17 @@ define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils"], 
   _exports.OWNER = OWNER;
 
   function getOwner(object) {
-    return object[OWNER];
+    var owner = object[OWNER];
+
+    if (owner === undefined) {
+      owner = object[LEGACY_OWNER];
+      (true && !(owner === undefined) && (0, _debug.deprecate)(`You accessed the owner using \`getOwner\` on an object, but it was not set on that object with \`setOwner\`. You must use \`setOwner\` to set the owner on all objects. You cannot use Object.assign().`, owner === undefined, {
+        id: 'owner.legacy-owner-injection',
+        until: '3.25.0'
+      }));
+    }
+
+    return owner;
   }
   /**
     `setOwner` forces a new owner on a given object instance. This is primarily
@@ -18444,6 +18443,7 @@ define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils"], 
 
   function setOwner(object, owner) {
     object[OWNER] = owner;
+    object[LEGACY_OWNER] = owner;
   }
 });
 define("@ember/-internals/routing/index", ["exports", "@ember/-internals/routing/lib/ext/controller", "@ember/-internals/routing/lib/location/api", "@ember/-internals/routing/lib/location/none_location", "@ember/-internals/routing/lib/location/hash_location", "@ember/-internals/routing/lib/location/history_location", "@ember/-internals/routing/lib/location/auto_location", "@ember/-internals/routing/lib/system/generate_controller", "@ember/-internals/routing/lib/system/controller_for", "@ember/-internals/routing/lib/system/dsl", "@ember/-internals/routing/lib/system/router", "@ember/-internals/routing/lib/system/route", "@ember/-internals/routing/lib/system/query_params", "@ember/-internals/routing/lib/services/routing", "@ember/-internals/routing/lib/services/router", "@ember/-internals/routing/lib/system/cache"], function (_exports, _controller, _api, _none_location, _hash_location, _history_location, _auto_location, _generate_controller, _controller_for, _dsl, _router, _route, _query_params, _routing, _router2, _cache) {
@@ -23397,7 +23397,6 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
     });
   }
 
-  (0, _runtime.setFrameworkClass)(Route);
   var _default = Route;
   _exports.default = _default;
 });
@@ -25672,12 +25671,6 @@ define("@ember/-internals/runtime/index", ["exports", "@ember/-internals/runtime
       return _core_object.default;
     }
   });
-  Object.defineProperty(_exports, "setFrameworkClass", {
-    enumerable: true,
-    get: function () {
-      return _core_object.setFrameworkClass;
-    }
-  });
   Object.defineProperty(_exports, "ActionHandler", {
     enumerable: true,
     get: function () {
@@ -26368,7 +26361,8 @@ define("@ember/-internals/runtime/lib/mixins/-proxy", ["exports", "@ember/-inter
     }),
 
     [_metal.CUSTOM_TAG_FOR](key, addMandatorySetter) {
-      var tag = (0, _validator.tagFor)(this, key);
+      var meta = (0, _validator.tagMetaFor)(this);
+      var tag = (0, _validator.tagFor)(this, key, meta);
 
       if (true
       /* DEBUG */
@@ -26386,7 +26380,14 @@ define("@ember/-internals/runtime/lib/mixins/-proxy", ["exports", "@ember/-inter
 
         return tag;
       } else {
-        return (0, _validator.combine)([tag, ...(0, _metal.getChainTagsForKey)(this, `content.${key}`, addMandatorySetter)]);
+        var tags = [tag, (0, _validator.tagFor)(this, 'content', meta)];
+        var content = contentFor(this);
+
+        if ((0, _utils.isObject)(content)) {
+          tags.push((0, _metal.tagForProperty)(content, key, addMandatorySetter));
+        }
+
+        return (0, _validator.combine)(tags);
       }
     },
 
@@ -28356,7 +28357,7 @@ define("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
   _exports.A = A;
 
   if (_environment.ENV.EXTEND_PROTOTYPES.Array) {
-    NativeArray.apply(Array.prototype);
+    NativeArray.apply(Array.prototype, true);
 
     _exports.A = A = function (arr) {
       (true && !(!(this instanceof A)) && (0, _debug.assert)('You cannot create an Ember Array with `new A()`, please update to calling A as a function: `A()`', !(this instanceof A)));
@@ -28795,7 +28796,7 @@ define("@ember/-internals/runtime/lib/mixins/mutable_enumerable", ["exports", "@
 
   _exports.default = _default;
 });
-define("@ember/-internals/runtime/lib/mixins/observable", ["exports", "@ember/-internals/metal", "@ember/debug"], function (_exports, _metal, _debug) {
+define("@ember/-internals/runtime/lib/mixins/observable", ["exports", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/debug"], function (_exports, _meta, _metal, _debug) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -29217,7 +29218,11 @@ define("@ember/-internals/runtime/lib/mixins/observable", ["exports", "@ember/-i
       @public
     */
     cacheFor(keyName) {
-      return (0, _metal.getCachedValueFor)(this, keyName);
+      var meta = (0, _meta.peekMeta)(this);
+
+      if (meta !== null) {
+        return meta.valueFor(keyName);
+      }
     }
 
   });
@@ -29816,7 +29821,7 @@ define("@ember/-internals/runtime/lib/mixins/target_action_support", ["exports",
     return null;
   }
 });
-define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-internals/metal", "@ember/-internals/runtime/lib/system/object", "@ember/-internals/runtime/lib/mixins/array", "@ember/debug", "@glimmer/validator"], function (_exports, _metal, _object, _array, _debug, _validator) {
+define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-internals/metal", "@ember/-internals/utils", "@ember/-internals/runtime/lib/system/object", "@ember/-internals/runtime/lib/mixins/array", "@ember/debug", "@glimmer/validator"], function (_exports, _metal, _utils, _object, _array, _debug, _validator) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -29924,7 +29929,14 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
         // be able to later on due to backtracking re-render assertion
         this._revalidate();
 
-        return (0, _validator.combine)((0, _metal.getChainTagsForKey)(this, `arrangedContent.${key}`, addMandatorySetter));
+        var arrangedContentTag = this._arrangedContentTag;
+        var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
+
+        if ((0, _utils.isObject)(arrangedContent)) {
+          return (0, _validator.combine)([arrangedContentTag, (0, _metal.tagForProperty)(arrangedContent, key, addMandatorySetter)]);
+        } else {
+          return arrangedContentTag;
+        }
       }
 
       return (0, _validator.tagFor)(this, key);
@@ -30116,7 +30128,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
           this._arrangedContentIsUpdating = false;
         }
 
-        this._arrangedContentTag = (0, _validator.combine)((0, _metal.getChainTagsForKey)(this, 'arrangedContent'));
+        this._arrangedContentTag = (0, _validator.tagFor)(this, 'arrangedContent');
         this._arrangedContentRevision = (0, _validator.valueForTag)(this._arrangedContentTag);
       }
     }
@@ -30148,7 +30160,6 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.setFrameworkClass = setFrameworkClass;
   _exports.default = void 0;
 
   /**
@@ -30156,28 +30167,10 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
   */
   var reopen = _metal.Mixin.prototype.reopen;
   var wasApplied = new _polyfills._WeakSet();
-  var factoryMap = new WeakMap();
-  var debugOwnerMap;
-
-  if (true
-  /* DEBUG */
-  ) {
-    debugOwnerMap = new WeakMap();
-  }
-
   var prototypeMixinMap = new WeakMap();
   var initCalled = true
   /* DEBUG */
   ? new _polyfills._WeakSet() : undefined; // only used in debug builds to enable the proxy trap
-
-  var PASSED_FROM_CREATE = true
-  /* DEBUG */
-  ? (0, _utils.symbol)('PASSED_FROM_CREATE') : undefined;
-  var FRAMEWORK_CLASSES = (0, _utils.symbol)('FRAMEWORK_CLASS');
-
-  function setFrameworkClass(klass) {
-    klass[FRAMEWORK_CLASSES] = true;
-  }
 
   function initialize(obj, properties) {
     var m = (0, _meta2.meta)(obj);
@@ -30316,20 +30309,11 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
 
   class CoreObject {
-    static _initFactory(factory) {
-      factoryMap.set(this, factory);
-    }
-
-    constructor(passedFromCreate) {
-      // pluck off factory
-      var initFactory = factoryMap.get(this.constructor);
-
-      if (initFactory !== undefined) {
-        factoryMap.delete(this.constructor);
-
-        _container.FACTORY_FOR.set(this, initFactory);
-      } // prepare prototype...
-
+    constructor(owner) {
+      // setOwner has to set both OWNER and LEGACY_OWNER for backwards compatibility, and
+      // LEGACY_OWNER is enumerable, so setting it would add an enumerable property to the object,
+      // so we just set `OWNER` directly here.
+      this[_owner.OWNER] = owner; // prepare prototype...
 
       this.constructor.proto();
       var self = this;
@@ -30360,30 +30344,23 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
           }
 
         });
-
-        _container.FACTORY_FOR.set(self, initFactory);
       }
 
       (0, _runtime.registerDestructor)(self, () => self.willDestroy()); // disable chains
 
       var m = (0, _meta2.meta)(self);
-      m.setInitializing();
-      (true && !((() => {
-        var owner = debugOwnerMap.get(this.constructor);
-        debugOwnerMap.delete(this.constructor);
-        return passedFromCreate !== undefined && (passedFromCreate === PASSED_FROM_CREATE || passedFromCreate === owner);
-      })()) && (0, _debug.assert)(`An EmberObject based class, ${this.constructor}, was not instantiated correctly. You may have either used \`new\` instead of \`.create()\`, or not passed arguments to your call to super in the constructor: \`super(...arguments)\`. If you are trying to use \`new\`, consider using native classes without extending from EmberObject.`, (() => {
-        var owner = debugOwnerMap.get(this.constructor);
-        debugOwnerMap.delete(this.constructor);
-        return passedFromCreate !== undefined && (passedFromCreate === PASSED_FROM_CREATE || passedFromCreate === owner);
-      })())); // only return when in debug builds and `self` is the proxy created above
+      m.setInitializing(); // only return when in debug builds and `self` is the proxy created above
 
       if (true
       /* DEBUG */
       && self !== this) {
         return self;
       }
-    }
+    } // Empty setter for absorbing setting the LEGACY_OWNER, which should _not_
+    // become an enumerable property, and should not be used in general.
+
+
+    set [_owner.LEGACY_OWNER](value) {}
 
     reopen(...args) {
       (0, _metal.applyMixin)(this, args);
@@ -30634,7 +30611,7 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
     toString() {
       var hasToStringExtension = typeof this.toStringExtension === 'function';
       var extension = hasToStringExtension ? `:${this.toStringExtension()}` : '';
-      var ret = `<${(0, _utils.getName)(this) || _container.FACTORY_FOR.get(this) || this.constructor.toString()}:${(0, _utils.guidFor)(this)}${extension}>`;
+      var ret = `<${(0, _utils.getName)(this) || (0, _container.getFactoryFor)(this) || this.constructor.toString()}:${(0, _utils.guidFor)(this)}${extension}>`;
       return ret;
     }
     /**
@@ -30753,37 +30730,13 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
 
     static create(props, extra) {
-      var C = this;
       var instance;
 
-      if (this[FRAMEWORK_CLASSES]) {
-        var initFactory = factoryMap.get(this);
-        var owner;
-
-        if (initFactory !== undefined) {
-          owner = initFactory.owner;
-        } else if (props !== undefined) {
-          owner = (0, _owner.getOwner)(props);
-        }
-
-        if (true
-        /* DEBUG */
-        ) {
-          if (owner === undefined) {
-            // fallback to passing the special PASSED_FROM_CREATE symbol
-            // to avoid an error when folks call things like Controller.extend().create()
-            // we should do a subsequent deprecation pass to ensure this isn't allowed
-            owner = PASSED_FROM_CREATE;
-          } else {
-            debugOwnerMap.set(this, owner);
-          }
-        }
-
-        instance = new C(owner);
+      if (props !== undefined) {
+        instance = new this((0, _owner.getOwner)(props));
+        (0, _container.setFactoryFor)(instance, (0, _container.getFactoryFor)(props));
       } else {
-        instance = true
-        /* DEBUG */
-        ? new C(PASSED_FROM_CREATE) : new C();
+        instance = new this();
       }
 
       if (extra === undefined) {
@@ -31114,6 +31067,32 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
     };
   }
 
+  if (!_utils.HAS_NATIVE_SYMBOL) {
+    // Allows OWNER and INIT_FACTORY to be non-enumerable in IE11
+    var instanceOwner = new WeakMap();
+    var instanceFactory = new WeakMap();
+    Object.defineProperty(CoreObject.prototype, _owner.OWNER, {
+      get() {
+        return instanceOwner.get(this);
+      },
+
+      set(value) {
+        instanceOwner.set(this, value);
+      }
+
+    });
+    Object.defineProperty(CoreObject.prototype, _container.INIT_FACTORY, {
+      get() {
+        return instanceFactory.get(this);
+      },
+
+      set(value) {
+        instanceFactory.set(this, value);
+      }
+
+    });
+  }
+
   var _default = CoreObject;
   _exports.default = _default;
 });
@@ -31189,7 +31168,7 @@ define("@ember/-internals/runtime/lib/system/namespace", ["exports", "@ember/-in
   Namespace.processAll = _metal.processAllNamespaces;
   Namespace.byName = _metal.findNamespace;
 });
-define("@ember/-internals/runtime/lib/system/object", ["exports", "@ember/-internals/container", "@ember/-internals/owner", "@ember/-internals/utils", "@ember/-internals/metal", "@ember/-internals/runtime/lib/system/core_object", "@ember/-internals/runtime/lib/mixins/observable", "@ember/debug"], function (_exports, _container, _owner, _utils, _metal, _core_object, _observable, _debug) {
+define("@ember/-internals/runtime/lib/system/object", ["exports", "@ember/-internals/container", "@ember/-internals/utils", "@ember/-internals/metal", "@ember/-internals/runtime/lib/system/core_object", "@ember/-internals/runtime/lib/mixins/observable", "@ember/debug"], function (_exports, _container, _utils, _metal, _core_object, _observable, _debug) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -31200,7 +31179,7 @@ define("@ember/-internals/runtime/lib/system/object", ["exports", "@ember/-inter
   /**
   @module @ember/object
   */
-  var instanceOwner = new WeakMap();
+
   /**
     `EmberObject` is the main base class for all Ember objects. It is a subclass
     of `CoreObject` with the `Observable` mixin applied. For details,
@@ -31211,30 +31190,10 @@ define("@ember/-internals/runtime/lib/system/object", ["exports", "@ember/-inter
     @uses Observable
     @public
   */
-
   class EmberObject extends _core_object.default {
     get _debugContainerKey() {
-      var factory = _container.FACTORY_FOR.get(this);
-
+      var factory = (0, _container.getFactoryFor)(this);
       return factory !== undefined && factory.fullName;
-    }
-
-    get [_owner.OWNER]() {
-      var owner = instanceOwner.get(this);
-
-      if (owner !== undefined) {
-        return owner;
-      }
-
-      var factory = _container.FACTORY_FOR.get(this);
-
-      return factory !== undefined && factory.owner;
-    } // we need a setter here largely to support
-    // folks calling `owner.ownerInjection()` API
-
-
-    set [_owner.OWNER](value) {
-      instanceOwner.set(this, value);
     }
 
   }
@@ -31248,14 +31207,8 @@ define("@ember/-internals/runtime/lib/system/object", ["exports", "@ember/-inter
   _exports.FrameworkObject = FrameworkObject;
   _exports.FrameworkObject = FrameworkObject = class FrameworkObject extends _core_object.default {
     get _debugContainerKey() {
-      var factory = _container.FACTORY_FOR.get(this);
-
+      var factory = (0, _container.getFactoryFor)(this);
       return factory !== undefined && factory.fullName;
-    }
-
-    constructor(owner) {
-      super();
-      (0, _owner.setOwner)(this, owner);
     }
 
   };
@@ -31495,7 +31448,7 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.symbol = symbol;
+  _exports.enumerableSymbol = enumerableSymbol;
   _exports.isInternalSymbol = isInternalSymbol;
   _exports.dictionary = makeDictionary;
   _exports.uuid = uuid;
@@ -31503,8 +31456,7 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   _exports.guidFor = guidFor;
   _exports.intern = intern;
   _exports.wrap = wrap;
-  _exports.getObservers = getObservers;
-  _exports.getListeners = getListeners;
+  _exports.observerListenerMetaFor = observerListenerMetaFor;
   _exports.setObservers = setObservers;
   _exports.setListeners = setListeners;
   _exports.inspect = inspect;
@@ -31519,7 +31471,7 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   _exports.isProxy = isProxy;
   _exports.setProxy = setProxy;
   _exports.isEmberArray = isEmberArray;
-  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = _exports.getDebugName = void 0;
+  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getDebugName = _exports.symbol = void 0;
 
   /**
     Strongly hint runtimes to intern the provided string.
@@ -31723,26 +31675,47 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     return guid;
   }
 
+  var HAS_NATIVE_SYMBOL = function () {
+    if (typeof Symbol !== 'function') {
+      return false;
+    }
+
+    return typeof Symbol() === 'symbol';
+  }();
+
+  _exports.HAS_NATIVE_SYMBOL = HAS_NATIVE_SYMBOL;
   var GENERATED_SYMBOLS = [];
 
   function isInternalSymbol(possibleSymbol) {
     return GENERATED_SYMBOLS.indexOf(possibleSymbol) !== -1;
-  }
+  } // Some legacy symbols still need to be enumerable for a variety of reasons.
+  // This code exists for that, and as a fallback in IE11. In general, prefer
+  // `symbol` below when creating a new symbol.
 
-  function symbol(debugName) {
+
+  function enumerableSymbol(debugName) {
     // TODO: Investigate using platform symbols, but we do not
     // want to require non-enumerability for this API, which
     // would introduce a large cost.
     var id = GUID_KEY + Math.floor(Math.random() * Date.now());
     var symbol = intern(`__${debugName}${id}__`);
-    GENERATED_SYMBOLS.push(symbol);
+
+    if (true
+    /* DEBUG */
+    ) {
+      GENERATED_SYMBOLS.push(symbol);
+    }
+
     return symbol;
-  } // the delete is meant to hint at runtimes that this object should remain in
+  }
+
+  var symbol = HAS_NATIVE_SYMBOL ? Symbol : enumerableSymbol; // the delete is meant to hint at runtimes that this object should remain in
   // dictionary mode. This is clearly a runtime specific hack, but currently it
   // appears worthwhile in some usecases. Please note, these deletes do increase
   // the cost of creation dramatically over a plain Object.create. And as this
   // only makes sense for long-lived dictionaries that aren't instantiated often.
 
+  _exports.symbol = symbol;
 
   function makeDictionary(parent) {
     var dict = Object.create(parent);
@@ -31807,22 +31780,6 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
 
   var getDebugName$1 = getDebugName;
   _exports.getDebugName = getDebugName$1;
-  var getOwnPropertyDescriptors;
-
-  if (Object.getOwnPropertyDescriptors !== undefined) {
-    getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
-  } else {
-    getOwnPropertyDescriptors = function (obj) {
-      var descriptors = {};
-      Object.keys(obj).forEach(key => {
-        descriptors[key] = Object.getOwnPropertyDescriptor(obj, key);
-      });
-      return descriptors;
-    };
-  }
-
-  var getOwnPropertyDescriptors$1 = getOwnPropertyDescriptors;
-  _exports.getOwnPropertyDescriptors = getOwnPropertyDescriptors$1;
   var HAS_SUPER_PATTERN = /\.(_super|call\(this|apply\(this)/;
   var fnToString = Function.prototype.toString;
 
@@ -31859,26 +31816,39 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     return hasSuper;
   }
 
-  var OBSERVERS_MAP = new WeakMap();
+  class ObserverListenerMeta {
+    constructor() {
+      this.listeners = undefined;
+      this.observers = undefined;
+    }
+
+  }
+
+  var OBSERVERS_LISTENERS_MAP = new WeakMap();
+
+  function createObserverListenerMetaFor(fn) {
+    var meta = OBSERVERS_LISTENERS_MAP.get(fn);
+
+    if (meta === undefined) {
+      meta = new ObserverListenerMeta();
+      OBSERVERS_LISTENERS_MAP.set(fn, meta);
+    }
+
+    return meta;
+  }
+
+  function observerListenerMetaFor(fn) {
+    return OBSERVERS_LISTENERS_MAP.get(fn);
+  }
 
   function setObservers(func, observers) {
-    OBSERVERS_MAP.set(func, observers);
+    var meta = createObserverListenerMetaFor(func);
+    meta.observers = observers;
   }
-
-  function getObservers(func) {
-    return OBSERVERS_MAP.get(func);
-  }
-
-  var LISTENERS_MAP = new WeakMap();
 
   function setListeners(func, listeners) {
-    if (listeners) {
-      LISTENERS_MAP.set(func, listeners);
-    }
-  }
-
-  function getListeners(func) {
-    return LISTENERS_MAP.get(func);
+    var meta = createObserverListenerMetaFor(func);
+    meta.listeners = listeners;
   }
 
   var IS_WRAPPED_FUNCTION_SET = new _polyfills._WeakSet();
@@ -31918,8 +31888,12 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     }
 
     IS_WRAPPED_FUNCTION_SET.add(superWrapper);
-    setObservers(superWrapper, getObservers(func));
-    setListeners(superWrapper, getListeners(func));
+    var meta = OBSERVERS_LISTENERS_MAP.get(func);
+
+    if (meta !== undefined) {
+      OBSERVERS_LISTENERS_MAP.set(superWrapper, meta);
+    }
+
     return superWrapper;
   }
 
@@ -32205,15 +32179,6 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     return objectToString$1.call(obj);
   }
 
-  var HAS_NATIVE_SYMBOL = function () {
-    if (typeof Symbol !== 'function') {
-      return false;
-    }
-
-    return typeof Symbol() === 'symbol';
-  }();
-
-  _exports.HAS_NATIVE_SYMBOL = HAS_NATIVE_SYMBOL;
   var HAS_NATIVE_PROXY = typeof Proxy === 'function';
   _exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
   var PROXIES = new _polyfills._WeakSet();
@@ -36912,8 +36877,6 @@ define("@ember/controller/index", ["exports", "@ember/-internals/runtime", "@emb
     @public
   */
   var Controller = _runtime.FrameworkObject.extend(_controller_mixin.default);
-
-  (0, _runtime.setFrameworkClass)(Controller);
   /**
     Creates a property that lazily looks up another controller in the container.
     Can only be used when defining another controller.
@@ -36955,6 +36918,7 @@ define("@ember/controller/index", ["exports", "@ember/-internals/runtime", "@emb
     @return {ComputedDecorator} injection decorator instance
     @public
   */
+
 
   function inject() {
     return (0, _metal.inject)('controller', ...arguments);
@@ -38806,7 +38770,7 @@ define("@ember/object/compat", ["exports", "@ember/-internals/metal", "@ember/de
 
     if (originalGet !== undefined) {
       desc.get = function () {
-        var propertyTag = (0, _metal.tagForProperty)(this, key);
+        var propertyTag = (0, _validator.tagFor)(this, key);
         var ret;
         var tag = (0, _validator.track)(() => {
           ret = originalGet.call(this);
@@ -41793,7 +41757,7 @@ define("@ember/object/lib/computed/reduce_computed_macros", ["exports", "@ember/
 
 
   function propertySort(itemsKey, sortPropertiesKey) {
-    var cp = (0, _metal.computed)(`${itemsKey}.[]`, `${sortPropertiesKey}.[]`, function (key) {
+    var cp = (0, _metal.autoComputed)(function (key) {
       var sortProperties = (0, _metal.get)(this, sortPropertiesKey);
       (true && !((0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')) && (0, _debug.assert)(`The sort definition for '${key}' on ${this} must be a function or an array of strings`, (0, _runtime.isArray)(sortProperties) && sortProperties.every(s => typeof s === 'string')));
       var itemsKeyIsAtThis = itemsKey === '@this';
@@ -41810,7 +41774,6 @@ define("@ember/object/lib/computed/reduce_computed_macros", ["exports", "@ember/
         return sortByNormalizedSortProperties(items, normalizedSortProperties);
       }
     }).readOnly();
-    (0, _metal.descriptorForDecorator)(cp).auto();
     return cp;
   }
 
@@ -42876,7 +42839,6 @@ define("@ember/service/index", ["exports", "@ember/-internals/runtime", "@ember/
   Service.reopenClass({
     isServiceFactory: true
   });
-  (0, _runtime.setFrameworkClass)(Service);
   var _default = Service;
   _exports.default = _default;
 });
@@ -43737,13 +43699,17 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     };
   }
 
-  function prim(operand, type) {
+  function immediate(value) {
+    return {
+      type: 'immediate',
+      value
+    };
+  }
+
+  function prim(value) {
     return {
       type: 'primitive',
-      value: {
-        primitive: operand,
-        type
-      }
+      value
     };
   }
 
@@ -43890,41 +43856,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
 
 
   function PushPrimitive(primitive) {
-    var p;
-
-    switch (typeof primitive) {
-      case 'number':
-        if ((0, _util.isSmallInt)(primitive)) {
-          p = prim(primitive, 0
-          /* IMMEDIATE */
-          );
-        } else {
-          p = prim(primitive, 2
-          /* NUMBER */
-          );
-        }
-
-        break;
-
-      case 'string':
-        p = prim(primitive, 1
-        /* STRING */
-        );
-        break;
-
-      case 'boolean':
-      case 'object': // assume null
-
-      case 'undefined':
-        p = prim(primitive, 0
-        /* IMMEDIATE */
-        );
-        break;
-
-      default:
-        throw new Error('Invalid primitive passed to pushPrimitive');
-    }
-
+    var p = typeof primitive === 'number' && (0, _util.isSmallInt)(primitive) ? immediate(primitive) : prim(primitive);
     return op(30
     /* Primitive */
     , p);
@@ -46087,7 +46019,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     }
 
     if (typeof operand === 'string') {
-      return constants.string(operand);
+      return constants.value(operand);
     }
 
     if (operand === null) {
@@ -46095,55 +46027,23 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     }
 
     switch (operand.type) {
-      case 'array':
-        return constants.array(operand.value);
-
       case 'string-array':
-        return constants.stringArray(operand.value);
+        return constants.array(operand.value);
 
       case 'serializable':
         return constants.serializable(operand.value);
 
-      case 'template-meta':
-        return constants.templateMeta(operand.value);
-
-      case 'other':
-        // TODO: Bad cast
-        return constants.other(operand.value);
-
       case 'stdlib':
         return operand;
 
+      case 'immediate':
+        return (0, _util.encodeImmediate)(operand.value);
+
       case 'primitive':
-        {
-          switch (operand.value.type) {
-            case 1
-            /* STRING */
-            :
-              return (0, _util.encodeHandle)(constants.string(operand.value.primitive), 1073741823
-              /* STRING_MAX_INDEX */
-              , -1
-              /* STRING_MAX_HANDLE */
-              );
-
-            case 2
-            /* NUMBER */
-            :
-              return (0, _util.encodeHandle)(constants.number(operand.value.primitive), 1073741823
-              /* NUMBER_MAX_INDEX */
-              , -1073741825
-              /* NUMBER_MAX_HANDLE */
-              );
-
-            case 0
-            /* IMMEDIATE */
-            :
-              return (0, _util.encodeImmediate)(operand.value.primitive);
-
-            default:
-              return (0, _util.exhausted)(operand.value);
-          }
-        }
+      case 'template-meta':
+      case 'array':
+      case 'other':
+        return (0, _util.encodeHandle)(constants.value(operand.value));
 
       case 'lookup':
         throw (0, _util.unreachable)('lookup not reachable');
@@ -47032,46 +46932,28 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
   _exports.patchStdlibs = patchStdlibs;
   _exports.programArtifacts = programArtifacts;
   _exports.artifacts = artifacts;
-  _exports.RuntimeOpImpl = _exports.RuntimeProgramImpl = _exports.HeapImpl = _exports.RuntimeHeapImpl = _exports.JitConstants = _exports.RuntimeConstantsImpl = _exports.WriteOnlyConstants = _exports.WELL_KNOWN_EMPTY_ARRAY_POSITION = void 0;
-  var UNRESOLVED = {};
-  var WELL_KNOWN_EMPTY_ARRAY_POSITION = 0;
-  _exports.WELL_KNOWN_EMPTY_ARRAY_POSITION = WELL_KNOWN_EMPTY_ARRAY_POSITION;
-  var WELL_KNOW_EMPTY_ARRAY = Object.freeze([]);
+  _exports.RuntimeOpImpl = _exports.RuntimeProgramImpl = _exports.HeapImpl = _exports.RuntimeHeapImpl = _exports.JitConstants = _exports.RuntimeConstantsImpl = _exports.WriteOnlyConstants = void 0;
+  var WELL_KNOWN_EMPTY_ARRAY = Object.freeze([]);
+  var STARTER_CONSTANTS = (0, _util.constants)(WELL_KNOWN_EMPTY_ARRAY);
+  var WELL_KNOWN_EMPTY_ARRAY_POSITION = STARTER_CONSTANTS.indexOf(WELL_KNOWN_EMPTY_ARRAY);
 
   class WriteOnlyConstants {
     constructor() {
       // `0` means NULL
-      this.strings = [];
-      this.arrays = [WELL_KNOW_EMPTY_ARRAY];
-      this.tables = [];
-      this.handles = [];
-      this.resolved = [];
-      this.numbers = [];
-      this.others = [];
+      this.values = STARTER_CONSTANTS.slice();
+      this.indexMap = new Map(this.values.map((value, index) => [value, index]));
     }
 
-    other(other) {
-      return this.others.push(other) - 1;
-    }
+    value(value) {
+      var indexMap = this.indexMap;
+      var index = indexMap.get(value);
 
-    string(value) {
-      var index = this.strings.indexOf(value);
-
-      if (index > -1) {
-        return index;
+      if (index === undefined) {
+        index = this.values.push(value) - 1;
+        indexMap.set(value, index);
       }
 
-      return this.strings.push(value) - 1;
-    }
-
-    stringArray(strings) {
-      var _strings = new Array(strings.length);
-
-      for (var i = 0; i < strings.length; i++) {
-        _strings[i] = this.string(strings[i]);
-      }
-
-      return this.array(_strings);
+      return index;
     }
 
     array(values) {
@@ -47079,47 +46961,22 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
         return WELL_KNOWN_EMPTY_ARRAY_POSITION;
       }
 
-      var index = this.arrays.indexOf(values);
+      var handles = new Array(values.length);
 
-      if (index > -1) {
-        return index;
+      for (var i = 0; i < values.length; i++) {
+        handles[i] = this.value(values[i]);
       }
 
-      return this.arrays.push(values) - 1;
+      return this.value(handles);
     }
 
     serializable(value) {
       var str = JSON.stringify(value);
-      var index = this.strings.indexOf(str);
-
-      if (index > -1) {
-        return index;
-      }
-
-      return this.strings.push(str) - 1;
-    }
-
-    templateMeta(value) {
-      return this.serializable(value);
-    }
-
-    number(number) {
-      var index = this.numbers.indexOf(number);
-
-      if (index > -1) {
-        return index;
-      }
-
-      return this.numbers.push(number) - 1;
+      return this.value(str);
     }
 
     toPool() {
-      return {
-        strings: this.strings,
-        arrays: this.arrays,
-        handles: this.handles,
-        numbers: this.numbers
-      };
+      return this.values;
     }
 
   }
@@ -47128,48 +46985,27 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
 
   class RuntimeConstantsImpl {
     constructor(pool) {
-      this.strings = pool.strings;
-      this.arrays = pool.arrays;
-      this.handles = pool.handles;
-      this.numbers = pool.numbers;
-      this.others = [];
+      this.values = pool;
     }
 
-    getString(value) {
-      return this.strings[value];
-    }
-
-    getNumber(value) {
-      return this.numbers[value];
-    }
-
-    getStringArray(value) {
-      var names = this.getArray(value);
-
-      var _names = new Array(names.length);
-
-      for (var i = 0; i < names.length; i++) {
-        var n = names[i];
-        _names[i] = this.getString(n);
-      }
-
-      return _names;
+    getValue(handle) {
+      return this.values[handle];
     }
 
     getArray(value) {
-      return this.arrays[value];
+      var handles = this.getValue(value);
+      var reified = new Array(handles.length);
+
+      for (var i = 0; i < handles.length; i++) {
+        var n = handles[i];
+        reified[i] = this.getValue(n);
+      }
+
+      return reified;
     }
 
     getSerializable(s) {
-      return JSON.parse(this.strings[s]);
-    }
-
-    getTemplateMeta(m) {
-      return this.getSerializable(m);
-    }
-
-    getOther(value) {
-      return this.others[value];
+      return JSON.parse(this.values[s]);
     }
 
   }
@@ -47177,66 +47013,41 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
   _exports.RuntimeConstantsImpl = RuntimeConstantsImpl;
 
   class JitConstants extends WriteOnlyConstants {
-    constructor(pool) {
-      super();
-      this.metas = [];
-
-      if (pool) {
-        this.strings = pool.strings;
-        this.arrays = pool.arrays;
-        this.handles = pool.handles;
-        this.resolved = this.handles.map(() => UNRESOLVED);
-        this.numbers = pool.numbers;
-      }
-
-      this.others = [];
+    constructor() {
+      super(...arguments);
+      this.reifiedArrs = {
+        [WELL_KNOWN_EMPTY_ARRAY_POSITION]: WELL_KNOWN_EMPTY_ARRAY
+      };
     }
 
     templateMeta(meta) {
-      var index = this.metas.indexOf(meta);
+      return this.value(meta);
+    }
 
-      if (index > -1) {
-        return index;
+    getValue(index) {
+      return this.values[index];
+    }
+
+    getArray(index) {
+      var reifiedArrs = this.reifiedArrs;
+      var reified = reifiedArrs[index];
+
+      if (reified === undefined) {
+        var names = this.getValue(index);
+        reified = new Array(names.length);
+
+        for (var i = 0; i < names.length; i++) {
+          reified[i] = this.getValue(names[i]);
+        }
+
+        reifiedArrs[index] = reified;
       }
 
-      return this.metas.push(meta) - 1;
-    }
-
-    getNumber(value) {
-      return this.numbers[value];
-    }
-
-    getString(value) {
-      return this.strings[value];
-    }
-
-    getStringArray(value) {
-      var names = this.getArray(value);
-
-      var _names = new Array(names.length);
-
-      for (var i = 0; i < names.length; i++) {
-        var n = names[i];
-        _names[i] = this.getString(n);
-      }
-
-      return _names;
-    }
-
-    getArray(value) {
-      return this.arrays[value];
+      return reified;
     }
 
     getSerializable(s) {
-      return JSON.parse(this.strings[s]);
-    }
-
-    getTemplateMeta(m) {
-      return this.metas[m];
-    }
-
-    getOther(value) {
-      return this.others[value];
+      return JSON.parse(this.getValue(s));
     }
 
   }
@@ -47575,16 +47386,16 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
   _exports.HeapImpl = HeapImpl;
 
   class RuntimeProgramImpl {
-    constructor(constants, heap) {
-      this.constants = constants;
+    constructor(constants$$1, heap) {
+      this.constants = constants$$1;
       this.heap = heap;
       this._opcode = new RuntimeOpImpl(this.heap);
     }
 
     static hydrate(artifacts) {
       var heap = new RuntimeHeapImpl(artifacts.heap);
-      var constants = new RuntimeConstantsImpl(artifacts.constants);
-      return new RuntimeProgramImpl(constants, heap);
+      var constants$$1 = new RuntimeConstantsImpl(artifacts.constants);
+      return new RuntimeProgramImpl(constants$$1, heap);
     }
 
     opcode(offset) {
@@ -47598,8 +47409,8 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
 
   function hydrateProgram(artifacts) {
     var heap = new RuntimeHeapImpl(artifacts.heap);
-    var constants = new RuntimeConstantsImpl(artifacts.constants);
-    return new RuntimeProgramImpl(constants, heap);
+    var constants$$1 = new RuntimeConstantsImpl(artifacts.constants);
+    return new RuntimeProgramImpl(constants$$1, heap);
   }
 
   function slice(arr, start, end) {
@@ -47635,10 +47446,10 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
 
   function programArtifacts(program) {
     var heap = program.heap.capture(program.stdlib);
-    var constants = program.constants.toPool();
+    var constants$$1 = program.constants.toPool();
     return {
       heap,
-      constants
+      constants: constants$$1
     };
   }
 
@@ -48349,7 +48160,7 @@ define("@glimmer/reference", ["exports", "@glimmer/util", "@glimmer/validator"],
 
   }
 });
-define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@glimmer/program", "@glimmer/vm", "@glimmer/validator", "@glimmer/low-level"], function (_exports, _util, _reference, _program, _vm2, _validator, _lowLevel) {
+define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@glimmer/validator", "@glimmer/program", "@glimmer/vm", "@glimmer/low-level"], function (_exports, _util, _reference, _validator, _program, _vm2, _lowLevel) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -48718,7 +48529,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
       if (undestroyed.length > 0) {
         var objectsToString = undestroyed.map(_util.debugToString).join('\n    ');
-        throw new Error(`Some destroyables were not destroyed during this test:\n    ${objectsToString}`);
+        var error = new Error(`Some destroyables were not destroyed during this test:\n    ${objectsToString}`);
+        error.destroyables = undestroyed;
+        throw error;
       }
     };
   }
@@ -49600,11 +49413,19 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     constructor(inner, toBool = defaultToBool) {
       this.inner = inner;
       this.toBool = toBool;
-      this.tag = inner.tag;
+      this._tag = (0, _validator.createUpdatableTag)();
+      this.tag = (0, _validator.combine)([inner.tag, this._tag]);
     }
 
     value() {
-      return this.toBool(this.inner.value());
+      var ret;
+      var {
+        toBool,
+        inner
+      } = this;
+      var tag = (0, _validator.track)(() => ret = toBool(inner.value()));
+      (0, _validator.updateTag)(this._tag, tag);
+      return ret;
     }
 
   }
@@ -50253,7 +50074,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.isInteractive = typeof this.delegate.isInteractive === 'boolean' ? this.delegate.isInteractive : true;
       this.protocolForURL = defaultDelegateFn(this.delegate.protocolForURL, defaultGetProtocolForURL);
       this.attributeFor = defaultDelegateFn(this.delegate.attributeFor, defaultAttributeFor);
-      this.getPath = defaultDelegateFn(this.delegate.getPath, defaultGetPath);
+      this.getProp = defaultDelegateFn(this.delegate.getProp, defaultGetProp);
+      this.getPath = defaultDelegateFn(this.delegate.getPath, defaultGetProp);
       this.setPath = defaultDelegateFn(this.delegate.setPath, defaultSetPath);
       this.toBool = defaultDelegateFn(this.delegate.toBool, defaultToBool$1);
       this.toIterator = defaultDelegateFn(this.delegate.toIterator, defaultToIterator);
@@ -50358,7 +50180,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     return dynamicAttribute(element, attr, namespace);
   }
 
-  function defaultGetPath(obj, key) {
+  function defaultGetProp(obj, key) {
     return obj[key];
   }
 
@@ -50626,7 +50448,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }) => {
     var stack = vm.stack;
     var helper = vm.runtime.resolver.resolve(handle);
-    var args = stack.pop();
+    var args = stack.popJs();
     var value = helper(args, vm);
     vm.loadValue(_vm2.$v0, value);
   });
@@ -50636,7 +50458,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: symbol$$1
   }) => {
     var expr = vm.referenceForSymbol(symbol$$1);
-    vm.stack.push(expr);
+    vm.stack.pushJs(expr);
   });
   APPEND_OPCODES.add(19
   /* SetVariable */
@@ -50651,9 +50473,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: symbol$$1
   }) => {
-    var handle = vm.stack.pop();
-    var scope = vm.stack.pop();
-    var table = vm.stack.pop();
+    var handle = vm.stack.popJs();
+    var scope = vm.stack.popJs();
+    var table = vm.stack.popJs();
     var block = table ? [handle, scope, table] : null;
     vm.scope().bindBlock(symbol$$1, block);
   }, 'jit');
@@ -50662,9 +50484,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: symbol$$1
   }) => {
-    var handle = vm.stack.pop();
-    var scope = vm.stack.pop();
-    var table = vm.stack.pop();
+    // In DEBUG handles could be ErrHandle objects
+    var handle = true
+    /* DEBUG */
+    ? vm.stack.pop() : vm.stack.popSmallInt();
+    var scope = vm.stack.popJs();
+    var table = vm.stack.popJs();
     var block = table ? [handle, scope, table] : null;
     vm.scope().bindBlock(symbol$$1, block);
   });
@@ -50673,7 +50498,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: _name
   }) => {
-    var name = vm[CONSTANTS].getString(_name);
+    var name = vm[CONSTANTS].getValue(_name);
     var locals = vm.scope().getPartialMap();
     var ref = locals[name];
 
@@ -50681,7 +50506,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       ref = vm.getSelf().get(name);
     }
 
-    vm.stack.push(ref);
+    vm.stack.pushJs(ref);
   });
   APPEND_OPCODES.add(37
   /* RootScope */
@@ -50695,9 +50520,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: _key
   }) => {
-    var key = vm[CONSTANTS].getString(_key);
-    var expr = vm.stack.pop();
-    vm.stack.push(expr.get(key));
+    var key = vm[CONSTANTS].getValue(_key);
+    var expr = vm.stack.popJs();
+    vm.stack.pushJs(expr.get(key));
   });
   APPEND_OPCODES.add(24
   /* GetBlock */
@@ -50708,7 +50533,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       stack
     } = vm;
     var block = vm.scope().getBlock(_block);
-    stack.push(block);
+
+    if (block === null) {
+      stack.pushNull();
+    } else {
+      stack.pushJs(block);
+    }
   });
   APPEND_OPCODES.add(25
   /* JitSpreadBlock */
@@ -50716,16 +50546,22 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var {
       stack
     } = vm;
-    var block = stack.pop();
+    var block = stack.popJs();
 
     if (block && !isUndefinedReference(block)) {
-      stack.push(block[2]);
-      stack.push(block[1]);
-      stack.push(block[0]);
+      var [handleOrCompilable, scope, table] = block;
+      stack.pushJs(table);
+      stack.pushJs(scope);
+
+      if (typeof handleOrCompilable === 'number') {
+        stack.pushSmallInt(handleOrCompilable);
+      } else {
+        stack.pushJs(handleOrCompilable);
+      }
     } else {
-      stack.push(null);
-      stack.push(null);
-      stack.push(null);
+      stack.pushNull();
+      stack.pushNull();
+      stack.pushNull();
     }
   });
 
@@ -50742,9 +50578,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var block = stack.pop();
 
     if (block && !isUndefinedReference(block)) {
-      stack.push(TRUE_REFERENCE);
+      stack.pushJs(TRUE_REFERENCE);
     } else {
-      stack.push(FALSE_REFERENCE);
+      stack.pushJs(FALSE_REFERENCE);
     }
   });
   APPEND_OPCODES.add(27
@@ -50752,10 +50588,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , vm => {
     // FIXME(mmun): should only need to push the symbol table
     var block = vm.stack.pop();
-    var scope = vm.stack.pop();
-    var table = vm.stack.pop();
+    var scope = vm.stack.popJs();
+    var table = vm.stack.popJs();
     var hasBlockParams = table && table.parameters.length;
-    vm.stack.push(hasBlockParams ? TRUE_REFERENCE : FALSE_REFERENCE);
+    vm.stack.pushJs(hasBlockParams ? TRUE_REFERENCE : FALSE_REFERENCE);
   });
   APPEND_OPCODES.add(28
   /* Concat */
@@ -50769,7 +50605,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       out[offset] = vm.stack.pop();
     }
 
-    vm.stack.push(new ConcatReference(out));
+    vm.stack.pushJs(new ConcatReference(out));
   });
   /**
    * Converts a ComponentCapabilities object into a 32-bit integer representation.
@@ -51049,7 +50885,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   APPEND_OPCODES.add(43
   /* AppendHTML */
   , vm => {
-    var reference = vm.stack.pop();
+    var reference = vm.stack.popJs();
     var rawValue = reference.value();
     var value = isEmpty(rawValue) ? '' : String(rawValue);
     vm.elements().appendDynamicHTML(value);
@@ -51057,7 +50893,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   APPEND_OPCODES.add(44
   /* AppendSafeHTML */
   , vm => {
-    var reference = vm.stack.pop();
+    var reference = vm.stack.popJs();
     var rawValue = reference.value().toHTML();
     var value = isEmpty(rawValue) ? '' : rawValue;
     vm.elements().appendDynamicHTML(value);
@@ -51065,7 +50901,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   APPEND_OPCODES.add(47
   /* AppendText */
   , vm => {
-    var reference = vm.stack.pop();
+    var reference = vm.stack.popJs();
     var rawValue = reference.value();
     var value = isEmpty(rawValue) ? '' : String(rawValue);
     var node = vm.elements().appendDynamicText(value);
@@ -51077,14 +50913,14 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   APPEND_OPCODES.add(45
   /* AppendDocumentFragment */
   , vm => {
-    var reference = vm.stack.pop();
+    var reference = vm.stack.popJs();
     var value = reference.value();
     vm.elements().appendDynamicFragment(value);
   });
   APPEND_OPCODES.add(46
   /* AppendNode */
   , vm => {
-    var reference = vm.stack.pop();
+    var reference = vm.stack.popJs();
     var value = reference.value();
     vm.elements().appendDynamicNode(value);
   });
@@ -51105,7 +50941,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: other
   }) => {
-    vm.stack.push(vm[CONSTANTS].getOther(other));
+    vm.stack.pushJs(vm[CONSTANTS].getValue((0, _util.decodeHandle)(other)));
   });
   APPEND_OPCODES.add(30
   /* Primitive */
@@ -51114,24 +50950,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }) => {
     var stack = vm.stack;
 
-    if ((0, _util.isHandle)(primitive)) {
-      var value;
-
-      if (primitive > -1073741825
-      /* NUMBER_MAX_HANDLE */
-      ) {
-          value = vm[CONSTANTS].getString((0, _util.decodeHandle)(primitive, -1
-          /* STRING_MAX_HANDLE */
-          ));
-        } else {
-        value = vm[CONSTANTS].getNumber((0, _util.decodeHandle)(primitive, -1073741825
-        /* NUMBER_MAX_HANDLE */
-        ));
-      }
-
+    if ((0, _util.isNonPrimitiveHandle)(primitive)) {
+      // it is a handle which does not already exist on the stack
+      var value = vm[CONSTANTS].getValue((0, _util.decodeHandle)(primitive));
       stack.pushJs(value);
     } else {
-      // is already an encoded immediate
+      // is already an encoded immediate or primitive handle
       stack.pushRaw(primitive);
     }
   });
@@ -51139,13 +50963,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   /* PrimitiveReference */
   , vm => {
     var stack = vm.stack;
-    stack.push(PrimitiveReference.create(stack.pop()));
+    stack.pushJs(PrimitiveReference.create(stack.pop()));
   });
   APPEND_OPCODES.add(32
   /* ReifyU32 */
   , vm => {
     var stack = vm.stack;
-    stack.push(stack.peek().value());
+    stack.pushSmallInt(stack.peekJs().value());
   });
   APPEND_OPCODES.add(33
   /* Dup */
@@ -51203,13 +51027,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: _table
   }) => {
     var stack = vm.stack;
-    stack.push(vm[CONSTANTS].getSerializable(_table));
+    stack.pushJs(vm[CONSTANTS].getSerializable(_table));
   });
   APPEND_OPCODES.add(62
   /* PushBlockScope */
   , vm => {
     var stack = vm.stack;
-    stack.push(vm.scope());
+    stack.pushJs(vm.scope());
   });
   APPEND_OPCODES.add(61
   /* CompileBlock */
@@ -51218,9 +51042,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var block = stack.pop();
 
     if (block) {
-      stack.push(vm.compile(block));
+      stack.pushSmallInt(vm.compile(block));
     } else {
-      stack.push(null);
+      stack.pushNull();
     }
   }, 'jit');
   APPEND_OPCODES.add(64
@@ -51230,8 +51054,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       stack
     } = vm;
     var handle = stack.pop();
-    var scope = stack.pop();
-    var table = stack.pop();
+    var scope = stack.popJs();
+    var table = stack.popJs();
     var args = stack.pop();
 
     if (table === null) {
@@ -51265,7 +51089,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: target
   }) => {
-    var reference = vm.stack.pop();
+    var reference = vm.stack.popJs();
 
     if ((0, _validator.isConstTagged)(reference)) {
       if (reference.value()) {
@@ -51286,7 +51110,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: target
   }) => {
-    var reference = vm.stack.pop();
+    var reference = vm.stack.popJs();
 
     if ((0, _validator.isConstTagged)(reference)) {
       if (!reference.value()) {
@@ -51308,7 +51132,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: target,
     op2: comparison
   }) => {
-    var other = vm.stack.peek();
+    var other = vm.stack.peekSmallInt();
 
     if (other === comparison) {
       vm.goto(target);
@@ -51317,7 +51141,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   APPEND_OPCODES.add(68
   /* AssertSame */
   , vm => {
-    var reference = vm.stack.peek();
+    var reference = vm.stack.peekJs();
 
     if (!(0, _validator.isConstTagged)(reference)) {
       vm.updateWith(Assert.initialize(new _reference.ReferenceCache(reference)));
@@ -51330,7 +51154,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       env,
       stack
     } = vm;
-    stack.push(env.toConditionalReference(stack.pop()));
+    stack.pushJs(env.toConditionalReference(stack.popJs()));
   });
 
   class Assert extends UpdatingOpcode {
@@ -51410,34 +51234,34 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: text
   }) => {
-    vm.elements().appendText(vm[CONSTANTS].getString(text));
+    vm.elements().appendText(vm[CONSTANTS].getValue(text));
   });
   APPEND_OPCODES.add(42
   /* Comment */
   , (vm, {
     op1: text
   }) => {
-    vm.elements().appendComment(vm[CONSTANTS].getString(text));
+    vm.elements().appendComment(vm[CONSTANTS].getValue(text));
   });
   APPEND_OPCODES.add(48
   /* OpenElement */
   , (vm, {
     op1: tag
   }) => {
-    vm.elements().openElement(vm[CONSTANTS].getString(tag));
+    vm.elements().openElement(vm[CONSTANTS].getValue(tag));
   });
   APPEND_OPCODES.add(49
   /* OpenDynamicElement */
   , vm => {
-    var tagName = vm.stack.pop().value();
+    var tagName = vm.stack.popJs().value();
     vm.elements().openElement(tagName);
   });
   APPEND_OPCODES.add(50
   /* PushRemoteElement */
   , vm => {
-    var elementRef = vm.stack.pop();
-    var insertBeforeRef = vm.stack.pop();
-    var guidRef = vm.stack.pop();
+    var elementRef = vm.stack.popJs();
+    var insertBeforeRef = vm.stack.popJs();
+    var guidRef = vm.stack.popJs();
     var element;
     var insertBefore;
     var guid = guidRef.value();
@@ -51508,7 +51332,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       state
     } = vm.runtime.resolver.resolve(handle);
     var stack = vm.stack;
-    var args = stack.pop();
+    var args = stack.popJs();
     var {
       constructing,
       updateOperations
@@ -51557,9 +51381,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op2: _value,
     op3: _namespace
   }) => {
-    var name = vm[CONSTANTS].getString(_name);
-    var value = vm[CONSTANTS].getString(_value);
-    var namespace = _namespace ? vm[CONSTANTS].getString(_namespace) : null;
+    var name = vm[CONSTANTS].getValue(_name);
+    var value = vm[CONSTANTS].getValue(_value);
+    var namespace = _namespace ? vm[CONSTANTS].getValue(_namespace) : null;
     vm.elements().setStaticAttribute(name, value, namespace);
   });
   APPEND_OPCODES.add(52
@@ -51569,10 +51393,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op2: trusting,
     op3: _namespace
   }) => {
-    var name = vm[CONSTANTS].getString(_name);
-    var reference = vm.stack.pop();
+    var name = vm[CONSTANTS].getValue(_name);
+    var reference = vm.stack.popJs();
     var value = reference.value();
-    var namespace = _namespace ? vm[CONSTANTS].getString(_namespace) : null;
+    var namespace = _namespace ? vm[CONSTANTS].getValue(_namespace) : null;
     var attribute = vm.elements().setDynamicAttribute(name, value, !!trusting, namespace);
 
     if (!(0, _validator.isConstTagged)(reference)) {
@@ -51623,15 +51447,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   /* IsComponent */
   , vm => {
     var stack = vm.stack;
-    var ref = stack.pop();
-    stack.push(new ConditionalReference(ref, isCurriedComponentDefinition));
+    var ref = stack.popJs();
+    stack.pushJs(new ConditionalReference(ref, isCurriedComponentDefinition));
   });
   APPEND_OPCODES.add(78
   /* ContentType */
   , vm => {
     var stack = vm.stack;
-    var ref = stack.peek();
-    stack.push(new ContentTypeReference(ref));
+    var ref = stack.peekJs();
+    stack.pushJs(new ContentTypeReference(ref));
   });
   APPEND_OPCODES.add(79
   /* CurryComponent */
@@ -51639,9 +51463,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: _meta
   }) => {
     var stack = vm.stack;
-    var definition = stack.pop();
-    var capturedArgs = stack.pop();
-    var meta = vm[CONSTANTS].getTemplateMeta(_meta);
+    var definition = stack.popJs();
+    var capturedArgs = stack.popJs();
+    var meta = vm[CONSTANTS].getValue((0, _util.decodeHandle)(_meta));
     var resolver = vm.runtime.resolver;
     vm.loadValue(_vm2.$v0, new CurryComponentReference(definition, resolver, meta, capturedArgs)); // expectStackChange(vm.stack, -args.length - 1, 'CurryComponent');
   });
@@ -51665,7 +51489,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       table: null,
       lookup: null
     };
-    vm.stack.push(instance);
+    vm.stack.pushJs(instance);
   });
   APPEND_OPCODES.add(83
   /* ResolveDynamicComponent */
@@ -51673,8 +51497,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: _meta
   }) => {
     var stack = vm.stack;
-    var component = stack.pop().value();
-    var meta = vm[CONSTANTS].getTemplateMeta(_meta);
+    var component = stack.popJs().value();
+    var meta = vm[CONSTANTS].getValue((0, _util.decodeHandle)(_meta));
     vm.loadValue(_vm2.$t1, null); // Clear the temp register
 
     var definition;
@@ -51688,7 +51512,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       throw (0, _util.unreachable)();
     }
 
-    stack.push(definition);
+    stack.pushJs(definition);
   });
   APPEND_OPCODES.add(81
   /* PushDynamicComponentInstance */
@@ -51706,7 +51530,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       capabilities = capabilityFlagsFrom(manager.getCapabilities(definition.state));
     }
 
-    stack.push({
+    stack.pushJs({
       definition,
       capabilities,
       manager,
@@ -51719,7 +51543,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   /* PushCurriedComponent */
   , vm => {
     var stack = vm.stack;
-    var component = stack.pop().value();
+    var component = stack.popJs().value();
     var definition;
 
     if (isCurriedComponentDefinition(component)) {
@@ -51728,7 +51552,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       throw (0, _util.unreachable)();
     }
 
-    stack.push(definition);
+    stack.pushJs(definition);
   });
   APPEND_OPCODES.add(84
   /* PushArgs */
@@ -51738,12 +51562,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op3: flags
   }) => {
     var stack = vm.stack;
-    var names = vm[CONSTANTS].getStringArray(_names);
+    var names = vm[CONSTANTS].getArray(_names);
     var positionalCount = flags >> 4;
     var atNames = flags & 0b1000;
-    var blockNames = flags & 0b0111 ? vm[CONSTANTS].getStringArray(_blockNames) : _util.EMPTY_ARRAY;
+    var blockNames = flags & 0b0111 ? vm[CONSTANTS].getArray(_blockNames) : _util.EMPTY_ARRAY;
     vm[ARGS].setup(stack, names, blockNames, positionalCount, !!atNames);
-    stack.push(vm[ARGS]);
+    stack.pushJs(vm[ARGS]);
   });
   APPEND_OPCODES.add(85
   /* PushEmptyArgs */
@@ -51751,15 +51575,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var {
       stack
     } = vm;
-    stack.push(vm[ARGS].empty(stack));
+    stack.pushJs(vm[ARGS].empty(stack));
   });
   APPEND_OPCODES.add(88
   /* CaptureArgs */
   , vm => {
     var stack = vm.stack;
-    var args = stack.pop();
+    var args = stack.popJs();
     var capturedArgs = args.capture();
-    stack.push(capturedArgs);
+    stack.pushJs(capturedArgs);
   });
   APPEND_OPCODES.add(87
   /* PrepareArgs */
@@ -51768,7 +51592,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }) => {
     var stack = vm.stack;
     var instance = vm.fetchValue(_state);
-    var args = stack.pop();
+    var args = stack.popJs();
     var {
       definition
     } = instance;
@@ -51786,7 +51610,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     if (!managerHasCapability(manager, capabilities, 4
     /* PrepareArgs */
     )) {
-      stack.push(args);
+      stack.pushJs(args);
       return;
     }
 
@@ -51798,7 +51622,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       args.clear();
 
       for (var i = 0; i < blocks.length; i++) {
-        stack.push(blocks[i]);
+        var block = blocks[i];
+
+        if (typeof block === 'number') {
+          stack.pushSmallInt(block);
+        } else {
+          stack.pushJs(block);
+        }
       }
 
       var {
@@ -51808,19 +51638,19 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       var positionalCount = positional.length;
 
       for (var _i4 = 0; _i4 < positionalCount; _i4++) {
-        stack.push(positional[_i4]);
+        stack.pushJs(positional[_i4]);
       }
 
       var names = Object.keys(named);
 
       for (var _i5 = 0; _i5 < names.length; _i5++) {
-        stack.push(named[names[_i5]]);
+        stack.pushJs(named[names[_i5]]);
       }
 
       args.setup(stack, names, blockNames, positionalCount, false);
     }
 
-    stack.push(args);
+    stack.pushJs(args);
   });
 
   function resolveCurriedComponentDefinition(instance, definition, args) {
@@ -51867,7 +51697,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     if (managerHasCapability(manager, capabilities, 8
     /* CreateArgs */
     )) {
-      args = vm.stack.peek();
+      args = vm.stack.peekJs();
     }
 
     var self = null;
@@ -51930,9 +51760,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op2: trusting,
     op3: _namespace
   }) => {
-    var name = vm[CONSTANTS].getString(_name);
-    var reference = vm.stack.pop();
-    var namespace = _namespace ? vm[CONSTANTS].getString(_namespace) : null;
+    var name = vm[CONSTANTS].getValue(_name);
+    var reference = vm.stack.popJs();
+    var namespace = _namespace ? vm[CONSTANTS].getValue(_namespace) : null;
     vm.fetchValue(_vm2.$t0).setAttribute(name, reference, !!trusting, namespace);
   });
   APPEND_OPCODES.add(108
@@ -51942,9 +51772,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op2: _value,
     op3: _namespace
   }) => {
-    var name = vm[CONSTANTS].getString(_name);
-    var value = vm[CONSTANTS].getString(_value);
-    var namespace = _namespace ? vm[CONSTANTS].getString(_namespace) : null;
+    var name = vm[CONSTANTS].getValue(_name);
+    var value = vm[CONSTANTS].getValue(_value);
+    var namespace = _namespace ? vm[CONSTANTS].getValue(_namespace) : null;
     vm.fetchValue(_vm2.$t0).setStaticAttribute(name, value, namespace);
   });
 
@@ -52091,7 +51921,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var {
       manager
     } = definition;
-    vm.stack.push(manager.getSelf(state));
+    vm.stack.pushJs(manager.getSelf(state));
   });
   APPEND_OPCODES.add(93
   /* GetComponentTagName */
@@ -52105,7 +51935,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var {
       manager
     } = definition;
-    vm.stack.push(manager.getTagName(state));
+    var tagName = manager.getTagName(state); // User provided value from JS, so we don't bother to encode
+
+    vm.stack.pushJs(tagName);
   }); // Dynamic Invocation Only
 
   APPEND_OPCODES.add(95
@@ -52144,8 +51976,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     var handle = layout.compile(vm.context);
-    stack.push(layout.symbolTable);
-    stack.push(handle);
+    stack.pushJs(layout.symbolTable);
+
+    if (true
+    /* DEBUG */
+    && (0, _util.isErrHandle)(handle)) {
+      stack.pushJs(handle);
+    } else {
+      stack.pushSmallInt(handle);
+    }
   }, 'jit'); // Dynamic Invocation Only
 
   APPEND_OPCODES.add(94
@@ -52178,8 +52017,15 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       throw (0, _util.unreachable)();
     }
 
-    stack.push(invoke.symbolTable);
-    stack.push(invoke.handle);
+    stack.pushJs(invoke.symbolTable);
+
+    if (true
+    /* DEBUG */
+    && (0, _util.isErrHandle)(invoke.handle)) {
+      stack.pushJs(invoke.handle);
+    } else {
+      stack.pushSmallInt(invoke.handle);
+    }
   }); // These types are absurd here
 
   function hasStaticLayoutCapability(capabilities, _manager) {
@@ -52199,8 +52045,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   , (vm, {
     op1: register
   }) => {
-    var definition = vm.stack.pop();
-    var invocation = vm.stack.pop();
+    var definition = vm.stack.popJs();
+    var invocation = vm.stack.popJs();
     var {
       manager
     } = definition;
@@ -52224,9 +52070,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }) => {
     var {
       stack
-    } = vm;
-    var handle = stack.pop();
-    var table = stack.pop();
+    } = vm; // In DEBUG handles could be ErrHandle objects
+
+    var handle = true
+    /* DEBUG */
+    ? stack.pop() : stack.popSmallInt();
+    var table = stack.popJs();
     var state = vm.fetchValue(_state);
     state.handle = handle;
     state.table = table;
@@ -52260,7 +52109,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }) => {
     var state = vm.fetchValue(_state);
     var scope = vm.scope();
-    var args = vm.stack.peek();
+    var args = vm.stack.peekJs();
     var callerNames = args.named.atNames;
 
     for (var i = callerNames.length - 1; i >= 0; i--) {
@@ -52287,7 +52136,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     var state = vm.fetchValue(_state);
     var {
       blocks
-    } = vm.stack.peek();
+    } = vm.stack.peekJs();
 
     for (var i = 0; i < blocks.names.length; i++) {
       bindBlock(blocks.symbolNames[i], blocks.names[i], state, blocks, vm);
@@ -52438,8 +52287,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: _symbols,
     op2: _evalInfo
   }) => {
-    var symbols = vm[CONSTANTS].getStringArray(_symbols);
-    var evalInfo = vm[CONSTANTS].getArray(_evalInfo);
+    var symbols = vm[CONSTANTS].getArray(_symbols);
+    var evalInfo = vm[CONSTANTS].getValue((0, _util.decodeHandle)(_evalInfo));
     var inspector = new ScopeInspector(vm.scope(), symbols, evalInfo);
     callback(vm.getSelf().value(), path => inspector.get(path).value());
   });
@@ -52451,13 +52300,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op3: _evalInfo
   }) => {
     var {
-      [CONSTANTS]: constants,
+      [CONSTANTS]: constants$$1,
       stack
     } = vm;
-    var name = stack.pop().value();
-    var meta = constants.getTemplateMeta(_meta);
-    var outerSymbols = constants.getStringArray(_symbols);
-    var evalInfo = constants.getArray(_evalInfo);
+    var name = stack.popJs().value();
+    var meta = constants$$1.getValue((0, _util.decodeHandle)(_meta));
+    var outerSymbols = constants$$1.getArray(_symbols);
+    var evalInfo = constants$$1.getValue((0, _util.decodeHandle)(_evalInfo));
     var handle = vm.runtime.resolver.lookupPartial(name, meta);
     var definition = vm.runtime.resolver.resolve(handle);
     var {
@@ -52499,17 +52348,17 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   /* PutIterator */
   , vm => {
     var stack = vm.stack;
-    var listRef = stack.pop();
-    var keyRef = stack.pop();
+    var listRef = stack.popJs();
+    var keyRef = stack.popJs();
     var keyValue = keyRef.value();
     var key = keyValue === null ? '@identity' : String(keyValue);
     var iterableRef = new _reference.IterableReference(listRef, key, vm.env); // Push the first time to push the iterator onto the stack for iteration
 
-    stack.push(iterableRef); // Push the second time to push it as a reference for presence in general
+    stack.pushJs(iterableRef); // Push the second time to push it as a reference for presence in general
     // (e.g whether or not it is empty). This reference will be used to skip
     // iteration entirely.
 
-    stack.push(iterableRef);
+    stack.pushJs(iterableRef);
   });
   APPEND_OPCODES.add(72
   /* EnterList */
@@ -52529,7 +52378,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     op1: breaks
   }) => {
     var stack = vm.stack;
-    var iterable = stack.peek();
+    var iterable = stack.peekJs();
     var item = iterable.next();
 
     if (item) {
@@ -52873,7 +52722,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
           base,
           length
         } = this;
-        references = this._references = stack.sliceArray(base, base + length);
+        references = this._references = stack.slice(base, base + length);
       }
 
       return references;
@@ -53028,24 +52877,21 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         var {
           names: extraNames
         } = other;
-
-        if (Object.isFrozen(names) && names.length === 0) {
-          names = [];
-        }
+        var newNames = names.slice();
 
         for (var i = 0; i < extras; i++) {
           var _name7 = extraNames[i];
-          var idx = names.indexOf(_name7);
+          var idx = newNames.indexOf(_name7);
 
           if (idx === -1) {
-            length = names.push(_name7);
-            stack.push(other.references[i]);
+            length = newNames.push(_name7);
+            stack.pushJs(other.references[i]);
           }
         }
 
         this.length = length;
         this._references = null;
-        this._names = names;
+        this._names = newNames;
         this._atNames = null;
       }
     }
@@ -53059,7 +52905,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
           length,
           stack
         } = this;
-        references = this._references = stack.sliceArray(base, base + length);
+        references = this._references = stack.slice(base, base + length);
       }
 
       return references;
@@ -53189,7 +53035,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
           length,
           stack
         } = this;
-        values = this.internalValues = stack.sliceArray(base, base + length * 3);
+        values = this.internalValues = stack.slice(base, base + length * 3);
       }
 
       return values;
@@ -53302,8 +53148,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
 
     pushFrame() {
-      this.stack.push(this.registers[_vm2.$ra]);
-      this.stack.push(this.registers[_vm2.$fp]);
+      this.stack.pushSmallInt(this.registers[_vm2.$ra]);
+      this.stack.pushSmallInt(this.registers[_vm2.$fp]);
       this.registers[_vm2.$fp] = this.registers[_vm2.$sp] - 1;
     } // Restore $ra, $sp and $fp
 
@@ -53315,11 +53161,11 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     pushSmallFrame() {
-      this.stack.push(this.registers[_vm2.$ra]);
+      this.stack.pushSmallInt(this.registers[_vm2.$ra]);
     }
 
     popSmallFrame() {
-      this.registers[_vm2.$ra] = this.stack.pop();
+      this.registers[_vm2.$ra] = this.stack.popSmallInt();
     } // Jump to an address in `program`
 
 
@@ -53403,7 +53249,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
         case 2
         /* InvokeVirtual */
         :
-          return this.call(this.stack.pop());
+          return this.call(this.stack.popSmallInt());
 
         case 4
         /* Jump */
@@ -53854,26 +53700,16 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
   }
 
   class InnerStack {
-    constructor(inner = new _lowLevel.Stack(), js = []) {
+    constructor(inner = new _lowLevel.Stack(), js) {
       this.inner = inner;
-      this.js = js;
+      this.js = (0, _util.constants)();
+
+      if (js !== undefined) {
+        this.js = this.js.concat(js);
+      }
     }
 
     slice(start, end) {
-      var inner;
-
-      if (typeof start === 'number' && typeof end === 'number') {
-        inner = this.inner.slice(start, end);
-      } else if (typeof start === 'number' && end === undefined) {
-        inner = this.inner.sliceFrom(start);
-      } else {
-        inner = this.inner.clone();
-      }
-
-      return new InnerStack(inner, this.js.slice(start, end));
-    }
-
-    sliceInner(start, end) {
       var out = [];
 
       if (start === -1) {
@@ -53891,42 +53727,56 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.inner.copy(from, to);
     }
 
-    write(pos, value) {
-      switch (typeof value) {
-        case 'boolean':
-        case 'undefined':
-          this.writeRaw(pos, (0, _util.encodeImmediate)(value));
-          break;
-
-        case 'number':
-          if ((0, _util.isSmallInt)(value)) {
-            this.writeRaw(pos, (0, _util.encodeImmediate)(value));
-            break;
-          }
-
-        case 'object':
-          if (value === null) {
-            this.writeRaw(pos, (0, _util.encodeImmediate)(value));
-            break;
-          }
-
-        default:
-          this.writeJs(pos, value);
-      }
-    }
-
     writeJs(pos, value) {
       var idx = this.js.length;
       this.js.push(value);
       this.inner.writeRaw(pos, (0, _util.encodeHandle)(idx));
     }
 
+    writeSmallInt(pos, value) {
+      this.inner.writeRaw(pos, (0, _util.encodeImmediate)(value));
+    }
+
+    writeTrue(pos) {
+      this.inner.writeRaw(pos, 1
+      /* ENCODED_TRUE_HANDLE */
+      );
+    }
+
+    writeFalse(pos) {
+      this.inner.writeRaw(pos, 0
+      /* ENCODED_FALSE_HANDLE */
+      );
+    }
+
+    writeNull(pos) {
+      this.inner.writeRaw(pos, 2
+      /* ENCODED_NULL_HANDLE */
+      );
+    }
+
+    writeUndefined(pos) {
+      this.inner.writeRaw(pos, 3
+      /* ENCODED_UNDEFINED_HANDLE */
+      );
+    }
+
     writeRaw(pos, value) {
       this.inner.writeRaw(pos, value);
     }
 
-    get(pos) {
+    getJs(pos) {
       var value = this.inner.getRaw(pos);
+      return this.js[(0, _util.decodeHandle)(value)];
+    }
+
+    getSmallInt(pos) {
+      var value = this.inner.getRaw(pos);
+      return (0, _util.decodeImmediate)(value);
+    }
+
+    get(pos) {
+      var value = this.inner.getRaw(pos) | 0;
 
       if ((0, _util.isHandle)(value)) {
         return this.js[(0, _util.decodeHandle)(value)];
@@ -53957,18 +53807,48 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       var stack = new InnerStack();
 
       for (var i = 0; i < snapshot.length; i++) {
-        stack.write(i, snapshot[i]);
+        var value = snapshot[i];
+
+        if (typeof value === 'number' && (0, _util.isSmallInt)(value)) {
+          stack.writeRaw(i, (0, _util.encodeImmediate)(value));
+        } else if (value === true) {
+          stack.writeTrue(i);
+        } else if (value === false) {
+          stack.writeFalse(i);
+        } else if (value === null) {
+          stack.writeNull(i);
+        } else if (value === undefined) {
+          stack.writeUndefined(i);
+        } else {
+          stack.writeJs(i, value);
+        }
       }
 
       return new this(stack, initializeRegistersWithSP(snapshot.length - 1));
     }
 
-    push(value) {
-      this.stack.write(++this[REGISTERS][_vm2.$sp], value);
-    }
-
     pushJs(value) {
       this.stack.writeJs(++this[REGISTERS][_vm2.$sp], value);
+    }
+
+    pushSmallInt(value) {
+      this.stack.writeSmallInt(++this[REGISTERS][_vm2.$sp], value);
+    }
+
+    pushTrue() {
+      this.stack.writeTrue(++this[REGISTERS][_vm2.$sp]);
+    }
+
+    pushFalse() {
+      this.stack.writeFalse(++this[REGISTERS][_vm2.$sp]);
+    }
+
+    pushNull() {
+      this.stack.writeNull(++this[REGISTERS][_vm2.$sp]);
+    }
+
+    pushUndefined() {
+      this.stack.writeUndefined(++this[REGISTERS][_vm2.$sp]);
     }
 
     pushRaw(value) {
@@ -53983,10 +53863,30 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       this.stack.copy(from, to);
     }
 
+    popJs(n = 1) {
+      var top = this.stack.getJs(this[REGISTERS][_vm2.$sp]);
+      this[REGISTERS][_vm2.$sp] -= n;
+      return top;
+    }
+
+    popSmallInt(n = 1) {
+      var top = this.stack.getSmallInt(this[REGISTERS][_vm2.$sp]);
+      this[REGISTERS][_vm2.$sp] -= n;
+      return top;
+    }
+
     pop(n = 1) {
       var top = this.stack.get(this[REGISTERS][_vm2.$sp]);
       this[REGISTERS][_vm2.$sp] -= n;
       return top;
+    }
+
+    peekJs(offset = 0) {
+      return this.stack.getJs(this[REGISTERS][_vm2.$sp] - offset);
+    }
+
+    peekSmallInt(offset = 0) {
+      return this.stack.getSmallInt(this[REGISTERS][_vm2.$sp] - offset);
     }
 
     peek(offset = 0) {
@@ -53998,21 +53898,17 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     }
 
     set(value, offset, base = this[REGISTERS][_vm2.$fp]) {
-      this.stack.write(base + offset, value);
+      this.stack.writeJs(base + offset, value);
     }
 
     slice(start, end) {
       return this.stack.slice(start, end);
     }
 
-    sliceArray(start, end) {
-      return this.stack.sliceInner(start, end);
-    }
-
     capture(items) {
       var end = this[REGISTERS][_vm2.$sp] + 1;
       var start = end - items;
-      return this.stack.sliceInner(start, end);
+      return this.stack.slice(start, end);
     }
 
     reset() {
@@ -54021,7 +53917,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
     toArray() {
       console.log(this[REGISTERS]);
-      return this.stack.sliceInner(this[REGISTERS][_vm2.$fp], this[REGISTERS][_vm2.$sp] + 1);
+      return this.stack.slice(this[REGISTERS][_vm2.$fp], this[REGISTERS][_vm2.$sp] + 1);
     }
 
   }
@@ -54092,7 +53988,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
 
 
     fetch(register) {
-      this.stack.push(this.fetchValue(register));
+      var value = this.fetchValue(register);
+      this.stack.pushJs(value);
     } // Load a value from the stack into a register
 
 
@@ -54238,8 +54135,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       } = this;
       var valueRef = iterableRef.childRefFor(key, value);
       var memoRef = iterableRef.childRefFor(key, memo);
-      stack.push(valueRef);
-      stack.push(memoRef);
+      stack.pushJs(valueRef);
+      stack.pushJs(memoRef);
       var state = this.capture(2);
       var block = this.elements().pushUpdatableBlock();
       var opcode = new ListItemOpcode(state, this.runtime, block, key, memoRef, valueRef);
@@ -54256,7 +54153,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       var addr = this[INNER_VM].target(offset);
       var state = this.capture(0, addr);
       var list = this.elements().pushBlockList(updating);
-      var iterableRef = this.stack.peek();
+      var iterableRef = this.stack.peekJs();
       var opcode = new ListBlockOpcode(state, this.runtime, list, updating, iterableRef);
       this[STACKS].list.push(opcode);
       this.didEnter(opcode);
@@ -54414,9 +54311,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
       var scope = this.dynamicScope();
 
       for (var i = names.length - 1; i >= 0; i--) {
-        var _name10 = this[CONSTANTS].getString(names[i]);
-
-        scope.set(_name10, this.stack.pop());
+        var _name10 = names[i];
+        scope.set(_name10, this.stack.popJs());
       }
     }
 
@@ -54588,21 +54484,21 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/reference", "@
     vm.pushFrame(); // Push blocks on to the stack, three stack values per block
 
     for (var i = 0; i < 3 * blockNames.length; i++) {
-      vm.stack.push(null);
+      vm.stack.pushNull();
     }
 
-    vm.stack.push(null); // For each argument, push its backing reference on to the stack
+    vm.stack.pushNull(); // For each argument, push its backing reference on to the stack
 
     argList.forEach(([, reference]) => {
-      vm.stack.push(reference);
+      vm.stack.pushJs(reference);
     }); // Configure VM based on blocks and args just pushed on to the stack.
 
     vm[ARGS].setup(vm.stack, argNames, blockNames, 0, true); // Needed for the Op.Main opcode: arguments, component invocation object, and
     // component definition.
 
-    vm.stack.push(vm[ARGS]);
-    vm.stack.push(invocation);
-    vm.stack.push(definition);
+    vm.stack.pushJs(vm[ARGS]);
+    vm.stack.pushJs(invocation);
+    vm.stack.pushJs(definition);
     return new TemplateIteratorImpl(vm);
   }
 
@@ -55193,12 +55089,18 @@ define("@glimmer/util", ["exports"], function (_exports) {
   _exports.unreachable = unreachable;
   _exports.exhausted = exhausted;
   _exports.strip = strip;
-  _exports.encodeImmediate = encodeImmediate;
-  _exports.decodeImmediate = decodeImmediate;
-  _exports.isSmallInt = isSmallInt;
   _exports.isHandle = isHandle;
+  _exports.isNonPrimitiveHandle = isNonPrimitiveHandle;
+  _exports.constants = constants;
+  _exports.isSmallInt = isSmallInt;
+  _exports.encodeNegative = encodeNegative;
+  _exports.decodeNegative = decodeNegative;
+  _exports.encodePositive = encodePositive;
+  _exports.decodePositive = decodePositive;
   _exports.encodeHandle = encodeHandle;
   _exports.decodeHandle = decodeHandle;
+  _exports.encodeImmediate = encodeImmediate;
+  _exports.decodeImmediate = decodeImmediate;
   _exports.unwrapHandle = unwrapHandle;
   _exports.unwrapTemplate = unwrapTemplate;
   _exports.extractHandle = extractHandle;
@@ -55422,157 +55324,71 @@ define("@glimmer/util", ["exports"], function (_exports) {
 
     return stripped.join('\n');
   }
-  /**
-   * Encodes a value that can be stored directly instead of being a handle.
-   *
-   * Immediates use the positive half of 32bits
-   *
-   * @param value - the value to be encoded.
-   */
 
-
-  function encodeImmediate(value) {
-    if (typeof value === 'number') {
-      // 1073741827 - (-1) == 1073741828
-      // 1073741827 - (-1073741820) == 2147483647
-      // positive it stays as is
-      // 0 - 1073741823
-      return value < 0 ? 1073741827
-      /* NEGATIVE_BASE */
-      - value : value;
-    }
-
-    if (value === false) {
-      return 1073741824
-      /* FALSE */
-      ;
-    }
-
-    if (value === true) {
-      return 1073741825
-      /* TRUE */
-      ;
-    }
-
-    if (value === null) {
-      return 1073741826
-      /* NULL */
-      ;
-    }
-
-    if (value === undefined) {
-      return 1073741827
-      /* UNDEFINED */
-      ;
-    }
-
-    return exhausted(value);
+  function isHandle(value) {
+    return value >= 0;
   }
-  /**
-   * Decodes an immediate into its value.
-   *
-   * @param value - the encoded immediate value
-   */
 
+  function isNonPrimitiveHandle(value) {
+    return value > 3
+    /* ENCODED_UNDEFINED_HANDLE */
+    ;
+  }
 
-  function decodeImmediate(value) {
-    if (value > 1073741823
+  function constants(...values) {
+    return [false, true, null, undefined, ...values];
+  }
+
+  function isSmallInt(value) {
+    return value % 1 === 0 && value <= 536870911
     /* MAX_INT */
-    ) {
-        switch (value) {
-          case 1073741824
-          /* FALSE */
-          :
-            return false;
-
-          case 1073741825
-          /* TRUE */
-          :
-            return true;
-
-          case 1073741826
-          /* NULL */
-          :
-            return null;
-
-          case 1073741827
-          /* UNDEFINED */
-          :
-            return undefined;
-
-          default:
-            // map 1073741828 to 2147483647 to -1 to -1073741820
-            // 1073741827 - 1073741828 == -1
-            // 1073741827 - 2147483647 == -1073741820
-            return 1073741827
-            /* NEGATIVE_BASE */
-            - value;
-        }
-      }
-
-    return value;
-  }
-  /**
-   * True if the number can be stored directly or false if it needs a handle.
-   *
-   * This is used on any number type to see if it can be directly encoded.
-   */
-
-
-  function isSmallInt(num) {
-    return isInt(num, -1073741820
+    && value >= -536870912
     /* MIN_INT */
-    , 1073741823
-    /* MAX_INT */
-    );
-  }
-  /**
-   * True if the encoded int32 operand or encoded stack int32 is a handle.
-   */
-
-
-  function isHandle(encoded) {
-    return encoded < 0;
-  }
-  /**
-   * Encodes an index to an operand or stack handle.
-   */
-
-
-  function encodeHandle(index, maxIndex = 2147483647
-  /* MAX_INDEX */
-  , maxHandle = -1
-  /* MAX_HANDLE */
-  ) {
-    if (index > maxIndex) {
-      throw new Error(`index ${index} overflowed range 0 to ${maxIndex}`);
-    } // -1 - 0 == -1
-    // -1 - 1073741823 == -1073741824
-    // -1073741825 - 0 == -1073741825
-    // -1073741825 - 1073741823 == -2147483648
-
-
-    return maxHandle - index;
-  }
-  /**
-   * Decodes the index from the specified operand or stack handle.
-   */
-
-
-  function decodeHandle(handle, maxHandle = -1
-  /* MAX_HANDLE */
-  ) {
-    // -1 - -1073741824 == 1073741823
-    // -1073741825 - -1073741825 == 0
-    // -1073741825 - -2147483648 == 1073741823
-    return maxHandle - handle;
+    ;
   }
 
-  function isInt(num, min, max) {
-    // this is the same as Math.floor(num) === num
-    // also NaN % 1 is NaN and Infinity % 1 is NaN so both should fail
-    return num % 1 === 0 && num >= min && num <= max;
+  function encodeNegative(num) {
+    return num & -536870913
+    /* SIGN_BIT */
+    ;
   }
+
+  function decodeNegative(num) {
+    return num | ~-536870913
+    /* SIGN_BIT */
+    ;
+  }
+
+  function encodePositive(num) {
+    return ~num;
+  }
+
+  function decodePositive(num) {
+    return ~num;
+  }
+
+  function encodeHandle(num) {
+    return num;
+  }
+
+  function decodeHandle(num) {
+    return num;
+  }
+
+  function encodeImmediate(num) {
+    num |= 0;
+    return num < 0 ? encodeNegative(num) : encodePositive(num);
+  }
+
+  function decodeImmediate(num) {
+    num |= 0;
+    return num > -536870913
+    /* SIGN_BIT */
+    ? decodePositive(num) : decodeNegative(num);
+  } // Warm
+
+
+  [1, -1].forEach(x => decodeImmediate(encodeImmediate(x)));
 
   function unwrapHandle(handle) {
     if (typeof handle === 'number') {
@@ -55694,6 +55510,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
   _exports.valueForTag = valueForTag;
   _exports.dirtyTagFor = dirtyTagFor;
   _exports.tagFor = tagFor;
+  _exports.tagMetaFor = tagMetaFor;
   _exports.setPropertyDidChange = setPropertyDidChange;
   _exports.beginTrackFrame = beginTrackFrame;
   _exports.endTrackFrame = endTrackFrame;
@@ -55905,8 +55722,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
   _exports.CONSTANT = CONSTANT;
   var INITIAL = 1;
   _exports.INITIAL = INITIAL;
-  var VOLATILE = 9007199254740991; // MAX_INT
-
+  var VOLATILE = NaN;
   _exports.VOLATILE = VOLATILE;
   var $REVISION = INITIAL;
 
@@ -55923,19 +55739,13 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
    * determine if the tag has changed at all since the time that `value` was
    * called.
    *
-   * The current implementation returns the global revision count directly for
-   * performance reasons. This is an implementation detail, and should not be
-   * relied on directly by users of these APIs. Instead, Revisions should be
-   * treated as if they are opaque/unknown, and should only be interacted with via
-   * the `value`/`validate` API.
-   *
    * @param tag
    */
 
   _exports.COMPUTE = COMPUTE;
 
-  function valueForTag(_tag) {
-    return $REVISION;
+  function valueForTag(tag) {
+    return tag[COMPUTE]();
   }
   /**
    * `validate` receives a tag and a snapshot from a previous call to `value` with
@@ -55969,7 +55779,6 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
       this.lastChecked = INITIAL;
       this.lastValue = INITIAL;
       this.isUpdating = false;
-      this.subtags = null;
       this.subtag = null;
       this.subtagBufferCache = null;
       this[TYPE] = type;
@@ -55994,29 +55803,26 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
 
         try {
           var {
-            subtags,
             subtag,
-            subtagBufferCache,
-            lastValue,
             revision
           } = this;
 
           if (subtag !== null) {
-            var subtagValue = subtag[COMPUTE]();
-
-            if (subtagValue === subtagBufferCache) {
-              revision = Math.max(revision, lastValue);
+            if (Array.isArray(subtag)) {
+              for (var i = 0; i < subtag.length; i++) {
+                var value = subtag[i][COMPUTE]();
+                revision = Math.max(value, revision);
+              }
             } else {
-              // Clear the temporary buffer cache
-              this.subtagBufferCache = null;
-              revision = Math.max(revision, subtagValue);
-            }
-          }
+              var subtagValue = subtag[COMPUTE]();
 
-          if (subtags !== null) {
-            for (var i = 0; i < subtags.length; i++) {
-              var value = subtags[i][COMPUTE]();
-              revision = Math.max(value, revision);
+              if (subtagValue === this.subtagBufferCache) {
+                revision = Math.max(revision, this.lastValue);
+              } else {
+                // Clear the temporary buffer cache
+                this.subtagBufferCache = null;
+                revision = Math.max(revision, subtagValue);
+              }
             }
           }
 
@@ -56175,10 +55981,28 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
         var tag = new MonomorphicTagImpl(2
         /* Combinator */
         );
-        tag.subtags = tags;
+        tag.subtag = tags;
         return tag;
     }
-  }
+  } // Warm
+
+
+  var tag1 = createUpdatableTag();
+  var tag2 = createUpdatableTag();
+  var tag3 = createUpdatableTag();
+  valueForTag(tag1);
+  dirtyTag(tag1);
+  valueForTag(tag1);
+  updateTag(tag1, combine([tag2, tag3]));
+  valueForTag(tag1);
+  dirtyTag(tag2);
+  valueForTag(tag1);
+  dirtyTag(tag3);
+  valueForTag(tag1);
+  updateTag(tag1, tag3);
+  valueForTag(tag1);
+  dirtyTag(tag3);
+  valueForTag(tag1);
 
   var propertyDidChange = function () {};
 
@@ -56186,52 +56010,58 @@ define("@glimmer/validator", ["exports", "@ember/polyfills"], function (_exports
     propertyDidChange = cb;
   }
 
-  function isObject(u) {
+  function isObjectLike(u) {
     return typeof u === 'object' && u !== null || typeof u === 'function';
   }
 
   var TRACKED_TAGS = new WeakMap();
 
   function dirtyTagFor(obj, key) {
-    if (isObject(obj)) {
-      var tags = TRACKED_TAGS.get(obj); // No tags have been setup for this object yet, return
-
-      if (tags === undefined) return; // Dirty the tag for the specific property if it exists
-
-      var propertyTag = tags.get(key);
-
-      if (propertyTag !== undefined) {
-        if (true
-        /* DEBUG */
-        ) {
-          assertTagNotConsumed(propertyTag, obj, key);
-        }
-
-        dirtyTag(propertyTag);
-        propertyDidChange();
-      }
-    } else {
+    if (true
+    /* DEBUG */
+    && !isObjectLike(obj)) {
       throw new Error(`BUG: Can't update a tag for a primitive`);
+    }
+
+    var tags = TRACKED_TAGS.get(obj); // No tags have been setup for this object yet, return
+
+    if (tags === undefined) return; // Dirty the tag for the specific property if it exists
+
+    var propertyTag = tags.get(key);
+
+    if (propertyTag !== undefined) {
+      if (true
+      /* DEBUG */
+      ) {
+        assertTagNotConsumed(propertyTag, obj, key);
+      }
+
+      dirtyTag(propertyTag);
+      propertyDidChange();
     }
   }
 
-  function tagFor(obj, key) {
-    if (isObject(obj)) {
-      var tags = TRACKED_TAGS.get(obj);
+  function tagMetaFor(obj) {
+    var tags = TRACKED_TAGS.get(obj);
 
-      if (tags === undefined) {
-        tags = new Map();
-        TRACKED_TAGS.set(obj, tags);
-      } else if (tags.has(key)) {
-        return tags.get(key);
-      }
-
-      var tag = createUpdatableTag();
-      tags.set(key, tag);
-      return tag;
-    } else {
-      return CONSTANT_TAG;
+    if (tags === undefined) {
+      tags = new Map();
+      TRACKED_TAGS.set(obj, tags);
     }
+
+    return tags;
+  }
+
+  function tagFor(obj, key, meta) {
+    var tags = meta === undefined ? tagMetaFor(obj) : meta;
+    var tag = tags.get(key);
+
+    if (tag === undefined) {
+      tag = createUpdatableTag();
+      tags.set(key, tag);
+    }
+
+    return tag;
   }
   /**
    * An object that that tracks @tracked properties that were consumed.
@@ -60896,7 +60726,6 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.compare = _runtime.compare;
   Ember.copy = _runtime.copy;
   Ember.isEqual = _runtime.isEqual;
-  Ember._setFrameworkClass = _runtime.setFrameworkClass;
   /**
   @module ember
   */
@@ -61176,7 +61005,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.20.3";
+  var _default = "3.20.4";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
