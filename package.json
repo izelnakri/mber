@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.13.3",
+  "version": "0.13.5",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -37,7 +37,7 @@
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
     "@typescript-eslint/parser": "3.9.1",
-    "ava": "^3.11.1",
+    "ava": "^3.12.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.3",
     "ember-cli-test-loader": "^3.0.0",
