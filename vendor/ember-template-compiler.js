@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.3
+ * @version   3.20.4
  */
 
 /*globals process */
@@ -431,7 +431,7 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.symbol = symbol;
+  _exports.enumerableSymbol = enumerableSymbol;
   _exports.isInternalSymbol = isInternalSymbol;
   _exports.dictionary = makeDictionary;
   _exports.uuid = uuid;
@@ -439,8 +439,7 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   _exports.guidFor = guidFor;
   _exports.intern = intern;
   _exports.wrap = wrap;
-  _exports.getObservers = getObservers;
-  _exports.getListeners = getListeners;
+  _exports.observerListenerMetaFor = observerListenerMetaFor;
   _exports.setObservers = setObservers;
   _exports.setListeners = setListeners;
   _exports.inspect = inspect;
@@ -455,7 +454,7 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
   _exports.isProxy = isProxy;
   _exports.setProxy = setProxy;
   _exports.isEmberArray = isEmberArray;
-  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getOwnPropertyDescriptors = _exports.getDebugName = void 0;
+  _exports.setWithMandatorySetter = _exports.teardownMandatorySetter = _exports.setupMandatorySetter = _exports.EMBER_ARRAY = _exports.Cache = _exports.HAS_NATIVE_PROXY = _exports.HAS_NATIVE_SYMBOL = _exports.ROOT = _exports.checkHasSuper = _exports.GUID_KEY = _exports.getDebugName = _exports.symbol = void 0;
 
   /**
     Strongly hint runtimes to intern the provided string.
@@ -663,26 +662,47 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     return guid;
   }
 
+  var HAS_NATIVE_SYMBOL = function () {
+    if (typeof Symbol !== 'function') {
+      return false;
+    }
+
+    return typeof Symbol() === 'symbol';
+  }();
+
+  _exports.HAS_NATIVE_SYMBOL = HAS_NATIVE_SYMBOL;
   var GENERATED_SYMBOLS = [];
 
   function isInternalSymbol(possibleSymbol) {
     return GENERATED_SYMBOLS.indexOf(possibleSymbol) !== -1;
-  }
+  } // Some legacy symbols still need to be enumerable for a variety of reasons.
+  // This code exists for that, and as a fallback in IE11. In general, prefer
+  // `symbol` below when creating a new symbol.
 
-  function symbol(debugName) {
+
+  function enumerableSymbol(debugName) {
     // TODO: Investigate using platform symbols, but we do not
     // want to require non-enumerability for this API, which
     // would introduce a large cost.
     var id = GUID_KEY + Math.floor(Math.random() * Date.now());
     var symbol = intern("__" + debugName + id + "__");
-    GENERATED_SYMBOLS.push(symbol);
+
+    if (true
+    /* DEBUG */
+    ) {
+      GENERATED_SYMBOLS.push(symbol);
+    }
+
     return symbol;
-  } // the delete is meant to hint at runtimes that this object should remain in
+  }
+
+  var symbol = HAS_NATIVE_SYMBOL ? Symbol : enumerableSymbol; // the delete is meant to hint at runtimes that this object should remain in
   // dictionary mode. This is clearly a runtime specific hack, but currently it
   // appears worthwhile in some usecases. Please note, these deletes do increase
   // the cost of creation dramatically over a plain Object.create. And as this
   // only makes sense for long-lived dictionaries that aren't instantiated often.
 
+  _exports.symbol = symbol;
 
   function makeDictionary(parent) {
     var dict = Object.create(parent);
@@ -747,22 +767,6 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
 
   var getDebugName$1 = getDebugName;
   _exports.getDebugName = getDebugName$1;
-  var getOwnPropertyDescriptors;
-
-  if (Object.getOwnPropertyDescriptors !== undefined) {
-    getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors;
-  } else {
-    getOwnPropertyDescriptors = function getOwnPropertyDescriptors(obj) {
-      var descriptors = {};
-      Object.keys(obj).forEach(function (key) {
-        descriptors[key] = Object.getOwnPropertyDescriptor(obj, key);
-      });
-      return descriptors;
-    };
-  }
-
-  var getOwnPropertyDescriptors$1 = getOwnPropertyDescriptors;
-  _exports.getOwnPropertyDescriptors = getOwnPropertyDescriptors$1;
   var HAS_SUPER_PATTERN = /\.(_super|call\(this|apply\(this)/;
   var fnToString = Function.prototype.toString;
 
@@ -799,26 +803,36 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     return hasSuper;
   }
 
-  var OBSERVERS_MAP = new WeakMap();
+  var ObserverListenerMeta = function ObserverListenerMeta() {
+    this.listeners = undefined;
+    this.observers = undefined;
+  };
+
+  var OBSERVERS_LISTENERS_MAP = new WeakMap();
+
+  function createObserverListenerMetaFor(fn) {
+    var meta = OBSERVERS_LISTENERS_MAP.get(fn);
+
+    if (meta === undefined) {
+      meta = new ObserverListenerMeta();
+      OBSERVERS_LISTENERS_MAP.set(fn, meta);
+    }
+
+    return meta;
+  }
+
+  function observerListenerMetaFor(fn) {
+    return OBSERVERS_LISTENERS_MAP.get(fn);
+  }
 
   function setObservers(func, observers) {
-    OBSERVERS_MAP.set(func, observers);
+    var meta = createObserverListenerMetaFor(func);
+    meta.observers = observers;
   }
-
-  function getObservers(func) {
-    return OBSERVERS_MAP.get(func);
-  }
-
-  var LISTENERS_MAP = new WeakMap();
 
   function setListeners(func, listeners) {
-    if (listeners) {
-      LISTENERS_MAP.set(func, listeners);
-    }
-  }
-
-  function getListeners(func) {
-    return LISTENERS_MAP.get(func);
+    var meta = createObserverListenerMetaFor(func);
+    meta.listeners = listeners;
   }
 
   var IS_WRAPPED_FUNCTION_SET = new _polyfills._WeakSet();
@@ -858,8 +872,12 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     }
 
     IS_WRAPPED_FUNCTION_SET.add(superWrapper);
-    setObservers(superWrapper, getObservers(func));
-    setListeners(superWrapper, getListeners(func));
+    var meta = OBSERVERS_LISTENERS_MAP.get(func);
+
+    if (meta !== undefined) {
+      OBSERVERS_LISTENERS_MAP.set(superWrapper, meta);
+    }
+
     return superWrapper;
   }
 
@@ -1133,15 +1151,6 @@ define("@ember/-internals/utils/index", ["exports", "@ember/polyfills", "@ember/
     return objectToString$1.call(obj);
   }
 
-  var HAS_NATIVE_SYMBOL = function () {
-    if (typeof Symbol !== 'function') {
-      return false;
-    }
-
-    return typeof Symbol() === 'symbol';
-  }();
-
-  _exports.HAS_NATIVE_SYMBOL = HAS_NATIVE_SYMBOL;
   var HAS_NATIVE_PROXY = typeof Proxy === 'function';
   _exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
   var PROXIES = new _polyfills._WeakSet();
@@ -8929,12 +8938,18 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
   _exports.unreachable = unreachable;
   _exports.exhausted = exhausted;
   _exports.strip = strip;
-  _exports.encodeImmediate = encodeImmediate;
-  _exports.decodeImmediate = decodeImmediate;
-  _exports.isSmallInt = isSmallInt;
   _exports.isHandle = isHandle;
+  _exports.isNonPrimitiveHandle = isNonPrimitiveHandle;
+  _exports.constants = constants;
+  _exports.isSmallInt = isSmallInt;
+  _exports.encodeNegative = encodeNegative;
+  _exports.decodeNegative = decodeNegative;
+  _exports.encodePositive = encodePositive;
+  _exports.decodePositive = decodePositive;
   _exports.encodeHandle = encodeHandle;
   _exports.decodeHandle = decodeHandle;
+  _exports.encodeImmediate = encodeImmediate;
+  _exports.decodeImmediate = decodeImmediate;
   _exports.unwrapHandle = unwrapHandle;
   _exports.unwrapTemplate = unwrapTemplate;
   _exports.extractHandle = extractHandle;
@@ -9182,169 +9197,77 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
 
     return stripped.join('\n');
   }
-  /**
-   * Encodes a value that can be stored directly instead of being a handle.
-   *
-   * Immediates use the positive half of 32bits
-   *
-   * @param value - the value to be encoded.
-   */
 
-
-  function encodeImmediate(value) {
-    if (typeof value === 'number') {
-      // 1073741827 - (-1) == 1073741828
-      // 1073741827 - (-1073741820) == 2147483647
-      // positive it stays as is
-      // 0 - 1073741823
-      return value < 0 ? 1073741827
-      /* NEGATIVE_BASE */
-      - value : value;
-    }
-
-    if (value === false) {
-      return 1073741824
-      /* FALSE */
-      ;
-    }
-
-    if (value === true) {
-      return 1073741825
-      /* TRUE */
-      ;
-    }
-
-    if (value === null) {
-      return 1073741826
-      /* NULL */
-      ;
-    }
-
-    if (value === undefined) {
-      return 1073741827
-      /* UNDEFINED */
-      ;
-    }
-
-    return exhausted(value);
+  function isHandle(value) {
+    return value >= 0;
   }
-  /**
-   * Decodes an immediate into its value.
-   *
-   * @param value - the encoded immediate value
-   */
 
+  function isNonPrimitiveHandle(value) {
+    return value > 3
+    /* ENCODED_UNDEFINED_HANDLE */
+    ;
+  }
 
-  function decodeImmediate(value) {
-    if (value > 1073741823
+  function constants() {
+    for (var _len3 = arguments.length, values = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+      values[_key3] = arguments[_key3];
+    }
+
+    return [false, true, null, undefined].concat(values);
+  }
+
+  function isSmallInt(value) {
+    return value % 1 === 0 && value <= 536870911
     /* MAX_INT */
-    ) {
-        switch (value) {
-          case 1073741824
-          /* FALSE */
-          :
-            return false;
-
-          case 1073741825
-          /* TRUE */
-          :
-            return true;
-
-          case 1073741826
-          /* NULL */
-          :
-            return null;
-
-          case 1073741827
-          /* UNDEFINED */
-          :
-            return undefined;
-
-          default:
-            // map 1073741828 to 2147483647 to -1 to -1073741820
-            // 1073741827 - 1073741828 == -1
-            // 1073741827 - 2147483647 == -1073741820
-            return 1073741827
-            /* NEGATIVE_BASE */
-            - value;
-        }
-      }
-
-    return value;
-  }
-  /**
-   * True if the number can be stored directly or false if it needs a handle.
-   *
-   * This is used on any number type to see if it can be directly encoded.
-   */
-
-
-  function isSmallInt(num) {
-    return isInt(num, -1073741820
+    && value >= -536870912
     /* MIN_INT */
-    , 1073741823
-    /* MAX_INT */
-    );
-  }
-  /**
-   * True if the encoded int32 operand or encoded stack int32 is a handle.
-   */
-
-
-  function isHandle(encoded) {
-    return encoded < 0;
-  }
-  /**
-   * Encodes an index to an operand or stack handle.
-   */
-
-
-  function encodeHandle(index, maxIndex
-  /* MAX_INDEX */
-  , maxHandle
-  /* MAX_HANDLE */
-  ) {
-    if (maxIndex === void 0) {
-      maxIndex = 2147483647;
-    }
-
-    if (maxHandle === void 0) {
-      maxHandle = -1;
-    }
-
-    if (index > maxIndex) {
-      throw new Error("index " + index + " overflowed range 0 to " + maxIndex);
-    } // -1 - 0 == -1
-    // -1 - 1073741823 == -1073741824
-    // -1073741825 - 0 == -1073741825
-    // -1073741825 - 1073741823 == -2147483648
-
-
-    return maxHandle - index;
-  }
-  /**
-   * Decodes the index from the specified operand or stack handle.
-   */
-
-
-  function decodeHandle(handle, maxHandle
-  /* MAX_HANDLE */
-  ) {
-    if (maxHandle === void 0) {
-      maxHandle = -1;
-    }
-
-    // -1 - -1073741824 == 1073741823
-    // -1073741825 - -1073741825 == 0
-    // -1073741825 - -2147483648 == 1073741823
-    return maxHandle - handle;
+    ;
   }
 
-  function isInt(num, min, max) {
-    // this is the same as Math.floor(num) === num
-    // also NaN % 1 is NaN and Infinity % 1 is NaN so both should fail
-    return num % 1 === 0 && num >= min && num <= max;
+  function encodeNegative(num) {
+    return num & -536870913
+    /* SIGN_BIT */
+    ;
   }
+
+  function decodeNegative(num) {
+    return num | ~-536870913
+    /* SIGN_BIT */
+    ;
+  }
+
+  function encodePositive(num) {
+    return ~num;
+  }
+
+  function decodePositive(num) {
+    return ~num;
+  }
+
+  function encodeHandle(num) {
+    return num;
+  }
+
+  function decodeHandle(num) {
+    return num;
+  }
+
+  function encodeImmediate(num) {
+    num |= 0;
+    return num < 0 ? encodeNegative(num) : encodePositive(num);
+  }
+
+  function decodeImmediate(num) {
+    num |= 0;
+    return num > -536870913
+    /* SIGN_BIT */
+    ? decodePositive(num) : decodeNegative(num);
+  } // Warm
+
+
+  [1, -1].forEach(function (x) {
+    return decodeImmediate(encodeImmediate(x));
+  });
 
   function unwrapHandle(handle) {
     if (typeof handle === 'number') {
@@ -10177,7 +10100,10 @@ define("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
       };
     }
 
-    return;
+    return {
+      name: 'deprecate-send-action',
+      visitor: {}
+    };
   }
 });
 define("ember-template-compiler/lib/plugins/index", ["exports", "ember-template-compiler/lib/plugins/assert-against-named-blocks", "ember-template-compiler/lib/plugins/assert-if-helper-without-arguments", "ember-template-compiler/lib/plugins/assert-input-helper-without-block", "ember-template-compiler/lib/plugins/assert-local-variable-shadowing-helper-invocation", "ember-template-compiler/lib/plugins/assert-reserved-named-arguments", "ember-template-compiler/lib/plugins/assert-splattribute-expression", "ember-template-compiler/lib/plugins/deprecate-send-action", "ember-template-compiler/lib/plugins/transform-action-syntax", "ember-template-compiler/lib/plugins/transform-attrs-into-args", "ember-template-compiler/lib/plugins/transform-component-invocation", "ember-template-compiler/lib/plugins/transform-each-in-into-each", "ember-template-compiler/lib/plugins/transform-each-track-array", "ember-template-compiler/lib/plugins/transform-has-block-syntax", "ember-template-compiler/lib/plugins/transform-in-element", "ember-template-compiler/lib/plugins/transform-link-to", "ember-template-compiler/lib/plugins/transform-old-class-binding-syntax", "ember-template-compiler/lib/plugins/transform-quoted-bindings-into-just-bindings", "ember-template-compiler/lib/plugins/transform-wrap-mount-and-outlet", "@ember/deprecated-features"], function (_exports, _assertAgainstNamedBlocks, _assertIfHelperWithoutArguments, _assertInputHelperWithoutBlock, _assertLocalVariableShadowingHelperInvocation, _assertReservedNamedArguments, _assertSplattributeExpression, _deprecateSendAction, _transformActionSyntax, _transformAttrsIntoArgs, _transformComponentInvocation, _transformEachInIntoEach, _transformEachTrackArray, _transformHasBlockSyntax, _transformInElement, _transformLinkTo, _transformOldClassBindingSyntax, _transformQuotedBindingsIntoJustBindings, _transformWrapMountAndOutlet, _deprecatedFeatures) {
@@ -10473,9 +10399,6 @@ define("ember-template-compiler/lib/plugins/transform-component-invocation", ["e
     @class TransFormComponentInvocation
   */
   function transformComponentInvocation(env) {
-    var moduleName = env.meta.moduleName;
-    var b = env.syntax.builders;
-
     var _trackLocals = (0, _utils.trackLocals)(),
         hasLocal = _trackLocals.hasLocal,
         node = _trackLocals.node;
@@ -10500,12 +10423,12 @@ define("ember-template-compiler/lib/plugins/transform-component-invocation", ["e
         },
         BlockStatement: function BlockStatement(node) {
           if (isBlockInvocation(node, hasLocal)) {
-            wrapInComponent(moduleName, node, b);
+            wrapInComponent(env, node);
           }
         },
         MustacheStatement: function MustacheStatement(node) {
           if (!isAttrs && isInlineInvocation(node, hasLocal)) {
-            wrapInComponent(moduleName, node, b);
+            wrapInComponent(env, node);
           }
         }
       }
@@ -10550,8 +10473,10 @@ define("ember-template-compiler/lib/plugins/transform-component-invocation", ["e
     return b.sexpr(b.path('-assert-implicit-component-helper-argument'), [node, error], b.hash(), node.loc);
   }
 
-  function wrapInComponent(moduleName, node, b) {
-    var component = wrapInAssertion(moduleName, node.path, b);
+  function wrapInComponent(env, node) {
+    var moduleName = env.meta.moduleName;
+    var b = env.syntax.builders;
+    var component = env.isProduction ? node.path : wrapInAssertion(moduleName, node.path, b);
     node.path = b.path('component');
     node.params.unshift(component);
   }
@@ -10779,7 +10704,7 @@ define("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
             ) {
                 var originalValue = node.params[0];
 
-                if (originalValue) {
+                if (originalValue && !env.isProduction) {
                   var subExpr = b.sexpr('-in-el-null', [originalValue]);
                   node.params.shift();
                   node.params.unshift(subExpr);
@@ -11351,7 +11276,11 @@ define("ember-template-compiler/lib/system/compile-options", ["exports", "@ember
     }
 
     var options = (0, _polyfills.assign)({
-      meta: {}
+      meta: {},
+      isProduction: false,
+      plugins: {
+        ast: []
+      }
     }, _options, {
       customizeComponentName: function customizeComponentName(tagname) {
         return _dasherizeComponentName.default.get(tagname);
@@ -11363,7 +11292,7 @@ define("ember-template-compiler/lib/system/compile-options", ["exports", "@ember
       meta.moduleName = options.moduleName;
     }
 
-    if (!options.plugins) {
+    if (!_options.plugins) {
       options.plugins = {
         ast: [].concat(USER_PLUGINS, _index.default)
       };
@@ -11562,12 +11491,13 @@ define("ember-template-compiler/lib/system/precompile", ["exports", "@glimmer/co
     @method precompile
     @param {String} templateString This is the string to be compiled by HTMLBars.
   */
-  function precompile(templateString, options) {
-    if (options === void 0) {
-      options = {};
+  function precompile(templateString, _options) {
+    if (_options === void 0) {
+      _options = {};
     }
 
-    return (0, _compiler.precompile)(templateString, (0, _compileOptions.default)(options));
+    var options = (0, _compileOptions.default)(_options);
+    return (0, _compiler.precompile)(templateString, options);
   }
 });
 define("ember/version", ["exports"], function (_exports) {
@@ -11577,7 +11507,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.20.3";
+  var _default = "3.20.4";
   _exports.default = _default;
 });
 define("handlebars", ["exports"], function (_exports) {
