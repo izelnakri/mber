@@ -1,6 +1,6 @@
 import fs from 'fs-extra';
 import chalk from 'ansi-colors';
-import Terser from 'terser';
+import { minify } from 'terser';
 import Console from '../lib/utils/console.js';
 import countTime from '../lib/utils/count-time.js';
 import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd.js';
@@ -44,7 +44,7 @@ function build(environment, options = { excludeEmberData: false }) {
             message: `BUILT: ${FILENAME}.js in ${timePassed}ms [${formatSize(
               fileBuffer.length
             )}] Environment: ${environment}`,
-            fileBuffer: fileBuffer
+            fileBuffer: fileBuffer,
           });
         });
       })
@@ -88,7 +88,7 @@ async function readBuildFiles(projectPath, environment, options = { excludeEmber
     fs.readFile(`${MODULE_PATH}/ember-source/dist/ember.debug.js`),
     transpileEmberOrderedSet(MODULE_PATH),
     importAddonFolderToAMD('@ember/render-modifiers', '@ember/render-modifiers/addon'),
-    importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon')
+    importAddonFolderToAMD('ember-inflector', 'ember-inflector/addon'),
   ];
 
   if (!options.excludeEmberData) {
@@ -98,7 +98,7 @@ async function readBuildFiles(projectPath, environment, options = { excludeEmber
   return baseBuilds.concat([
     importAddonFolderToAMD('ember-load-initializers', 'ember-load-initializers/addon'),
     importAddonFolderToAMD('ember-resolver', 'ember-resolver/addon'),
-    importAddonFolderToAMD('ember-resolver', 'ember-resolver/mu-trees/addon')
+    importAddonFolderToAMD('ember-resolver', 'ember-resolver/mu-trees/addon'),
   ]);
 }
 
@@ -115,7 +115,8 @@ function transpileEmberOrderedSet(modulePath) {
           );
 
         return convertESModuletoAMD(nonBroccoliEmberOrderedSet, {
-          moduleName: '@ember/ordered-set', emberDataRelated: true
+          moduleName: '@ember/ordered-set',
+          emberDataRelated: true,
         });
       })
       .then((result) => resolve(result))
@@ -129,7 +130,7 @@ async function buildEmberData(projectPath, environment) {
   const options =
     environment === 'production'
       ? {
-          filter: (item) => !item.path.includes('/-debug')
+          filter: (item) => !item.path.includes('/-debug'),
         }
       : {};
 
@@ -160,39 +161,51 @@ async function buildEmberData(projectPath, environment) {
       '@ember-data/private-build-infra/addon',
       null,
       options
-    )
+    ),
   ];
 }
 
-function writeVendorJS(path, content, environment) {
-  const targetContent = content.replace(
-    'this._najaxRequest(options);',
-    '(window.$ && window.$.ajax) ? this._ajaxRequest(options) : this._najaxRequest(options);'
-  ).replace(`(true && !(false) && (0, _debug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
+async function writeVendorJS(path, content, environment) {
+  const targetContent = content
+    .replace(
+      'this._najaxRequest(options);',
+      '(window.$ && window.$.ajax) ? this._ajaxRequest(options) : this._najaxRequest(options);'
+    )
+    .replace(
+      `(true && !(false) && (0, _debug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
           until: '4.0.0',
           id: 'globals-resolver',
           url: 'https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver'
-        }));`, '').replace(`(true && !(false) && (0, EmberDebug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
+        }));`,
+      ''
+    )
+    .replace(
+      `(true && !(false) && (0, EmberDebug.deprecate)('Using the globals resolver is deprecated. Use the ember-resolver package instead. See https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver', false, {
         id: 'ember.globals-resolver',
         until: '4.0.0',
         url: 'https://deprecations.emberjs.com/v3.x#toc_ember-deprecate-globals-resolver'
-      }));`, '');
+      }));`,
+      ''
+    );
 
   if (environment === 'production') {
-    const minified = Terser.minify(targetContent, {
-      compress: {
-        negate_iife: false,
-        sequences: 20
-      },
-      output: {
-        semicolons: false
-      }
-    }).code;
-
-    return fs.writeFile(path, minified);
+    return await fs.writeFile(
+      path,
+      (
+        await minify(targetContent, {
+          compress: {
+            negate_iife: false,
+            sequences: 20,
+          },
+          output: {
+            semicolons: false,
+          },
+        })
+      ).code
+    );
   }
 
-  return fs.writeFile(path, targetContent);
+  return await fs.writeFile(path, targetContent);
 }
 
 function readArguments() {
