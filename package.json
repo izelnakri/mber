@@ -30,7 +30,7 @@
     "@ember-data/debug": "^3.20.0",
     "@ember-data/model": "3.20.0",
     "@ember-data/private-build-infra": "^3.20.0",
-    "@ember-data/record-data": "3.20.0",
+    "@ember-data/record-data": "3.20.1",
     "@ember-data/serializer": "3.20.0",
     "@ember-data/store": "3.20.0",
     "@ember/test-helpers": "1.7.2",
