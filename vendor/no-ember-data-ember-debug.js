@@ -1337,7 +1337,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.4
+ * @version   3.21.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -5568,6 +5568,25 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     In general, this is not recommended. Instead, you can use the `transition-to` helper together
     with a click event handler on the HTML tag of your choosing.
   
+    ### Supplying query parameters
+  
+    If you need to add optional key-value pairs that appear to the right of the ? in a URL,
+    you can use the `query` argument.
+  
+    ```handlebars
+    <LinkTo @route='photoGallery' @query={{hash page=1 per_page=20}}>
+      Great Hamster Photos
+    </LinkTo>
+    ```
+  
+    This will result in:
+  
+    ```html
+    <a href="/hamster-photos?page=1&per_page=20">
+      Great Hamster Photos
+    </a>
+    ```
+  
     @for Ember.Templates.components
     @method LinkTo
     @see {LinkComponent}
@@ -9651,22 +9670,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   var inElementNullCheckHelper = helper$2;
 
-  function inputTypeHelper({
-    positional
-  }) {
-    var type = positional.at(0).value();
-
-    if (type === 'checkbox') {
-      return '-checkbox';
-    }
-
-    return '-text-field';
-  }
-
-  function inputTypeHelper$1(args, vm) {
-    return new _reference.HelperRootReference(inputTypeHelper, args.capture(), vm.env);
-  }
-
   function normalizeClass({
     positional
   }) {
@@ -11263,8 +11266,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     <button {{on 'click' (fn this.saveLike @post)}}>Like this post!</button>
     ```
   
-    In this case, the `saveLike` function will receive two arguments: the click event
-    and the value of `@post`.
+    In this case, the `saveLike` function will receive two arguments: the value
+    of `@post` and the click event. The click event will always be the last
+    argument passed to the handler because `{{fn}}` injects custom arguments
+    first.
   
     ### Function Context
   
@@ -12157,7 +12162,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     unless: inlineUnless,
     '-hash': hash,
     '-each-in': eachIn,
-    '-input-type': inputTypeHelper$1,
     '-normalize-class': normalizeClassHelper,
     '-track-array': trackArray,
     '-get-dynamic-var': _runtime2.getDynamicVar,
@@ -15724,10 +15728,16 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     @param {Object} defaultValue The value to return if the property value is undefined
     @return {Object} The property value or the defaultValue.
     @public
+    @deprecated
   */
 
 
   function getWithDefault(root, key, defaultValue) {
+    (true && !(false) && (0, _debug.deprecate)('Using getWithDefault has been deprecated. Instead, consider using Ember get and explicitly checking for undefined.', false, {
+      id: 'ember-metal.get-with-default',
+      until: '4.0.0',
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-metal-get-with-default'
+    }));
     var value = get(root, key);
 
     if (value === undefined) {
@@ -16013,7 +16023,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         set(this, 'lastName', lastName);
       }
   
-      @fullNameMacro fullName;
+      @fullNameMacro('firstName', 'lastName') fullName;
     });
   
     let person = new Person();
@@ -19850,7 +19860,7 @@ define("@ember/-internals/routing/lib/location/util", ["exports"], function (_ex
     location.replace(getOrigin(location) + path);
   }
 });
-define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-internals/runtime", "@ember/debug", "@ember/object/computed", "@ember/service", "@ember/-internals/routing/lib/utils"], function (_exports, _runtime, _debug, _computed, _service, _utils) {
+define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-internals/runtime", "@ember/debug", "@ember/object/computed", "@ember/polyfills", "@ember/service", "@ember/-internals/routing/lib/utils"], function (_exports, _runtime, _debug, _computed, _polyfills, _service, _utils) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -20155,6 +20165,8 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
       var hasQueryParams = Object.keys(queryParams).length > 0;
 
       if (hasQueryParams) {
+        queryParams = (0, _polyfills.assign)({}, queryParams);
+
         this._router._prepareQueryParams( // UNSAFE: casting `routeName as string` here encodes the existing
         // assumption but may be wrong: `extractRouteArgs` correctly returns it
         // as `string | undefined`. There may be bugs if `_prepareQueryParams`
@@ -29153,6 +29165,7 @@ define("@ember/-internals/runtime/lib/mixins/observable", ["exports", "@ember/-i
       @param {Object} defaultValue The value to return if the property value is undefined
       @return {Object} The property value or the defaultValue.
       @public
+      @deprecated
     */
     getWithDefault(keyName, defaultValue) {
       return (0, _metal.getWithDefault)(this, keyName, defaultValue);
@@ -29917,26 +29930,23 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       this._arrangedContentIsUpdating = false;
       this._arrangedContentTag = null;
       this._arrangedContentRevision = null;
+      this._lengthTag = null;
+      this._arrTag = null;
     }
 
     [_metal.PROPERTY_DID_CHANGE]() {
       this._revalidate();
     }
 
-    [_metal.CUSTOM_TAG_FOR](key, addMandatorySetter) {
-      if (key === '[]' || key === 'length') {
-        // revalidate eagerly if we're being tracked, since we no longer will
-        // be able to later on due to backtracking re-render assertion
+    [_metal.CUSTOM_TAG_FOR](key) {
+      if (key === '[]') {
         this._revalidate();
 
-        var arrangedContentTag = this._arrangedContentTag;
-        var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
+        return this._arrTag;
+      } else if (key === 'length') {
+        this._revalidate();
 
-        if ((0, _utils.isObject)(arrangedContent)) {
-          return (0, _validator.combine)([arrangedContentTag, (0, _metal.tagForProperty)(arrangedContent, key, addMandatorySetter)]);
-        } else {
-          return arrangedContentTag;
-        }
+        return this._lengthTag;
       }
 
       return (0, _validator.tagFor)(this, key);
@@ -30031,6 +30041,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
         this._lengthDirty = false;
       }
 
+      (0, _validator.consumeTag)(this._lengthTag);
       return this._length;
     }
 
@@ -30055,9 +30066,8 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       }
     }
 
-    _updateArrangedContentArray() {
+    _updateArrangedContentArray(arrangedContent) {
       var oldLength = this._objects === null ? 0 : this._objects.length;
-      var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
       var newLength = arrangedContent ? (0, _metal.get)(arrangedContent, 'length') : 0;
 
       this._removeArrangedContentArrayObserver();
@@ -30068,12 +30078,10 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
 
       this.arrayContentDidChange(0, oldLength, newLength);
 
-      this._addArrangedContentArrayObserver();
+      this._addArrangedContentArrayObserver(arrangedContent);
     }
 
-    _addArrangedContentArrayObserver() {
-      var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
-
+    _addArrangedContentArrayObserver(arrangedContent) {
       if (arrangedContent && !arrangedContent.isDestroyed) {
         (true && !(arrangedContent !== this) && (0, _debug.assert)("Can't set ArrayProxy's content to itself", arrangedContent !== this));
         (true && !((0, _array.isArray)(arrangedContent) || arrangedContent.isDestroyed) && (0, _debug.assert)(`ArrayProxy expects an Array or ArrayProxy, but you passed ${typeof arrangedContent}`, (0, _array.isArray)(arrangedContent) || arrangedContent.isDestroyed));
@@ -30116,20 +30124,29 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       if (this._arrangedContentIsUpdating === true) return;
 
       if (this._arrangedContentTag === null || !(0, _validator.validateTag)(this._arrangedContentTag, this._arrangedContentRevision)) {
+        var arrangedContent = this.get('arrangedContent');
+
         if (this._arrangedContentTag === null) {
           // This is the first time the proxy has been setup, only add the observer
           // don't trigger any events
-          this._addArrangedContentArrayObserver();
+          this._addArrangedContentArrayObserver(arrangedContent);
         } else {
           this._arrangedContentIsUpdating = true;
 
-          this._updateArrangedContentArray();
+          this._updateArrangedContentArray(arrangedContent);
 
           this._arrangedContentIsUpdating = false;
         }
 
-        this._arrangedContentTag = (0, _validator.tagFor)(this, 'arrangedContent');
+        var arrangedContentTag = this._arrangedContentTag = (0, _validator.tagFor)(this, 'arrangedContent');
         this._arrangedContentRevision = (0, _validator.valueForTag)(this._arrangedContentTag);
+
+        if ((0, _utils.isObject)(arrangedContent)) {
+          this._lengthTag = (0, _validator.combine)([arrangedContentTag, (0, _metal.tagForProperty)(arrangedContent, 'length')]);
+          this._arrTag = (0, _validator.combine)([arrangedContentTag, (0, _metal.tagForProperty)(arrangedContent, '[]')]);
+        } else {
+          this._lengthTag = this._arrTag = arrangedContentTag;
+        }
       }
     }
 
@@ -30171,6 +30188,14 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
   var initCalled = true
   /* DEBUG */
   ? new _polyfills._WeakSet() : undefined; // only used in debug builds to enable the proxy trap
+
+  var destroyCalled = new Set();
+
+  function ensureDestroyCalled(instance) {
+    if (!destroyCalled.has(instance)) {
+      instance.destroy();
+    }
+  }
 
   function initialize(obj, properties) {
     var m = (0, _meta2.meta)(obj);
@@ -30346,6 +30371,7 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
         });
       }
 
+      (0, _runtime.registerDestructor)(self, ensureDestroyCalled, true);
       (0, _runtime.registerDestructor)(self, () => self.willDestroy()); // disable chains
 
       var m = (0, _meta2.meta)(self);
@@ -30563,7 +30589,15 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
 
     destroy() {
-      (0, _runtime.destroy)(this);
+      // Used to ensure that manually calling `.destroy()` does not immediately call destroy again
+      destroyCalled.add(this);
+
+      try {
+        (0, _runtime.destroy)(this);
+      } finally {
+        destroyCalled.delete(this);
+      }
+
       return this;
     }
     /**
@@ -61005,7 +61039,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.20.4";
+  var _default = "3.21.1";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
