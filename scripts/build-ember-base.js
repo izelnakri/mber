@@ -8,6 +8,19 @@ import importAddonFolderToAMD from '../lib/transpilers/import-addon-folder-to-am
 import findProjectRoot from '../lib/utils/find-project-root.js';
 import { formatTimePassed, formatSize } from '../lib/utils/asset-reporter.js';
 
+const ARGUMENTS = readArguments();
+
+build('development', ARGUMENTS)
+  .then(() => {
+    process.env.EMBER_ENV = 'production';
+
+    return build('production', ARGUMENTS);
+  })
+  .then(() => {
+    process.env.EMBER_ENV = 'development';
+  })
+  .catch((error) => console.log('Ember Build DIST ERROR:', error));
+
 function build(environment, options = { excludeEmberData: false }) {
   const FILENAME = getFileName(environment, options);
 
@@ -217,16 +230,3 @@ function readArguments() {
     return result;
   }, {});
 }
-
-const ARGUMENTS = readArguments();
-
-build('development', ARGUMENTS)
-  .then(() => {
-    process.env.EMBER_ENV = 'production';
-
-    return build('production', ARGUMENTS);
-  })
-  .then(() => {
-    process.env.EMBER_ENV = 'development';
-  })
-  .catch((error) => console.log('Ember Build DIST ERROR:', error));

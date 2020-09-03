@@ -6,7 +6,7 @@ define = window.define;require = window.require;(function() {
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.4
+ * @version   3.21.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -2692,14 +2692,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 })();
 
 /*!
- * QUnit 2.11.0
+ * QUnit 2.11.1
  * https://qunitjs.com/
  *
  * Copyright jQuery Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2020-08-16T21:30Z
+ * Date: 2020-08-26T01:13Z
  */
 (function (global$1) {
 	'use strict';
@@ -6913,7 +6913,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	QUnit.isLocal = !(defined.document && window$1.location.protocol !== "file:"); // Expose the current QUnit version
 
-	QUnit.version = "2.11.0";
+	QUnit.version = "2.11.1";
 	extend(QUnit, {
 	  on: on,
 	  module: module$1,

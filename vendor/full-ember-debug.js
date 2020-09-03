@@ -1337,7 +1337,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.20.4
+ * @version   3.21.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -5568,6 +5568,25 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     In general, this is not recommended. Instead, you can use the `transition-to` helper together
     with a click event handler on the HTML tag of your choosing.
   
+    ### Supplying query parameters
+  
+    If you need to add optional key-value pairs that appear to the right of the ? in a URL,
+    you can use the `query` argument.
+  
+    ```handlebars
+    <LinkTo @route='photoGallery' @query={{hash page=1 per_page=20}}>
+      Great Hamster Photos
+    </LinkTo>
+    ```
+  
+    This will result in:
+  
+    ```html
+    <a href="/hamster-photos?page=1&per_page=20">
+      Great Hamster Photos
+    </a>
+    ```
+  
     @for Ember.Templates.components
     @method LinkTo
     @see {LinkComponent}
@@ -9651,22 +9670,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   var inElementNullCheckHelper = helper$2;
 
-  function inputTypeHelper({
-    positional
-  }) {
-    var type = positional.at(0).value();
-
-    if (type === 'checkbox') {
-      return '-checkbox';
-    }
-
-    return '-text-field';
-  }
-
-  function inputTypeHelper$1(args, vm) {
-    return new _reference.HelperRootReference(inputTypeHelper, args.capture(), vm.env);
-  }
-
   function normalizeClass({
     positional
   }) {
@@ -11263,8 +11266,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     <button {{on 'click' (fn this.saveLike @post)}}>Like this post!</button>
     ```
   
-    In this case, the `saveLike` function will receive two arguments: the click event
-    and the value of `@post`.
+    In this case, the `saveLike` function will receive two arguments: the value
+    of `@post` and the click event. The click event will always be the last
+    argument passed to the handler because `{{fn}}` injects custom arguments
+    first.
   
     ### Function Context
   
@@ -12157,7 +12162,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     unless: inlineUnless,
     '-hash': hash,
     '-each-in': eachIn,
-    '-input-type': inputTypeHelper$1,
     '-normalize-class': normalizeClassHelper,
     '-track-array': trackArray,
     '-get-dynamic-var': _runtime2.getDynamicVar,
@@ -15724,10 +15728,16 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     @param {Object} defaultValue The value to return if the property value is undefined
     @return {Object} The property value or the defaultValue.
     @public
+    @deprecated
   */
 
 
   function getWithDefault(root, key, defaultValue) {
+    (true && !(false) && (0, _debug.deprecate)('Using getWithDefault has been deprecated. Instead, consider using Ember get and explicitly checking for undefined.', false, {
+      id: 'ember-metal.get-with-default',
+      until: '4.0.0',
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-metal-get-with-default'
+    }));
     var value = get(root, key);
 
     if (value === undefined) {
@@ -16013,7 +16023,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
         set(this, 'lastName', lastName);
       }
   
-      @fullNameMacro fullName;
+      @fullNameMacro('firstName', 'lastName') fullName;
     });
   
     let person = new Person();
@@ -19850,7 +19860,7 @@ define("@ember/-internals/routing/lib/location/util", ["exports"], function (_ex
     location.replace(getOrigin(location) + path);
   }
 });
-define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-internals/runtime", "@ember/debug", "@ember/object/computed", "@ember/service", "@ember/-internals/routing/lib/utils"], function (_exports, _runtime, _debug, _computed, _service, _utils) {
+define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-internals/runtime", "@ember/debug", "@ember/object/computed", "@ember/polyfills", "@ember/service", "@ember/-internals/routing/lib/utils"], function (_exports, _runtime, _debug, _computed, _polyfills, _service, _utils) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -20155,6 +20165,8 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
       var hasQueryParams = Object.keys(queryParams).length > 0;
 
       if (hasQueryParams) {
+        queryParams = (0, _polyfills.assign)({}, queryParams);
+
         this._router._prepareQueryParams( // UNSAFE: casting `routeName as string` here encodes the existing
         // assumption but may be wrong: `extractRouteArgs` correctly returns it
         // as `string | undefined`. There may be bugs if `_prepareQueryParams`
@@ -29153,6 +29165,7 @@ define("@ember/-internals/runtime/lib/mixins/observable", ["exports", "@ember/-i
       @param {Object} defaultValue The value to return if the property value is undefined
       @return {Object} The property value or the defaultValue.
       @public
+      @deprecated
     */
     getWithDefault(keyName, defaultValue) {
       return (0, _metal.getWithDefault)(this, keyName, defaultValue);
@@ -29917,26 +29930,23 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       this._arrangedContentIsUpdating = false;
       this._arrangedContentTag = null;
       this._arrangedContentRevision = null;
+      this._lengthTag = null;
+      this._arrTag = null;
     }
 
     [_metal.PROPERTY_DID_CHANGE]() {
       this._revalidate();
     }
 
-    [_metal.CUSTOM_TAG_FOR](key, addMandatorySetter) {
-      if (key === '[]' || key === 'length') {
-        // revalidate eagerly if we're being tracked, since we no longer will
-        // be able to later on due to backtracking re-render assertion
+    [_metal.CUSTOM_TAG_FOR](key) {
+      if (key === '[]') {
         this._revalidate();
 
-        var arrangedContentTag = this._arrangedContentTag;
-        var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
+        return this._arrTag;
+      } else if (key === 'length') {
+        this._revalidate();
 
-        if ((0, _utils.isObject)(arrangedContent)) {
-          return (0, _validator.combine)([arrangedContentTag, (0, _metal.tagForProperty)(arrangedContent, key, addMandatorySetter)]);
-        } else {
-          return arrangedContentTag;
-        }
+        return this._lengthTag;
       }
 
       return (0, _validator.tagFor)(this, key);
@@ -30031,6 +30041,7 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
         this._lengthDirty = false;
       }
 
+      (0, _validator.consumeTag)(this._lengthTag);
       return this._length;
     }
 
@@ -30055,9 +30066,8 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       }
     }
 
-    _updateArrangedContentArray() {
+    _updateArrangedContentArray(arrangedContent) {
       var oldLength = this._objects === null ? 0 : this._objects.length;
-      var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
       var newLength = arrangedContent ? (0, _metal.get)(arrangedContent, 'length') : 0;
 
       this._removeArrangedContentArrayObserver();
@@ -30068,12 +30078,10 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
 
       this.arrayContentDidChange(0, oldLength, newLength);
 
-      this._addArrangedContentArrayObserver();
+      this._addArrangedContentArrayObserver(arrangedContent);
     }
 
-    _addArrangedContentArrayObserver() {
-      var arrangedContent = (0, _metal.get)(this, 'arrangedContent');
-
+    _addArrangedContentArrayObserver(arrangedContent) {
       if (arrangedContent && !arrangedContent.isDestroyed) {
         (true && !(arrangedContent !== this) && (0, _debug.assert)("Can't set ArrayProxy's content to itself", arrangedContent !== this));
         (true && !((0, _array.isArray)(arrangedContent) || arrangedContent.isDestroyed) && (0, _debug.assert)(`ArrayProxy expects an Array or ArrayProxy, but you passed ${typeof arrangedContent}`, (0, _array.isArray)(arrangedContent) || arrangedContent.isDestroyed));
@@ -30116,20 +30124,29 @@ define("@ember/-internals/runtime/lib/system/array_proxy", ["exports", "@ember/-
       if (this._arrangedContentIsUpdating === true) return;
 
       if (this._arrangedContentTag === null || !(0, _validator.validateTag)(this._arrangedContentTag, this._arrangedContentRevision)) {
+        var arrangedContent = this.get('arrangedContent');
+
         if (this._arrangedContentTag === null) {
           // This is the first time the proxy has been setup, only add the observer
           // don't trigger any events
-          this._addArrangedContentArrayObserver();
+          this._addArrangedContentArrayObserver(arrangedContent);
         } else {
           this._arrangedContentIsUpdating = true;
 
-          this._updateArrangedContentArray();
+          this._updateArrangedContentArray(arrangedContent);
 
           this._arrangedContentIsUpdating = false;
         }
 
-        this._arrangedContentTag = (0, _validator.tagFor)(this, 'arrangedContent');
+        var arrangedContentTag = this._arrangedContentTag = (0, _validator.tagFor)(this, 'arrangedContent');
         this._arrangedContentRevision = (0, _validator.valueForTag)(this._arrangedContentTag);
+
+        if ((0, _utils.isObject)(arrangedContent)) {
+          this._lengthTag = (0, _validator.combine)([arrangedContentTag, (0, _metal.tagForProperty)(arrangedContent, 'length')]);
+          this._arrTag = (0, _validator.combine)([arrangedContentTag, (0, _metal.tagForProperty)(arrangedContent, '[]')]);
+        } else {
+          this._lengthTag = this._arrTag = arrangedContentTag;
+        }
       }
     }
 
@@ -30171,6 +30188,14 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
   var initCalled = true
   /* DEBUG */
   ? new _polyfills._WeakSet() : undefined; // only used in debug builds to enable the proxy trap
+
+  var destroyCalled = new Set();
+
+  function ensureDestroyCalled(instance) {
+    if (!destroyCalled.has(instance)) {
+      instance.destroy();
+    }
+  }
 
   function initialize(obj, properties) {
     var m = (0, _meta2.meta)(obj);
@@ -30346,6 +30371,7 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
         });
       }
 
+      (0, _runtime.registerDestructor)(self, ensureDestroyCalled, true);
       (0, _runtime.registerDestructor)(self, () => self.willDestroy()); // disable chains
 
       var m = (0, _meta2.meta)(self);
@@ -30563,7 +30589,15 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
 
 
     destroy() {
-      (0, _runtime.destroy)(this);
+      // Used to ensure that manually calling `.destroy()` does not immediately call destroy again
+      destroyCalled.add(this);
+
+      try {
+        (0, _runtime.destroy)(this);
+      } finally {
+        destroyCalled.delete(this);
+      }
+
       return this;
     }
     /**
@@ -61005,7 +61039,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.20.4";
+  var _default = "3.21.1";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
@@ -67723,7 +67757,7 @@ define("ember-data/attr", ["exports", "@ember-data/model"], function (_exports, 
     }
   });
 });
-define("ember-data/index", ["exports", "ember-inflector", "@ember-data/adapter", "@ember-data/adapter/error", "@ember-data/adapter/json-api", "@ember-data/adapter/rest", "@ember-data/debug", "@ember-data/model", "@ember-data/serializer", "@ember-data/serializer/-private", "@ember-data/serializer/json", "@ember-data/serializer/json-api", "@ember-data/serializer/rest", "@ember-data/serializer/transform", "@ember-data/store", "ember-data/-private", "ember-data/initialize-store-service", "ember-data/setup-container"], function (_exports, _emberInflector, _adapter, _error, _jsonApi, _rest, _debug, _model, _serializer, _private, _json, _jsonApi2, _rest2, _transform, _store, _private2, _initializeStoreService, _setupContainer) {
+define("ember-data/index", ["exports", "ember-inflector", "@ember-data/adapter", "@ember-data/adapter/error", "@ember-data/adapter/json-api", "@ember-data/adapter/rest", "@ember-data/debug", "@ember-data/model", "@ember-data/serializer", "@ember-data/serializer/-private", "@ember-data/serializer/json", "@ember-data/serializer/json-api", "@ember-data/serializer/rest", "@ember-data/serializer/transform", "@ember-data/store", "ember-data/-private", "ember-data/setup-container"], function (_exports, _emberInflector, _adapter, _error, _jsonApi, _rest, _debug, _model, _serializer, _private, _json, _jsonApi2, _rest2, _transform, _store, _private2, _setupContainer) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -67779,7 +67813,6 @@ define("ember-data/index", ["exports", "ember-inflector", "@ember-data/adapter",
   _private2.DS.hasMany = _model.hasMany;
   _private2.DS.Relationship = _private2.Relationship;
   _private2.DS._setupContainer = _setupContainer.default;
-  _private2.DS._initializeStoreService = _initializeStoreService.default;
   Object.defineProperty(_private2.DS, 'normalizeModelName', {
     enumerable: true,
     writable: false,
@@ -67788,29 +67821,6 @@ define("ember-data/index", ["exports", "ember-inflector", "@ember-data/adapter",
   });
   var _default = _private2.DS;
   _exports.default = _default;
-});
-define("ember-data/initialize-store-service", ["exports"], function (_exports) {
-  "use strict";
-
-  Object.defineProperty(_exports, "__esModule", {
-    value: true
-  });
-  _exports.default = initializeStoreService;
-
-  /*
-    Configures a registry for use with an Ember-Data
-    store.
-  
-    @method initializeStoreService
-    @param {Ember.ApplicationInstance | Ember.EngineInstance} instance
-  */
-  function initializeStoreService(instance) {
-    // instance.lookup supports Ember 2.1 and higher
-    // instance.container supports Ember 1.11 - 2.0
-    const container = instance.lookup ? instance : instance.container; // Eagerly generate the store so defaultStore is populated.
-
-    container.lookup('service:store');
-  }
 });
 define("ember-data/model", ["exports", "@ember-data/model"], function (_exports, _model) {
   "use strict";
@@ -67948,13 +67958,6 @@ define("ember-data/-private/core", ["exports", "ember-data/version"], function (
     value: true
   });
   _exports.default = void 0;
-
-  /**
-   * @property VERSION
-   * @public
-   * @static
-   * @for @ember-data
-   */
   const DS = Ember.Namespace.create({
     VERSION: _version.default,
     name: 'DS'
@@ -72534,12 +72537,19 @@ define("@ember-data/model/-private/errors", ["exports", "@ember-data/store/-priv
     */
     errorsFor(attribute) {
       let map = Ember.get(this, 'errorsByAttributeName');
+      let errors = map.get(attribute);
 
-      if (!map.has(attribute)) {
-        map.set(attribute, Ember.A());
-      }
+      if (errors === undefined) {
+        errors = Ember.A();
+        map.set(attribute, errors);
+      } // Errors may be a native array with extensions turned on. Since we access
+      // the array via a method, and not a computed or using `Ember.get`, it does
+      // not entangle properly with autotracking, so we entangle manually by
+      // getting the `[]` property.
 
-      return map.get(attribute);
+
+      Ember.get(errors, '[]');
+      return errors;
     },
 
     /**
@@ -78642,11 +78652,8 @@ define("@ember-data/serializer/json-api", ["exports", "ember-inflector", "@ember
         (true && Ember.assert("You've used the EmbeddedRecordsMixin in ".concat(this.toString(), " which is not fully compatible with the JSON:API specification. Please confirm that this works for your specific API and add `this.isEmbeddedRecordsMixinCompatible = true` to your serializer."), !this.isEmbeddedRecordsMixin || this.isEmbeddedRecordsMixinCompatible === true, {
           id: 'ds.serializer.embedded-records-mixin-not-supported'
         }));
-      },
-
-      willMergeMixin(props) {
         let constructor = this.constructor;
-        (true && Ember.warn("You've defined 'extractMeta' in ".concat(constructor.toString(), " which is not used for serializers extending JSONAPISerializer. Read more at https://api.emberjs.com/ember-data/release/classes/JSONAPISerializer on how to customize meta when using JSON API."), Ember.isNone(props.extractMeta) || props.extractMeta === _json.default.prototype.extractMeta, {
+        (true && Ember.warn("You've defined 'extractMeta' in ".concat(constructor.toString(), " which is not used for serializers extending JSONAPISerializer. Read more at https://api.emberjs.com/ember-data/release/classes/JSONAPISerializer on how to customize meta when using JSON API."), this.extractMeta === _json.default.prototype.extractMeta, {
           id: 'ds.serializer.json-api.extractMeta'
         }));
       },
@@ -80094,11 +80101,11 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
     import RESTSerializer from '@ember-data/serializer/rest';
     import { underscore } from '@ember/string';
   
-    export default RESTSerializer.extend({
+    export default class ApplicationSerializer extends RESTSerializer {
       keyForAttribute(attr, method) {
         return underscore(attr).toUpperCase();
       }
-    });
+    }
     ```
   
     You can also implement `keyForRelationship`, which takes the name
@@ -80117,12 +80124,12 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
       Example
        ```app/serializers/post.js
       import RESTSerializer from '@ember-data/serializer/rest';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         keyForPolymorphicType(key, relationship) {
           var relationshipKey = this.keyForRelationship(key);
            return 'type-' + relationshipKey;
         }
-      });
+      }
       ```
       @method keyForPolymorphicType
      @param {String} key
@@ -80170,15 +80177,15 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
       `id`, you can specify how to normalize just the comments:
        ```app/serializers/post.js
       import RESTSerializer from '@ember-data/serializer/rest';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         normalize(model, hash, prop) {
           if (prop === 'comments') {
             hash.id = hash._id;
             delete hash._id;
           }
-           return this._super(...arguments);
+           return super.normalize(...arguments);
         }
-      });
+      }
       ```
        On each call to the `normalize` method, the third parameter (`prop`) is always
       one of the keys that were in the original payload or in the result of another
@@ -80462,8 +80469,7 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
       and an example payload:
        ```app/models/post.js
       import Model from '@ember-data/model';
-       export default Model.extend({
-      });
+       export default class Post extends Model {}
       ```
        ```javascript
         {
@@ -80480,15 +80486,15 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
       remove "blog/" from the payload key whenver it's encountered by Ember Data:
        ```app/serializers/application.js
       import RESTSerializer from '@ember-data/serializer/rest';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         modelNameFromPayloadKey(payloadKey) {
           if (payloadKey === 'blog/post') {
-            return this._super(payloadKey.replace('blog/', ''));
+            return super.modelNameFromPayloadKey(payloadKey.replace('blog/', ''));
           } else {
-           return this._super(payloadKey);
+           return super.modelNameFromPayloadKey(payloadKey);
           }
         }
-      });
+      }
       ```
        After refreshing, Ember Data will appropriately look up the "post" model.
        By default the modelName for a model is its
@@ -80514,11 +80520,11 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
        For example, consider this model:
        ```app/models/comment.js
       import Model, { attr, belongsTo } from '@ember-data/model';
-       export default Model.extend({
-        title: attr(),
-        body: attr(),
-         author: belongsTo('user')
-      });
+       export default class Comment extends Model {
+        @attr title
+        @attr body
+         @belongsTo('user') author
+      }
       ```
        The default serialization would create a JSON object like:
        ```js
@@ -80547,7 +80553,7 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
       return a JSON hash of your choosing.
        ```app/serializers/post.js
       import RESTSerializer from '@ember-data/serializer/rest';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         serialize(snapshot, options) {
           var json = {
             POST_TTL: snapshot.attr('title'),
@@ -80559,7 +80565,7 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
           }
            return json;
         }
-      });
+      }
       ```
        ## Customizing an App-Wide Serializer
        If you want to define a serializer for your entire
@@ -80568,7 +80574,7 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
        ```app/serializers/application.js
       import RESTSerializer from '@ember-data/serializer/rest';
       import { pluralize } from 'ember-inflector';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         serialize(snapshot, options) {
           var json = {};
            snapshot.eachAttribute(function(name) {
@@ -80584,7 +80590,7 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
           }
            return json;
         }
-      });
+      }
        function serverAttributeName(attribute) {
         return attribute.underscore().toUpperCase();
       }
@@ -80606,14 +80612,14 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
       JSON.
        ```app/serializers/post.js
       import RESTSerializer from '@ember-data/serializer/rest';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         serialize(snapshot, options) {
-          var json = this._super(snapshot, options);
+          var json = super.serialize(snapshot, options);
            json.subject = json.title;
           delete json.title;
            return json;
         }
-      });
+      }
       ```
        @method serialize
       @param {Snapshot} snapshot
@@ -80633,12 +80639,12 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
        ```app/serializers/application.js
       import RESTSerializer from '@ember-data/serializer/rest';
       import { decamelize } from '@ember/string';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         serializeIntoHash(data, type, record, options) {
           var root = decamelize(type.modelName);
           data[root] = this.serialize(record, options);
         }
-      });
+      }
       ```
        @method serializeIntoHash
       @param {Object} hash
@@ -80669,11 +80675,11 @@ define("@ember-data/serializer/rest", ["exports", "ember-inflector", "@ember-dat
        ```app/serializers/application.js
       import RESTSerializer from '@ember-data/serializer/rest';
       import { dasherize } from '@ember/string';
-       export default RESTSerializer.extend({
+       export default class ApplicationSerializer extends RESTSerializer {
         payloadKeyFromModelName(modelName) {
           return dasherize(modelName);
         }
-      });
+      }
       ```
        Given a `TacoParty` model, calling `save` on it would produce an outgoing
       request like:
@@ -82883,12 +82889,12 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     The store provides multiple ways to create new record objects. They have
     some subtle differences in their use which are detailed below:
   
-    [createRecord](Store/methods/createRecord?anchor=createRecord) is used for creating new
+    [createRecord](../classes/Store/methods/createRecord?anchor=createRecord) is used for creating new
     records on the client side. This will return a new record in the
     `created.uncommitted` state. In order to persist this record to the
     backend, you will need to call `record.save()`.
   
-    [push](Store/methods/push?anchor=push) is used to notify Ember Data's store of new or
+    [push](../classes/Store/methods/push?anchor=push) is used to notify Ember Data's store of new or
     updated records that exist in the backend. This will return a record
     in the `loaded.saved` state. The primary use-case for `store#push` is
     to notify Ember Data about record updates (full or partial) that happen
@@ -82896,7 +82902,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     [SSE](http://dev.w3.org/html5/eventsource/) or [Web
     Sockets](http://www.w3.org/TR/2009/WD-websockets-20091222/)).
   
-    [pushPayload](Store/methods/pushPayload?anchor=pushPayload) is a convenience wrapper for
+    [pushPayload](../classes/Store/methods/pushPayload?anchor=pushPayload) is a convenience wrapper for
     `store#push` that will deserialize payloads if the
     Serializer implements a `pushPayload` method.
   
@@ -83540,7 +83546,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       });
       ```
        If you pass an object on the `adapterOptions` property of the options
-      argument it will be passed to you adapter via the snapshot
+      argument it will be passed to your adapter via the snapshot
        ```app/routes/post/edit.js
       import Route from '@ember/routing/route';
        export default Route.extend({
@@ -83562,7 +83568,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         }
       });
       ```
-       See [peekRecord](Store/methods/peekRecord?anchor=peekRecord) to get the cached version of a record.
+       See [peekRecord](../classes/Store/methods/peekRecord?anchor=peekRecord) to get the cached version of a record.
        ### Retrieving Related Model Records
        If you use an adapter such as Ember's default
       [`JSONAPIAdapter`](/ember-data/release/classes/JSONAPIAdapter)
@@ -84037,7 +84043,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
        This method will synchronously return the record if it is available in the store,
       otherwise it will return `null`. A record is available if it has been fetched earlier, or
       pushed manually into the store.
-       See [findRecord](Store/methods/findRecord?anchor=findRecord) if you would like to request this record from the backend.
+       See [findRecord](../classes/Store/methods/findRecord?anchor=findRecord) if you would like to request this record from the backend.
        _Note: This is a synchronous method and does not return a promise._
        ```js
       let post = store.peekRecord('post', 1);
@@ -84439,7 +84445,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
     /**
       This method makes a request for one record, where the `id` is not known
-      beforehand (if the `id` is known, use [`findRecord`](Store/methods/findRecord?anchor=findRecord)
+      beforehand (if the `id` is known, use [`findRecord`](../classes/Store/methods/findRecord?anchor=findRecord)
       instead).
        This method can be used when it is certain that the server will return a
       single object for the primary data.
@@ -84659,7 +84665,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         }
       });
       ```
-       See [peekAll](Store/methods/peekAll?anchor=peekAll) to get an array of current records in the
+       See [peekAll](../classes/Store/methods/peekAll?anchor=peekAll) to get an array of current records in the
       store, without waiting until a reload is finished.
        ### Retrieving Related Model Records
        If you use an adapter such as Ember's default
@@ -84692,7 +84698,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
         }
       });
        ```
-       See [query](Store/methods/query?anchor=query) to only get a subset of records from the server.
+       See [query](../classes/Store/methods/query?anchor=query) to only get a subset of records from the server.
        @since 1.13.0
       @method findAll
       @param {String} modelName
@@ -84772,7 +84778,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       locally created records of the type, however, it will not make a
       request to the backend to retrieve additional records. If you
       would like to request all the records from the backend please use
-      [store.findAll](Store/methods/findAll?anchor=findAll).
+      [store.findAll](../classes/Store/methods/findAll?anchor=findAll).
        Also note that multiple calls to `peekAll` for a given type will always
       return the same `RecordArray`.
        Example
@@ -85240,7 +85246,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
       ```
        If you're streaming data or implementing an adapter, make sure
       that you have converted the incoming data into this form. The
-      store's [normalize](Store/methods/normalize?anchor=normalize) method is a convenience
+      store's [normalize](../classes/Store/methods/normalize?anchor=normalize) method is a convenience
       helper for converting a json payload into the form Ember Data
       expects.
        ```js
@@ -85587,7 +85593,7 @@ define("@ember-data/store/-private/system/core-store", ["exports", "require", "@
     }
     /**
       `normalize` converts a json payload into the normalized form that
-      [push](Store/methods/push?anchor=push) expects.
+      [push](../classes/Store/methods/push?anchor=push) expects.
        Example
        ```js
       socket.on('message', function(message) {
@@ -86392,12 +86398,12 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
     The store provides multiple ways to create new record objects. They have
     some subtle differences in their use which are detailed below:
   
-    [createRecord](Store/methods/createRecord?anchor=createRecord) is used for creating new
+    [createRecord](../classes/Store/methods/createRecord?anchor=createRecord) is used for creating new
     records on the client side. This will return a new record in the
     `created.uncommitted` state. In order to persist this record to the
     backend, you will need to call `record.save()`.
   
-    [push](Store/methods/push?anchor=push) is used to notify Ember Data's store of new or
+    [push](../classes/Store/methods/push?anchor=push) is used to notify Ember Data's store of new or
     updated records that exist in the backend. This will return a record
     in the `loaded.saved` state. The primary use-case for `store#push` is
     to notify Ember Data about record updates (full or partial) that happen
@@ -86405,7 +86411,7 @@ define("@ember-data/store/-private/system/ds-model-store", ["exports", "@ember-d
     [SSE](http://dev.w3.org/html5/eventsource/) or [Web
     Sockets](http://www.w3.org/TR/2009/WD-websockets-20091222/)).
   
-    [pushPayload](Store/methods/pushPayload?anchor=pushPayload) is a convenience wrapper for
+    [pushPayload](../classes/Store/methods/pushPayload?anchor=pushPayload) is a convenience wrapper for
     `store#push` that will deserialize payloads if the
     Serializer implements a `pushPayload` method.
   
@@ -94477,7 +94483,7 @@ define("@ember-data/store/-private/ts-interfaces/utils/symbol", ["exports"], fun
 });
 
       define('ember-data/version', ['exports'], function (exports) {
-        exports.default = '3.20.0';
+        exports.default = '3.21.0';
       });
     
 define("@ember-data/private-build-infra/available-packages", ["exports"], function (_exports) {
