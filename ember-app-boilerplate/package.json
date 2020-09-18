@@ -51,7 +51,7 @@
     "fastboot": "^3.0.3",
     "jquery": "^3.5.1",
     "mber-head": "^0.1.0",
-    "node-fetch": "2.6.0"
+    "node-fetch": "2.6.1"
   },
   "volta": {
     "node": "14.9.0"
