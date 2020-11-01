@@ -16,9 +16,7 @@ export default async function(appName = 'dummyapp', options = { memserver: false
           fs.writeFile(
             `${APP_ROOT}/src/data/models/user/model.ts`,
             `
-          import DS from 'ember-data';
-
-          const { Model, attr } = DS;
+          import Model, { attr } from '@ember-data/model';
 
           export default class User extends Model {
             @attr('string') firstName;

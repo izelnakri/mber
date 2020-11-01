@@ -1,7 +1,5 @@
-import DS from 'ember-data';
+import RESTSerializer, { EmbeddedRecordsMixin } from '@ember-data/serializer/rest';
 import { underscore } from '@ember/string';
-
-const { RESTSerializer, EmbeddedRecordsMixin } = DS;
 
 export default RESTSerializer.extend(EmbeddedRecordsMixin, {
   keyForAttribute(attr) {

@@ -1337,7 +1337,7 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.22.0
+ * @version   3.22.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -6752,8 +6752,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       } = this;
 
       if (environment.isInteractive) {
+        (0, _validator.beginUntrackFrame)();
         component.trigger('willDestroyElement');
         component.trigger('willClearRender');
+        (0, _validator.endUntrackFrame)();
         var element = (0, _views.getViewElement)(component);
 
         if (element) {
@@ -7953,7 +7955,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       component._transitionTo('hasElement');
 
       if (environment.isInteractive) {
+        (0, _validator.beginUntrackFrame)();
         component.trigger('willInsertElement');
+        (0, _validator.endUntrackFrame)();
       }
     }
 
@@ -8327,6 +8331,15 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         // things in an inconsistent state. It is recommended that the user
         // refresh the page.
         // TODO: We could warn here? But this happens all the time in our tests?
+        // Clean up the root reference to prevent errors from happening if we
+        // attempt to capture the render tree (Ember Inspector may do this)
+        var root = (0, _util.expect)(this.stack.toArray()[0], 'expected root state when resetting render tree');
+        var ref = this.refs.get(root);
+
+        if (ref !== undefined) {
+          this.roots.delete(ref);
+        }
+
         while (!this.stack.isEmpty()) {
           this.stack.pop();
         }
@@ -15170,10 +15183,15 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   }
 
   function DESCRIPTOR_SETTER_FUNCTION(name, descriptor) {
-    return function CPSETTER_FUNCTION(value) {
+    var set = function CPSETTER_FUNCTION(value) {
       return descriptor.set(this, name, value);
     };
+
+    COMPUTED_SETTERS.add(set);
+    return set;
   }
+
+  var COMPUTED_SETTERS = new _polyfills._WeakSet();
 
   function makeComputedDecorator(desc, DecoratorClass) {
     var decorator = function COMPUTED_DECORATOR(target, key, propertyDesc, maybeMeta, isClassicDecorator) {
@@ -15673,10 +15691,10 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       return setPath(obj, keyName, value, tolerant);
     }
 
-    var descriptor = descriptorForProperty(obj, keyName);
+    var descriptor = (0, _utils.lookupDescriptor)(obj, keyName);
 
-    if (descriptor !== undefined) {
-      descriptor.set(obj, keyName, value);
+    if (descriptor !== null && COMPUTED_SETTERS.has(descriptor.set)) {
+      obj[keyName] = value;
       return value;
     }
 
@@ -18096,6 +18114,7 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       get,
       set
     };
+    COMPUTED_SETTERS.add(set);
     (0, _meta2.meta)(target).writeDescriptors(key, new TrackedDescriptor(get, set));
     return newDesc;
   }
@@ -61188,7 +61207,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.22.0";
+  var _default = "3.22.1";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
@@ -62346,6 +62365,19 @@ define("router_js", ["exports", "@ember/polyfills", "rsvp", "route-recognizer"],
       this.pivotHandler = undefined;
       this.sequence = -1;
 
+      if (true
+      /* DEBUG */
+      ) {
+        var _error = new Error(`Transition creation stack`);
+
+        this.debugCreationStack = () => _error.stack; // not aborted yet, will be replaced when `this.isAborted` is set
+
+
+        this.debugAbortStack = () => undefined;
+
+        this.debugPreviousTransition = previousTransition;
+      }
+
       if (error) {
         this.promise = _rsvp.Promise.reject(error);
         this.error = error;
@@ -62493,6 +62525,14 @@ define("router_js", ["exports", "@ember/polyfills", "rsvp", "route-recognizer"],
     rollback() {
       if (!this.isAborted) {
         log(this.router, this.sequence, this.targetName + ': transition was aborted');
+
+        if (true
+        /* DEBUG */
+        ) {
+          var error = new Error(`Transition aborted stack`);
+
+          this.debugAbortStack = () => error.stack;
+        }
 
         if (this.intent !== undefined && this.intent !== null) {
           this.intent.preTransitionState = this.router.state;
@@ -63635,9 +63675,9 @@ define("router_js", ["exports", "@ember/polyfills", "rsvp", "route-recognizer"],
       }
 
       if (isIntermediate) {
-        var transition = new Transition(this, undefined, undefined);
+        var transition = new Transition(this, undefined, newState);
         this.toReadOnlyInfos(transition, newState);
-        this.setupContexts(newState);
+        this.setupContexts(newState, transition);
         this.routeWillChange(transition);
         return this.activeTransition;
       } // Create a new transition to the destination route.
@@ -71435,6 +71475,28 @@ define("@ember-data/adapter/-private/utils/determine-body-promise", ["exports", 
       return payload;
     }
 
+    let status = response.status;
+    let payloadIsEmpty = payload === '' || payload === null;
+    let statusIndicatesEmptyResponse = status === 204 || status === 205 || requestData.method === 'HEAD';
+
+    if (true
+    /* DEBUG */
+    ) {
+      if (payloadIsEmpty && !statusIndicatesEmptyResponse) {
+        let message = "The server returned an empty string for ".concat(requestData.method, " ").concat(requestData.url, ", which cannot be parsed into a valid JSON. Return either null or {}.");
+
+        if (payload === '') {
+          (true && Ember.warn(message, {
+            id: 'ds.adapter.returned-empty-string-as-JSON'
+          }));
+        }
+      }
+    }
+
+    if (response.ok && (statusIndicatesEmptyResponse || payloadIsEmpty)) {
+      return;
+    }
+
     try {
       ret = JSON.parse(payload);
     } catch (e) {
@@ -71444,24 +71506,6 @@ define("@ember-data/adapter/-private/utils/determine-body-promise", ["exports", 
 
       e.payload = payload;
       error = e;
-    }
-
-    const status = response.status;
-
-    if (response.ok && (status === 204 || status === 205 || requestData.method === 'HEAD')) {
-      return;
-    }
-
-    if (true
-    /* DEBUG */
-    ) {
-      let message = "The server returned an empty string for ".concat(requestData.method, " ").concat(requestData.url, ", which cannot be parsed into a valid JSON. Return either null or {}.");
-
-      if (payload === '') {
-        (true && Ember.warn(message, true, {
-          id: 'ds.adapter.returned-empty-string-as-JSON'
-        }));
-      }
     }
 
     if (error) {
@@ -95333,7 +95377,7 @@ define("@ember-data/store/-private/system/store/serializer-response", ["exports"
 });
 
       define('ember-data/version', ['exports'], function (exports) {
-        exports.default = '3.22.0';
+        exports.default = '3.22.1';
       });
     
 define("@ember-data/private-build-infra/available-packages", ["exports"], function (_exports) {
@@ -95508,6 +95552,10 @@ define("ember-load-initializers/index", ["exports", "require"], function (_expor
     }
 
     var initializer = module['default'];
+
+    if (!initializer) {
+      throw new Error(moduleName + ' must have a default export');
+    }
 
     if (!initializer.name) {
       initializer.name = moduleName.slice(moduleName.lastIndexOf('/') + 1);

@@ -1,4 +1,4 @@
-FROM node:14.5
+FROM node:15.3
 
 RUN apt-get update && \
   apt-get install -y lsof vim libgtk-3-0 libatk1.0-0 libx11-xcb1 libnss3 libxss1 libasound2

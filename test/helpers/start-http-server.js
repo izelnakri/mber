@@ -100,6 +100,7 @@ async function assignSandboxGlobals() { // TODO: maybe add PORT as argument
     document: global.document,
     location: global.window.location,
     XMLHttpRequest: global.window.XMLHttpRequest,
+    URLSearchParams: global.URLSearchParams,
     fetch: global.window.fetch,
     $: $,
     jQuery: $,

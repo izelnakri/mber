@@ -1,10 +1,9 @@
-import DS from 'ember-data';
+import RESTAdapter from '@ember-data/adapter/rest';
+import { InvalidError, errorsHashToArray } from '@ember-data/adapter/error';
 import { pluralize } from 'ember-inflector';
 // import { computed } from '@ember/object';
 import { dasherize } from '@ember/string';
 import ENV from '../../../../config/environment';
-
-const { RESTAdapter, InvalidError, errorsHashToArray } = DS;
 
 export default class ApplicationAdapter extends RESTAdapter {
   // @service session;
