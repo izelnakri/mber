@@ -28,7 +28,7 @@
   "devDependencies": {
     "@ember-data/adapter": "3.21.0",
     "@ember-data/debug": "^3.21.0",
-    "@ember-data/model": "3.21.0",
+    "@ember-data/model": "3.22.1",
     "@ember-data/private-build-infra": "^3.21.0",
     "@ember-data/record-data": "3.21.0",
     "@ember-data/serializer": "3.21.0",
