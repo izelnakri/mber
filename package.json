@@ -25,7 +25,10 @@
     "build:memserver": "node scripts/build-memserver.js",
     "build:fastboot-modules": "node scripts/transpile-fastboot-modules.js",
     "build": "npm-run-all --parallel build-init:* && npm-run-all --parallel build:*",
+    "changelog:preview": "auto-changelog --stdout",
+    "changelog:update": "auto-changelog",
     "prepack": "npm run build",
+    "release": "release-it",
     "bin": "node cli.js",
     "test": "node_modules/.bin/ava --verbose"
   },
@@ -40,6 +43,7 @@
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
     "@typescript-eslint/parser": "4.8.2",
+    "auto-changelog": "^2.2.1",
     "ava": "^3.13.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.3",
@@ -56,6 +60,7 @@
     "npm-run-all": "^4.1.5",
     "qunit": "2.13.0",
     "qunit-dom": "^1.6.0",
+    "release-it": "^14.2.2",
     "strip-ansi": "^6.0.0",
     "typescript": "^4.1.2",
     "whatwg-fetch": "^3.5.0"
@@ -133,8 +138,13 @@
         "legacyDecorators": true
       }
     },
-    "plugins": ["ember"],
-    "extends": ["eslint:recommended", "plugin:ember/recommended"],
+    "plugins": [
+      "ember"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:ember/recommended"
+    ],
     "env": {
       "browser": true,
       "commonjs": true,

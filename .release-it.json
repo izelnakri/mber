@@ -1,0 +1,13 @@
+{
+  "git": {
+    "changelog": "npm run changelog:preview",
+    "commitMessage": "v${version}",
+    "tagAnnotation": "v${version}"
+  },
+  "hooks": {
+    "after:bump": "npm run changelog:update --package"
+  },
+  "npm": {
+    "publish": false
+  }
+}
