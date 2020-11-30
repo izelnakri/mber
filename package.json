@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.13.12",
+  "version": "0.13.19",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -25,7 +25,10 @@
     "build:memserver": "node scripts/build-memserver.js",
     "build:fastboot-modules": "node scripts/transpile-fastboot-modules.js",
     "build": "npm-run-all --parallel build-init:* && npm-run-all --parallel build:*",
+    "changelog:preview": "node_modules/.bin/auto-changelog --stdout --commit-limit false -u",
+    "changelog:update": "node_modules/.bin/auto-changelog --commit-limit false --package",
     "prepack": "npm run build",
+    "release": "release-it",
     "bin": "node cli.js",
     "test": "node_modules/.bin/ava --verbose"
   },
@@ -56,6 +59,7 @@
     "npm-run-all": "^4.1.5",
     "qunit": "2.13.0",
     "qunit-dom": "^1.6.0",
+    "release-it": "^14.2.2",
     "strip-ansi": "^6.0.0",
     "typescript": "^4.1.2",
     "whatwg-fetch": "^3.5.0"
@@ -74,6 +78,7 @@
     "abortcontroller-polyfill": "^1.5.0",
     "amd-name-resolver": "^1.3.1",
     "ansi-colors": "^4.1.1",
+    "auto-changelog": "^2.2.1",
     "babel-eslint": "^10.1.0",
     "babel-plugin-debug-macros": "^0.3.2",
     "babel-plugin-ember-modules-api-polyfill": "^2.13.4",
@@ -133,8 +138,13 @@
         "legacyDecorators": true
       }
     },
-    "plugins": ["ember"],
-    "extends": ["eslint:recommended", "plugin:ember/recommended"],
+    "plugins": [
+      "ember"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:ember/recommended"
+    ],
     "env": {
       "browser": true,
       "commonjs": true,
@@ -155,5 +165,13 @@
   },
   "browserslist": [
     "last 1 chrome version"
-  ]
+  ],
+  "release-it": {
+    "git": {
+      "changelog": "npm run changelog:preview"
+    },
+    "hooks": {
+      "after:bump": "npm run changelog:update"
+    }
+  }
 }
