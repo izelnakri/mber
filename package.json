@@ -98,7 +98,7 @@
     "mustache": "^4.0.1",
     "node-fetch": "^2.6.1",
     "ora": "^5.1.0",
-    "puppeteer": "5.4.1",
+    "puppeteer": "5.5.0",
     "sass": "1.29.0",
     "say": "^0.16.0",
     "terser": "5.5.1",
