@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.13.11",
+  "version": "0.13.12",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -11,6 +11,10 @@
   },
   "bin": {
     "mber": "cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/izelnakri/mber.git"
   },
   "scripts": {
     "build-init:loader": "cp ./node_modules/loader.js/dist/loader/loader.js ./vendor",
@@ -55,10 +59,6 @@
     "strip-ansi": "^6.0.0",
     "typescript": "^4.1.2",
     "whatwg-fetch": "^3.5.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/izelnakri/mber.git"
   },
   "dependencies": {
     "@babel/core": "^7.12.9",
@@ -122,6 +122,36 @@
   },
   "volta": {
     "node": "15.3.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaVersion": 2018,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "legacyDecorators": true
+      }
+    },
+    "plugins": ["ember"],
+    "extends": ["eslint:recommended", "plugin:ember/recommended"],
+    "env": {
+      "browser": true,
+      "commonjs": true,
+      "node": true
+    },
+    "globals": {
+      "Buffer": true,
+      "Promise": true
+    },
+    "rules": {
+      "no-console": "off"
+    }
+  },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "arrowParens": "always"
   },
   "browserslist": [
     "last 1 chrome version"

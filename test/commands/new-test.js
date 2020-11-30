@@ -35,7 +35,7 @@ test.serial('$ mber new -> creates', async (t) => {
 
   t.true(stdout.includes('ember creating anotherapp application'));
   [
-    '.dockerignore', '.editorconfig', '.eslintrc.cjs', '.gitignore', 'config', 'index.html',
+    '.dockerignore', '.editorconfig', '.gitignore', 'config', 'index.html',
     'package.json', 'public', 'src', 'tests', 'tmp', 'vendor'
   ].forEach((fileOrFolder) => t.true(stdout.includes(`created ${fileOrFolder}`)));
 
@@ -45,7 +45,7 @@ test.serial('$ mber new -> creates', async (t) => {
   const directoryEntries = await fs.readdir('anotherapp');
 
   [
-    '.dockerignore', '.editorconfig', '.eslintrc.cjs', '.gitignore', 'config', 'index.html',
+    '.dockerignore', '.editorconfig', '.gitignore', 'config', 'index.html',
     'package.json', 'public', 'src', 'tests', 'tmp', 'vendor'
   ].forEach((entry) => t.true(directoryEntries.includes(entry)));
 
