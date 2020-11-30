@@ -68,15 +68,13 @@ function buildTestVendorJS() {
     const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
     const timer = countTime();
 
-    // const waiterIndexPath = `${MODULE_PATH}/ember-test-waiters/addon/index.ts`;
-    // const indexContent = await fs.readFile(waiterIndexPath);
-
-    // await fs.writeFile(
-    //   waiterIndexPath,
-    //   indexContent.toString().replace("export * from './types';", '')
-    // );
-
     return Promise.all([
+      importAddonFolderToAMD('ember-test-waiters', 'ember-test-waiters/addon'),
+      importAddonFolderToAMD('@ember/test-waiters', 'ember-test-waiters/addon/@ember/test-waiters'),
+      importAddonFolderToAMD(
+        '@ember/test-helpers',
+        '@ember/test-helpers/addon-test-support/@ember/test-helpers'
+      ),
       fs.readFile(`${VENDOR_PATH}/ember-testing.js`),
       fs.readFile(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       fs.readFile(`${MODULE_PATH}/qunit/qunit/qunit.js`),
@@ -84,12 +82,6 @@ function buildTestVendorJS() {
       transpileNPMImports('qunit-dom', 'node_modules/qunit-dom/dist/qunit-dom.js', {
         transpile: false,
       }),
-      importAddonFolderToAMD('ember-test-waiters', 'ember-test-waiters/addon/ember-test-waiters'),
-      importAddonFolderToAMD('@ember/test-waiters', 'ember-test-waiters/addon/@ember/test-waiters'),
-      importAddonFolderToAMD(
-        '@ember/test-helpers',
-        '@ember/test-helpers/addon-test-support/@ember/test-helpers'
-      ),
       importAddonFolderToAMD(
         'ember-cli-test-loader/test-support',
         'ember-cli-test-loader/addon-test-support'
@@ -101,32 +93,29 @@ function buildTestVendorJS() {
         '@ember/test-helpers/addon-test-support/ember-test-helpers'
       ),
       importAddonFolderToAMD('qunit', 'ember-qunit/addon-test-support/qunit'),
-    ])
-      .then((jsContents) => {
-        return fs.writeFile(
-          `${VENDOR_PATH}/${JS_FILENAME}`,
-          'define = window.define;require = window.require;' +
-            jsContents.join('\n') +
-            `
-        runningTests = true;
-      `
+    ]).then((jsContents) => {
+      return fs.writeFile(
+        `${VENDOR_PATH}/${JS_FILENAME}`,
+        'define = window.define;require = window.require;' +
+        jsContents.join('\n') +
+        'runningTests = true;'
+      );
+    })
+    .then(() => {
+      const timePassed = timer.stop();
+
+      fs.readFile(`${VENDOR_PATH}/${JS_FILENAME}`).then((fileBuffer) => {
+        Console.log(
+          `${chalk.green('BUILT:')} vendor/${JS_FILENAME} in ${formatTimePassed(
+            timePassed
+          )} [${formatSize(fileBuffer.length)}]`
         );
-      })
-      .then(() => {
-        const timePassed = timer.stop();
 
-        fs.readFile(`${VENDOR_PATH}/${JS_FILENAME}`).then((fileBuffer) => {
-          Console.log(
-            `${chalk.green('BUILT:')} vendor/${JS_FILENAME} in ${formatTimePassed(
-              timePassed
-            )} [${formatSize(fileBuffer.length)}]`
-          );
-
-          resolve({
-            message: `BUILT: ${JS_FILENAME} in ${timePassed}ms [${formatSize(fileBuffer.length)}]`,
-            fileBuffer: fileBuffer,
-          });
+        resolve({
+          message: `BUILT: ${JS_FILENAME} in ${timePassed}ms [${formatSize(fileBuffer.length)}]`,
+          fileBuffer: fileBuffer,
         });
       });
+    });
   });
 }

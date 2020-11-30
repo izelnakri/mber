@@ -6,7 +6,8 @@ jobs:
     working_directory: /code
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 19.03.13
       - run:
           name: Build application Docker image
           command: |
@@ -24,7 +25,8 @@ jobs:
       - image: docker:stable-git
     working_directory: ~/code
     steps:
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 19.03.13
       - run:
           name: Pull and run a docker container
           command: |

@@ -1,16 +1,16 @@
 import { module, test } from 'qunit';
 import { render } from '@ember/test-helpers';
-import hbs from 'htmlbars-inline-precompile';
+import { hbs } from 'ember-cli-htmlbars';
 import { setupRenderingTest } from '../../../../tests/helpers';
 
-module('Integration | Component | welcome-page', function(hooks) {
+module('Integration | Component | welcome-page', function (hooks) {
   setupRenderingTest(hooks);
 
-  test('should render correctly', async function(assert) {
+  test('should render correctly', async function (assert) {
     assert.expect(1);
 
     await render(hbs`<WelcomePage/>`);
 
     assert.ok(this.element.querySelector('#ember-welcome-page-id-selector'));
- });
+  });
 });

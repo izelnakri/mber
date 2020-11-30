@@ -21,7 +21,9 @@ export default function(projectRoot, contentToInject, targetProcess) {
     targetProcess.stderr.on('data', (data) => {
       console.log('TARGETPROCESS PROCESS STDERR ERROR:');
       console.log(data);
-      reject(data);
+      if (!data.includes('Browserslist')) {
+        reject(data);
+      }
     });
 
     const content = (await fs.readFile(HBS_FILE)).toString();
