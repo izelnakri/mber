@@ -23335,32 +23335,23 @@ var pretenderHacks = createCommonjsModule(function (module, exports) {
   }
 
   function tryConvertingJSONStringToObject(string) {
-    let object;
-
     try {
-      object = JSON.parse(string);
-    } catch (e) {
-      return false;
-    }
+      let object = JSON.parse(string);
 
-    if (typeof object === "object" && object !== null) {
-      return object;
-    }
-
-    return false;
+      if (typeof object === "object" && object !== null) {
+        return object;
+      }
+    } catch (error) {}
   }
 
   function tryConvertingQueryStringToObject(queryString) {
-    let result = {};
-    let entries = new URLSearchParams(queryString);
+    let entries = Array.from(new URLSearchParams(queryString));
 
-    for (const [key, value] of entries) {
-      // each 'entry' is a [queryParamKey, queryParamValue] tupple
-      result[key] = value;
-    }
-
-    if (Object.keys(result).length > 0) {
-      return result;
+    if (entries.length > 0) {
+      return entries.reduce((result, entry) => {
+        result[entry[0]] = entry[1];
+        return result;
+      }, {});
     }
   }
 
