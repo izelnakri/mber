@@ -12,17 +12,6 @@ declare module "ember-test-helpers" {
     placeholder: any;
     [propName: string]: any;
   }
-
-  interface TestContext {
-    [propName: string]: any;
-    element: Element;
-  }
-}
-
-declare global {
-  interface EventTarget {
-    parentElement: Element
-  }
 }
 
 import 'qunit-dom';
