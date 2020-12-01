@@ -167,11 +167,9 @@
   "browserslist": [
     "last 1 chrome version"
   ],
-  "changelog": {
-    "repo": "izelnakri/mber",
-    "labels": {
-      "enhancement": ":rocket: Enhancement",
-      "bug": ":bug: Bug Fix"
+  "release-it": {
+    "plugins": {
+      "release-it-lerna-changelog": {}
     }
   }
 }
