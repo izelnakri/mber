@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.13.15",
+  "version": "0.13.16",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -60,7 +60,6 @@
     "qunit": "2.13.0",
     "qunit-dom": "^1.6.0",
     "release-it": "^14.2.2",
-    "release-it-lerna-changelog": "^3.1.0",
     "strip-ansi": "^6.0.0",
     "typescript": "^4.1.2",
     "whatwg-fetch": "^3.5.0"
@@ -168,11 +167,11 @@
     "last 1 chrome version"
   ],
   "release-it": {
-    "plugins": {
-      "release-it-lerna-changelog": {
-        "infile": "CHANGELOG.md",
-        "launchEditor": true
-      }
+    "git": {
+      "changelog": "node_modules/.bin/auto-changelog --stdout --commit-limit false -u"
+    },
+    "hooks": {
+      "after:bump": "node_modules/.bin/auto-changelog --package"
     }
   }
 }
