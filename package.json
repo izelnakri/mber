@@ -38,7 +38,7 @@
     "@ember-data/model": "3.22.1",
     "@ember-data/private-build-infra": "^3.22.1",
     "@ember-data/record-data": "3.22.1",
-    "@ember-data/serializer": "3.22.1",
+    "@ember-data/serializer": "3.23.0",
     "@ember-data/store": "3.22.1",
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
