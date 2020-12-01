@@ -4,10 +4,10 @@
     "commitMessage": "v${version}",
     "tagAnnotation": "v${version}"
   },
-  "hooks": {
-    "after:bump": "npm run changelog:update --package"
-  },
   "npm": {
     "publish": false
+  },
+  "plugins": {
+    "release-it-lerna-changelog": {}
   }
 }

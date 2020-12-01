@@ -43,7 +43,6 @@
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
     "@typescript-eslint/parser": "4.8.2",
-    "auto-changelog": "^2.2.1",
     "ava": "^3.13.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.3",
@@ -61,6 +60,7 @@
     "qunit": "2.13.0",
     "qunit-dom": "^1.6.0",
     "release-it": "^14.2.2",
+    "release-it-lerna-changelog": "^3.1.0",
     "strip-ansi": "^6.0.0",
     "typescript": "^4.1.2",
     "whatwg-fetch": "^3.5.0"
@@ -79,6 +79,7 @@
     "abortcontroller-polyfill": "^1.5.0",
     "amd-name-resolver": "^1.3.1",
     "ansi-colors": "^4.1.1",
+    "auto-changelog": "^2.2.1",
     "babel-eslint": "^10.1.0",
     "babel-plugin-debug-macros": "^0.3.2",
     "babel-plugin-ember-modules-api-polyfill": "^2.13.4",
@@ -165,5 +166,12 @@
   },
   "browserslist": [
     "last 1 chrome version"
-  ]
+  ],
+  "changelog": {
+    "repo": "izelnakri/mber",
+    "labels": {
+      "enhancement": ":rocket: Enhancement",
+      "bug": ":bug: Bug Fix"
+    }
+  }
 }
