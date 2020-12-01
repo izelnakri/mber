@@ -47,7 +47,7 @@
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.3",
     "ember-cli-test-loader": "^3.0.0",
-    "ember-data": "3.22.1",
+    "ember-data": "3.23.0",
     "ember-load-initializers": "^2.1.2",
     "ember-qunit": "^4.6.0",
     "ember-resolver": "^6.0.0",
