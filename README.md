@@ -1,3 +1,5 @@
+![docker-based-ci](https://github.com/izelnakri/mber/workflows/docker-based-ci/badge.svg)
+
 # mber: Modern Ember.js CLI alternative, without broccoli.
 
 This build system uses [TypeScript](https://www.typescriptlang.org/docs/handbook/basic-types.html), [Module Unification RFC](https://github.com/emberjs/rfcs/blob/master/text/0143-module-unification.md) and [fastboot](https://www.ember-fastboot.com/) by default.
