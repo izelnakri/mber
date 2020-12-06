@@ -17,6 +17,7 @@
     "url": "https://github.com/izelnakri/mber.git"
   },
   "scripts": {
+    "bin": "node cli.js",
     "build-init:loader": "cp ./node_modules/loader.js/dist/loader/loader.js ./vendor",
     "build-init:ember-source": "cp ./node_modules/ember-source/dist/ember-template-compiler.js ./vendor && cp ./node_modules/ember-source/dist/ember-testing.js ./vendor",
     "build:full-ember": "node scripts/build-ember-base.js",
@@ -25,11 +26,12 @@
     "build:memserver": "node scripts/build-memserver.js",
     "build:fastboot-modules": "node scripts/transpile-fastboot-modules.js",
     "build": "npm-run-all --parallel build-init:* && npm-run-all --parallel build:*",
-    "changelog:preview": "node_modules/.bin/auto-changelog --stdout --commit-limit false -u",
+    "changelog:preview": "node_modules/.bin/auto-changelog --stdout --commit-limit false --package -u",
     "changelog:update": "node_modules/.bin/auto-changelog --commit-limit false --package",
     "prepack": "npm run build",
-    "release": "release-it",
-    "bin": "node cli.js",
+    "release:alpha": "node_modules/.bin/release-it --preRelease=alpha",
+    "release:beta": "node_modules/.bin/release-it --preRelease=beta",
+    "release": "node_modules/.bin/release-it",
     "test": "node_modules/.bin/ava --verbose"
   },
   "devDependencies": {
@@ -169,6 +171,9 @@
   "release-it": {
     "git": {
       "changelog": "npm run changelog:preview"
+    },
+    "github": {
+      "release": true
     },
     "hooks": {
       "after:bump": "npm run changelog:update"
