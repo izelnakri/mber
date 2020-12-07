@@ -118,7 +118,7 @@ test.serial('buildMemserver(production) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[2\d\d.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[3\d\d.\d+ kB\] Environment: production/g.test(message));
 
   mock.removeMock();
 });
@@ -188,7 +188,7 @@ test.serial('buildMemserver(demo) works', async (t) => {
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/initializer'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/fixtures/users'));
   t.true(codeIncludesAMDModule(memserverJSCode, 'frontend/memserver/models/user'));
-  t.true(/BUILT: memserver\.js in \d+ms \[2\d\d.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: memserver\.js in \d+ms \[3\d\d.\d+ kB\] Environment: demo/g.test(message));
 
   mock.removeMock();
 });
