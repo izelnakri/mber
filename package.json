@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.13.20-beta.0",
+  "version": "0.13.19",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
@@ -26,13 +26,14 @@
     "build:memserver": "node scripts/build-memserver.js",
     "build:fastboot-modules": "node scripts/transpile-fastboot-modules.js",
     "build": "npm-run-all --parallel build-init:* && npm-run-all --parallel build:*",
+    "changelog:unreleased": "node_modules/.bin/auto-changelog --stdout --commit-limit false --package --unreleased-only --hide-credit",
     "changelog:preview": "node_modules/.bin/auto-changelog --stdout --commit-limit false --package -u",
     "changelog:update": "node_modules/.bin/auto-changelog --commit-limit false --package",
     "prepack": "npm run build",
     "release:alpha": "node_modules/.bin/release-it --preRelease=alpha",
     "release:beta": "node_modules/.bin/release-it --preRelease=beta",
     "release": "node_modules/.bin/release-it",
-    "test": "node_modules/.bin/ava --verbose"
+    "test": "node_modules/.bin/ava --verbose --timeout=2m"
   },
   "devDependencies": {
     "@ember-data/adapter": "3.22.1",
@@ -44,8 +45,8 @@
     "@ember-data/store": "3.22.1",
     "@glimmer/di": "^0.2.1",
     "@glimmer/resolver": "^0.4.3",
-    "@typescript-eslint/parser": "4.8.2",
-    "ava": "^3.13.0",
+    "@typescript-eslint/parser": "4.9.1",
+    "ava": "^3.14.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "2.2.3",
     "ember-cli-test-loader": "^3.0.0",
@@ -93,24 +94,24 @@
     "cheerio": "^1.0.0-rc.3",
     "chokidar": "^3.4.3",
     "compression": "^1.7.3",
-    "eslint": "^7.14.0",
-    "eslint-plugin-ember": "^9.6.0",
+    "eslint": "^7.15.0",
+    "eslint-plugin-ember": "^10.0.2",
     "express": "^4.17.1",
     "fastboot": "^3.1.2",
     "fs-extra": "^9.0.1",
     "jquery": "^3.5.1",
     "jsdom": "^16.4.0",
     "klaw": "^3.0.0",
-    "memserver": "^2.3.1",
-    "mustache": "^4.0.1",
+    "memserver": "^2.3.5",
+    "mustache": "^4.1.0",
     "node-fetch": "^2.6.1",
     "ora": "^5.1.0",
     "puppeteer": "5.5.0",
-    "sass": "1.29.0",
+    "sass": "1.30.0",
     "say": "^0.16.0",
     "terser": "5.5.1",
     "through2": "^4.0.2",
-    "ws": "^7.4.0"
+    "ws": "^7.4.1"
   },
   "ava": {
     "nodeArguments": [
@@ -170,7 +171,7 @@
   ],
   "release-it": {
     "git": {
-      "changelog": "npm run changelog:preview"
+      "changelog": "npm run changelog:unreleased"
     },
     "github": {
       "release": true
