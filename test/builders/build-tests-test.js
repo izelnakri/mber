@@ -1,9 +1,10 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
 import buildTests from '../../lib/builders/build-tests.js';
 import WorkerPool from '../../lib/worker-pool/index.js';
+import pathExists from '../../lib/utils/path-exists.js';
 import { TESTS_JS_DEFAULT_TARGET_BYTE_SIZE } from '../helpers/asset-sizes.js';
 import { TESTS_JS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds.js';
 
@@ -13,8 +14,8 @@ const TESTS_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/tests.js`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
-  await fs.mkdirp(`${CWD}/ember-app-boilerplate/tmp/assets`);
+  await fs.rmdir(`${CWD}/ember-app-boilerplate/tmp`, { recursive: true });
+  await fs.mkdir(`${CWD}/ember-app-boilerplate/tmp/assets`, { recursive: true });
 });
 
 test.afterEach.always(async () => {
@@ -24,7 +25,7 @@ test.afterEach.always(async () => {
 test.serial('buildTests() works', async (t) => {
   t.plan(10);
 
-  t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests();
@@ -54,7 +55,7 @@ test.serial('buildTests() works', async (t) => {
 test.serial('buildTests(development) works', async (t) => {
   t.plan(10);
 
-  t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests({ ENV: { environment: 'development' } }, false);
@@ -84,7 +85,7 @@ test.serial('buildTests(development) works', async (t) => {
 test.serial('buildTests(test) works', async (t) => {
   t.plan(10);
 
-  t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests({ ENV: { environment: 'test' } }, false);
@@ -114,7 +115,7 @@ test.serial('buildTests(test) works', async (t) => {
 test.serial('buildTests(custom) works', async (t) => {
   t.plan(10);
 
-  t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(TESTS_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildTests(
@@ -150,7 +151,7 @@ test.serial('buildTests(custom) works', async (t) => {
 test.serial('buildTests(development, { testPrepends }) work', async (t) => {
   t.plan(10);
 
-  t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(TESTS_JS_OUTPUT_PATH)));
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
@@ -189,7 +190,7 @@ test.serial('buildTests(development, { testPrepends }) work', async (t) => {
 test.serial('buildVendor(development, { testAppends }) work', async (t) => {
   t.plan(10);
 
-  t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(TESTS_JS_OUTPUT_PATH)));
 
   const CODE_TO_APPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
@@ -228,7 +229,7 @@ test.serial('buildVendor(development, { testAppends }) work', async (t) => {
 test.serial('buildVendor(memserver, { testPrepends, testAppends }) work', async (t) => {
   t.plan(11);
 
-  t.true(!(await fs.exists(TESTS_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(TESTS_JS_OUTPUT_PATH)));
 
   const CODE_TO_PREPEND = '(function(){console.log("this is prepending code")})()';
   const CODE_TO_APPEND = '(function(){console.log("this is appending code")})()';

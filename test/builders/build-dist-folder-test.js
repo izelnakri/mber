@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import createDummyApp from '../helpers/create-dummy-app.js';
@@ -6,6 +6,7 @@ import buildAssets from '../../lib/builders/build-assets.js';
 import buildDistFolder from '../../lib/builders/build-dist-folder.js';
 import countTime from '../../lib/utils/count-time.js';
 import WorkerPool from '../../lib/worker-pool/index.js';
+import pathExists from '../../lib/utils/path-exists.js';
 import { TIME_TO_BUILD_DIST_THRESHOLD } from '../helpers/asset-build-thresholds.js';
 
 const CWD = process.cwd();
@@ -21,17 +22,17 @@ const TEST_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/tests.html`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.remove(`${CWD}/some-app`);
+  await fs.rmdir(`${CWD}/some-app`, { recursive: true });
   await createDummyApp('some-app');
   await Promise.all([
-    fs.remove(`${PROJECT_ROOT}/dist`),
-    fs.remove(`${PROJECT_ROOT}/tmp`)
+    fs.rmdir(`${PROJECT_ROOT}/dist`, { recursive: true }),
+    fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true })
   ]);
 });
 
 test.afterEach.always(async () => {
-  if (await fs.exists(PROJECT_ROOT)) {
-    await fs.remove(PROJECT_ROOT);
+  if (await pathExists(PROJECT_ROOT)) {
+    await fs.rmdir(PROJECT_ROOT, { recursive: true });
   }
 
   global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
@@ -42,7 +43,7 @@ test.serial('buildDistFolder() works', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist`)));
 
   const ENV = await environmentFunc('development');
 
@@ -106,7 +107,7 @@ test.serial('buildDistFolder() works', async (t) => {
     t.true((file.gzipSize > 0) && (file.gzipSize < file.size));
   });
 
-  t.true(await fs.exists(`${PROJECT_ROOT}/dist/package.json`));
+  t.true(await pathExists(`${PROJECT_ROOT}/dist/package.json`));
 
   const assetMap = JSON.parse(await fs.readFile(`${PROJECT_ROOT}/dist/assets/assetMap.json`));
 
@@ -131,7 +132,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   const mock = mockProcessCWD(PROJECT_ROOT);
   const ENV = await environmentFunc('memserver');
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist`)));
 
   await buildAssets({ ENV: ENV, cliArguments: { testing: true } }, false);
   console.log('BUILDASSETS FINISHED');
@@ -194,7 +195,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
   });
   console.log('file size tests passes');
 
-  t.true(await fs.exists(`${PROJECT_ROOT}/dist/package.json`));
+  t.true(await pathExists(`${PROJECT_ROOT}/dist/package.json`));
 
   const assetMap = JSON.parse(await fs.readFile(`${PROJECT_ROOT}/dist/assets/assetMap.json`));
 
@@ -221,7 +222,7 @@ test.serial('buildDistFolder() works for production', async (t) => {
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist`)));
 
   const ENV = await environmentFunc('production');
 
@@ -257,7 +258,7 @@ test.serial('buildDistFolder() works for production', async (t) => {
     return fs.readFile(`${PROJECT_ROOT}/${targetFileName}`);
   }));
 
-  t.true(!(await fs.exists(TEST_HTML_OUTPUT_PATH)));
+  t.true(!(await pathExists(TEST_HTML_OUTPUT_PATH)));
 
   hashedFileContents.forEach((hashedFileContent) => {
     t.truthy(fileContents.find((fileContent) => fileContent.length === hashedFileContent.length));
@@ -272,7 +273,7 @@ test.serial('buildDistFolder() works for production', async (t) => {
     }
   });
 
-  t.true(await fs.exists(`${PROJECT_ROOT}/dist/package.json`));
+  t.true(await pathExists(`${PROJECT_ROOT}/dist/package.json`));
 
   const assetMap = JSON.parse(await fs.readFile(`${PROJECT_ROOT}/dist/assets/assetMap.json`));
 
@@ -296,7 +297,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist`)));
 
   const ENV = Object.assign({}, await environmentFunc('memserver'), { modulePrefix: 'some-app' });
 
@@ -339,7 +340,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
     return fs.readFile(`${PROJECT_ROOT}/${targetFileName}`);
   }));
 
-  t.true(!(await fs.exists(TEST_HTML_OUTPUT_PATH)));
+  t.true(!(await pathExists(TEST_HTML_OUTPUT_PATH)));
 
   hashedFileContents.forEach((hashedFileContent) => {
     t.truthy(fileContents.find((fileContent) => fileContent.length === hashedFileContent.length));
@@ -349,7 +350,7 @@ test.serial('buildDistFolder() works for different applicationName and memserver
     t.true((file.gzipSize > 0) && (file.gzipSize < file.size));
   });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/package.json`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/package.json`)));
 
   const assetMap = JSON.parse(await fs.readFile(`${PROJECT_ROOT}/dist/assets/assetMap.json`));
 
@@ -375,11 +376,11 @@ test.serial('buildDistFolder() resets dist', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
   const ENV = await environmentFunc('memserver');
 
-  await fs.mkdirp(`${PROJECT_ROOT}/dist/assets`);
+  await fs.mkdir(`${PROJECT_ROOT}/dist/assets`, { recursive: true });
   await fs.writeFile(`${PROJECT_ROOT}/dist/assets/izel.js`, 'console.log("hello")');
 
-  t.true(await fs.exists(`${PROJECT_ROOT}/dist`));
-  t.true(await fs.exists(`${PROJECT_ROOT}/dist/assets/izel.js`));
+  t.true(await pathExists(`${PROJECT_ROOT}/dist`));
+  t.true(await pathExists(`${PROJECT_ROOT}/dist/assets/izel.js`));
 
   await buildAssets({ projectRoot: PROJECT_ROOT, ENV: ENV }, false);
 
@@ -389,7 +390,7 @@ test.serial('buildDistFolder() resets dist', async (t) => {
     ENV: ENV,
   });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets/izel.js`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/assets/izel.js`)));
 
   mock.removeMock();
 });

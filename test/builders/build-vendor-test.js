@@ -1,11 +1,12 @@
 import test from 'ava';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
 import codeHasWatchSocket from '../helpers/code-has-watch-socket.js';
 import buildVendor from '../../lib/builders/build-vendor.js';
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
 import WorkerPool from '../../lib/worker-pool/index.js';
+import pathExists from '../../lib/utils/path-exists.js';
 import {
   VENDOR_JS_BUILD_TIME_THRESHOLD,
   VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD
@@ -30,8 +31,8 @@ const DEFAULT_BROWSER_EMBER_ENV = {
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
-  await fs.mkdirp(`${CWD}/ember-app-boilerplate/tmp/assets`);
+  await fs.rmdir(`${CWD}/ember-app-boilerplate/tmp`, { recursive: true });
+  await fs.mkdir(`${CWD}/ember-app-boilerplate/tmp/assets`, { recursive: true });
 });
 
 test.afterEach.always(async () => {
@@ -41,7 +42,7 @@ test.afterEach.always(async () => {
 test.serial('buildVendor() works', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor();
@@ -67,7 +68,7 @@ test.serial('buildVendor() works', async (t) => {
 test.serial('buildVendor(development) works', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -96,7 +97,7 @@ test.serial('buildVendor(development) works', async (t) => {
 test.serial('buildVendor(development) works without ember data', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -129,7 +130,7 @@ test.serial('buildVendor(development) works without ember data', async (t) => {
 test.serial('buildVendor(development, { fastboot: false }) works', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -158,7 +159,7 @@ test.serial('buildVendor(development, { fastboot: false }) works', async (t) => 
 test.serial('buildVendor(development, { fastboot: false }) works without ember data', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -191,7 +192,7 @@ test.serial('buildVendor(development, { fastboot: false }) works without ember d
 test.serial('buildVendor(production) works', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -225,7 +226,7 @@ test.serial('buildVendor(production) works', async (t) => {
 test.serial('buildVendor(production) works without ember data', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -263,7 +264,7 @@ test.serial('buildVendor(production) works without ember data', async (t) => {
 test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -297,7 +298,7 @@ test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
 test.serial('buildVendor(production, { fastboot: false }) works without ember data', async (t) => {
   t.plan(34);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -335,7 +336,7 @@ test.serial('buildVendor(production, { fastboot: false }) works without ember da
 test.serial('buildVendor(test) works', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -368,7 +369,7 @@ test.serial('buildVendor(test) works', async (t) => {
 test.serial('buildVendor(test) works without ember data', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -405,7 +406,7 @@ test.serial('buildVendor(test) works without ember data', async (t) => {
 test.serial('buildVendor(memserver) works', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -451,7 +452,7 @@ test.serial('buildVendor(memserver) works', async (t) => {
 test.serial('buildVendor(memserver) works without ember data', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -494,7 +495,7 @@ test.serial('buildVendor(memserver) works without ember data', async (t) => {
 test.serial('buildVendor(demo) works', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -527,7 +528,7 @@ test.serial('buildVendor(demo) works', async (t) => {
 test.serial('buildVendor(demo) works without ember data', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -564,7 +565,7 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
 test.serial('buildVendor(custom) works', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -597,7 +598,7 @@ test.serial('buildVendor(custom) works', async (t) => {
 test.serial('buildVendor(custom) works without ember data', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildVendor({
@@ -634,7 +635,7 @@ test.serial('buildVendor(custom) works without ember data', async (t) => {
 test.serial('buildVendor(development, { vendorPrepends }) work', async (t) => {
   t.plan(32);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
@@ -664,7 +665,7 @@ test.serial('buildVendor(development, { vendorPrepends }) work', async (t) => {
 test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
   t.plan(32);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
@@ -696,7 +697,7 @@ test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
 test.serial('buildVendor(memserver, { vendorPrepends, vendorAppends }) work', async (t) => {
   t.plan(33);
 
-  t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(VENDOR_JS_OUTPUT_PATH)));
 
   const CODE_TO_PREPEND = '(function(){console.log("this is prepending code")})()';
   const CODE_TO_APPEND = '(function(){console.log("this is appending code")})()';

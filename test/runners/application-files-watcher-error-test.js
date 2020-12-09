@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import WebSocket from 'ws';
 import applicationFilesWatcher from '../../lib/runners/application-files-watcher.js';
@@ -17,14 +17,6 @@ import {
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/dummyapp`;
 const DEFAULT_SOCKET_PORT = 65511;
-const defaultComponentContent = (className) => `
-  import Component from '@glimmer/component';
-
-  export default class ${className} extends Component {
-    constructor() {
-      super(...arguments);
-    }
-  }`;
 const defaultEditedComponentContent = (className) => `
 import Component from '@glimmer/component';
 
@@ -104,7 +96,7 @@ test.afterEach.always(async () => {
 });
 // TODO: later assert error html content
 test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 
   t.plan(138);
 
@@ -117,7 +109,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
   const mock = mockProcessCWD(PROJECT_ROOT);
 
   await createAdvancedDummyApp();
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+  await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
   const WebSocketServer = await applicationFilesWatcher({
@@ -156,11 +148,11 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
   stopStdoutListening();
   mock.removeMock();
 
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 test.serial('it handles css, js, hbs syntax errors gracefully without fastboot', async (t) => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 
   t.plan(127);
 
@@ -168,7 +160,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
   const mock = mockProcessCWD(PROJECT_ROOT);
 
   await createAdvancedDummyApp();
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+  await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
   const WebSocketServer = await applicationFilesWatcher({
@@ -208,7 +200,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
   stopStdoutListening();
   mock.removeMock();
 
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 async function testCSSErrorHandlingWorks(t, stdout, environment) {
@@ -230,7 +222,7 @@ async function testCSSErrorHandlingWorks(t, stdout, environment) {
 
   t.true(occurrenceCount(firstContent, '.testing-class') === 1);
 
-  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component`);
+  await fs.mkdir(`${PROJECT_ROOT}/src/ui/components/some-component`, { recursive: true });
   await writeCSSCode(
     '/src/ui/components/some-component/styles.scss',
     '.some-component { color, purple }'
@@ -292,7 +284,7 @@ async function testApplicationJSErrorHandlingWorks(t, stdout, environment) {
 
   t.true(occurrenceCount(firstContent, /there is edited code/g) === 1);
 
-  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
+  await fs.mkdir(`${PROJECT_ROOT}/src/ui/components/dummy-component`, { recursive: true });
   await writeComponentCode('/dummy-component/component.ts', JS_TYPO_ERROR);
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1);
@@ -345,7 +337,7 @@ async function testApplicationHBSErrorHandlingWorks(t, stdout, environment) {
 
   t.true(codeIncludesAMDModule(firstContent, 'dummyapp/src/ui/components/welcome-page/template'));
 
-  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
+  await fs.mkdir(`${PROJECT_ROOT}/src/ui/components/dummy-component`, { recursive: true });
   await writeComponentCode('/dummy-component/template.hbs', HBS_TYPO_ERROR);
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/template.hbs') === 1);
@@ -446,7 +438,7 @@ async function testTestJSErrorHandlingWorks(t, stdout, environment) {
 
   t.true(occurrenceCount(firstContent, /this is added by this test/g) === 1);
 
-  await fs.mkdirp(`${PROJECT_ROOT}/tests/acceptance`);
+  await fs.mkdir(`${PROJECT_ROOT}/tests/acceptance`, { recursive: true });
   await writeAcceptanceTestOnTestFolder('/homepage-test.ts', JS_FILE_ERROR);
 
   t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.ts') === 1);
@@ -558,7 +550,7 @@ function writeIntegrationTestOnComponent(
 
 function removeIntegrationTestOnComponent(path = '/welcome-page/integration-test.ts') {
   return new Promise(async (resolve) => {
-    await fs.remove(`${PROJECT_ROOT}/src/ui/components${path}`);
+    await fs.rm(`${PROJECT_ROOT}/src/ui/components${path}`);
 
     setTimeout(() => resolve(), TESTS_JS_BUILD_TIME_THRESHOLD + 500);
   });

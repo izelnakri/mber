@@ -1,5 +1,5 @@
 import cheerio from 'cheerio';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 import test from 'ava';
@@ -23,6 +23,7 @@ import {
 } from '../helpers/asset-build-thresholds.js';
 import startHTTPServer from '../helpers/start-http-server.js';
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
+import pathExists from '../../lib/utils/path-exists.js';
 
 const shell = promisify(exec);
 const CWD = process.cwd();
@@ -32,11 +33,11 @@ const OUTPUT_PACKAGE_JSON = `${PROJECT_ROOT}/dist/package.json`;
 const HTTP_PORT = 3000;
 
 test.beforeEach(async () => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 test.afterEach.always(async () => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 test.serial('$ mber build -> builds successfully', async (t) => {
@@ -44,7 +45,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 
   await createAdvancedDummyApp();
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node  ${CWD}/cli.js build`, { cwd: PROJECT_ROOT });
@@ -72,7 +73,7 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
 
   await createAdvancedDummyApp();
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node  ${CWD}/cli.js build --env=production`, { cwd: PROJECT_ROOT });
@@ -98,7 +99,7 @@ test.serial('$ mber build --env=memserver -> builds successfully', async (t) => 
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node  ${CWD}/cli.js build --env=memserver`, { cwd: PROJECT_ROOT });
@@ -127,7 +128,7 @@ test.serial('$ mber build --env=custom -> builds successfully', async (t) => {
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node  ${CWD}/cli.js build --env=custom`, { cwd: PROJECT_ROOT });
@@ -153,7 +154,7 @@ test.serial('$ mber build --fastboot=false -> builds successfully', async (t) =>
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node  ${CWD}/cli.js build --fastboot=false`, {
@@ -181,7 +182,7 @@ test.serial('$ mber build --env=memserver --fastboot=false -> builds successfull
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/dist/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/dist/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout } = await shell(`node  ${CWD}/cli.js build --env=memserver --fastboot=false`, {
@@ -222,7 +223,7 @@ async function testSuccessfullBuild(t, stdout, options={ memserver: false, fastb
   const [dist, indexHTMLBuffer, packageJSONExists] = await Promise.all([
     fs.readdir('./dummyapp/dist/assets'),
     fs.readFile(OUTPUT_INDEX_HTML),
-    fs.exists(OUTPUT_PACKAGE_JSON)
+    pathExists(OUTPUT_PACKAGE_JSON)
   ]);
   const indexHTML = indexHTMLBuffer.toString();
 

@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import chalk from 'ansi-colors';
 import Console from '../lib/utils/console.js';
 import findProjectRoot from '../lib/utils/find-project-root.js';
@@ -19,9 +19,9 @@ function transpileFastbootModules() {
     const MODULE_PATH = `${PROJECT_PATH}/node_modules/ember-cli-fastboot`;
 
     await Promise.all([
-      fs.ensureDir(`${PROJECT_PATH}/vendor/fastboot`),
-      fs.ensureDir(`${PROJECT_PATH}/vendor/fetch`),
-      fs.ensureDir(`${PROJECT_PATH}/vendor/fastboot/initializers`)
+      fs.mkdir(`${PROJECT_PATH}/vendor/fastboot`, { recursive: true }),
+      fs.mkdir(`${PROJECT_PATH}/vendor/fetch`, { recursive: true }),
+      fs.mkdir(`${PROJECT_PATH}/vendor/fastboot/initializers`, { recursive: true })
     ]);
 
     return Promise.all([

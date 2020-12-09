@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import WebSocket from 'ws';
 import applicationFilesWatcher from '../../lib/runners/application-files-watcher.js';
@@ -82,7 +82,7 @@ test.afterEach.always(async () => {
 });
 
 test.serial('it watches correctly on development mode', async (t) => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 
   t.plan(73);
 
@@ -96,7 +96,7 @@ test.serial('it watches correctly on development mode', async (t) => {
   const TARGET_SOCKET_PORT = 8080;
 
   await createAdvancedDummyApp();
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+  await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
 
@@ -123,11 +123,11 @@ test.serial('it watches correctly on development mode', async (t) => {
   WebSocketServer.close();
   stopStdoutListening();
   mock.removeMock();
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 test.serial('it watches memserver files correctly', async (t) => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 
   t.plan(29);
 
@@ -140,7 +140,7 @@ test.serial('it watches memserver files correctly', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+  await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
 
@@ -164,7 +164,7 @@ test.serial('it watches memserver files correctly', async (t) => {
   t.true(getAddNotificationCount(stdout, '/memserver/models/email.ts') === 0);
   t.true(getBuildingNotificationCount(stdout, 'memserver.js') === 0);
 
-  await fs.mkdirp(`${PROJECT_ROOT}/memserver/models`);
+  await fs.mkdir(`${PROJECT_ROOT}/memserver/models`, { recursive: true });
   await writeMemServerCode('/models/email.ts', defaultEditedMemserverModelContent('Email'));
 
   t.true(getAddNotificationCount(stdout, '/memserver/models/email.ts') === 1);
@@ -208,19 +208,19 @@ test.serial('it watches memserver files correctly', async (t) => {
   WebSocketServer.close();
   stopStdoutListening();
   mock.removeMock();
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 // TODO: calledOnce test with sinon
 test.serial('it watches test files correctly', async (t) => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 
   t.plan(97);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+  await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 
   const { stdout, stopStdoutListening } = listenCurrentStdout();
 
@@ -267,7 +267,7 @@ test.serial('it watches test files correctly', async (t) => {
   t.true(getBuiltNotificationCount(stdout, 'memserver.js', 'test') === 2);
   t.true(!codeIncludesAMDModule(await readMemServerJS(), 'dummyapp/memserver/models/email'));
 
-  await fs.mkdirp(`${PROJECT_ROOT}/tests/acceptance`);
+  await fs.mkdir(`${PROJECT_ROOT}/tests/acceptance`, { recursive: true });
   await writeAcceptanceTestOnTestFolder('/homepage-test.ts', DEFAULT_ACCEPTANCE_TEST_TO_ADD);
 
   t.true(getAddNotificationCount(stdout, '/tests/acceptance/homepage-test.ts') === 1);
@@ -309,7 +309,7 @@ test.serial('it watches test files correctly', async (t) => {
   WebSocketServer.close();
   stopStdoutListening();
   mock.removeMock();
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 // it can change the ENV by changing the environment.js
@@ -321,7 +321,7 @@ function occurrenceCount(sourceString, targetString) {
 
 function writeCSSCode(path, content) {
   return new Promise(async (resolve) => {
-    await fs.ensureFile(`${PROJECT_ROOT}${path}`);
+    await fs.mkdir(`${PROJECT_ROOT}${path}`.split('/').slice(0, -1).join('/'), { recursive: true });
     await fs.writeFile(`${PROJECT_ROOT}${path}`, content);
 
     setTimeout(() => resolve(), APPLICATION_CSS_BUILD_TIME_THRESHOLD + 700);
@@ -341,9 +341,11 @@ function writeComponentCode(
 
 function removeFile(codePath) {
   return new Promise(async (resolve) => {
-    await fs.remove(codePath);
-
-    setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD + 250);
+    try {
+      await fs.rm(codePath);
+    } finally {
+      setTimeout(() => resolve(), APPLICATION_JS_BUILD_TIME_THRESHOLD + 250);
+    }
   });
 }
 
@@ -422,7 +424,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
   t.true(getBuildingNotificationCount(stdout, 'application.css') === 1);
   t.true(getBuiltNotificationCount(stdout, 'application.css', environment) === 1);
 
-  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/some-component`);
+  await fs.mkdir(`${PROJECT_ROOT}/src/ui/components/some-component`, { recursive: true });
   await writeCSSCode(
     '/src/ui/components/some-component/styles.scss',
     '.awesomeness { color: blue }'
@@ -436,7 +438,7 @@ async function applicationFileWatcherTests(t, stdout, environment) {
 
   t.true(occurrenceCount(cssContent, /\.awesomeness {/g) === 1);
 
-  await fs.mkdirp(`${PROJECT_ROOT}/src/ui/components/dummy-component`);
+  await fs.mkdir(`${PROJECT_ROOT}/src/ui/components/dummy-component`, { recursive: true });
   await writeComponentCode('/dummy-component/component.ts', defaultComponentContent('DummyComponent'));
 
   t.true(getAddNotificationCount(stdout, '/src/ui/components/dummy-component/component.ts') === 1);

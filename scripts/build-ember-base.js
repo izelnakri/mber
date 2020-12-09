@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import chalk from 'ansi-colors';
 import { minify } from 'terser';
 import Console from '../lib/utils/console.js';

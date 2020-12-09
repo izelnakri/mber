@@ -1,9 +1,10 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import buildApplication from '../../lib/builders/build-application.js';
 import WorkerPool from '../../lib/worker-pool/index.js';
+import pathExists from '../../lib/utils/path-exists.js';
 import { APPLICATION_JS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds.js';
 import {
   APPLICATION_JS_TARGET_BYTE_SIZE,
@@ -17,8 +18,8 @@ const APPLICATION_JS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.js`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 });
 
 test.afterEach.always(async () => {
@@ -28,7 +29,7 @@ test.afterEach.always(async () => {
 test.serial('buildApplication() works', async (t) => {
   t.plan(22);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication();
@@ -97,7 +98,7 @@ test.serial('buildApplication() works', async (t) => {
 test.serial('buildApplication(development) works', async (t) => {
   t.plan(22);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication(
@@ -170,7 +171,7 @@ test.serial('buildApplication(development) works', async (t) => {
 test.serial('buildApplication(production) works', async (t) => {
   t.plan(22);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication(
@@ -226,7 +227,7 @@ test.serial('buildApplication(production) works', async (t) => {
 test.serial('buildApplication(test) works', async (t) => {
   t.plan(22);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication(
@@ -299,7 +300,7 @@ test.serial('buildApplication(test) works', async (t) => {
 test.serial('buildApplication(demo) works', async (t) => {
   t.plan(22);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication(
@@ -355,7 +356,7 @@ test.serial('buildApplication(demo) works', async (t) => {
 test.serial('buildApplication(custom) works', async (t) => {
   t.plan(22);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, stats } = await buildApplication(
@@ -427,7 +428,7 @@ test.serial('buildApplication(custom) works', async (t) => {
 test.serial('buildApplication(development, { applicationPrepends }) work', async (t) => {
   t.plan(5);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
@@ -461,7 +462,7 @@ test.serial('buildApplication(development, { applicationPrepends }) work', async
 test.serial('buildApplication(development, { applicationAppends }) work', async (t) => {
   t.plan(5);
 
-  t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
   const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';
   const mock = mockProcessCWD(PROJECT_ROOT);
@@ -497,7 +498,7 @@ test.serial(
   async (t) => {
     t.plan(6);
 
-    t.true(!(await fs.exists(APPLICATION_JS_OUTPUT_PATH)));
+    t.true(!(await pathExists(APPLICATION_JS_OUTPUT_PATH)));
 
     const CODE_TO_PREPEND = '(function() { console.log("this is prepending code") })()';
     const CODE_TO_APPEND = '(function() { console.log("this is appending code") })()';

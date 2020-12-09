@@ -1,5 +1,5 @@
 import test from 'ava';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 
@@ -7,11 +7,11 @@ const shell = promisify(exec);
 const CWD = process.cwd();
 
 test.beforeEach(async () => {
-  await fs.remove('testapp');
+  await fs.rmdir('testapp', { recursive: true });
 });
 
 test.afterEach.always(async () => {
-  await fs.remove('testapp');
+  await fs.rmdir('testapp', { recursive: true });
 });
 
 test.serial('$ mber new -> throws error if applicationName not provided', async (t) => {
@@ -21,13 +21,13 @@ test.serial('$ mber new -> throws error if applicationName not provided', async 
 });
 
 test.serial('$ mber new -> throws error if applicationName folder already exists', async (t) => {
-  await fs.mkdirp('existingapp');
+  await fs.mkdir('existingapp', { recursive: true });
 
   const { stdout } = await shell(`node ${CWD}/cli.js new existingapp`);
 
   t.true(stdout.includes('ember existingapp already exists!'));
 
-  await fs.remove('existingapp');
+  await fs.rmdir('existingapp', { recursive: true });
 });
 
 test.serial('$ mber new -> creates', async (t) => {
@@ -64,7 +64,7 @@ test.serial('$ mber new -> creates', async (t) => {
   // assertContentForFile(t, 'src', ``)
 
   // assertContentForFile(t, 'tests', ``)
-  await fs.remove('anotherapp');
+  await fs.rmdir('anotherapp', { recursive: true });
 });
 
 // function assertContentForFile(t, fileName, content) {

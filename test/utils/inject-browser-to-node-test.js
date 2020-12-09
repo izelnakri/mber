@@ -1,5 +1,5 @@
 import test from 'ava';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import buildApplication from '../../lib/builders/build-application.js';
