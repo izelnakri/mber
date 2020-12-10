@@ -39,7 +39,7 @@ test.afterEach.always(async () => {
 });
 
 test.serial('buildVendor() works', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -47,7 +47,7 @@ test.serial('buildVendor() works', async (t) => {
   const { message, stats } = await buildVendor();
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -65,7 +65,7 @@ test.serial('buildVendor() works', async (t) => {
 });
 
 test.serial('buildVendor(development) works', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -76,7 +76,7 @@ test.serial('buildVendor(development) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -94,7 +94,7 @@ test.serial('buildVendor(development) works', async (t) => {
 });
 
 test.serial('buildVendor(development) works without ember data', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -127,7 +127,7 @@ test.serial('buildVendor(development) works without ember data', async (t) => {
 });
 
 test.serial('buildVendor(development, { fastboot: false }) works', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -156,7 +156,7 @@ test.serial('buildVendor(development, { fastboot: false }) works', async (t) => 
 });
 
 test.serial('buildVendor(development, { fastboot: false }) works without ember data', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -189,7 +189,7 @@ test.serial('buildVendor(development, { fastboot: false }) works without ember d
 });
 
 test.serial('buildVendor(production) works', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -223,7 +223,7 @@ test.serial('buildVendor(production) works', async (t) => {
 });
 
 test.serial('buildVendor(production) works without ember data', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -234,7 +234,7 @@ test.serial('buildVendor(production) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[5\d\d.\d+ kB\] Environment: production/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[6\d\d.\d+ kB\] Environment: production/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
@@ -261,7 +261,7 @@ test.serial('buildVendor(production) works without ember data', async (t) => {
 });
 
 test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -295,7 +295,7 @@ test.serial('buildVendor(production, { fastboot: false }) works', async (t) => {
 });
 
 test.serial('buildVendor(production, { fastboot: false }) works without ember data', async (t) => {
-  t.plan(32);
+  t.plan(34);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -333,7 +333,7 @@ test.serial('buildVendor(production, { fastboot: false }) works without ember da
 });
 
 test.serial('buildVendor(test) works', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -344,7 +344,7 @@ test.serial('buildVendor(test) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: test/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: test/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
@@ -366,7 +366,7 @@ test.serial('buildVendor(test) works', async (t) => {
 });
 
 test.serial('buildVendor(test) works without ember data', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -403,7 +403,7 @@ test.serial('buildVendor(test) works without ember data', async (t) => {
 });
 
 test.serial('buildVendor(memserver) works', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -420,7 +420,7 @@ test.serial('buildVendor(memserver) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: memserver/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: memserver/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
@@ -449,7 +449,7 @@ test.serial('buildVendor(memserver) works', async (t) => {
 });
 
 test.serial('buildVendor(memserver) works without ember data', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -492,7 +492,7 @@ test.serial('buildVendor(memserver) works without ember data', async (t) => {
 });
 
 test.serial('buildVendor(demo) works', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -525,7 +525,7 @@ test.serial('buildVendor(demo) works', async (t) => {
 });
 
 test.serial('buildVendor(demo) works without ember data', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -536,7 +536,7 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[5\d\d.\d+ kB\] Environment: demo/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[6\d\d.\d+ kB\] Environment: demo/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
@@ -562,7 +562,7 @@ test.serial('buildVendor(demo) works without ember data', async (t) => {
 });
 
 test.serial('buildVendor(custom) works', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -573,7 +573,7 @@ test.serial('buildVendor(custom) works', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: custom/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: custom/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSCode = vendorJSBuffer.toString();
@@ -595,7 +595,7 @@ test.serial('buildVendor(custom) works', async (t) => {
 });
 
 test.serial('buildVendor(custom) works without ember data', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -632,7 +632,7 @@ test.serial('buildVendor(custom) works without ember data', async (t) => {
 });
 
 test.serial('buildVendor(development, { vendorPrepends }) work', async (t) => {
-  t.plan(30);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -647,7 +647,7 @@ test.serial('buildVendor(development, { vendorPrepends }) work', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: development/g.test(message));
 
   const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
 
@@ -662,7 +662,7 @@ test.serial('buildVendor(development, { vendorPrepends }) work', async (t) => {
 });
 
 test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
-  t.plan(30);
+  t.plan(32);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -674,7 +674,7 @@ test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: custom/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: custom/g.test(message));
 
   const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
 
@@ -694,7 +694,7 @@ test.serial('buildVendor(development, { vendorAppends }) work', async (t) => {
 });
 
 test.serial('buildVendor(memserver, { vendorPrepends, vendorAppends }) work', async (t) => {
-  t.plan(31);
+  t.plan(33);
 
   t.true(!(await fs.exists(VENDOR_JS_OUTPUT_PATH)));
 
@@ -708,7 +708,7 @@ test.serial('buildVendor(memserver, { vendorPrepends, vendorAppends }) work', as
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_COMPRESSED_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: memserver/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: memserver/g.test(message));
 
   const vendorJSCode = (await fs.readFile(VENDOR_JS_OUTPUT_PATH)).toString().trim();
 
@@ -783,6 +783,8 @@ async function testJavaScriptContents(
   t.true(codeIncludesAMDModule(code, 'ember-inflector/index'));
   t.true(codeIncludesAMDModule(code, 'ember-load-initializers/index'));
   t.true(codeIncludesAMDModule(code, 'ember-resolver/index'));
+  t.true(codeIncludesAMDModule(code, 'ember-fetch/errors'));
+  t.true(codeIncludesAMDModule(code, 'fetch'));
 
   if (options.excludeEmberData) {
     t.true(!codeIncludesAMDModule(code, 'ember-data/index'));

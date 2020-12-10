@@ -1329,6 +1329,336 @@ define("@glimmer/component/-private/owner", ["exports", "@glimmer/di"], function
     }
   });
 });
+define("ember-fetch/errors", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.isUnauthorizedResponse = isUnauthorizedResponse;
+  _exports.isForbiddenResponse = isForbiddenResponse;
+  _exports.isInvalidResponse = isInvalidResponse;
+  _exports.isBadRequestResponse = isBadRequestResponse;
+  _exports.isNotFoundResponse = isNotFoundResponse;
+  _exports.isGoneResponse = isGoneResponse;
+  _exports.isAbortError = isAbortError;
+  _exports.isConflictResponse = isConflictResponse;
+  _exports.isServerErrorResponse = isServerErrorResponse;
+
+  /**
+   * Checks if the given response represents an unauthorized request error
+   */
+  function isUnauthorizedResponse(response) {
+    return response.status === 401;
+  }
+  /**
+   * Checks if the given response represents a forbidden request error
+   */
+
+
+  function isForbiddenResponse(response) {
+    return response.status === 403;
+  }
+  /**
+   * Checks if the given response represents an invalid request error
+   */
+
+
+  function isInvalidResponse(response) {
+    return response.status === 422;
+  }
+  /**
+   * Checks if the given response represents a bad request error
+   */
+
+
+  function isBadRequestResponse(response) {
+    return response.status === 400;
+  }
+  /**
+   * Checks if the given response represents a "not found" error
+   */
+
+
+  function isNotFoundResponse(response) {
+    return response.status === 404;
+  }
+  /**
+   * Checks if the given response represents a "gone" error
+   */
+
+
+  function isGoneResponse(response) {
+    return response.status === 410;
+  }
+  /**
+   * Checks if the given error is an "abort" error
+   */
+
+
+  function isAbortError(error) {
+    return error.name == 'AbortError';
+  }
+  /**
+   * Checks if the given response represents a conflict error
+   */
+
+
+  function isConflictResponse(response) {
+    return response.status === 409;
+  }
+  /**
+   * Checks if the given response represents a server error
+   */
+
+
+  function isServerErrorResponse(response) {
+    return response.status >= 500 && response.status < 600;
+  }
+});
+define("ember-fetch/types", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.isPlainObject = isPlainObject;
+
+  function isPlainObject(obj) {
+    return Object.prototype.toString.call(obj) === '[object Object]';
+  }
+});
+define("ember-fetch/utils/determine-body-promise", ["exports"], function (_exports) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = determineBodyPromise;
+
+  /**
+   * Function that always attempts to parse the response as json, and if an error is thrown,
+   * returns `undefined` if the response is successful and has a status code of 204 (No Content),
+   * or 205 (Reset Content) or if the request method was 'HEAD', and the plain payload otherwise.
+   */
+  function determineBodyPromise(response, requestData) {
+    return response.text().then(function (payload) {
+      let ret = payload;
+
+      try {
+        ret = JSON.parse(payload);
+      } catch (error) {
+        if (!(error instanceof SyntaxError)) {
+          throw error;
+        }
+
+        const status = response.status;
+
+        if (response.ok && (status === 204 || status === 205 || requestData.method === 'HEAD')) {
+          ret = undefined;
+        } else {
+          console.warn('This response was unable to be parsed as json.', payload);
+        }
+      }
+
+      return ret;
+    });
+  }
+});
+define("ember-fetch/utils/mung-options-for-fetch", ["exports", "ember-fetch/utils/serialize-query-params", "ember-fetch/types"], function (_exports, _serializeQueryParams, _types) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.default = mungOptionsForFetch;
+
+  /**
+   * Helper function that translates the options passed to `jQuery.ajax` into a format that `fetch` expects.
+   */
+  function mungOptionsForFetch(options) {
+    const hash = Ember.assign({
+      credentials: 'same-origin'
+    }, options); // Default to 'GET' in case `type` is not passed in (mimics jQuery.ajax).
+
+    hash.method = (hash.method || hash.type || 'GET').toUpperCase();
+
+    if (hash.data) {
+      // GET and HEAD requests can't have a `body`
+      if (hash.method === 'GET' || hash.method === 'HEAD') {
+        // If no options are passed, Ember Data sets `data` to an empty object, which we test for.
+        if (Object.keys(hash.data).length) {
+          // Test if there are already query params in the url (mimics jQuey.ajax).
+          const queryParamDelimiter = hash.url.indexOf('?') > -1 ? '&' : '?';
+          hash.url += "".concat(queryParamDelimiter).concat((0, _serializeQueryParams.serializeQueryParams)(hash.data));
+        }
+      } else {
+        // NOTE: a request's body cannot be a POJO, so we stringify it if it is.
+        // JSON.stringify removes keys with values of `undefined` (mimics jQuery.ajax).
+        // If the data is not a POJO (it's a String, FormData, etc), we just set it.
+        // If the data is a string, we assume it's a stringified object.
+        if ((0, _types.isPlainObject)(hash.data)) {
+          hash.body = JSON.stringify(hash.data);
+        } else {
+          hash.body = hash.data;
+        }
+      }
+    }
+
+    return hash;
+  }
+});
+define("ember-fetch/utils/serialize-query-params", ["exports", "ember-fetch/types"], function (_exports, _types) {
+  "use strict";
+
+  Object.defineProperty(_exports, "__esModule", {
+    value: true
+  });
+  _exports.serializeQueryParams = serializeQueryParams;
+  _exports.default = void 0;
+  const RBRACKET = /\[\]$/;
+  /**
+   * Helper function that turns the data/body of a request into a query param string.
+   * This is directly copied from jQuery.param.
+   */
+
+  function serializeQueryParams(queryParamsObject) {
+    var s = [];
+
+    function buildParams(prefix, obj) {
+      var i, len, key;
+
+      if (prefix) {
+        if (Array.isArray(obj)) {
+          for (i = 0, len = obj.length; i < len; i++) {
+            if (RBRACKET.test(prefix)) {
+              add(s, prefix, obj[i]);
+            } else {
+              buildParams(prefix + '[' + (typeof obj[i] === 'object' ? i : '') + ']', obj[i]);
+            }
+          }
+        } else if ((0, _types.isPlainObject)(obj)) {
+          for (key in obj) {
+            buildParams(prefix + '[' + key + ']', obj[key]);
+          }
+        } else {
+          add(s, prefix, obj);
+        }
+      } else if (Array.isArray(obj)) {
+        for (i = 0, len = obj.length; i < len; i++) {
+          add(s, obj[i].name, obj[i].value);
+        }
+      } else {
+        for (key in obj) {
+          buildParams(key, obj[key]);
+        }
+      }
+
+      return s;
+    }
+
+    return buildParams('', queryParamsObject).join('&').replace(/%20/g, '+');
+  }
+  /**
+   * Part of the `serializeQueryParams` helper function.
+   */
+
+
+  function add(s, k, v) {
+    // Strip out keys with undefined value and replace null values with
+    // empty strings (mimics jQuery.ajax)
+    if (v === undefined) {
+      return;
+    } else if (v === null) {
+      v = '';
+    }
+
+    v = typeof v === 'function' ? v() : v;
+    s[s.length] = "".concat(encodeURIComponent(k), "=").concat(encodeURIComponent(v));
+  }
+
+  var _default = serializeQueryParams;
+  _exports.default = _default;
+});
+(function (originalGlobal) {
+  define('fetch', ['exports'], function(exports) {
+    'use strict';
+    var Promise = originalGlobal.Ember.RSVP.Promise;
+    var supportProps = [
+      'FormData',
+      'FileReader',
+      'Blob',
+      'URLSearchParams',
+      'Symbol',
+      'ArrayBuffer'
+    ];
+    var polyfillProps = [
+      'fetch',
+      'Headers',
+      'Request',
+      'Response',
+      'AbortController'
+    ];
+    var combinedProps = supportProps;
+    if (true) {
+      combinedProps = supportProps.concat(polyfillProps);
+    }
+    combinedProps.forEach(function(prop) {
+      if (originalGlobal[prop]) {
+        Object.defineProperty(exports, prop, {
+          configurable: true,
+          get: function() { return originalGlobal[prop] },
+          set: function(v) { originalGlobal[prop] = v }
+        });
+      }
+    });
+
+    // shadow github/fetch global object
+    // https://github.com/github/fetch/blob/v3.4.0/fetch.js
+    var globalThis =  exports;
+    // shadow mo/abortcontroller-polyfill global object
+    // https://github.com/mo/abortcontroller-polyfill/blob/v1.4.0/src/abortcontroller-polyfill.js
+    var self = exports;
+    
+
+    if (!globalThis.fetch) {
+      throw new Error('fetch is not defined - maybe your browser targets are not covering everything you need?');
+    }
+
+    var pending = 0;
+    function decrement(result) {
+      pending--;
+      return result;
+    }
+
+    if (originalGlobal.Ember.Test) {
+      originalGlobal.Ember.Test.registerWaiter(function() {
+        return pending === 0;
+      });
+
+      exports['default'] = function() {
+        pending++;
+
+        return exports.fetch.apply(originalGlobal, arguments).then(function(response){
+          response.clone().blob().then(decrement, decrement);
+          return response;
+        }, function(reason) {
+          decrement(reason);
+          throw reason;
+        });
+      };
+    } else {
+      exports['default'] = exports.fetch;
+    }
+    supportProps.forEach(function(prop) {
+      delete exports[prop];
+    });
+  });
+}((typeof window !== 'undefined' && window) ||
+  (typeof globalThis !== 'undefined' && globalThis) ||
+  (typeof self !== 'undefined' && self) ||
+  (typeof global !== 'undefined' && global)));
+
 (function() {
 /*!
  * @overview  Ember - JavaScript Application Framework

@@ -39,7 +39,9 @@ function build(environment, options = { excludeEmberData: false }) {
             'var owner = (0, _owner.getOwner)(this) || this.container;',
             'var owner = (0, _owner.getOwner)(this) || this.container || this.__owner__;' // NOTE: needed for glimmer-compat for module unification
           )
-          .replace(`(0, _emberCompatibilityHelpers.gte)('3.10.0')`, 'true');
+          .replace(`(0, _emberCompatibilityHelpers.gte)('3.10.0')`, 'true')
+          .replace('<%= moduleBody %>', '')
+          .replace('(preferNative)', '(true)');
 
         return writeVendorJS(OUTPUT_PATH, targetContents, environment);
       })
@@ -98,6 +100,8 @@ async function readBuildFiles(projectPath, environment, options = { excludeEmber
     importAddonFolderToAMD('@glimmer/resolver', '@glimmer/resolver/dist/modules/es2017'),
     fs.readFile(`${MODULE_PATH}/@glimmer/di/dist/amd/es5/glimmer-di.js`),
     importAddonFolderToAMD('@glimmer/component', '@glimmer/component/addon'),
+    importAddonFolderToAMD('ember-fetch', 'ember-fetch/addon'),
+    fs.readFile(`${MODULE_PATH}/ember-fetch/assets/browser-fetch.js.t`),
     fs.readFile(`${MODULE_PATH}/ember-source/dist/ember.debug.js`),
     transpileEmberOrderedSet(MODULE_PATH),
     importAddonFolderToAMD('@ember/render-modifiers', '@ember/render-modifiers/addon'),
