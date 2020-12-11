@@ -69,16 +69,16 @@
     "whatwg-fetch": "^3.5.0"
   },
   "dependencies": {
-    "@babel/core": "^7.12.9",
+    "@babel/core": "^7.12.10",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@babel/plugin-proposal-decorators": "^7.12.1",
     "@babel/plugin-transform-modules-amd": "^7.12.1",
     "@babel/plugin-transform-typescript": "^7.12.1",
-    "@babel/preset-env": "^7.12.7",
+    "@babel/preset-env": "^7.12.10",
     "@ember-data/canary-features": "^3.22.1",
     "@ember/ordered-set": "^4.0.0",
     "@ember/render-modifiers": "^1.0.2",
-    "@glimmer/component": "^1.0.2",
+    "@glimmer/component": "^1.0.3",
     "abortcontroller-polyfill": "^1.5.0",
     "amd-name-resolver": "^1.3.1",
     "ansi-colors": "^4.1.1",
@@ -125,7 +125,7 @@
     "require": [
       "./vendor/disable-colors"
     ],
-    "timeout": "10m",
+    "timeout": "20m",
     "concurrency": 1,
     "failFast": true
   },

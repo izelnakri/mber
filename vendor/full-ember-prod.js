@@ -92,9 +92,9 @@ e.default=class{constructor(e,r){this.args=void 0,this.args=r,(0,t.setOwner)(thi
 Object.defineProperty(e,"__esModule",{value:!0}),e.setDestroying=function(e){t.set(e,!0)},e.setDestroyed=function(e){r.set(e,!0)},e.isDestroying=function(e){return t.has(e)},e.isDestroyed=function(e){return r.has(e)}
 const t=new WeakMap,r=new WeakMap})),define("@glimmer/component/-private/ember-component-manager",["exports","ember-compatibility-helpers","@glimmer/component/-private/base-component-manager","@glimmer/component/-private/destroyables"],(function(e,t,r,i){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),e.default=void 0
-const n=(0,t.gte)("3.13.0-beta.1")?Ember._componentManagerCapabilities("3.13",{destructor:!0,asyncLifecycleCallbacks:!1,updateHook:!1}):Ember._componentManagerCapabilities("3.4",{destructor:!0,asyncLifecycleCallbacks:!1}),s=(0,t.gte)("3.20.0-beta.4")?void 0:(e,t)=>{e.isDestroyed||(Ember.destroy(e),t.setSourceDestroyed(),(0,i.setDestroyed)(e))},a=(0,t.gte)("3.20.0-beta.4")?Ember.__loader.require("@glimmer/runtime").destroy:e=>{if(e.isDestroying)return
+const n=(0,t.gte)("3.13.0-beta.1")?Ember._componentManagerCapabilities("3.13",{destructor:!0,asyncLifecycleCallbacks:!1,updateHook:!1}):Ember._componentManagerCapabilities("3.4",{destructor:!0,asyncLifecycleCallbacks:!1}),s=(0,t.gte)("3.20.0-beta.4")?void 0:(e,t)=>{e.isDestroyed||(Ember.destroy(e),t.setSourceDestroyed(),(0,i.setDestroyed)(e))},a=(0,t.gte)("3.20.0-beta.4")?Ember.destroy:e=>{if(e.isDestroying)return
 let t=Ember.meta(e)
-t.setSourceDestroying(),(0,i.setDestroying)(e),Ember.run.schedule("actions",e,e.willDestroy),Ember.run.schedule("destroy",void 0,s,e,t)},o=(0,t.gte)("3.20.0-beta.4")?Ember.__loader.require("@glimmer/runtime").registerDestructor:void 0
+t.setSourceDestroying(),(0,i.setDestroying)(e),Ember.run.schedule("actions",e,e.willDestroy),Ember.run.schedule("destroy",void 0,s,e,t)},o=(0,t.gte)("3.22.0-beta")?Ember._registerDestructor:(0,t.gte)("3.20.0-beta.4")?Ember.__loader.require("@glimmer/runtime").registerDestructor:void 0
 class l extends((0,r.default)(Ember.setOwner,Ember.getOwner,n)){createComponent(e,r){const i=super.createComponent(e,r)
 return(0,t.gte)("3.20.0-beta.4")&&o(i,(()=>{i.willDestroy()})),i}destroyComponent(e){a(e)}}(0,t.gte)("3.13.0-beta.1")||(l.prototype.updateComponent=function(e,t){let r=t.named
 Ember.set(e,"args",r)})

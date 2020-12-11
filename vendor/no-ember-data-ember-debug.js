@@ -1210,6 +1210,9 @@ define("@glimmer/component/-private/destroyables", ["exports"], function (_expor
   _exports.setDestroyed = setDestroyed;
   _exports.isDestroying = isDestroying;
   _exports.isDestroyed = isDestroyed;
+  // NOTE: DO NOT MODIFY
+  //
+  // This module is clobbered by ember-addon-main when used in Ember >= 3.20.0-beta.4
   const DESTROYING = new WeakMap();
   const DESTROYED = new WeakMap(); // TODO: remove once glimmer.js is updated to glimmer-vm 0.54.0+ and can use the destroyables API directly
 
@@ -1253,8 +1256,7 @@ define("@glimmer/component/-private/ember-component-manager", ["exports", "ember
     meta.setSourceDestroyed();
     (0, _destroyables.setDestroyed)(component);
   };
-  const destroy = (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') // @ts-ignore
-  ? Ember.__loader.require('@glimmer/runtime').destroy : component => {
+  const destroy = (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') ? Ember.destroy : component => {
     if (component.isDestroying) {
       return;
     }
@@ -1265,7 +1267,8 @@ define("@glimmer/component/-private/ember-component-manager", ["exports", "ember
     Ember.run.schedule('actions', component, component.willDestroy);
     Ember.run.schedule('destroy', void 0, scheduledDestroyComponent, component, meta);
   };
-  const registerDestructor = (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') // @ts-ignore
+  const registerDestructor = (0, _emberCompatibilityHelpers.gte)('3.22.0-beta') // @ts-ignore
+  ? Ember._registerDestructor : (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') // @ts-ignore
   ? Ember.__loader.require('@glimmer/runtime').registerDestructor : undefined;
   /**
    * This component manager runs in Ember.js environments and extends the base component manager to:
