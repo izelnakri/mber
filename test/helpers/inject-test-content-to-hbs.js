@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 
 export default function(projectRoot, contentToInject, targetProcess) {
   const HBS_FILE = `${projectRoot}/src/ui/routes/index/template.hbs`;

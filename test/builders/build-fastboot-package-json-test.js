@@ -1,8 +1,9 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import createExampleENV from '../helpers/create-example-env.js';
 import buildFastbootPackageJSON from '../../lib/builders/build-fastboot-package-json.js';
+import pathExists from '../../lib/utils/path-exists.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
@@ -21,10 +22,10 @@ const EXAMPLE_ENV = createExampleENV('development');
 const SECOND_EXAMPLE_ENV = createExampleENV('production');
 
 test.beforeEach(async () => {
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
-  await fs.remove(`${PROJECT_ROOT}/dist`);
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp`);
-  await fs.mkdirp(`${PROJECT_ROOT}/dist`);
+  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.rmdir(`${PROJECT_ROOT}/dist`, { recursive: true });
+  await fs.mkdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.mkdir(`${PROJECT_ROOT}/dist`, { recursive: true });
 });
 
 test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (t) => {
@@ -32,7 +33,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
-  t.true(!(await fs.exists(DEFAULT_PACKAGE_JSON_PATH)));
+  t.true(!(await pathExists(DEFAULT_PACKAGE_JSON_PATH)));
 
   await buildFastbootPackageJSON(EXAMPLE_ASSET_MAP, { ENV: EXAMPLE_ENV });
 
@@ -69,7 +70,7 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
-  t.true(!(await fs.exists(TMP_PACKAGE_JSON_PATH)));
+  t.true(!(await pathExists(TMP_PACKAGE_JSON_PATH)));
 
   await buildFastbootPackageJSON(SECOND_EXAMPLE_ASSET_MAP, { ENV: SECOND_EXAMPLE_ENV }, 'tmp');
 
@@ -107,7 +108,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
   const targetENV = createExampleENV('demo');
   const mock = mockProcessCWD(PROJECT_ROOT);
 
-  t.true(!(await fs.exists(DEFAULT_PACKAGE_JSON_PATH)));
+  t.true(!(await pathExists(DEFAULT_PACKAGE_JSON_PATH)));
 
   await buildFastbootPackageJSON(EXAMPLE_ASSET_MAP, { ENV: targetENV });
 

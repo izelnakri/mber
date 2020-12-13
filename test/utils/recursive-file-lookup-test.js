@@ -1,35 +1,36 @@
 import test from 'ava';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import lookup from '../../lib/utils/recursive-file-lookup.js';
+import pathExists from '../../lib/utils/path-exists.js';
 
 const CWD = process.cwd();
 
 test.before(async () => {
-  if (await fs.exists('online-shop')) {
-    await fs.remove('online-shop');
+  if (await pathExists('online-shop')) {
+    await fs.rmdir('online-shop', { recursive: true });
   }
 
-  await fs.mkdirp('online-shop');
+  await fs.mkdir('online-shop', { recursive: true });
   await Promise.all([
     fs.writeFile('online-shop/index.js', '// find me in online-shop/index.js'),
     fs.writeFile('online-shop/details.js', '// find me in online-shop/details.js'),
     fs.writeFile('online-shop/details.hbs', '// find me in online-shop/details.hbs'),
-    fs.mkdirp('online-shop/shoes'),
-    fs.mkdirp('online-shop/shirts')
+    fs.mkdir('online-shop/shoes', { recursive: true }),
+    fs.mkdir('online-shop/shirts', { recursive: true })
   ]);
   await Promise.all([
     fs.writeFile('online-shop/shoes/shoe.js', '// find me in online-shop/shoes/shoe.js'),
     fs.writeFile('online-shop/shoes/index.js', '// find me in online-shop/shoes/index.js'),
     fs.writeFile('online-shop/shoes/brown.js', '// find me in online-shop/shoes/brown.js'),
     fs.writeFile('online-shop/shoes/brown.hbs', '// find me in online-shop/shoes/brown.hbs'),
-    fs.mkdirp('online-shop/shoes/shoe')
+    fs.mkdir('online-shop/shoes/shoe', { recursive: true })
   ]);
   await fs.writeFile('online-shop/shoes/shoe/brown.js', '// find me in online-shop/shoes/shoe/brown.js')
 });
 
 test.after(async () => {
-  if (await fs.exists('online-shop')) {
-    await fs.remove('online-shop');
+  if (await pathExists('online-shop')) {
+    await fs.rmdir('online-shop', { recursive: true });
   }
 });
 

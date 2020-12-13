@@ -1,9 +1,10 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import buildCSS from '../../lib/builders/build-css.js';
 import { APPLICATION_CSS_BUILD_TIME_THRESHOLD } from '../helpers/asset-build-thresholds.js';
 import { formatSize } from '../../lib/utils/asset-reporter.js';
+import pathExists from '../../lib/utils/path-exists.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${CWD}/ember-app-boilerplate`;
@@ -12,14 +13,14 @@ const APPLICATION_CSS_TARGET_BYTE_SIZE = '2.15 kB';
 const APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE = '1.78 kB';
 
 test.beforeEach(async () => {
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp/assets`);
+  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 });
 
 test.serial('buildCSS() works', async (t) => {
   t.plan(5);
 
-  t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS();
@@ -41,7 +42,7 @@ test.serial('buildCSS() works', async (t) => {
 test.serial('buildCSS(development) works', async (t) => {
   t.plan(5);
 
-  t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS({
@@ -65,7 +66,7 @@ test.serial('buildCSS(development) works', async (t) => {
 test.serial('buildCSS(custom) works', async (t) => {
   t.plan(5);
 
-  t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS({
@@ -89,7 +90,7 @@ test.serial('buildCSS(custom) works', async (t) => {
 test.serial('buildCSS(production) works', async (t) => {
   t.plan(5);
 
-  t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS({
@@ -114,7 +115,7 @@ test.serial('buildCSS(production) works', async (t) => {
 test.serial('buildCSS(demo) works', async (t) => {
   t.plan(5);
 
-  t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { message, size } = await buildCSS({
@@ -138,7 +139,7 @@ test.serial('buildCSS(demo) works', async (t) => {
 test.serial('buildCSS() styles/folder css gets written first, then application css', async (t) => {
   t.plan(3);
 
-  t.true(!(await fs.exists(APPLICATION_CSS_OUTPUT_PATH)));
+  t.true(!(await pathExists(APPLICATION_CSS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   await buildCSS();

@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import Puppeteer from 'puppeteer';
 import countTime from '../../lib/utils/count-time.js';
@@ -18,7 +18,7 @@ let childProcessTree = [];
 
 test.beforeEach(async () => {
   await killProcessOnPort(HTTP_PORT);
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 test.afterEach.always(async () => {
@@ -26,7 +26,7 @@ test.afterEach.always(async () => {
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 
   await killProcessOnPort(HTTP_PORT);
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
 });
 
 // TODO: memserver test cases, --debug mode works, backend-tests
@@ -106,7 +106,7 @@ test.serial('$ mber test --server -> builds test files successfully', async (t) 
   await createDummyApp();
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(
+  const { childProcess } = await spawnProcess(
     `node ${CWD}/cli.js test --server`,
     {
       cwd: PROJECT_ROOT
@@ -137,7 +137,7 @@ test.serial('$ mber test --server -> can run successfully and then fail on watch
   await createDummyApp();
 
   const mock = mockProcessCWD(PROJECT_ROOT);
-  const { stdout, childProcess } = await spawnProcess(
+  const { childProcess } = await spawnProcess(
     `node ${CWD}/cli.js test --server`,
     {
       cwd: PROJECT_ROOT
@@ -248,7 +248,7 @@ test.serial(
     );
 
     const mock = mockProcessCWD(PROJECT_ROOT);
-    const { stdout, childProcess } = await spawnProcess(
+    const { childProcess } = await spawnProcess(
       `node ${CWD}/cli.js test --server`,
       {
         cwd: PROJECT_ROOT

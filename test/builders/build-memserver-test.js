@@ -1,9 +1,10 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import codeIncludesAMDModule from '../helpers/code-includes-amd-module.js';
 import buildMemserver from '../../lib/builders/build-memserver.js';
 import WorkerPool from '../../lib/worker-pool/index.js';
+import pathExists from '../../lib/utils/path-exists.js';
 import {
   MEMSERVER_JS_BUILD_TIME_THRESHOLD,
   MEMSERVER_JS_COMPRESSED_BUILD_THRESHOLD
@@ -19,8 +20,8 @@ const MEMSERVER_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/memser
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.remove(`${CWD}/ember-app-boilerplate/tmp`);
-  await fs.mkdirp(`${CWD}/ember-app-boilerplate/tmp/assets`);
+  await fs.rmdir(`${CWD}/ember-app-boilerplate/tmp`, { recursive: true });
+  await fs.mkdir(`${CWD}/ember-app-boilerplate/tmp/assets`, { recursive: true });
 });
 
 test.afterEach.always(async () => {
@@ -30,7 +31,7 @@ test.afterEach.always(async () => {
 test.serial('buildMemserver() works', async (t) => {
   t.plan(16);
 
-  t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver();
@@ -60,7 +61,7 @@ test.serial('buildMemserver() works', async (t) => {
 test.serial('buildMemserver(development) works', async (t) => {
   t.plan(16);
 
-  t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver({ ENV: { environment: 'development' } }, false);
@@ -90,7 +91,7 @@ test.serial('buildMemserver(development) works', async (t) => {
 test.serial('buildMemserver(production) works', async (t) => {
   t.plan(15);
 
-  t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver(
@@ -125,7 +126,7 @@ test.serial('buildMemserver(production) works', async (t) => {
 test.serial('buildMemserver(test) works', async (t) => {
   t.plan(15);
 
-  t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver(
@@ -160,7 +161,7 @@ test.serial('buildMemserver(test) works', async (t) => {
 test.serial('buildMemserver(demo) works', async (t) => {
   t.plan(15);
 
-  t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver(
@@ -195,7 +196,7 @@ test.serial('buildMemserver(demo) works', async (t) => {
 test.serial('buildMemserver(custom) works', async (t) => {
   t.plan(15);
 
-  t.true(!(await fs.exists(MEMSERVER_JS_OUTPUT_PATH)));
+  t.true(!(await pathExists(MEMSERVER_JS_OUTPUT_PATH)));
 
   const mock = mockProcessCWD(`${CWD}/ember-app-boilerplate`);
   const { message, stats } = await buildMemserver(

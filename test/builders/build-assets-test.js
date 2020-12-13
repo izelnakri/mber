@@ -1,8 +1,9 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import createDummyApp from '../helpers/create-dummy-app.js';
 import buildAssets from '../../lib/builders/build-assets.js';
 import WorkerPool from '../../lib/worker-pool/index.js';
+import pathExists from '../../lib/utils/path-exists.js';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 
 const CWD = process.cwd();
@@ -16,20 +17,20 @@ const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/index.html`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.remove(`${PROJECT_ROOT}/myapp`);
+  await fs.rmdir(`${PROJECT_ROOT}/myapp`, { recursive: true });
   await createDummyApp('myapp');
   await Promise.all([
-    fs.remove(APPLICATION_JS_OUTPUT_PATH),
-    fs.remove(VENDOR_JS_OUTPUT_PATH),
-    fs.remove(CSS_OUTPUT_PATH),
-    fs.remove(INDEX_HTML_OUTPUT_PATH),
-    fs.remove(MEMSERVER_OUTPUT_PATH)
+    fs.rm(APPLICATION_JS_OUTPUT_PATH, { force: true, recursive: true }),
+    fs.rm(VENDOR_JS_OUTPUT_PATH, { force: true, recursive: true }),
+    fs.rm(CSS_OUTPUT_PATH, { force: true, recursive: true }),
+    fs.rm(INDEX_HTML_OUTPUT_PATH, { force: true, recursive: true }),
+    fs.rm(MEMSERVER_OUTPUT_PATH, { force: true, recursive: true })
   ]);
 });
 
 test.afterEach.always(async () => {
-  if (await fs.exists('myapp')) {
-    await fs.remove('myapp');
+  if (await pathExists('myapp')) {
+    await fs.rmdir('myapp', { recursive: true });
   }
 
   global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
@@ -41,11 +42,11 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
   const result = await Promise.all([
-    fs.exists(APPLICATION_JS_OUTPUT_PATH),
-    fs.exists(VENDOR_JS_OUTPUT_PATH),
-    fs.exists(CSS_OUTPUT_PATH),
-    fs.exists(INDEX_HTML_OUTPUT_PATH),
-    fs.exists(MEMSERVER_OUTPUT_PATH)
+    pathExists(APPLICATION_JS_OUTPUT_PATH),
+    pathExists(VENDOR_JS_OUTPUT_PATH),
+    pathExists(CSS_OUTPUT_PATH),
+    pathExists(INDEX_HTML_OUTPUT_PATH),
+    pathExists(MEMSERVER_OUTPUT_PATH)
   ]);
 
   t.deepEqual(result, [false, false, false, false, false]);
@@ -56,15 +57,15 @@ test.serial('buildAssets(projectRoot, buildConfig) works', async (t) => {
   }, false);
 
   const postResult = await Promise.all([
-    fs.exists(APPLICATION_JS_OUTPUT_PATH),
-    fs.exists(VENDOR_JS_OUTPUT_PATH),
-    fs.exists(CSS_OUTPUT_PATH),
-    fs.exists(INDEX_HTML_OUTPUT_PATH),
-    fs.exists(MEMSERVER_OUTPUT_PATH),
-    fs.exists(`${PROJECT_ROOT}/tmp/assets/tests.js`),
-    fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.js`),
-    fs.exists(`${PROJECT_ROOT}/tmp/assets/test-support.css`),
-    fs.exists(`${PROJECT_ROOT}/tmp/package.json`),
+    pathExists(APPLICATION_JS_OUTPUT_PATH),
+    pathExists(VENDOR_JS_OUTPUT_PATH),
+    pathExists(CSS_OUTPUT_PATH),
+    pathExists(INDEX_HTML_OUTPUT_PATH),
+    pathExists(MEMSERVER_OUTPUT_PATH),
+    pathExists(`${PROJECT_ROOT}/tmp/assets/tests.js`),
+    pathExists(`${PROJECT_ROOT}/tmp/assets/test-support.js`),
+    pathExists(`${PROJECT_ROOT}/tmp/assets/test-support.css`),
+    pathExists(`${PROJECT_ROOT}/tmp/package.json`),
   ]);
 
   t.deepEqual(postResult, [true, true, true, true, false, false, false, false, true]);
@@ -78,9 +79,9 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
+  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp`)));
 
   await buildAssets({
     projectRoot: PROJECT_ROOT,
@@ -89,11 +90,11 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
   }, false);
 
   const postResult = await Promise.all([
-    fs.exists(APPLICATION_JS_OUTPUT_PATH),
-    fs.exists(VENDOR_JS_OUTPUT_PATH),
-    fs.exists(CSS_OUTPUT_PATH),
-    fs.exists(INDEX_HTML_OUTPUT_PATH),
-    fs.exists(MEMSERVER_OUTPUT_PATH)
+    pathExists(APPLICATION_JS_OUTPUT_PATH),
+    pathExists(VENDOR_JS_OUTPUT_PATH),
+    pathExists(CSS_OUTPUT_PATH),
+    pathExists(INDEX_HTML_OUTPUT_PATH),
+    pathExists(MEMSERVER_OUTPUT_PATH)
   ]);
 
   t.deepEqual(postResult, [true, true, true, true, false]);
@@ -107,9 +108,9 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
+  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp`)));
 
   await buildAssets({
     projectRoot: PROJECT_ROOT,
@@ -117,11 +118,11 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
   }, false);
 
   const postResult = await Promise.all([
-    fs.exists(APPLICATION_JS_OUTPUT_PATH),
-    fs.exists(VENDOR_JS_OUTPUT_PATH),
-    fs.exists(CSS_OUTPUT_PATH),
-    fs.exists(INDEX_HTML_OUTPUT_PATH),
-    fs.exists(MEMSERVER_OUTPUT_PATH)
+    pathExists(APPLICATION_JS_OUTPUT_PATH),
+    pathExists(VENDOR_JS_OUTPUT_PATH),
+    pathExists(CSS_OUTPUT_PATH),
+    pathExists(INDEX_HTML_OUTPUT_PATH),
+    pathExists(MEMSERVER_OUTPUT_PATH)
   ]);
 
   t.deepEqual(postResult, [true, true, true, true, true]);
@@ -135,9 +136,9 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
+  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp`)));
 
   await buildAssets({
     projectRoot: PROJECT_ROOT,
@@ -155,7 +156,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
     'assets/tests.js'
   ];
   const postResult = await Promise.all(targetFiles.map((targetFile) => {
-    return fs.exists(`${PROJECT_ROOT}/tmp/${targetFile}`);
+    return pathExists(`${PROJECT_ROOT}/tmp/${targetFile}`);
   }));
 
   t.deepEqual(postResult, [true, true, true, true, true, true, true]);
@@ -166,7 +167,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
     t.true(testsHTML.includes(targetFile));
   })
 
-  t.true((await fs.exists(`${PROJECT_ROOT}/tmp/package.json`)));
+  t.true((await pathExists(`${PROJECT_ROOT}/tmp/package.json`)));
 
   mock.removeMock();
 });

@@ -1,8 +1,9 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import pathExists from '../../lib/utils/path-exists.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const shell = promisify(exec);
@@ -14,8 +15,8 @@ export default async function(appName = 'dummyapp') {
 
   const TARGET_PROJECT_PATH = `${CWD}/${appName}`;
 
-  if (!(await fs.exists(`${TARGET_PROJECT_PATH}/node_modules`))) {
-    // await fs.mkdirp(TARGET_PROJECT_PATH);
+  if (!(await pathExists(`${TARGET_PROJECT_PATH}/node_modules`))) {
+    // await fs.mkdir(TARGET_PROJECT_PATH, { recursive: true });
     await fs.symlink(`${__dirname}/../../node_modules`, `${TARGET_PROJECT_PATH}/node_modules`); // TODO: this is huge
   }
 
@@ -26,11 +27,11 @@ export default async function(appName = 'dummyapp') {
     contents.replace("import app from 'mber';", "import app from '../index.js';")
   );
   await Promise.all([
-    fs.remove(`${TARGET_PROJECT_PATH}/dist`),
-    fs.remove(`${TARGET_PROJECT_PATH}/tmp`)
+    fs.rmdir(`${TARGET_PROJECT_PATH}/dist`, { recursive: true }),
+    fs.rmdir(`${TARGET_PROJECT_PATH}/tmp`, { recursive: true })
   ]);
   await Promise.all([
-    fs.mkdirp(`${TARGET_PROJECT_PATH}/dist`),
-    fs.mkdirp(`${TARGET_PROJECT_PATH}/tmp`)
+    fs.mkdir(`${TARGET_PROJECT_PATH}/dist`, { recursive: true }),
+    fs.mkdir(`${TARGET_PROJECT_PATH}/tmp`, { recursive: true })
   ]);
 }

@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import findProjectRoot from '../../lib/utils/find-project-root.js';
 import createDummyApp from './create-dummy-app.js';
 
@@ -9,7 +9,7 @@ export default async function(appName = 'dummyapp', options = { memserver: false
   return new Promise((resolvePromise) => {
     createDummyApp(appName)
       .then(() => {
-        return fs.mkdirp(`${APP_ROOT}/src/data/models/user`);
+        return fs.mkdir(`${APP_ROOT}/src/data/models/user`, { recursive: true });
       })
       .then(() => {
         const operations = [

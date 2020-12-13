@@ -1,34 +1,35 @@
 import test from 'ava';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
 import searchInParentDirectories from '../../lib/utils/search-in-parent-directories.js';
+import pathExists from '../../lib/utils/path-exists.js';
 
 const CWD = process.cwd();
 
 test.beforeEach(async () => {
-  if (await fs.exists('online-shop')) {
-    await fs.remove('online-shop');
+  if (await pathExists('online-shop')) {
+    await fs.rmdir('online-shop', { recursive: true });
   }
 
-  await fs.mkdirp('online-shop');
+  await fs.mkdir('online-shop', { recursive: true });
   await Promise.all([
     fs.writeFile('online-shop/index.js', '// find me in online-shop/index.js'),
     fs.writeFile('online-shop/details.js', '// find me in online-shop/details.js'),
-    fs.mkdirp('online-shop/shoes'),
-    fs.mkdirp('online-shop/shirts')
+    fs.mkdir('online-shop/shoes', { recursive: true }),
+    fs.mkdir('online-shop/shirts', { recursive: true })
   ]);
   await Promise.all([
     fs.writeFile('online-shop/shoes/shoe.js', '// find me in online-shop/shoes/shoe.js'),
     fs.writeFile('online-shop/shoes/index.js', '// find me in online-shop/shoes/index.js'),
     fs.writeFile('online-shop/shoes/brown.js', '// find me in online-shop/shoes/brown.js'),
-    fs.mkdirp('online-shop/shoes/shoe')
+    fs.mkdir('online-shop/shoes/shoe', { recursive: true })
   ]);
   await fs.writeFile('online-shop/shoes/shoe/brown.js', '// find me in online-shop/shoes/shoe/brown.js')
 });
 
 test.after(async () => {
-  if (await fs.exists('online-shop')) {
-    await fs.remove('online-shop');
+  if (await pathExists('online-shop')) {
+    await fs.rmdir('online-shop', { recursive: true });
   }
 });
 

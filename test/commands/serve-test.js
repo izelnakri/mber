@@ -1,6 +1,6 @@
 import { exec } from 'child_process';
 import cheerio from 'cheerio';
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import createAdvancedDummyApp from '../helpers/create-advanced-dummy-app.js';
 import http from '../helpers/http.js';
@@ -24,6 +24,7 @@ import {
   MEMSERVER_JS_BUILD_TIME_THRESHOLD
 } from '../helpers/asset-build-thresholds.js';
 import injectBrowserToNode from '../../lib/utils/inject-browser-to-node.js';
+import pathExists from '../../lib/utils/path-exists.js';
 
 const CWD = process.cwd();
 const PROJECT_ROOT = `${process.cwd()}/dummyapp`;
@@ -35,7 +36,7 @@ const CONTENT_TO_INJECT = '<h1 id="inject">injectedTestcontent</h1>'
 let childProcessTree = [];
 
 test.beforeEach(async () => {
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
   await killProcessOnPort(HTTP_PORT);
 });
 
@@ -43,7 +44,7 @@ test.afterEach.always(async () => {
   childProcessTree.forEach((childProcess) => childProcess.kill('SIGKILL'));
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 
-  await fs.remove('dummyapp');
+  await fs.rmdir('dummyapp', { recursive: true });
   await killProcessOnPort(HTTP_PORT);
 });
 
@@ -52,7 +53,7 @@ test.serial('$ mber serve -> builds and watches successfully', async (t) => {
 
   await createAdvancedDummyApp();
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
@@ -96,7 +97,7 @@ test.serial('$ mber serve --env=production -> serves successfully', async (t) =>
 
   await createAdvancedDummyApp();
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
@@ -131,7 +132,7 @@ test.serial('$ mber serve --env=memserver -> serves successfully', async (t) => 
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js s --env=memserver`, {
@@ -176,7 +177,7 @@ test.serial('$ mber serve --env=custom -> serves successfully', async (t) => {
 
   await createAdvancedDummyApp();
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
@@ -220,7 +221,7 @@ test.serial('$ mber serve --fastboot=false -> serves successfully', async (t) =>
 
   await createAdvancedDummyApp();
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const server = await startBackendAPIServer(3000);
@@ -264,7 +265,7 @@ test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfull
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
-  t.true(!(await fs.exists(`${PROJECT_ROOT}/tmp/assets`)));
+  t.true(!(await pathExists(`${PROJECT_ROOT}/tmp/assets`)));
 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const { stdout, childProcess } = await spawnProcess(`node ${CWD}/cli.js serve --env=memserver --fastboot=false`, {
@@ -307,7 +308,7 @@ test.serial('$ mber serve --env=memserver --fastboot=false -> builds successfull
 // TODO: different port and socketPort
 
 async function spawnProcess(command, options) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     let stdout = [];
     let childProcess = exec(command, options);
 
@@ -344,7 +345,7 @@ async function testSuccessfullServe(t, stdout, options={ memserver: false, fastb
   const [tmpAssetsFolder, indexHTMLBuffer, packageJSONExists] = await Promise.all([
     fs.readdir('./dummyapp/tmp/assets'),
     fs.readFile(OUTPUT_INDEX_HTML),
-    fs.exists(OUTPUT_PACKAGE_JSON)
+    pathExists(OUTPUT_PACKAGE_JSON)
   ]);
   const indexHTML = indexHTMLBuffer.toString();
 

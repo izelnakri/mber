@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import test from 'ava';
 import buildIndexHTML from '../../lib/builders/build-index-html.js';
 import mockProcessCWD from '../helpers/mock-process-cwd.js';
@@ -10,8 +10,8 @@ const OUTPUT_HTML_PATH = `${PROJECT_ROOT}/tmp/index.html`;
 const OUTPUT_TESTS_PATH = `${PROJECT_ROOT}/tmp/tests.html`;
 
 test.beforeEach(async () => {
-  await fs.remove(`${PROJECT_ROOT}/tmp`);
-  await fs.mkdirp(`${PROJECT_ROOT}/tmp`);
+  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.mkdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
 });
 
 test.serial('buildIndexHTML() works', async (t) => {

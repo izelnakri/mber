@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs from 'fs/promises';
 import findProjectRoot from '../lib/utils/find-project-root.js';
 import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd.js';
 import transpileNPMImport from '../lib/transpilers/transpile-npm-imports.js';
@@ -30,7 +30,7 @@ async function build() {
     `, { moduleName: 'memserver/response' });
 
     return Promise.all([
-      fs.copy(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
+      fs.copyFile(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
       fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
         ${removeFetch}
 
