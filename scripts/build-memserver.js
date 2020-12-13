@@ -3,19 +3,12 @@ import findProjectRoot from '../lib/utils/find-project-root.js';
 import convertESModuletoAMD from '../lib/transpilers/convert-es-module-to-amd.js';
 import transpileNPMImport from '../lib/transpilers/transpile-npm-imports.js';
 
-const removeFetch = `
-  (function() {
-    window.fetch = undefined;
-  })();
-`;
-
 async function build() {
   const PROJECT_PATH = await findProjectRoot();
   const MODULE_PATH = `${PROJECT_PATH}/node_modules`;
   const VENDOR_PATH = `${PROJECT_PATH}/vendor`;
 
   return Promise.all([
-    fs.readFile(`${MODULE_PATH}/whatwg-fetch/dist/fetch.umd.js`),
     transpileNPMImport('memserver/model', `${MODULE_PATH}/memserver/model.js`),
     transpileNPMImport('memserver/server', `${MODULE_PATH}/memserver/server.js`)
   ]).then(async ([fetchReplacement, memServerModelModule, memServerServerModule]) => {
@@ -32,8 +25,6 @@ async function build() {
     return Promise.all([
       fs.copyFile(`${PROJECT_PATH}/scripts/memserver/initializers/ajax.js`, `${VENDOR_PATH}/memserver/fastboot/initializers/ajax.js`),
       fs.writeFile(`${VENDOR_PATH}/memserver.js`, `
-        ${removeFetch}
-
         ${fetchReplacement}
 
         ${memServerModelModule}
