@@ -41,7 +41,6 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
   t.deepEqual(packageJSON.dependencies, {
-    'abortcontroller-polyfill': '^1.4.0',
     'node-fetch': '^2.6.0'
   });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
@@ -59,7 +58,7 @@ test.serial('buildFastbootPackageJSON() works for an assetMaps and ENV', async (
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
   t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
-    'crypto', 'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+    'crypto', 'node-fetch'
   ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
@@ -78,7 +77,6 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
   t.deepEqual(packageJSON.dependencies, {
-    'abortcontroller-polyfill': '^1.4.0',
     'node-fetch': '^2.6.0'
   });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
@@ -96,7 +94,7 @@ test.serial('buildFastbootPackageJSON() works for different dist path and assetM
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
   t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
-    'crypto', 'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+    'crypto', 'node-fetch'
   ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 
@@ -116,7 +114,6 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
   const packageJSON = JSON.parse(packageJSONBuffer.toString());
 
   t.deepEqual(packageJSON.dependencies, {
-    'abortcontroller-polyfill': '^1.4.0',
     'node-fetch': '^2.6.0'
   });
   t.deepEqual(packageJSON.fastboot.appName, 'dummyapp');
@@ -134,7 +131,7 @@ test.serial('buildFastbootPackageJSON() appends memserver path only on memserver
   })
   t.deepEqual(packageJSON.fastboot.hostWhitelist, ['^localhost:\\d+$']);
   t.deepEqual(packageJSON.fastboot.moduleWhitelist, [
-    'crypto', 'node-fetch', 'abortcontroller-polyfill', 'abortcontroller-polyfill/dist/cjs-ponyfill'
+    'crypto', 'node-fetch'
   ]);
   t.true(packageJSON.fastboot.schemaVersion === 3);
 

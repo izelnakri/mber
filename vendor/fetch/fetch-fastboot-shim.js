@@ -3,10 +3,6 @@ if (typeof FastBoot !== 'undefined') {
   define('fetch', ['exports'], function(exports) {
     var httpRegex = /^https?:\/\//;
     var protocolRelativeRegex = /^\/\//;
-
-    var AbortControllerPolyfill = FastBoot.require(
-      'abortcontroller-polyfill/dist/cjs-ponyfill'
-    );
     var nodeFetch = window.fetch || FastBoot.require('node-fetch');
 
     /**
@@ -66,7 +62,6 @@ if (typeof FastBoot !== 'undefined') {
     exports.Request = nodeFetch.Request;
     exports.Headers = nodeFetch.Headers;
     exports.Response = nodeFetch.Response;
-    exports.AbortController = AbortControllerPolyfill.AbortController;
   });
 }
 

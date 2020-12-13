@@ -1,6 +1,5 @@
 TODO: remove intercept-stdout module
 TODO: check if whatwg-fetch is removable from devDependencies
-TODO: check if abortcontroller-polyfill needed
 TODO: check if all babel plugins needed
 TODO: add ember-test-helpers addon-test-helpers types to tsconfig
 
