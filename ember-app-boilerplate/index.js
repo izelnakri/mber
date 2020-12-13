@@ -10,9 +10,10 @@ export default function (ENV) {
   // app.importAsAMDModule('moment', 'node_modules/moment/min/moment.min.js');
   // app.importAsAMDModule('bip39');
 
-  // if (environment !== 'production') {
-  //   app.importAddon('ember-devtools', { type: 'vendor' });
-  // }
+  if (environment !== 'production') {
+    app.import('node_modules/qunit-dom/dist/qunit-dom.js', { type: 'test', prepend: true });
+    app.import('vendor/shims/qunit-dom.js', { type: 'test', prepend: true });
+  }
 
   if (ENV.googleAnalyticsId) {
     app.injectInlineContent(

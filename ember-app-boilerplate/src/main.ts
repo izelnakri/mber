@@ -7,13 +7,6 @@ declare global {
   interface FreeObject {
     [propName: string]: any;
   }
-
-  interface Window {
-    runningTests: any;
-    Ember: any;
-    DISABLE_MEMSERVER?: boolean;
-    MemServer?: FreeObject;
-  }
 }
 
 export default class App extends Application {
