@@ -38,13 +38,11 @@
   },
   "fastbootDependencies": [
     "crypto",
-    "node-fetch",
-    "abortcontroller-polyfill"
+    "node-fetch"
   ],
   "dependencies": {
     "@glimmer/tracking": "^1.0.3",
     "memserver": "^2.3.5",
-    "abortcontroller-polyfill": "^1.5.0",
     "ember-cli-fastboot": "^2.2.3",
     "ember-data": "3.23.0",
     "ember-load-initializers": "^2.1.2",
