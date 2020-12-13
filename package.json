@@ -128,7 +128,7 @@
     "failFast": true
   },
   "volta": {
-    "node": "15.3.0"
+    "node": "15.4.0"
   },
   "eslintConfig": {
     "root": true,
