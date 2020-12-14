@@ -1,3 +1,4 @@
+TODO: remove jsdom dep: refactor inject-browser-to-node.js API to use always puppeteer instead of JSDOM
 TODO: remove intercept-stdout module
 TODO: check if whatwg-fetch is removable from devDependencies
 TODO: check if all babel plugins needed
