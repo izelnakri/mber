@@ -1,8 +1,9 @@
 import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
-import fastbootMiddleware from '../../lib/utils/fastboot-express-middleware.js';
 import morgan from 'morgan';
+import { Request, Response, fetch as fetchPolyfill } from 'whatwg-fetch'
+import fastbootMiddleware from '../../lib/utils/fastboot-express-middleware.js';
 
 // NOTE: express.static() gets index.html by default
 export default function(entrypoint, port=3000, options={ fastboot: true, memserver: false }) {
@@ -48,8 +49,7 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
 
     if (options.fastboot) {
       const FastBoot = (await import('fastboot')).default;
-      const sandboxGlobals = options.memserver ? await assignSandboxGlobals() : {};
-
+      const sandboxGlobals = options.memserver ? await assignSandboxGlobalsForMemserverFastboot(port) : {};
       const fastboot = new FastBoot({
         distPath: DIST_ROOT,
         resilient: true,
@@ -66,12 +66,14 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
 
         const middleware = fastbootMiddleware({
           distPath: DIST_ROOT,
-          fastboot: fastboot
-        })
+          fastboot: fastboot,
+          resilient: true,
+          shouldRender: true
+        });
 
         return middleware(req, res, next);
       });
-    } else {
+      } else {
       app.get('/*', (req, res) => res.sendFile(entrypoint));
     }
 
@@ -84,15 +86,30 @@ export default function(entrypoint, port=3000, options={ fastboot: true, memserv
   });
 }
 
-async function assignSandboxGlobals() { // TODO: maybe add PORT as argument
+async function assignSandboxGlobalsForMemserverFastboot(port) { // TODO: maybe add PORT as argument
   const JSDOM = (await import('jsdom')).default.JSDOM;
-  const dom = new JSDOM('<p>Hello</p>', { url: 'http://localhost:3000' });
+  const dom = new JSDOM('<p>Hello</p>', {
+    url: `http://localhost:${port || 3000}`,
+    beforeParse(window) {
+      window.fetch = fetchPolyfill;
+      window.Request = Request;
+      window.Response = Response;
+    },
+  });
 
   global.window = dom.window;
+
+  dom.window.XMLHttpRequest = global.window.XMLHttpRequest;
+
+  global.XMLHttpRequest = global.window.XMLHttpRequest;
   global.document = dom.window.document;
   global.self = dom.window.self;
 
-  const $ = (await import('jquery')).default;
+  console.log('GLOBAL.WINDOW.FETCH IS', global.window.fetch);
+  console.log('GLOBAL.XMLHttpRequest IS', global.XMLHttpRequest);
+  console.log('WINDOW.XMLHttpRequest IS', global.window.XMLHttpRequest);
+  console.log('dom.Request IS', global.window.Request);
+  console.log('WINDOW.Response IS', global.window.Response);
 
   return {
     global: global,
@@ -100,10 +117,10 @@ async function assignSandboxGlobals() { // TODO: maybe add PORT as argument
     document: global.document,
     location: global.window.location,
     XMLHttpRequest: global.window.XMLHttpRequest,
+    Request: global.window.Request,
+    Response: global.window.Response,
     URLSearchParams: global.URLSearchParams,
     fetch: global.window.fetch,
-    $: $,
-    jQuery: $,
     navigator: global.window.navigator
   };
 }

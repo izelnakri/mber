@@ -41,7 +41,7 @@ test.afterEach.always(async () => {
 });
 
 test.serial('$ mber build -> builds successfully', async (t) => {
-  t.plan(31);
+  t.plan(32);
 
   await createAdvancedDummyApp();
 
@@ -69,7 +69,7 @@ test.serial('$ mber build -> builds successfully', async (t) => {
 });
 
 test.serial('$ mber build --env=production -> builds successfully', async (t) => {
-  t.plan(31);
+  t.plan(32);
 
   await createAdvancedDummyApp();
 
@@ -95,7 +95,7 @@ test.serial('$ mber build --env=production -> builds successfully', async (t) =>
 });
 
 test.serial('$ mber build --env=memserver -> builds successfully', async (t) => {
-  t.plan(36);
+  t.plan(37);
 
   await createAdvancedDummyApp('dummyapp', { memserver: true });
 
@@ -220,6 +220,7 @@ async function testSuccessfullBuild(t, stdout, options={ memserver: false, fastb
   t.true(/- \.\/dist\/assets\/application-\w+\.css: \d+\.\d+ kB \[\d+\.\d+ kB gzipped\]/g.test(stdout));
   t.true(/- \.\/dist\/assets\/application-\w+\.js: \d+\.\d+ kB \[\d+\.\d+ kB gzipped\]/g.test(stdout));
 
+  console.log('------------------IZEL-----------------------');
   const [dist, indexHTMLBuffer, packageJSONExists] = await Promise.all([
     fs.readdir('./dummyapp/dist/assets'),
     fs.readFile(OUTPUT_INDEX_HTML),
@@ -236,7 +237,7 @@ async function testSuccessfullBuild(t, stdout, options={ memserver: false, fastb
     t.true(dist.some((entity) => /memserver-\w+\.js/g.test(entity)));
   }
 
-  options.fastboot ? t.true(packageJSONExists) : t.true(!packageJSONExists);
+ options.fastboot ? t.true(packageJSONExists) : t.true(!packageJSONExists);
 
   if (options.fastboot) {
     t.true(indexHTML.includes('<!-- EMBER_CLI_FASTBOOT_TITLE -->'));
@@ -245,13 +246,16 @@ async function testSuccessfullBuild(t, stdout, options={ memserver: false, fastb
   }
 
   let basicServer = await startHTTPServer(OUTPUT_INDEX_HTML, HTTP_PORT, Object.assign({}, options, {
-    fastboot: false
+    fastboot: options.fastboot
   }));
+  console.log('--------------------BASIC SERVER START---------------------');
   const window = await injectBrowserToNode({ url: `http://localhost:${HTTP_PORT}` });
+  console.log('--------------------INJECT BROWSER TO NODE---------------------');
+  // global.XMLHttpRequest = global.dom.window.XMLHttpReques;
 
   [
     window.Ember, window.Ember.Object, window.requirejs,
-    window.require, window.define
+    window.require, window.define, window.fetch
   ].forEach((object) => t.truthy(object));
 
   t.true(window.document.querySelector('#title').innerHTML === 'Congratulations, you made it!');
@@ -259,10 +263,10 @@ async function testSuccessfullBuild(t, stdout, options={ memserver: false, fastb
     'Izel Nakri', 'Ash Belmokadem', 'Constantijn van de Wetering'
   ]);
 
-  basicServer.close();
+  // basicServer.close();
 
   if (options.fastboot) {
-    const fastbootServer = await startHTTPServer(OUTPUT_INDEX_HTML, HTTP_PORT, options);
+    // const fastbootServer = await startHTTPServer(OUTPUT_INDEX_HTML, HTTP_PORT, options);
     const html = await http.get(`http://localhost:${HTTP_PORT}`);
     const $ = cheerio.load(html);
 
@@ -273,6 +277,8 @@ async function testSuccessfullBuild(t, stdout, options={ memserver: false, fastb
       'Izel Nakri', 'Ash Belmokadem', 'Constantijn van de Wetering'
     ]);
 
-    fastbootServer.close();
+    // fastbootServer.close();
   }
+
+  basicServer.close();
 }
