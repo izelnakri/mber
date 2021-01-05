@@ -69,8 +69,8 @@ function buildTestVendorJS() {
     const timer = countTime();
 
     return Promise.all([
-      importAddonFolderToAMD('ember-test-waiters', 'ember-test-waiters/addon'),
-      importAddonFolderToAMD('@ember/test-waiters', 'ember-test-waiters/addon/@ember/test-waiters'),
+      importAddonFolderToAMD('ember-test-waiters', '@ember/test-waiters/addon/ember-test-waiters'),
+      importAddonFolderToAMD('@ember/test-waiters', '@ember/test-waiters/addon/@ember/test-waiters'),
       importAddonFolderToAMD(
         '@ember/test-helpers',
         '@ember/test-helpers/addon-test-support/@ember/test-helpers'
@@ -78,7 +78,6 @@ function buildTestVendorJS() {
       fs.readFile(`${VENDOR_PATH}/ember-testing.js`),
       fs.readFile(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       fs.readFile(`${MODULE_PATH}/qunit/qunit/qunit.js`),
-      fs.readFile(`${MODULE_PATH}/ember-qunit/vendor/ember-qunit/qunit-configuration.js`),
       transpileNPMImports('qunit-dom', 'node_modules/qunit-dom/dist/qunit-dom.js', {
         transpile: false,
       }),
@@ -87,17 +86,34 @@ function buildTestVendorJS() {
         'ember-cli-test-loader/addon-test-support'
       ),
       importAddonFolderToAMD('ember-cli-qunit', 'ember-cli-test-loader/addon-test-support'), // NOTE: check if this is needed
-      importAddonFolderToAMD('ember-qunit', 'ember-qunit/addon-test-support/ember-qunit'),
+      importAddonFolderToAMD('ember-qunit', 'ember-qunit/addon-test-support'),
       importAddonFolderToAMD(
         'ember-test-helpers',
         '@ember/test-helpers/addon-test-support/ember-test-helpers'
       ),
-      importAddonFolderToAMD('qunit', 'ember-qunit/addon-test-support/qunit'),
+      `define("qunit/index", ["exports"], function (_exports) {
+        "use strict";
+
+        Object.defineProperty(_exports, "__esModule", {
+          value: true
+        });
+
+        _exports.default = _exports.todo = _exports.only = _exports.skip = _exports.test = _exports.module = void 0;
+
+        Object.keys(QUnit).forEach((property) => {
+          _exports[property] = QUnit[property];
+        });
+        _exports.default = QUnit;
+      });`
     ]).then((jsContents) => {
       return fs.writeFile(
         `${VENDOR_PATH}/${JS_FILENAME}`,
         'define = window.define;require = window.require;' +
-        jsContents.join('\n') +
+        jsContents
+          .join('\n')
+          .replace('_es6Promise.Promise', 'Promise')
+          .replace(', "es6-promise"', '')
+          .replace(', _es6Promise', '') +
         'runningTests = true;'
       );
     })

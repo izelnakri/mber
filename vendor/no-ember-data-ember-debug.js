@@ -1670,7 +1670,7 @@ define("ember-fetch/utils/serialize-query-params", ["exports", "ember-fetch/type
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.23.1
+ * @version   3.24.0
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -2178,22 +2178,13 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
      */
 
 
-    factoryFor(fullName, options = {}) {
+    factoryFor(fullName) {
       if (this.isDestroyed) {
         throw new Error(`Can not call \`.factoryFor\` after the owner has been destroyed`);
       }
 
       var normalizedName = this.registry.normalize(fullName);
       (true && !(this.registry.isValidFullName(normalizedName)) && (0, _debug.assert)('fullName must be a proper full name', this.registry.isValidFullName(normalizedName)));
-
-      if (options.source || options.namespace) {
-        normalizedName = this.registry.expandLocalLookup(fullName, options);
-
-        if (!normalizedName) {
-          return;
-        }
-      }
-
       return factoryFor(this, normalizedName, fullName);
     }
 
@@ -2248,14 +2239,6 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
   function lookup(container, fullName, options = {}) {
     var normalizedName = fullName;
-
-    if (options.source || options.namespace) {
-      normalizedName = container.registry.expandLocalLookup(fullName, options);
-
-      if (!normalizedName) {
-        return;
-      }
-    }
 
     if (options.singleton !== false) {
       var cached = container.cache[normalizedName];
@@ -2374,17 +2357,9 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
     for (var i = 0; i < injections.length; i++) {
       var {
         property,
-        specifier,
-        source
+        specifier
       } = injections[i];
-
-      if (source) {
-        hash[property] = lookup(container, specifier, {
-          source
-        });
-      } else {
-        hash[property] = lookup(container, specifier);
-      }
+      hash[property] = lookup(container, specifier);
 
       if (!result.isDynamic) {
         result.isDynamic = !isSingleton(container, specifier);
@@ -2711,8 +2686,8 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
      */
 
 
-    resolve(fullName, options) {
-      var factory = resolve(this, this.normalize(fullName), options);
+    resolve(fullName) {
+      var factory = resolve(this, this.normalize(fullName));
 
       if (factory === undefined && this.fallback !== null) {
         factory = this.fallback.resolve(...arguments);
@@ -2802,14 +2777,12 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
      */
 
 
-    has(fullName, options) {
+    has(fullName) {
       if (!this.isValidFullName(fullName)) {
         return false;
       }
 
-      var source = options && options.source && this.normalize(options.source);
-      var namespace = options && options.namespace || undefined;
-      return has(this, this.normalize(fullName), source, namespace);
+      return has(this, this.normalize(fullName));
     }
     /**
      Allow registering options for all factories of a type.
@@ -3043,36 +3016,6 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
       return injections;
     }
-    /**
-     Given a fullName and a source fullName returns the fully resolved
-     fullName. Used to allow for local lookup.
-        ```javascript
-     let registry = new Registry();
-        // the twitter factory is added to the module system
-     registry.expandLocalLookup('component:post-title', { source: 'template:post' }) // => component:post/post-title
-     ```
-        @private
-     @method expandLocalLookup
-     @param {String} fullName
-     @param {Object} [options]
-     @param {String} [options.source] the fullname of the request source (used for local lookups)
-     @return {String} fullName
-     */
-
-
-    expandLocalLookup(fullName, options) {
-      if (this.resolver !== null && this.resolver.expandLocalLookup) {
-        (true && !(this.isValidFullName(fullName)) && (0, _debug.assert)('fullName must be a proper full name', this.isValidFullName(fullName)));
-        (true && !(!options.source || this.isValidFullName(options.source)) && (0, _debug.assert)('options.source must be a proper full name', !options.source || this.isValidFullName(options.source)));
-        var normalizedFullName = this.normalize(fullName);
-        var normalizedSource = this.normalize(options.source);
-        return expandLocalLookup(this, normalizedFullName, normalizedSource, options.namespace);
-      } else if (this.fallback !== null) {
-        return this.fallback.expandLocalLookup(fullName, options);
-      } else {
-        return null;
-      }
-    }
 
   }
 
@@ -3089,16 +3032,12 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
       for (var key in hash) {
         if (Object.prototype.hasOwnProperty.call(hash, key)) {
           var {
-            specifier,
-            source,
-            namespace
+            specifier
           } = hash[key];
           (true && !(this.isValidFullName(specifier)) && (0, _debug.assert)(`Expected a proper full name, given '${specifier}'`, this.isValidFullName(specifier)));
           injections.push({
             property: key,
-            specifier,
-            source,
-            namespace
+            specifier
           });
         }
       }
@@ -3113,52 +3052,15 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
 
       for (var i = 0; i < injections.length; i++) {
         var {
-          specifier,
-          source,
-          namespace
+          specifier
         } = injections[i];
-        (true && !(this.has(specifier, {
-          source,
-          namespace
-        })) && (0, _debug.assert)(`Attempting to inject an unknown injection: '${specifier}'`, this.has(specifier, {
-          source,
-          namespace
-        })));
+        (true && !(this.has(specifier)) && (0, _debug.assert)(`Attempting to inject an unknown injection: '${specifier}'`, this.has(specifier)));
       }
     };
   }
 
-  function expandLocalLookup(registry, normalizedName, normalizedSource, namespace) {
-    var cache = registry._localLookupCache;
-    var normalizedNameCache = cache[normalizedName];
-
-    if (!normalizedNameCache) {
-      normalizedNameCache = cache[normalizedName] = Object.create(null);
-    }
-
-    var cacheKey = namespace || normalizedSource;
-    var cached = normalizedNameCache[cacheKey];
-
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    var expanded = registry.resolver.expandLocalLookup(normalizedName, normalizedSource, namespace);
-    return normalizedNameCache[cacheKey] = expanded;
-  }
-
-  function resolve(registry, _normalizedName, options) {
-    var normalizedName = _normalizedName; // when `source` is provided expand normalizedName
-    // and source into the full normalizedName
-
-    if (options !== undefined && (options.source || options.namespace)) {
-      normalizedName = registry.expandLocalLookup(_normalizedName, options);
-
-      if (!normalizedName) {
-        return;
-      }
-    }
-
+  function resolve(registry, _normalizedName) {
+    var normalizedName = _normalizedName;
     var cached = registry._resolveCache[normalizedName];
 
     if (cached !== undefined) {
@@ -3188,11 +3090,8 @@ define("@ember/-internals/container/index", ["exports", "@ember/-internals/owner
     return resolved;
   }
 
-  function has(registry, fullName, source, namespace) {
-    return registry.resolve(fullName, {
-      source,
-      namespace
-    }) !== undefined;
+  function has(registry, fullName) {
+    return registry.resolve(fullName) !== undefined;
   }
 
   var privateNames = (0, _utils.dictionary)(null);
@@ -4138,13 +4037,12 @@ define("@ember/-internals/extension-support/lib/data_adapter", ["exports", "@emb
 
   _exports.default = _default;
 });
-define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glimmer/opcode-compiler", "@ember/-internals/metal", "@ember/-internals/owner", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/-internals/views", "@ember/debug", "@glimmer/reference", "@glimmer/runtime", "@glimmer/validator", "@ember/-internals/browser-environment", "@ember/instrumentation", "@ember/service", "@ember/-internals/environment", "@glimmer/util", "@ember/deprecated-features", "@ember/runloop", "@ember/string", "@ember/-internals/container", "@glimmer/node", "@glimmer/global-context", "@ember/-internals/routing", "@ember/component/template-only", "@ember/error", "@glimmer/program", "rsvp"], function (_exports, _polyfills, _opcodeCompiler, _metal, _owner, _runtime, _utils, _views, _debug, _reference, _runtime2, _validator, _browserEnvironment, _instrumentation, _service, _environment2, _util, _deprecatedFeatures, _runloop, _string, _container, _node, _globalContext, _routing, _templateOnly, _error, _program, _rsvp) {
+define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glimmer/opcode-compiler", "@ember/-internals/metal", "@ember/-internals/owner", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/-internals/views", "@ember/debug", "@glimmer/reference", "@glimmer/runtime", "@glimmer/validator", "@ember/-internals/browser-environment", "@ember/engine", "@ember/instrumentation", "@ember/service", "@ember/runloop", "@glimmer/util", "@ember/-internals/environment", "@ember/deprecated-features", "@ember/string", "@ember/-internals/container", "@glimmer/node", "@glimmer/global-context", "@ember/-internals/routing", "@ember/component/template-only", "@ember/error", "@glimmer/program", "rsvp"], function (_exports, _polyfills, _opcodeCompiler, _metal, _owner, _runtime, _utils, _views, _debug, _reference, _runtime2, _validator, _browserEnvironment, _engine, _instrumentation, _service, _runloop, _util, _environment2, _deprecatedFeatures, _string, _container, _node, _globalContext, _routing, _templateOnly, _error, _program, _rsvp) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.template = template;
   _exports.helper = helper;
   _exports.escapeExpression = escapeExpression;
   _exports.htmlSafe = htmlSafe;
@@ -4159,15 +4057,35 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   _exports.setupEngineRegistry = setupEngineRegistry;
   _exports.setupApplicationRegistry = setupApplicationRegistry;
   _exports._registerMacros = registerMacros;
-  _exports.setComponentManager = setComponentManager;
-  _exports.setModifierManager = setModifierManager;
-  _exports.setHelperManager = setHelperManager;
+  _exports.setComponentManager = setComponentManager$1;
   _exports.capabilities = capabilities;
   _exports.modifierCapabilities = capabilities$1;
   _exports.helperCapabilities = helperCapabilities;
   _exports.invokeHelper = invokeHelper;
-  _exports.setComponentTemplate = setComponentTemplate;
-  _exports.getComponentTemplate = getComponentTemplate;
+  Object.defineProperty(_exports, "template", {
+    enumerable: true,
+    get: function () {
+      return _opcodeCompiler.templateFactory;
+    }
+  });
+  Object.defineProperty(_exports, "templateCacheCounters", {
+    enumerable: true,
+    get: function () {
+      return _opcodeCompiler.templateCacheCounters;
+    }
+  });
+  Object.defineProperty(_exports, "setComponentTemplate", {
+    enumerable: true,
+    get: function () {
+      return _runtime2.setComponentTemplate;
+    }
+  });
+  Object.defineProperty(_exports, "getComponentTemplate", {
+    enumerable: true,
+    get: function () {
+      return _runtime2.getComponentTemplate;
+    }
+  });
   Object.defineProperty(_exports, "DOMChanges", {
     enumerable: true,
     get: function () {
@@ -4192,50 +4110,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return _node.NodeDOMTreeConstruction;
     }
   });
-  _exports.OutletView = _exports.INVOKE = _exports.AbstractComponentManager = _exports._experimentalMacros = _exports.InteractiveRenderer = _exports.InertRenderer = _exports.Renderer = _exports.SafeString = _exports.Helper = _exports.Component = _exports.LinkComponent = _exports.TextArea = _exports.TextField = _exports.Checkbox = _exports.templateCacheCounters = _exports.RootTemplate = void 0;
-
-  function isTemplateFactory(template) {
-    return typeof template === 'function';
-  }
-
-  var counters = {
-    cacheHit: 0,
-    cacheMiss: 0
-  };
-  _exports.templateCacheCounters = counters;
-
-  function template(json) {
-    var glimmerFactory = (0, _opcodeCompiler.templateFactory)(json);
-    var cache = new WeakMap();
-    var meta = glimmerFactory.meta;
-
-    var factory = owner => {
-      var result = cache.get(owner);
-
-      if (result === undefined) {
-        counters.cacheMiss++;
-        result = glimmerFactory.create((0, _polyfills.assign)({
-          owner
-        }, meta));
-        cache.set(owner, result);
-      } else {
-        counters.cacheHit++;
-      }
-
-      return result;
-    };
-
-    factory.__id = glimmerFactory.id;
-    factory.__meta = meta;
-    return factory;
-  }
-
-  var RootTemplate = template({
-    "id": "s5o9bxSn",
+  _exports.OutletView = _exports.INVOKE = _exports._experimentalMacros = _exports.InteractiveRenderer = _exports.InertRenderer = _exports.Renderer = _exports.SafeString = _exports.Helper = _exports.Component = _exports.LinkComponent = _exports.TextArea = _exports.TextField = _exports.Checkbox = _exports.RootTemplate = void 0;
+  var RootTemplate = (0, _opcodeCompiler.templateFactory)({
+    "id": "gxklthW0",
     "block": "{\"symbols\":[],\"statements\":[[1,[30,[36,0],[[32,0]],null]]],\"hasEval\":false,\"upvars\":[\"component\"]}",
-    "meta": {
-      "moduleName": "packages/@ember/-internals/glimmer/lib/templates/root.hbs"
-    }
+    "moduleName": "packages/@ember/-internals/glimmer/lib/templates/root.hbs"
   });
   _exports.RootTemplate = RootTemplate;
   var ARGS = (0, _utils.enumerableSymbol)('ARGS');
@@ -4960,17 +4839,29 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       (true && !(this.mouseEnter === undefined) && (0, _debug.deprecate)(`${this}: Using \`mouseEnter\` event handler methods in components has been deprecated.`, this.mouseEnter === undefined, {
         id: 'ember-views.event-dispatcher.mouseenter-leave-move',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_component-mouseenter-leave-move'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_component-mouseenter-leave-move',
+        for: 'ember-source',
+        since: {
+          enabled: '3.13.0-beta.1'
+        }
       }));
       (true && !(this.mouseLeave === undefined) && (0, _debug.deprecate)(`${this}: Using \`mouseLeave\` event handler methods in components has been deprecated.`, this.mouseLeave === undefined, {
         id: 'ember-views.event-dispatcher.mouseenter-leave-move',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_component-mouseenter-leave-move'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_component-mouseenter-leave-move',
+        for: 'ember-source',
+        since: {
+          enabled: '3.13.0-beta.1'
+        }
       }));
       (true && !(this.mouseMove === undefined) && (0, _debug.deprecate)(`${this}: Using \`mouseMove\` event handler methods in components has been deprecated.`, this.mouseMove === undefined, {
         id: 'ember-views.event-dispatcher.mouseenter-leave-move',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_component-mouseenter-leave-move'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_component-mouseenter-leave-move',
+        for: 'ember-source',
+        since: {
+          enabled: '3.13.0-beta.1'
+        }
       }));
     },
 
@@ -5210,12 +5101,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     isComponentFactory: true,
     positionalParams: []
   });
-  var layout = template({
-    "id": "SWbqsLhV",
+  var layout = (0, _opcodeCompiler.templateFactory)({
+    "id": "3IKjaxWN",
     "block": "{\"symbols\":[],\"statements\":[],\"hasEval\":false,\"upvars\":[]}",
-    "meta": {
-      "moduleName": "packages/@ember/-internals/glimmer/lib/templates/empty.hbs"
-    }
+    "moduleName": "packages/@ember/-internals/glimmer/lib/templates/empty.hbs"
   });
   /**
   @module @ember/component
@@ -5666,12 +5555,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   TextArea.toString = () => '@ember/component/text-area';
 
-  var layout$1 = template({
-    "id": "uDKxl8ne",
+  var layout$1 = (0, _opcodeCompiler.templateFactory)({
+    "id": "ddnfgiDJ",
     "block": "{\"symbols\":[\"&default\"],\"statements\":[[6,[37,0],[[27,[32,1]]],null,[[\"default\",\"else\"],[{\"statements\":[[18,1,null]],\"parameters\":[]},{\"statements\":[[1,[32,0,[\"linkTitle\"]]]],\"parameters\":[]}]]]],\"hasEval\":false,\"upvars\":[\"if\"]}",
-    "meta": {
-      "moduleName": "packages/@ember/-internals/glimmer/lib/templates/link-to.hbs"
-    }
+    "moduleName": "packages/@ember/-internals/glimmer/lib/templates/link-to.hbs"
   });
   /**
   @module ember
@@ -6130,8 +6017,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       @private
     */
     init() {
-      this._super(...arguments); // Map desired event name to invoke function
+      this._super(...arguments);
 
+      (true && !(!this._isEngine || this._engineMountPoint !== undefined) && (0, _debug.assert)('You attempted to use the <LinkTo> component within a routeless engine, this is not supported. ' + 'If you are using the ember-engines addon, use the <LinkToExternal> component instead. ' + 'See https://ember-engines.com/docs/links for more info.', !this._isEngine || this._engineMountPoint !== undefined)); // Map desired event name to invoke function
 
       var {
         eventName
@@ -6143,11 +6031,17 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     _currentRoute: (0, _metal.alias)('_routing.currentRouteName'),
     _currentRouterState: (0, _metal.alias)('_routing.currentState'),
     _targetRouterState: (0, _metal.alias)('_routing.targetState'),
+    _isEngine: (0, _metal.computed)(function () {
+      return (0, _engine.getEngineParent)((0, _owner.getOwner)(this)) !== undefined;
+    }),
+    _engineMountPoint: (0, _metal.computed)(function () {
+      return (0, _owner.getOwner)(this).mountPoint;
+    }),
     _route: (0, _metal.computed)('route', '_currentRouterState', function computeLinkToComponentRoute() {
       var {
         route
       } = this;
-      return route === UNDEFINED ? this._currentRoute : route;
+      return this._namespaceRoute(route === UNDEFINED ? this._currentRoute : route);
     }),
     _models: (0, _metal.computed)('model', 'models', function computeLinkToComponentModels() {
       var {
@@ -6248,27 +6142,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         return currentWhen;
       }
 
-      var isCurrentWhenSpecified = Boolean(currentWhen);
-
-      if (isCurrentWhenSpecified) {
-        currentWhen = currentWhen.split(' ');
-      } else {
-        currentWhen = [this._route];
-      }
-
       var {
         _models: models,
-        _query: query,
         _routing: routing
       } = this;
 
-      for (var i = 0; i < currentWhen.length; i++) {
-        if (routing.isActiveForRoute(models, query, currentWhen[i], routerState, isCurrentWhenSpecified)) {
-          return true;
-        }
+      if (typeof currentWhen === 'string') {
+        return currentWhen.split(' ').some(route => routing.isActiveForRoute(models, undefined, this._namespaceRoute(route), routerState));
+      } else {
+        return routing.isActiveForRoute(models, this._query, this._route, routerState);
       }
-
-      return false;
     },
 
     transitioningIn: (0, _metal.computed)('_active', 'willBeActive', function computeLinkToComponentTransitioningIn() {
@@ -6285,6 +6168,20 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         return false;
       }
     }),
+
+    _namespaceRoute(route) {
+      var {
+        _engineMountPoint: mountPoint
+      } = this;
+
+      if (mountPoint === undefined) {
+        return route;
+      } else if (route === 'application') {
+        return mountPoint;
+      } else {
+        return `${mountPoint}.${route}`;
+      }
+    },
 
     /**
       Event handler that invokes the link, activating the associated route.
@@ -6693,283 +6590,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         positional: positionalProxy
       };
     };
-  } // implements the ComponentManager interface as defined in glimmer:
-  // tslint:disable-next-line:max-line-length
-  // https://github.com/glimmerjs/glimmer-vm/blob/v0.24.0-beta.4/packages/%40glimmer/runtime/lib/component/interfaces.ts#L21
-
-
-  class AbstractManager {
-    prepareArgs(_state, _args, _vm) {
-      return null;
-    }
-
-    didCreateElement(_component, _element, _operations) {// noop
-    }
-
-    didRenderLayout(_component, _bounds) {// noop
-    }
-
-    didCreate(_bucket) {// noop
-    }
-
-    update(_bucket, _dynamicScope) {// noop
-    }
-
-    didUpdateLayout(_bucket, _bounds) {// noop
-    }
-
-    didUpdate(_bucket) {// noop
-    }
-
   }
+  /**
+  @module @ember/helper
+  */
 
-  _exports.AbstractComponentManager = AbstractManager;
-  var CAPABILITIES = {
-    dynamicLayout: false,
-    dynamicTag: false,
-    prepareArgs: false,
-    createArgs: true,
-    attributeHook: false,
-    elementHook: false,
-    createCaller: true,
-    dynamicScope: false,
-    updateHook: true,
-    createInstance: true,
-    wrapped: false,
-    willDestroy: false
-  };
-
-  class InternalComponentDefinition {
-    constructor(manager, ComponentClass, layout) {
-      this.manager = manager;
-      this.state = {
-        ComponentClass,
-        layout
-      };
-    }
-
-  }
-
-  var INTERNAL_MANAGERS = new _util._WeakSet();
-
-  function isInternalManager(manager) {
-    return INTERNAL_MANAGERS.has(manager);
-  }
-
-  class InternalManager extends AbstractManager {
-    constructor(owner, name) {
-      super();
-      this.owner = owner;
-      this.name = name;
-      INTERNAL_MANAGERS.add(this);
-    }
-
-    static for(name) {
-      return owner => new InternalManager(owner, name);
-    }
-
-    getCapabilities() {
-      return CAPABILITIES;
-    }
-
-    create(env, {
-      ComponentClass,
-      layout
-    }, args, _dynamicScope, caller) {
-      (true && !((0, _reference.isConstRef)(caller)) && (0, _debug.assert)('caller must be const', (0, _reference.isConstRef)(caller)));
-      (true && !(args.positional.length === 0) && (0, _debug.assert)(`The ${this.name} component does not take any positional arguments`, args.positional.length === 0));
-      var instance = new ComponentClass(this.owner, args.named.capture(), (0, _reference.valueForRef)(caller));
-      var state = {
-        env,
-        instance
-      };
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        env.extra.debugRenderTree.create(state, {
-          type: 'component',
-          name: this.getDebugName(),
-          args: args.capture(),
-          instance,
-          template: layout
-        });
-        (0, _runtime2.registerDestructor)(instance, () => env.extra.debugRenderTree.willDestroy(state));
-      }
-
-      return state;
-    }
-
-    getDebugName() {
-      return this.name;
-    }
-
-    getSelf({
-      instance
-    }) {
-      return (0, _reference.createConstRef)(instance, 'this');
-    }
-
-    didRenderLayout(state, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        state.env.extra.debugRenderTree.didRender(state, bounds);
-      }
-    }
-
-    update(state) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        state.env.extra.debugRenderTree.update(state);
-      }
-    }
-
-    didUpdateLayout(state, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        state.env.extra.debugRenderTree.didRender(state, bounds);
-      }
-    }
-
-    getDestroyable(state) {
-      return state.instance;
-    }
-
-    getStaticLayout({
-      layout: template
-    }) {
-      return (0, _util.unwrapTemplate)(template).asLayout();
-    }
-
-  }
-
-  var COMPONENT_MANAGERS = new WeakMap();
-  var FROM_CAPABILITIES = true
-  /* DEBUG */
-  ? new _util._WeakSet() : undefined;
-  var MODIFIER_MANAGERS = new WeakMap();
-  var HELPER_MANAGERS = new WeakMap();
-  var OWNER_MANAGER_INSTANCES = new WeakMap();
-  var UNDEFINED_MANAGER_INSTANCES = new WeakMap(); ///////////
-
-  var getPrototypeOf = Object.getPrototypeOf;
-
-  function setManager(map, factory, obj) {
-    map.set(obj, factory);
-    return obj;
-  }
-
-  function getManager(map, obj) {
-    var pointer = obj;
-
-    while (pointer !== undefined && pointer !== null) {
-      var manager = map.get(pointer);
-
-      if (manager !== undefined) {
-        return manager;
-      }
-
-      pointer = getPrototypeOf(pointer);
-    }
-
-    return undefined;
-  }
-
-  function getManagerInstanceForOwner(owner, factory) {
-    var managers;
-
-    if (owner === undefined) {
-      managers = UNDEFINED_MANAGER_INSTANCES;
-    } else {
-      managers = OWNER_MANAGER_INSTANCES.get(owner);
-
-      if (managers === undefined) {
-        managers = new WeakMap();
-        OWNER_MANAGER_INSTANCES.set(owner, managers);
-      }
-    }
-
-    var instance = managers.get(factory);
-
-    if (instance === undefined) {
-      instance = factory(owner);
-      managers.set(factory, instance);
-    } // We know for sure that it's the correct type at this point, but TS can't know
-
-
-    return instance;
-  } ///////////
-
-
-  function setModifierManager(factory, definition) {
-    return setManager(MODIFIER_MANAGERS, factory, definition);
-  }
-
-  function getModifierManager(owner, definition) {
-    var factory = getManager(MODIFIER_MANAGERS, definition);
-
-    if (factory !== undefined) {
-      var manager = getManagerInstanceForOwner(owner, factory);
-      (true && !(FROM_CAPABILITIES.has(manager.capabilities)) && (0, _debug.assert)(`Custom modifier managers must have a \`capabilities\` property that is the result of calling the \`capabilities('3.13' | '3.22')\` (imported via \`import { capabilities } from '@ember/modifier';\`). Received: \`${JSON.stringify(manager.capabilities)}\` for: \`${manager}\``, FROM_CAPABILITIES.has(manager.capabilities)));
-      return manager;
-    }
-
-    return undefined;
-  }
-
-  function setHelperManager(factory, definition) {
-    return setManager(HELPER_MANAGERS, factory, definition);
-  }
-
-  function getHelperManager(owner, definition) {
-    var factory = getManager(HELPER_MANAGERS, definition);
-
-    if (factory !== undefined) {
-      var manager = getManagerInstanceForOwner(owner, factory);
-      (true && !(FROM_CAPABILITIES.has(manager.capabilities)) && (0, _debug.assert)(`Custom helper managers must have a \`capabilities\` property that is the result of calling the \`capabilities('3.23')\` (imported via \`import { capabilities } from '@ember/helper';\`). Received: \`${JSON.stringify(manager.capabilities)}\` for: \`${manager}\``, FROM_CAPABILITIES.has(manager.capabilities)));
-      return manager;
-    }
-
-    return undefined;
-  }
-
-  function setComponentManager(stringOrFunction, obj) {
-    var factory;
-
-    if (_deprecatedFeatures.COMPONENT_MANAGER_STRING_LOOKUP && typeof stringOrFunction === 'string') {
-      (true && !(false) && (0, _debug.deprecate)('Passing the name of the component manager to "setupComponentManager" is deprecated. Please pass a function that produces an instance of the manager.', false, {
-        id: 'deprecate-string-based-component-manager',
-        until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x/#toc_component-manager-string-lookup'
-      }));
-
-      factory = function (owner) {
-        return owner.lookup(`component-manager:${stringOrFunction}`);
-      };
-    } else {
-      factory = stringOrFunction;
-    }
-
-    return setManager(COMPONENT_MANAGERS, factory, obj);
-  }
-
-  function getComponentManager(owner, definition) {
-    var factory = getManager(COMPONENT_MANAGERS, definition);
-
-    if (factory !== undefined) {
-      var manager = getManagerInstanceForOwner(owner, factory);
-      (true && !(isInternalManager(manager) || FROM_CAPABILITIES.has(manager.capabilities)) && (0, _debug.assert)(`Custom component managers must have a \`capabilities\` property that is the result of calling the \`capabilities('3.4' | '3.13')\` (imported via \`import { capabilities } from '@ember/component';\`). Received: \`${JSON.stringify(manager.capabilities)}\` for: \`${manager}\``, isInternalManager(manager) || FROM_CAPABILITIES.has(manager.capabilities)));
-      return manager;
-    }
-
-    return undefined;
-  }
-
-  function buildCapabilities(capabilities) {
-    if (true
-    /* DEBUG */
-    ) {
-      FROM_CAPABILITIES.add(capabilities);
-      Object.freeze(capabilities);
-    }
-
-    return capabilities;
-  }
   /**
     `capabilities` returns a capabilities configuration which can be used to modify
     the behavior of the manager. Manager capabilities _must_ be provided using the
@@ -7028,12 +6653,205 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     (true && !(managerAPI === '3.23') && (0, _debug.assert)('Invalid helper manager compatibility specified', managerAPI === '3.23'));
     (true && !((options.hasValue || options.hasScheduledEffect) && !(options.hasValue && options.hasScheduledEffect)) && (0, _debug.assert)('You must pass either the `hasValue` OR the `hasScheduledEffect` capability when defining a helper manager. Passing neither, or both, is not permitted.', (options.hasValue || options.hasScheduledEffect) && !(options.hasValue && options.hasScheduledEffect)));
     (true && !(!options.hasScheduledEffect) && (0, _debug.assert)('The `hasScheduledEffect` capability has not yet been implemented for helper managers. Please pass `hasValue` instead', !options.hasScheduledEffect));
-    return buildCapabilities({
+    return (0, _runtime2.buildCapabilities)({
       hasValue: Boolean(options.hasValue),
       hasDestroyable: Boolean(options.hasDestroyable),
       hasScheduledEffect: Boolean(options.hasScheduledEffect)
     });
   }
+  /**
+    Sets the helper manager for an object or function.
+  
+    ```js
+    setHelperManager((owner) => new ClassHelperManager(owner), Helper)
+    ```
+  
+    When a value is used as a helper in a template, the helper manager is looked up
+    on the object by walking up its prototype chain and finding the first helper
+    manager. This manager then receives the value and can create and manage an
+    instance of a helper from it. This provides a layer of indirection that allows
+    users to design high-level helper APIs, without Ember needing to worry about the
+    details. High-level APIs can be experimented with and iterated on while the
+    core of Ember helpers remains stable, and new APIs can be introduced gradually
+    over time to existing code bases.
+  
+    `setHelperManager` receives two arguments:
+  
+    1. A factory function, which receives the `owner` and returns an instance of a
+      helper manager.
+    2. A helper definition, which is the object or function to associate the factory function with.
+  
+    The first time the object is looked up, the factory function will be called to
+    create the helper manager. It will be cached, and in subsequent lookups the
+    cached helper manager will be used instead.
+  
+    Only one helper manager is guaranteed to exist per `owner` and per usage of
+    `setHelperManager`, so many helpers will end up using the same instance of the
+    helper manager. As such, you should only store state that is related to the
+    manager itself. If you want to store state specific to a particular helper
+    definition, you should assign a unique helper manager to that helper. In
+    general, most managers should either be stateless, or only have the `owner` they
+    were created with as state.
+  
+    Helper managers must fulfill the following interface (This example uses
+    [TypeScript interfaces](https://www.typescriptlang.org/docs/handbook/interfaces.html)
+    for precision, you do not need to write helper managers using TypeScript):
+  
+    ```ts
+    interface HelperManager<HelperStateBucket> {
+      capabilities: HelperCapabilities;
+  
+      createHelper(definition: HelperDefinition, args: TemplateArgs): HelperStateBucket;
+  
+      getValue?(bucket: HelperStateBucket): unknown;
+  
+      runEffect?(bucket: HelperStateBucket): void;
+  
+      getDestroyable?(bucket: HelperStateBucket): object;
+    }
+    ```
+  
+    The capabilities property _must_ be provided using the `capabilities()` function
+    imported from the same module as `setHelperManager`:
+  
+    ```js
+    import { capabilities } from '@ember/helper';
+  
+    class MyHelperManager {
+      capabilities = capabilities('3.21.0', { hasValue: true });
+  
+      // ...snip...
+    }
+    ```
+  
+    Below is a description of each of the methods on the interface and their
+    functions.
+  
+    #### `createHelper`
+  
+    `createHelper` is a required hook on the HelperManager interface. The hook is
+    passed the definition of the helper that is currently being created, and is
+    expected to return a _state bucket_. This state bucket is what represents the
+    current state of the helper, and will be passed to the other lifecycle hooks at
+    appropriate times. It is not necessarily related to the definition of the
+    helper itself - for instance, you could return an object _containing_ an
+    instance of the helper:
+  
+    ```js
+    class MyManager {
+      createHelper(Definition, args) {
+        return {
+          instance: new Definition(args);
+        };
+      }
+    }
+    ```
+  
+    This allows the manager to store metadata that it doesn't want to expose to the
+    user.
+  
+    This hook is _not_ autotracked - changes to tracked values used within this hook
+    will _not_ result in a call to any of the other lifecycle hooks. This is because
+    it is unclear what should happen if it invalidates, and rather than make a
+    decision at this point, the initial API is aiming to allow as much expressivity
+    as possible. This could change in the future with changes to capabilities and
+    their behaviors.
+  
+    If users do want to autotrack some values used during construction, they can
+    either create the instance of the helper in `runEffect` or `getValue`, or they
+    can use the `cache` API to autotrack the `createHelper` hook themselves. This
+    provides maximum flexibility and expressiveness to manager authors.
+  
+    This hook has the following timing semantics:
+  
+    **Always**
+    - called as discovered during DOM construction
+    - called in definition order in the template
+  
+    #### `getValue`
+  
+    `getValue` is an optional hook that should return the value of the helper. This
+    is the value that is returned from the helper and passed into the template.
+  
+    This hook is called when the value is requested from the helper (e.g. when the
+    template is rendering and the helper value is needed). The hook is autotracked,
+    and will rerun whenever any tracked values used inside of it are updated.
+    Otherwise it does not rerun.
+  
+    > Note: This means that arguments which are not _consumed_ within the hook will
+    > not trigger updates.
+  
+    This hook is only called for helpers with the `hasValue` capability enabled.
+    This hook has the following timing semantics:
+  
+    **Always**
+    - called the first time the helper value is requested
+    - called after autotracked state has changed
+  
+    **Never**
+    - called if the `hasValue` capability is disabled
+  
+    #### `runEffect`
+  
+    `runEffect` is an optional hook that should run the effect that the helper is
+    applying, setting it up or updating it.
+  
+    This hook is scheduled to be called some time after render and prior to paint.
+    There is not a guaranteed, 1-to-1 relationship between a render pass and this
+    hook firing. For instance, multiple render passes could occur, and the hook may
+    only trigger once. It may also never trigger if it was dirtied in one render
+    pass and then destroyed in the next.
+  
+    The hook is autotracked, and will rerun whenever any tracked values used inside
+    of it are updated. Otherwise it does not rerun.
+  
+    The hook is also run during a time period where state mutations are _disabled_
+    in Ember. Any tracked state mutation will throw an error during this time,
+    including changes to tracked properties, changes made using `Ember.set`, updates
+    to computed properties, etc. This is meant to prevent infinite rerenders and
+    other antipatterns.
+  
+    This hook is only called for helpers with the `hasScheduledEffect` capability
+    enabled. This hook is also not called in SSR currently, though this could be
+    added as a capability in the future. It has the following timing semantics:
+  
+    **Always**
+    - called after the helper was first created, if the helper has not been
+      destroyed since creation
+    - called after autotracked state has changed, if the helper has not been
+      destroyed during render
+  
+    **Never**
+    - called if the `hasScheduledEffect` capability is disabled
+    - called in SSR
+  
+    #### `getDestroyable`
+  
+    `getDestroyable` is an optional hook that users can use to register a
+    destroyable object for the helper. This destroyable will be registered to the
+    containing block or template parent, and will be destroyed when it is destroyed.
+    See the [Destroyables RFC](https://github.com/emberjs/rfcs/blob/master/text/0580-destroyables.md)
+    for more details.
+  
+    `getDestroyable` is only called if the `hasDestroyable` capability is enabled.
+  
+    This hook has the following timing semantics:
+  
+    **Always**
+    - called immediately after the `createHelper` hook is called
+  
+    **Never**
+    - called if the `hasDestroyable` capability is disabled
+  
+    @method setHelperManager
+    @for @ember/helper
+    @static
+    @param {Function} factory A factory function which receives an optional owner, and returns a helper manager
+    @param {object} definition The definition to associate the manager factory with
+    @return {object} The definition passed into setHelperManager
+    @public
+  */
+
 
   function hasValue(manager) {
     return manager.capabilities.hasValue;
@@ -7136,9 +6954,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   function invokeHelper(context, definition, computeArgs) {
     (true && !(context !== null && typeof context === 'object') && (0, _debug.assert)(`Expected a context object to be passed as the first parameter to invokeHelper, got ${context}`, context !== null && typeof context === 'object'));
     var owner = (0, _owner.getOwner)(context);
-    var manager = getHelperManager(owner, definition); // TODO: figure out why assert isn't using the TS assert thing
+    var manager = (0, _runtime2.getHelperManager)(owner, definition); // TODO: figure out why assert isn't using the TS assert thing
 
     (true && !(manager) && (0, _debug.assert)(`Expected a helper definition to be passed as the second parameter to invokeHelper, but no helper manager was found. The definition value that was passed was \`${(0, _utils.getDebugName)(definition)}\`. Did you use setHelperManager to associate a helper manager with this value?`, manager));
+    (true && !(!(0, _runtime2.isInternalHelper)(manager)) && (0, _debug.assert)('Invoke helper does not support internal helpers yet', !(0, _runtime2.isInternalHelper)(manager)));
     var args = new SimpleArgsProxy(context, computeArgs);
     var bucket = manager.createHelper(definition, args);
     var cache;
@@ -7331,7 +7150,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   }
 
-  setHelperManager(owner => new ClassicHelperManager(owner), Helper); ///////////
+  (0, _runtime2.setHelperManager)(owner => new ClassicHelperManager(owner), Helper); ///////////
 
   class Wrapper {
     constructor(compute) {
@@ -7386,7 +7205,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   var SIMPLE_CLASSIC_HELPER_MANAGER = new SimpleClassicHelperManager();
-  setHelperManager(() => SIMPLE_CLASSIC_HELPER_MANAGER, Wrapper.prototype);
+  (0, _runtime2.setHelperManager)(() => SIMPLE_CLASSIC_HELPER_MANAGER, Wrapper.prototype);
   /**
     In many cases it is not necessary to use the full `Helper` class.
     The `helper` method create pure-function helpers without instances.
@@ -7533,16 +7352,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       this.resolver = resolver;
     }
 
-    lookupHelper(name, referrer) {
-      return this.resolver.lookupHelper(name, referrer);
+    lookupHelper(name, owner) {
+      return this.resolver.lookupHelper(name, owner);
     }
 
-    lookupModifier(name, referrer) {
-      return this.resolver.lookupModifier(name, referrer);
+    lookupModifier(name, owner) {
+      return this.resolver.lookupModifier(name, owner);
     }
 
-    lookupComponent(name, referrer) {
-      var definitionHandle = this.resolver.lookupComponentHandle(name, referrer);
+    lookupComponent(name, owner) {
+      var definitionHandle = this.resolver.lookupComponentHandle(name, owner);
 
       if (definitionHandle === null) {
         return null;
@@ -7562,19 +7381,21 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         };
       }
 
+      var template = (0, _util.unwrapTemplate)(manager.getStaticLayout(state));
+      var layout = capabilities.wrapped ? template.asWrappedLayout() : template.asLayout();
       return {
         handle: definitionHandle,
         capabilities,
-        compilable: manager.getStaticLayout(state, this.resolver)
+        compilable: layout
       };
     }
 
-    lookupPartial(name, referrer) {
-      return this.resolver.lookupPartial(name, referrer);
+    lookupPartial(name, owner) {
+      return this.resolver.lookupPartial(name, owner);
     }
 
-    resolve(handle) {
-      return this.resolver.resolve(handle);
+    resolve() {
+      return null;
     }
 
   }
@@ -7585,43 +7406,35 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     };
   }
 
-  var CAPABILITIES$1 = {
+  var CAPABILITIES = {
     dynamicLayout: false,
     dynamicTag: false,
     prepareArgs: false,
-    createArgs: _environment2.ENV._DEBUG_RENDER_TREE,
+    createArgs: false,
     attributeHook: false,
     elementHook: false,
     createCaller: false,
     dynamicScope: true,
-    updateHook: _environment2.ENV._DEBUG_RENDER_TREE,
+    updateHook: false,
     createInstance: true,
     wrapped: false,
     willDestroy: false
   };
 
-  class OutletComponentManager extends AbstractManager {
-    create(environment, definition, args, dynamicScope) {
+  class OutletComponentManager extends _runtime2.BaseInternalComponentManager {
+    create(env, definition, _args, dynamicScope) {
       var parentStateRef = dynamicScope.get('outletState');
       var currentStateRef = definition.ref;
       dynamicScope.set('outletState', currentStateRef);
       var state = {
         self: (0, _reference.createConstRef)(definition.controller, 'this'),
-        environment,
         finalize: (0, _instrumentation._instrumentStart)('render.outlet', instrumentationPayload, definition)
       };
 
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
+      if (env.debugRenderTree !== undefined) {
         state.outlet = {
           name: definition.outlet
         };
-        environment.extra.debugRenderTree.create(state.outlet, {
-          type: 'outlet',
-          name: state.outlet.name,
-          args: _runtime2.EMPTY_ARGS,
-          instance: undefined,
-          template: undefined
-        });
         var parentState = (0, _reference.valueForRef)(parentStateRef);
         var parentOwner = parentState && parentState.render && parentState.render.owner;
         var currentOwner = (0, _reference.valueForRef)(currentStateRef).render.owner;
@@ -7631,34 +7444,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           (true && !(typeof currentOwner.mountPoint === 'string') && (0, _debug.assert)('invalid engine: missing mountPoint', typeof currentOwner.mountPoint === 'string'));
           (true && !(currentOwner.routable === true) && (0, _debug.assert)('invalid engine: missing routable', currentOwner.routable === true));
           var mountPoint = engine.mountPoint;
-          state.engine = {
+          state.engine = engine;
+          state.engineBucket = {
             mountPoint
           };
-          environment.extra.debugRenderTree.create(state.engine, {
-            type: 'engine',
-            name: mountPoint,
-            args: _runtime2.EMPTY_ARGS,
-            instance: engine,
-            template: undefined
-          });
         }
-
-        environment.extra.debugRenderTree.create(state, {
-          type: 'route-template',
-          name: definition.name,
-          args: args.capture(),
-          instance: definition.controller,
-          template: definition.template
-        });
-        (0, _runtime2.registerDestructor)(state, () => {
-          state.environment.extra.debugRenderTree.willDestroy(state);
-
-          if (state.engine) {
-            state.environment.extra.debugRenderTree.willDestroy(state.engine);
-          }
-
-          state.environment.extra.debugRenderTree.willDestroy(state.outlet);
-        });
       }
 
       return state;
@@ -7667,22 +7457,54 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     getDebugName({
       name
     }) {
-      if (name === '-top-level') {
-        return '- While rendering:';
+      return name;
+    }
+
+    getDebugCustomRenderTree(definition, state, args) {
+      var nodes = [];
+
+      if (state.outlet) {
+        nodes.push({
+          bucket: state.outlet,
+          type: 'outlet',
+          name: state.outlet.name,
+          args: _runtime2.EMPTY_ARGS,
+          instance: undefined,
+          template: undefined
+        });
       }
 
-      return name;
+      if (state.engineBucket) {
+        nodes.push({
+          bucket: state.engineBucket,
+          type: 'engine',
+          name: state.engineBucket.mountPoint,
+          args: _runtime2.EMPTY_ARGS,
+          instance: state.engine,
+          template: undefined
+        });
+      }
+
+      nodes.push({
+        bucket: state,
+        type: 'route-template',
+        name: definition.name,
+        args: args,
+        instance: definition.controller,
+        template: definition.template
+      });
+      return nodes;
     }
 
     getStaticLayout({
       template
-    }, _resolver) {
+    }) {
       // The router has already resolved the template
-      return (0, _util.unwrapTemplate)(template).asLayout();
+      return template;
     }
 
     getCapabilities() {
-      return CAPABILITIES$1;
+      return CAPABILITIES;
     }
 
     getSelf({
@@ -7691,50 +7513,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return self;
     }
 
-    didRenderLayout(state, bounds) {
+    didRenderLayout(state) {
       state.finalize();
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        state.environment.extra.debugRenderTree.didRender(state, bounds);
-
-        if (state.engine) {
-          state.environment.extra.debugRenderTree.didRender(state.engine, bounds);
-        }
-
-        state.environment.extra.debugRenderTree.didRender(state.outlet, bounds);
-      }
     }
 
-    update(state) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        state.environment.extra.debugRenderTree.update(state.outlet);
-
-        if (state.engine) {
-          state.environment.extra.debugRenderTree.update(state.engine);
-        }
-
-        state.environment.extra.debugRenderTree.update(state);
-      }
-    }
-
-    didUpdateLayout(state, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        state.environment.extra.debugRenderTree.didRender(state, bounds);
-
-        if (state.engine) {
-          state.environment.extra.debugRenderTree.didRender(state.engine, bounds);
-        }
-
-        state.environment.extra.debugRenderTree.didRender(state.outlet, bounds);
-      }
-    }
-
-    getDestroyable(state) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        return state;
-      } else {
-        return null;
-      }
+    getDestroyable() {
+      return null;
     }
 
   }
@@ -7751,13 +7535,13 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   function createRootOutlet(outletView) {
     if (_environment2.ENV._APPLICATION_TEMPLATE_WRAPPER) {
-      var WRAPPED_CAPABILITIES = (0, _polyfills.assign)({}, CAPABILITIES$1, {
+      var WRAPPED_CAPABILITIES = (0, _polyfills.assign)({}, CAPABILITIES, {
         dynamicTag: true,
         elementHook: true,
         wrapped: true
       });
       var WrappedOutletComponentManager = class extends OutletComponentManager {
-        getTagName(_component) {
+        getTagName() {
           return 'div';
         }
 
@@ -7765,14 +7549,14 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           template
         }) {
           // The router has already resolved the template
-          return (0, _util.unwrapTemplate)(template).asWrappedLayout();
+          return template;
         }
 
         getCapabilities() {
           return WRAPPED_CAPABILITIES;
         }
 
-        didCreateElement(component, element, _operations) {
+        didCreateElement(component, element) {
           // to add GUID id and class
           element.setAttribute('class', 'ember-view');
           element.setAttribute('id', (0, _utils.guidFor)(component));
@@ -7847,6 +7631,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   }
 
+  function isTemplateFactory(template) {
+    return typeof template === 'function';
+  }
+
   function referenceForParts(rootRef, parts) {
     var isAttrs = parts[0] === 'attrs'; // TODO deprecate this
 
@@ -7918,7 +7706,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           (true && !(false) && (0, _debug.deprecate)(`The \`isVisible\` property on classic component classes is deprecated. Was accessed:\n\n${(0, _validator.logTrackingStack)()}`, false, {
             id: 'ember-component.is-visible',
             until: '4.0.0',
-            url: 'https://deprecations.emberjs.com/v3.x#toc_ember-component-is-visible'
+            url: 'https://deprecations.emberjs.com/v3.x#toc_ember-component-is-visible',
+            for: 'ember-source',
+            since: {
+              enabled: '3.15.0-beta.1'
+            }
           }));
         }
 
@@ -8337,7 +8129,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     if (typeof action[INVOKE] === 'function') {
       (true && !(false) && (0, _debug.deprecate)(`Usage of the private INVOKE API to make an object callable via action or fn is no longer supported. Please update to pass in a callback function instead. Received: ${String(action)}`, false, {
         until: '3.25.0',
-        id: 'actions.custom-invoke-invokable'
+        id: 'actions.custom-invoke-invokable',
+        for: 'ember-source',
+        since: {
+          enabled: '3.23.0-beta.1'
+        }
       }));
       self = action;
       fn = action[INVOKE];
@@ -8464,8 +8260,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     if (seen.indexOf('id') === -1) {
-      var id$$1 = component.elementId ? component.elementId : (0, _utils.guidFor)(component);
-      operations.setAttribute('id', (0, _reference.createPrimitiveRef)(id$$1), false, null);
+      var id = component.elementId ? component.elementId : (0, _utils.guidFor)(component);
+      operations.setAttribute('id', (0, _reference.createPrimitiveRef)(id), false, null);
     }
 
     if (_deprecatedFeatures.EMBER_COMPONENT_IS_VISIBLE && installIsVisibleBinding !== undefined && seen.indexOf('style') === -1) {
@@ -8477,7 +8273,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   var EMPTY_POSITIONAL_ARGS = [];
   (0, _debug.debugFreeze)(EMPTY_POSITIONAL_ARGS);
 
-  class CurlyComponentManager extends AbstractManager {
+  class CurlyComponentManager extends _runtime2.BaseInternalComponentManager {
     templateFor(component) {
       var {
         layout,
@@ -8505,19 +8301,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return factory(owner);
     }
 
-    getStaticLayout(state, _resolver) {
-      return (0, _util.unwrapTemplate)(state.template).asLayout();
-    }
-
     getDynamicLayout(bucket) {
-      var component = bucket.component;
-      var template$$1 = this.templateFor(component);
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.setTemplate(bucket, template$$1);
-      }
-
-      return template$$1;
+      return this.templateFor(bucket.component);
     }
 
     getTagName(state) {
@@ -8684,21 +8469,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         component.trigger('willRender');
       }
 
-      (0, _validator.endUntrackFrame)();
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        environment.extra.debugRenderTree.create(bucket, {
-          type: 'component',
-          name: state.name,
-          args: args.capture(),
-          instance: component,
-          template: state.template
-        });
-        (0, _runtime2.registerDestructor)(bucket, () => {
-          environment.extra.debugRenderTree.willDestroy(bucket);
-        });
-      } // consume every argument so we always run again
-
+      (0, _validator.endUntrackFrame)(); // consume every argument so we always run again
 
       (0, _validator.consumeTag)(bucket.argsTag);
       (0, _validator.consumeTag)(component[DIRTY_TAG]);
@@ -8734,8 +8505,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       if (attributeBindings && attributeBindings.length) {
         applyAttributeBindings(attributeBindings, component, rootRef, operations);
       } else {
-        var id$$1 = component.elementId ? component.elementId : (0, _utils.guidFor)(component);
-        operations.setAttribute('id', (0, _reference.createPrimitiveRef)(id$$1), false, null);
+        var id = component.elementId ? component.elementId : (0, _utils.guidFor)(component);
+        operations.setAttribute('id', (0, _reference.createPrimitiveRef)(id), false, null);
 
         if (_deprecatedFeatures.EMBER_COMPONENT_IS_VISIBLE) {
           installIsVisibleBinding(rootRef, operations);
@@ -8777,10 +8548,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     didRenderLayout(bucket, bounds) {
       bucket.component[BOUNDS] = bounds;
       bucket.finalize();
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.didRender(bucket, bounds);
-      }
     }
 
     didCreate({
@@ -8803,11 +8570,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         argsRevision,
         environment
       } = bucket;
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        environment.extra.debugRenderTree.update(bucket);
-      }
-
       bucket.finalizer = (0, _instrumentation._instrumentStart)('render.component', rerenderInstrumentDetails, component);
       (0, _validator.beginUntrackFrame)();
 
@@ -8833,12 +8595,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       (0, _validator.consumeTag)(component[DIRTY_TAG]);
     }
 
-    didUpdateLayout(bucket, bounds) {
+    didUpdateLayout(bucket) {
       bucket.finalize();
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.didRender(bucket, bounds);
-      }
     }
 
     didUpdate({
@@ -8950,16 +8708,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   var CURLY_COMPONENT_MANAGER = new CurlyComponentManager();
 
   class CurlyComponentDefinition {
-    constructor(name, ComponentClass, template$$1, args) {
+    constructor(name, ComponentClass, template, args) {
       this.name = name;
       this.ComponentClass = ComponentClass;
-      this.template = template$$1;
+      this.template = template;
       this.args = args;
       this.manager = CURLY_COMPONENT_MANAGER;
       this.state = {
         name,
         ComponentClass,
-        template: template$$1,
+        template,
         capabilities: CURLY_CAPABILITIES
       };
     }
@@ -8972,16 +8730,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       this.component = component;
     }
 
-    getDebugName() {
-      return '- While rendering:';
+    getStaticLayout() {
+      return this.templateFor(this.component);
     }
 
-    getStaticLayout(_state) {
-      var template = this.templateFor(this.component);
-      return (0, _util.unwrapTemplate)(template).asWrappedLayout();
-    }
-
-    create(environment, state, _args, dynamicScope) {
+    create(environment, _state, _args, dynamicScope) {
       var component = this.component;
       var finalizer = (0, _instrumentation._instrumentStart)('render.component', initialRenderInstrumentDetails, component);
       dynamicScope.view = component;
@@ -9006,17 +8759,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       }
 
       var bucket = new ComponentStateBucket(environment, component, null, _validator.CONSTANT_TAG, finalizer, hasWrappedElement);
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        environment.extra.debugRenderTree.create(bucket, {
-          type: 'component',
-          name: state.name,
-          args: _runtime2.EMPTY_ARGS,
-          instance: component,
-          template: state.template
-        });
-      }
-
       (0, _validator.consumeTag)(component[DIRTY_TAG]);
       return bucket;
     }
@@ -9050,196 +8792,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         name: factory.fullName.slice(10),
         capabilities: ROOT_CAPABILITIES,
         ComponentClass: factory
-      };
-    }
-
-  }
-
-  var GUID = 0;
-
-  class Ref {
-    constructor(value) {
-      this.id = GUID++;
-      this.value = value;
-    }
-
-    get() {
-      return this.value;
-    }
-
-    release() {
-      (true && !(this.value !== null) && (0, _debug.assert)('BUG: double release?', this.value !== null));
-      this.value = null;
-    }
-
-    toString() {
-      var label = `Ref ${this.id}`;
-
-      if (this.value === null) {
-        return `${label} (released)`;
-      } else {
-        try {
-          return `${label}: ${this.value}`;
-        } catch (_a) {
-          return label;
-        }
-      }
-    }
-
-  }
-
-  class DebugRenderTree {
-    constructor() {
-      this.stack = new _util.Stack();
-      this.refs = new WeakMap();
-      this.roots = new Set();
-      this.nodes = new WeakMap();
-    }
-
-    begin() {
-      this.reset();
-    }
-
-    create(state, node) {
-      var internalNode = (0, _polyfills.assign)((0, _polyfills.assign)({}, node), {
-        bounds: null,
-        refs: new Set()
-      });
-      this.nodes.set(state, internalNode);
-      this.appendChild(internalNode, state);
-      this.enter(state);
-    }
-
-    update(state) {
-      this.enter(state);
-    } // for dynamic layouts
-
-
-    setTemplate(state, template) {
-      this.nodeFor(state).template = template;
-    }
-
-    didRender(state, bounds) {
-      (true && !(this.stack.current === state) && (0, _debug.assert)(`BUG: expecting ${this.stack.current}, got ${state}`, this.stack.current === state));
-      this.nodeFor(state).bounds = bounds;
-      this.exit();
-    }
-
-    willDestroy(state) {
-      (0, _util.expect)(this.refs.get(state), 'BUG: missing ref').release();
-    }
-
-    commit() {
-      this.reset();
-    }
-
-    capture() {
-      return this.captureRefs(this.roots);
-    }
-
-    reset() {
-      if (this.stack.size !== 0) {
-        // We probably encountered an error during the rendering loop. This will
-        // likely trigger undefined behavior and memory leaks as the error left
-        // things in an inconsistent state. It is recommended that the user
-        // refresh the page.
-        // TODO: We could warn here? But this happens all the time in our tests?
-        // Clean up the root reference to prevent errors from happening if we
-        // attempt to capture the render tree (Ember Inspector may do this)
-        var root = (0, _util.expect)(this.stack.toArray()[0], 'expected root state when resetting render tree');
-        var ref = this.refs.get(root);
-
-        if (ref !== undefined) {
-          this.roots.delete(ref);
-        }
-
-        while (!this.stack.isEmpty()) {
-          this.stack.pop();
-        }
-      }
-    }
-
-    enter(state) {
-      this.stack.push(state);
-    }
-
-    exit() {
-      (true && !(this.stack.size !== 0) && (0, _debug.assert)('BUG: unbalanced pop', this.stack.size !== 0));
-      this.stack.pop();
-    }
-
-    nodeFor(state) {
-      return (0, _util.expect)(this.nodes.get(state), 'BUG: missing node');
-    }
-
-    appendChild(node, state) {
-      (true && !(!this.refs.has(state)) && (0, _debug.assert)('BUG: child already appended', !this.refs.has(state)));
-      var parent = this.stack.current;
-      var ref = new Ref(state);
-      this.refs.set(state, ref);
-
-      if (parent) {
-        var parentNode = this.nodeFor(parent);
-        parentNode.refs.add(ref);
-        node.parent = parentNode;
-      } else {
-        this.roots.add(ref);
-      }
-    }
-
-    captureRefs(refs) {
-      var captured = [];
-      refs.forEach(ref => {
-        var state = ref.get();
-
-        if (state) {
-          captured.push(this.captureNode(`render-node:${ref.id}`, state));
-        } else {
-          refs.delete(ref);
-        }
-      });
-      return captured;
-    }
-
-    captureNode(id, state) {
-      var node = this.nodeFor(state);
-      var {
-        type,
-        name,
-        args,
-        instance,
-        refs
-      } = node;
-      var template = this.captureTemplate(node);
-      var bounds = this.captureBounds(node);
-      var children = this.captureRefs(refs);
-      return {
-        id,
-        type,
-        name,
-        args: (0, _runtime2.reifyArgs)(args),
-        instance,
-        template,
-        bounds,
-        children
-      };
-    }
-
-    captureTemplate({
-      template
-    }) {
-      return template && (0, _util.unwrapTemplate)(template).referrer.moduleName || null;
-    }
-
-    captureBounds(node) {
-      var bounds = (0, _util.expect)(node.bounds, 'BUG: missing bounds');
-      var parentElement = bounds.parentElement();
-      var firstNode = bounds.firstNode();
-      var lastNode = bounds.lastNode();
-      return {
-        parentElement,
-        firstNode,
-        lastNode
       };
     }
 
@@ -9748,7 +9300,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       deprecate(message) {
         (true && !(false) && (0, _debug.deprecate)(message, false, {
           id: 'autotracking.mutation-after-consumption',
-          until: '4.0.0'
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            enabled: '3.21.0'
+          }
         }));
       },
 
@@ -9758,56 +9314,22 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       }
 
     });
-  }
+  } ///////////
+  // Define environment delegate
 
-  class EmberEnvironmentExtra {
-    constructor(owner) {
-      this.owner = owner;
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        this._debugRenderTree = new DebugRenderTree();
-      }
-    }
-
-    get debugRenderTree() {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        return this._debugRenderTree;
-      } else {
-        throw new Error("Can't access debug render tree outside of the inspector (_DEBUG_RENDER_TREE flag is disabled)");
-      }
-    }
-
-    begin() {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        this.debugRenderTree.begin();
-      }
-    }
-
-    commit() {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        this.debugRenderTree.commit();
-      }
-    }
-
-  }
 
   class EmberEnvironmentDelegate {
     constructor(owner, isInteractive) {
-      this.extra = new EmberEnvironmentExtra(owner);
+      this.owner = owner;
       this.isInteractive = isInteractive;
+      this.enableDebugTooling = _environment2.ENV._DEBUG_RENDER_TREE;
     }
 
-    onTransactionBegin() {
-      this.extra.begin();
-    }
-
-    onTransactionCommit() {
-      this.extra.commit();
-    }
+    onTransactionCommit() {}
 
   }
 
-  var CAPABILITIES$2 = {
+  var CAPABILITIES$1 = {
     dynamicLayout: false,
     dynamicTag: false,
     prepareArgs: false,
@@ -9830,7 +9352,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       updateHook = Boolean(options.updateHook);
     }
 
-    return buildCapabilities({
+    return (0, _runtime2.buildCapabilities)({
       asyncLifeCycleCallbacks: Boolean(options.asyncLifecycleCallbacks),
       destructor: Boolean(options.destructor),
       updateHook
@@ -9879,7 +9401,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   */
 
 
-  class CustomComponentManager extends AbstractManager {
+  class CustomComponentManager extends _runtime2.BaseInternalComponentManager {
     create(env, definition, vmArgs) {
       var {
         delegate
@@ -9898,20 +9420,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       }
 
       var bucket = new CustomComponentState(delegate, component, args, env);
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        env.extra.debugRenderTree.create(bucket, {
-          type: 'component',
-          name: definition.name,
-          args: vmArgs.capture(),
-          instance: component,
-          template: definition.template
-        });
-        (0, _runtime2.registerDestructor)(bucket, () => {
-          env.extra.debugRenderTree.willDestroy(bucket);
-        });
-      }
-
       return bucket;
     }
 
@@ -9922,10 +9430,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     update(bucket) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.env.extra.debugRenderTree.update(bucket);
-      }
-
       if (hasUpdateHook(bucket.delegate)) {
         var {
           delegate,
@@ -9954,12 +9458,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       }
     }
 
-    getContext({
-      delegate,
-      component
-    }) {
-      delegate.getContext(component);
-    }
+    didRenderLayout() {}
+
+    didUpdateLayout() {}
 
     getSelf({
       delegate,
@@ -9972,28 +9473,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return bucket;
     }
 
-    getCapabilities({
-      delegate
-    }) {
-      return (0, _polyfills.assign)({}, CAPABILITIES$2, {
-        updateHook: _environment2.ENV._DEBUG_RENDER_TREE || delegate.capabilities.updateHook
-      });
-    }
-
-    didRenderLayout(bucket, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.env.extra.debugRenderTree.didRender(bucket, bounds);
-      }
-    }
-
-    didUpdateLayout(bucket, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.env.extra.debugRenderTree.didRender(bucket, bounds);
-      }
+    getCapabilities() {
+      return CAPABILITIES$1;
     }
 
     getStaticLayout(state) {
-      return (0, _util.unwrapTemplate)(state.template).asLayout();
+      return state.template;
     }
 
   }
@@ -10034,54 +9519,106 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   }
 
-  var CAPABILITIES$3 = {
+  var CAPABILITIES$2 = {
     dynamicLayout: false,
     dynamicTag: false,
     prepareArgs: false,
-    createArgs: _environment2.ENV._DEBUG_RENDER_TREE,
+    createArgs: true,
     attributeHook: false,
     elementHook: false,
-    createCaller: false,
+    createCaller: true,
     dynamicScope: false,
-    updateHook: _environment2.ENV._DEBUG_RENDER_TREE,
+    updateHook: false,
     createInstance: true,
     wrapped: false,
     willDestroy: false
   };
 
-  class TemplateOnlyComponentManager extends AbstractManager {
+  class InternalComponentDefinition {
+    constructor(manager, ComponentClass, layout) {
+      this.manager = manager;
+      this.state = {
+        ComponentClass,
+        layout
+      };
+    }
+
+  }
+
+  class InternalManager extends _runtime2.BaseInternalComponentManager {
+    constructor(owner, name) {
+      super();
+      this.owner = owner;
+      this.name = name;
+    }
+
+    static for(name) {
+      return owner => new InternalManager(owner, name);
+    }
+
+    getCapabilities() {
+      return CAPABILITIES$2;
+    }
+
+    create(env, {
+      ComponentClass
+    }, args, _dynamicScope, caller) {
+      (true && !((0, _reference.isConstRef)(caller)) && (0, _debug.assert)('caller must be const', (0, _reference.isConstRef)(caller)));
+      (true && !(args.positional.length === 0) && (0, _debug.assert)(`The ${this.name} component does not take any positional arguments`, args.positional.length === 0));
+      var instance = new ComponentClass(this.owner, args.named.capture(), (0, _reference.valueForRef)(caller));
+      var state = {
+        env,
+        instance
+      };
+      return state;
+    }
+
+    getDebugName() {
+      return this.name;
+    }
+
+    getSelf({
+      instance
+    }) {
+      return (0, _reference.createConstRef)(instance, 'this');
+    }
+
+    getDestroyable(state) {
+      return state.instance;
+    }
+
+    getStaticLayout({
+      layout: template
+    }) {
+      return template;
+    }
+
+  }
+
+  var CAPABILITIES$3 = {
+    dynamicLayout: false,
+    dynamicTag: false,
+    prepareArgs: false,
+    createArgs: false,
+    attributeHook: false,
+    elementHook: false,
+    createCaller: false,
+    dynamicScope: false,
+    updateHook: false,
+    createInstance: false,
+    wrapped: false,
+    willDestroy: false
+  };
+
+  class TemplateOnlyComponentManager {
     getStaticLayout({
       template
     }) {
-      return (0, _util.unwrapTemplate)(template).asLayout();
+      return template;
     }
 
     getCapabilities() {
       return CAPABILITIES$3;
-    }
-
-    create(environment, {
-      name,
-      template
-    }, args) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        var bucket = {
-          environment
-        };
-        environment.extra.debugRenderTree.create(bucket, {
-          type: 'component',
-          name: name,
-          args: args.capture(),
-          instance: null,
-          template
-        });
-        (0, _runtime2.registerDestructor)(bucket, () => {
-          bucket.environment.extra.debugRenderTree.willDestroy(bucket);
-        });
-        return bucket;
-      } else {
-        return null;
-      }
     }
 
     getDebugName({
@@ -10094,30 +9631,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return _reference.NULL_REFERENCE;
     }
 
-    getDestroyable(bucket) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        return bucket;
-      } else {
-        return null;
-      }
-    }
-
-    didRenderLayout(bucket, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.didRender(bucket, bounds);
-      }
-    }
-
-    update(bucket) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.update(bucket);
-      }
-    }
-
-    didUpdateLayout(bucket, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.didRender(bucket, bounds);
-      }
+    getDestroyable() {
+      return null;
     }
 
   }
@@ -10410,19 +9925,16 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   function fn(args) {
     var positional = args.positional.capture();
+    var callbackRef = positional[0];
+    if (true
+    /* DEBUG */
+    ) assertCallbackIsFn(callbackRef);
     return (0, _reference.createComputeRef)(() => {
-      var callbackRef = positional[0];
-      (true && !(callbackRef !== undefined) && (0, _debug.assert)(`You must pass a function as the \`fn\` helpers first argument.`, callbackRef !== undefined));
-
-      if (true
-      /* DEBUG */
-      && !(0, _reference.isInvokableRef)(callbackRef)) {
-        var callback = (0, _reference.valueForRef)(callbackRef);
-        (true && !(typeof callback === 'function') && (0, _debug.assert)(`You must pass a function as the \`fn\` helpers first argument, you passed ${callback === null ? 'null' : typeof callback}. While rendering:\n\n${callbackRef.debugLabel}`, typeof callback === 'function'));
-      }
-
       return (...invocationArgs) => {
         var [fn, ...args] = (0, _runtime2.reifyPositional)(positional);
+        if (true
+        /* DEBUG */
+        ) assertCallbackIsFn(callbackRef);
 
         if ((0, _reference.isInvokableRef)(callbackRef)) {
           var value = args.length > 0 ? args[0] : invocationArgs[0];
@@ -10432,6 +9944,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         }
       };
     }, null, 'fn');
+  }
+
+  function assertCallbackIsFn(callbackRef) {
+    (true && !(callbackRef && ((0, _reference.isInvokableRef)(callbackRef) || typeof (0, _reference.valueForRef)(callbackRef) === 'function')) && (0, _debug.assert)(`You must pass a function as the \`fn\` helpers first argument, you passed ${callbackRef ? (0, _reference.valueForRef)(callbackRef) : callbackRef}. While rendering:\n\n${callbackRef === null || callbackRef === void 0 ? void 0 : callbackRef.debugLabel}`, callbackRef && ((0, _reference.isInvokableRef)(callbackRef) || typeof (0, _reference.valueForRef)(callbackRef) === 'function')));
   }
   /**
   @module ember
@@ -11255,7 +10771,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         if (typeof actionName[INVOKE] === 'function') {
           (true && !(false) && (0, _debug.deprecate)(`Usage of the private INVOKE API to make an object callable via action or fn is no longer supported. Please update to pass in a callback function instead. Received: ${String(actionName)}`, false, {
             until: '3.25.0',
-            id: 'actions.custom-invoke-invokable'
+            id: 'actions.custom-invoke-invokable',
+            for: 'ember-source',
+            since: {
+              enabled: '3.23.0-beta.1'
+            }
           }));
           (0, _instrumentation.flaggedInstrument)('interaction.ember-action', payload, () => {
             actionName[INVOKE].apply(actionName, args);
@@ -11314,7 +10834,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       (true && !(actionState.eventName !== 'mouseEnter' && actionState.eventName !== 'mouseLeave' && actionState.eventName !== 'mouseMove') && (0, _debug.deprecate)(`Using the \`{{action}}\` modifier with \`${actionState.eventName}\` events has been deprecated.`, actionState.eventName !== 'mouseEnter' && actionState.eventName !== 'mouseLeave' && actionState.eventName !== 'mouseMove', {
         id: 'ember-views.event-dispatcher.mouseenter-leave-move',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_action-mouseenter-leave-move'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_action-mouseenter-leave-move',
+        for: 'ember-source',
+        since: {
+          enabled: '3.13.0-beta.1'
+        }
       }));
       return actionState;
     }
@@ -11358,7 +10882,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       actionState.implicitTarget = implicitTarget;
       ActionHelper.registerAction(actionState);
       dom.setAttribute(element, 'data-ember-action', '');
-      dom.setAttribute(element, `data-ember-action-${actionId}`, actionId);
+      dom.setAttribute(element, `data-ember-action-${actionId}`, String(actionId));
     }
 
     update(actionState) {
@@ -11386,7 +10910,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   function capabilities$1(managerAPI, optionalFeatures = {}) {
     (true && !(managerAPI === '3.13' || managerAPI === '3.22') && (0, _debug.assert)('Invalid modifier manager compatibility specified', managerAPI === '3.13' || managerAPI === '3.22'));
-    return buildCapabilities({
+    return (0, _runtime2.buildCapabilities)({
       disableAutoTracking: Boolean(optionalFeatures.disableAutoTracking),
       useArgsProxy: managerAPI === '3.13' ? false : true,
       passFactoryToCreate: managerAPI === '3.13'
@@ -11958,30 +11482,24 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     willDestroy: false
   };
 
-  class MountManager extends AbstractManager {
-    getDynamicLayout(state, _) {
+  class MountManager extends _runtime2.BaseInternalComponentManager {
+    getDynamicLayout(state) {
       var templateFactory$$1 = state.engine.lookup('template:application');
-      var template = templateFactory$$1(state.engine);
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        state.environment.extra.debugRenderTree.setTemplate(state.controller, template);
-      }
-
-      return template;
+      return templateFactory$$1(state.engine);
     }
 
     getCapabilities() {
       return CAPABILITIES$4;
     }
 
-    create(environment, {
+    create(env, {
       name
     }, args) {
       // TODO
       // mount is a runtime helper, this shouldn't use dynamic layout
       // we should resolve the engine app template in the helper
       // it also should use the owner that looked up the mount helper.
-      var engine = environment.extra.owner.buildChildEngineInstance(name);
+      var engine = env.owner.buildChildEngineInstance(name);
       engine.boot();
       var applicationFactory = engine.factoryFor(`controller:application`);
       var controllerFactory = applicationFactory || (0, _routing.generateControllerFactory)(engine, 'application');
@@ -12001,7 +11519,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           engine,
           controller,
           self,
-          environment
+          modelRef
         };
       } else {
         var model = (0, _reference.valueForRef)(modelRef);
@@ -12013,31 +11531,12 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           engine,
           controller,
           self,
-          modelRef,
-          environment
+          modelRef
         };
       }
 
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        environment.extra.debugRenderTree.create(bucket, {
-          type: 'engine',
-          name,
-          args: args.capture(),
-          instance: engine,
-          template: undefined
-        });
-        environment.extra.debugRenderTree.create(controller, {
-          type: 'route-template',
-          name: 'application',
-          args: args.capture(),
-          instance: controller,
-          // set in getDynamicLayout
-          template: undefined
-        });
-        (0, _runtime2.registerDestructor)(engine, () => {
-          environment.extra.debugRenderTree.willDestroy(controller);
-          environment.extra.debugRenderTree.willDestroy(bucket);
-        });
+      if (env.debugRenderTree) {
+        (0, _runtime2.associateDestroyableChild)(engine, controller);
       }
 
       return bucket;
@@ -12047,6 +11546,23 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       name
     }) {
       return name;
+    }
+
+    getDebugCustomRenderTree(definition, state, args, template) {
+      return [{
+        bucket: state.engine,
+        instance: state.engine,
+        type: 'engine',
+        name: definition.name,
+        args
+      }, {
+        bucket: state.controller,
+        instance: state.controller,
+        type: 'route-template',
+        name: 'application',
+        args,
+        template
+      }];
     }
 
     getSelf({
@@ -12059,36 +11575,20 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return bucket.engine;
     }
 
-    didRenderLayout(bucket, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.didRender(bucket.controller, bounds);
-        bucket.environment.extra.debugRenderTree.didRender(bucket, bounds);
-      }
-    }
+    didRenderLayout() {}
 
     update(bucket) {
       var {
         controller,
-        environment,
         modelRef
       } = bucket;
 
       if (modelRef !== undefined) {
         controller.set('model', (0, _reference.valueForRef)(modelRef));
       }
-
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        environment.extra.debugRenderTree.update(bucket);
-        environment.extra.debugRenderTree.update(bucket.controller);
-      }
     }
 
-    didUpdateLayout(bucket, bounds) {
-      if (_environment2.ENV._DEBUG_RENDER_TREE) {
-        bucket.environment.extra.debugRenderTree.didRender(bucket.controller, bounds);
-        bucket.environment.extra.debugRenderTree.didRender(bucket, bounds);
-      }
-    }
+    didUpdateLayout() {}
 
   }
 
@@ -12103,10 +11603,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
   }
-  /**
-  @module ember
-  */
-
   /**
     The `{{mount}}` helper lets you embed a routeless engine in a template.
     Mounting an engine will cause an instance to be booted and its `application`
@@ -12181,9 +11677,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
           return lastDef;
         }
 
-        (true && !(env.extra.owner.hasRegistration(`engine:${name}`)) && (0, _debug.assert)(`You used \`{{mount '${name}'}}\`, but the engine '${name}' can not be found.`, env.extra.owner.hasRegistration(`engine:${name}`)));
+        (true && !(env.owner.hasRegistration(`engine:${name}`)) && (0, _debug.assert)(`You used \`{{mount '${name}'}}\`, but the engine '${name}' can not be found.`, env.owner.hasRegistration(`engine:${name}`)));
 
-        if (!env.extra.owner.hasRegistration(`engine:${name}`)) {
+        if (!env.owner.hasRegistration(`engine:${name}`)) {
           return null;
         }
 
@@ -12297,19 +11793,19 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     if (outlet === undefined) return null;
     var render = outlet.render;
     if (render === undefined) return null;
-    var template$$1 = render.template;
-    if (template$$1 === undefined) return null; // this guard can be removed once @ember/test-helpers@1.6.0 has "aged out"
+    var template = render.template;
+    if (template === undefined) return null; // this guard can be removed once @ember/test-helpers@1.6.0 has "aged out"
     // and is no longer considered supported
 
-    if (isTemplateFactory(template$$1)) {
-      template$$1 = template$$1(render.owner);
+    if (isTemplateFactory(template)) {
+      template = template(render.owner);
     }
 
     return {
       ref,
       name: render.name,
       outlet: render.outlet,
-      template: template$$1,
+      template,
       controller: render.controller,
       model: render.model
     };
@@ -12327,42 +11823,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     return state.template === lastState.template && state.controller === lastState.controller;
   }
 
-  var TEMPLATES = new WeakMap();
-  var getPrototypeOf$1 = Object.getPrototypeOf;
-
-  function setComponentTemplate(factory, obj) {
-    (true && !(obj !== null && (typeof obj === 'object' || typeof obj === 'function')) && (0, _debug.assert)(`Cannot call \`setComponentTemplate\` on \`${(0, _utils.toString)(obj)}\``, obj !== null && (typeof obj === 'object' || typeof obj === 'function')));
-    (true && !(!TEMPLATES.has(obj)) && (0, _debug.assert)(`Cannot call \`setComponentTemplate\` multiple times on the same class (\`${obj}\`)`, !TEMPLATES.has(obj)));
-    TEMPLATES.set(obj, factory);
-    return obj;
-  }
-
-  function getComponentTemplate(obj) {
-    var pointer = obj;
-
-    while (pointer !== undefined && pointer !== null) {
-      var _template = TEMPLATES.get(pointer);
-
-      if (_template !== undefined) {
-        return _template;
-      }
-
-      pointer = getPrototypeOf$1(pointer);
-    }
-
-    return null;
-  }
-
   function instrumentationPayload$1(name) {
     return {
       object: `component:${name}`
-    };
-  }
-
-  function makeOptions(moduleName, namespace) {
-    return {
-      source: moduleName !== undefined ? `template:${moduleName}` : undefined,
-      namespace
     };
   }
 
@@ -12378,18 +11841,18 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   function lookupComponentPair(owner, name, options) {
     var component = componentFor(name, owner, options);
-    {
-      if (component !== null && component.class !== undefined) {
-        var _layout = getComponentTemplate(component.class);
 
-        if (_layout !== null) {
-          return {
-            component,
-            layout: _layout
-          };
-        }
+    if (component !== null && component.class !== undefined) {
+      var _layout = (0, _runtime2.getComponentTemplate)(component.class);
+
+      if (_layout !== undefined) {
+        return {
+          component,
+          layout: _layout
+        };
       }
     }
+
     var layout = layoutFor(name, owner, options);
 
     if (component === null && layout === null) {
@@ -12402,18 +11865,6 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
   }
 
-  function lookupComponent(owner, name, options) {
-    if (options.source || options.namespace) {
-      var pair = lookupComponentPair(owner, name, options);
-
-      if (pair !== null) {
-        return pair;
-      }
-    }
-
-    return lookupComponentPair(owner, name);
-  }
-
   var lookupPartial;
   var templateFor;
   var parseUnderscoredName;
@@ -12423,7 +11874,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       (true && !(false) && (0, _debug.deprecate)(`The use of \`{{partial}}\` is deprecated, please refactor the "${templateName}" partial to a component`, false, {
         id: 'ember-views.partial',
         until: '4.0.0',
-        url: 'https://deprecations.emberjs.com/v3.x#toc_ember-views-partial'
+        url: 'https://deprecations.emberjs.com/v3.x#toc_ember-views-partial',
+        for: 'ember-source',
+        since: {
+          enabled: '3.15.0-beta.1'
+        }
       }));
 
       if (templateName === null) {
@@ -12512,8 +11967,8 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
      */
 
 
-    lookupComponent(name, meta) {
-      var handle = this.lookupComponentHandle(name, meta);
+    lookupComponent(name, owner) {
+      var handle = this.lookupComponentHandle(name, owner);
 
       if (handle === null) {
         (true && !(false) && (0, _debug.assert)(`Could not find component named "${name}" (no component or template with that name was found)`));
@@ -12523,9 +11978,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return this.resolve(handle);
     }
 
-    lookupComponentHandle(name, meta) {
+    lookupComponentHandle(name, owner) {
       var nextHandle = this.handles.length;
-      var handle = this.handle(this._lookupComponentDefinition(name, meta));
+      var handle = this.handle(this._lookupComponentDefinition(name, owner));
       (true && !(!(name === 'text-area' && handle === null)) && (0, _debug.assert)('Could not find component `<TextArea />` (did you mean `<Textarea />`?)', !(name === 'text-area' && handle === null)));
 
       if (nextHandle === handle) {
@@ -12548,10 +12003,10 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
      */
 
 
-    lookupHelper(name, meta) {
+    lookupHelper(name, owner) {
       var nextHandle = this.handles.length;
 
-      var helper$$1 = this._lookupHelper(name, meta);
+      var helper$$1 = this._lookupHelper(name, owner);
 
       if (helper$$1 !== null) {
         var handle = this.handle(helper$$1);
@@ -12570,17 +12025,17 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
      */
 
 
-    lookupModifier(name, meta) {
-      return this.handle(this._lookupModifier(name, meta));
+    lookupModifier(name, owner) {
+      return this.handle(this._lookupModifier(name, owner));
     }
     /**
      * Called by CompileTimeLookup to lookup partial
      */
 
 
-    lookupPartial(name, meta) {
+    lookupPartial(name, owner) {
       if (_deprecatedFeatures.PARTIALS) {
-        var partial = this._lookupPartial(name, meta);
+        var partial = this._lookupPartial(name, owner);
 
         return this.handle(partial);
       } else {
@@ -12609,28 +12064,22 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return handle;
     }
 
-    _lookupHelper(_name, meta) {
-      (true && !(!(this.builtInHelpers[_name] && meta.owner.hasRegistration(`helper:${_name}`))) && (0, _debug.assert)(`You attempted to overwrite the built-in helper "${_name}" which is not allowed. Please rename the helper.`, !(this.builtInHelpers[_name] && meta.owner.hasRegistration(`helper:${_name}`))));
+    _lookupHelper(_name, owner) {
+      (true && !(!(this.builtInHelpers[_name] && owner.hasRegistration(`helper:${_name}`))) && (0, _debug.assert)(`You attempted to overwrite the built-in helper "${_name}" which is not allowed. Please rename the helper.`, !(this.builtInHelpers[_name] && owner.hasRegistration(`helper:${_name}`))));
       var helper$$1 = this.builtInHelpers[_name];
 
       if (helper$$1 !== undefined) {
         return helper$$1;
       }
 
-      var {
-        moduleName
-      } = meta;
-      var owner = meta.owner;
       var name = _name;
-      var namespace = undefined;
-      var options = makeOptions(moduleName, namespace);
-      var factory = owner.factoryFor(`helper:${name}`, options) || owner.factoryFor(`helper:${name}`);
+      var factory = owner.factoryFor(`helper:${name}`) || owner.factoryFor(`helper:${name}`);
 
       if (factory === undefined || factory.class === undefined) {
         return null;
       }
 
-      var manager = getHelperManager(owner, factory.class);
+      var manager = (0, _runtime2.getHelperManager)(owner, factory.class);
 
       if (manager === undefined) {
         return null;
@@ -12638,29 +12087,30 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
       (true && !(true
       /* EMBER_GLIMMER_HELPER_MANAGER */
-      || isClassicHelperManager(manager) || manager === SIMPLE_CLASSIC_HELPER_MANAGER) && (0, _debug.assert)('helper managers have not been enabled yet, you must use classic helpers', true || isClassicHelperManager(manager) || manager === SIMPLE_CLASSIC_HELPER_MANAGER)); // For classic class based helpers, we need to pass the factoryFor result itself rather
+      || isClassicHelperManager(manager) || manager === SIMPLE_CLASSIC_HELPER_MANAGER) && (0, _debug.assert)('helper managers have not been enabled yet, you must use classic helpers', true || isClassicHelperManager(manager) || manager === SIMPLE_CLASSIC_HELPER_MANAGER));
+      (true && !(!(0, _runtime2.isInternalHelper)(manager)) && (0, _debug.assert)(`internal helpers are not supported via \`getHelperManager\` yet, found an internal manager for ${name}`, !(0, _runtime2.isInternalHelper)(manager))); // For classic class based helpers, we need to pass the factoryFor result itself rather
       // than the raw value (`factoryFor(...).class`). This is because injections are already
       // bound in the factoryFor result, including type-based injections
 
       return customHelper(manager, isClassicHelperManager(manager) ? factory : factory.class);
     }
 
-    _lookupPartial(name, meta) {
-      var owner = meta.owner;
+    _lookupPartial(name, owner) {
       var templateFactory$$1 = lookupPartial(name, owner);
       var template = templateFactory$$1(owner);
       return new _opcodeCompiler.PartialDefinitionImpl(name, template);
     }
 
-    _lookupModifier(name, meta) {
+    _lookupModifier(name, owner) {
       var builtin = this.builtInModifiers[name];
 
       if (builtin === undefined) {
-        var owner = meta.owner;
         var modifier = owner.factoryFor(`modifier:${name}`);
 
         if (modifier !== undefined) {
-          var manager = getModifierManager(owner, modifier.class);
+          var manager = (0, _runtime2.getModifierManager)(owner, modifier.class);
+          (true && !(manager) && (0, _debug.assert)(`Expected a modifier manager to exist, but did not find one for ${name}`, manager));
+          (true && !(!(0, _runtime2.isInternalModifierManager)(manager)) && (0, _debug.assert)(`Internal modifier managers are not supported via \`getModifierManager\` yet, found an internal manager for ${name}`, !(0, _runtime2.isInternalModifierManager)(manager)));
           return new CustomModifierDefinition(name, modifier, manager, this.isInteractive);
         }
       }
@@ -12668,14 +12118,9 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
       return builtin;
     }
 
-    _lookupComponentDefinition(_name, meta) {
+    _lookupComponentDefinition(_name, owner) {
       var name = _name;
-      var namespace = undefined;
-      var owner = meta.owner;
-      var {
-        moduleName
-      } = meta;
-      var pair = lookupComponent(owner, name, makeOptions(moduleName, namespace));
+      var pair = lookupComponentPair(owner, name);
 
       if (pair === null) {
         return null;
@@ -12707,19 +12152,17 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
         if (_environment2.ENV._TEMPLATE_ONLY_GLIMMER_COMPONENTS) {
           definition = new TemplateOnlyComponentDefinition(name, layout);
         }
-      } else if (true
-      /* EMBER_GLIMMER_SET_COMPONENT_TEMPLATE */
-      && (0, _templateOnly.isTemplateOnlyComponent)(pair.component.class)) {
+      } else if ((0, _templateOnly.isTemplateOnlyComponent)(pair.component.class)) {
         definition = new TemplateOnlyComponentDefinition(name, layout);
       }
 
       if (pair.component !== null) {
         (true && !(pair.component.class !== undefined) && (0, _debug.assert)(`missing component class ${name}`, pair.component.class !== undefined));
         var ComponentClass = pair.component.class;
-        var manager = getComponentManager(owner, ComponentClass);
+        var manager = (0, _runtime2.getComponentManager)(owner, ComponentClass);
 
         if (manager !== undefined) {
-          if (isInternalManager(manager)) {
+          if ((0, _runtime2.isInternalComponentManager)(manager)) {
             (true && !(pair.layout !== null) && (0, _debug.assert)(`missing layout for internal component ${name}`, pair.layout !== null));
             definition = new InternalComponentDefinition(manager, ComponentClass, layout);
           } else {
@@ -12756,7 +12199,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   function refineInlineSyntax(name, params, hash, context) {
-    var component = context.resolver.lookupComponent(name, context.meta.referrer);
+    var component = context.resolver.lookupComponent(name, context.meta.owner);
 
     if (component !== null) {
       return (0, _opcodeCompiler.staticComponent)(component, [params === null ? [] : params, hashToArgs(hash), _opcodeCompiler.EMPTY_BLOCKS]);
@@ -12766,43 +12209,31 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   function refineBlockSyntax(name, params, hash, blocks, context) {
-    var handle = context.resolver.lookupComponent(name, context.meta.referrer);
+    var handle = context.resolver.lookupComponent(name, context.meta.owner);
 
     if (handle !== null) {
       return (0, _opcodeCompiler.staticComponent)(handle, [params, hashToArgs(hash), blocks]);
     }
 
-    (true && !(context.meta.referrer.owner.hasRegistration(`helper:${name}`)) && (0, _debug.assert)(`A component or helper named "${name}" could not be found`, context.meta.referrer.owner.hasRegistration(`helper:${name}`)));
+    (true && !(context.meta.owner.hasRegistration(`helper:${name}`)) && (0, _debug.assert)(`A component or helper named "${name}" could not be found`, context.meta.owner.hasRegistration(`helper:${name}`)));
     (true && !(!(() => {
       var resolver = context.resolver['resolver'];
-      var {
-        moduleName,
-        owner
-      } = context.meta.referrer;
+      var owner = context.meta.owner;
 
       if (name === 'component' || resolver['builtInHelpers'][name]) {
         return true;
       }
 
-      var options = {
-        source: `template:${moduleName}`
-      };
-      return owner.hasRegistration(`helper:${name}`, options) || owner.hasRegistration(`helper:${name}`);
+      return owner.hasRegistration(`helper:${name}`);
     })()) && (0, _debug.assert)(`Helpers may not be used in the block form, for example {{#${name}}}{{/${name}}}. Please use a component, or alternatively use the helper in combination with a built-in Ember helper, for example {{#if (${name})}}{{/if}}.`, !(() => {
       var resolver = context.resolver['resolver'];
-      var {
-        moduleName,
-        owner
-      } = context.meta.referrer;
+      var owner = context.meta.owner;
 
       if (name === 'component' || resolver['builtInHelpers'][name]) {
         return true;
       }
 
-      var options = {
-        source: `template:${moduleName}`
-      };
-      return owner.hasRegistration(`helper:${name}`, options) || owner.hasRegistration(`helper:${name}`);
+      return owner.hasRegistration(`helper:${name}`);
     })()));
     return _opcodeCompiler.NONE;
   }
@@ -13045,7 +12476,11 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     }
 
     get debugRenderTree() {
-      return this._runtime.env.extra.debugRenderTree;
+      var {
+        debugRenderTree
+      } = this._runtime.env;
+      (true && !(debugRenderTree) && (0, _debug.assert)('Attempted to access the DebugRenderTree, but it did not exist. Is the Ember Inspector open?', debugRenderTree));
+      return debugRenderTree;
     } // renderer HOOKS
 
 
@@ -13304,28 +12739,28 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
   }
 
   _exports.InteractiveRenderer = InteractiveRenderer;
-  var TEMPLATES$1 = {};
+  var TEMPLATES = {};
 
   function setTemplates(templates) {
-    TEMPLATES$1 = templates;
+    TEMPLATES = templates;
   }
 
   function getTemplates() {
-    return TEMPLATES$1;
+    return TEMPLATES;
   }
 
   function getTemplate(name) {
-    if (Object.prototype.hasOwnProperty.call(TEMPLATES$1, name)) {
-      return TEMPLATES$1[name];
+    if (Object.prototype.hasOwnProperty.call(TEMPLATES, name)) {
+      return TEMPLATES[name];
     }
   }
 
   function hasTemplate(name) {
-    return Object.prototype.hasOwnProperty.call(TEMPLATES$1, name);
+    return Object.prototype.hasOwnProperty.call(TEMPLATES, name);
   }
 
   function setTemplate(name, template) {
-    return TEMPLATES$1[name] = template;
+    return TEMPLATES[name] = template;
   }
 
   class InternalComponent {
@@ -13482,7 +12917,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
 
   }
 
-  setComponentManager(InternalManager.for('input'), Input);
+  (0, _runtime2.setComponentManager)(InternalManager.for('input'), Input);
 
   Input.toString = () => '@ember/component/input';
   /**
@@ -13520,6 +12955,7 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     @param {String} str The string to format.
     @see {String#loc}
     @public
+    @deprecated
   */
 
 
@@ -13528,26 +12964,20 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     /* let the other side handle errors */
     );
   });
-  var ComponentTemplate = template({
-    "id": "RLf1peEf",
+  var ComponentTemplate = (0, _opcodeCompiler.templateFactory)({
+    "id": "q4vmP/CB",
     "block": "{\"symbols\":[\"&default\"],\"statements\":[[18,1,null]],\"hasEval\":false,\"upvars\":[]}",
-    "meta": {
-      "moduleName": "packages/@ember/-internals/glimmer/lib/templates/component.hbs"
-    }
+    "moduleName": "packages/@ember/-internals/glimmer/lib/templates/component.hbs"
   });
-  var InputTemplate = template({
-    "id": "Xqq4or93",
+  var InputTemplate = (0, _opcodeCompiler.templateFactory)({
+    "id": "6ZtVRptz",
     "block": "{\"symbols\":[\"Checkbox\",\"TextField\",\"&attrs\"],\"statements\":[[6,[37,2],[[30,[36,1],[\"-checkbox\"],null],[30,[36,1],[\"-text-field\"],null]],null,[[\"default\"],[{\"statements\":[[6,[37,0],[[32,0,[\"isCheckbox\"]]],null,[[\"default\",\"else\"],[{\"statements\":[[8,[32,1],[[17,3]],[[\"@target\",\"@__ARGS__\"],[[32,0,[\"caller\"]],[32,0,[\"args\"]]]],null]],\"parameters\":[]},{\"statements\":[[8,[32,2],[[17,3]],[[\"@target\",\"@__ARGS__\"],[[32,0,[\"caller\"]],[32,0,[\"args\"]]]],null]],\"parameters\":[]}]]]],\"parameters\":[1,2]}]]]],\"hasEval\":false,\"upvars\":[\"if\",\"component\",\"let\"]}",
-    "meta": {
-      "moduleName": "packages/@ember/-internals/glimmer/lib/templates/input.hbs"
-    }
+    "moduleName": "packages/@ember/-internals/glimmer/lib/templates/input.hbs"
   });
-  var OutletTemplate = template({
-    "id": "vA+C0Wde",
+  var OutletTemplate = (0, _opcodeCompiler.templateFactory)({
+    "id": "xnYqOkvA",
     "block": "{\"symbols\":[],\"statements\":[[1,[30,[36,1],[[30,[36,0],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}",
-    "meta": {
-      "moduleName": "packages/@ember/-internals/glimmer/lib/templates/outlet.hbs"
-    }
+    "moduleName": "packages/@ember/-internals/glimmer/lib/templates/outlet.hbs"
   });
   var TOP_LEVEL_NAME = '-top-level';
   var TOP_LEVEL_OUTLET = 'main';
@@ -13703,6 +13133,30 @@ define("@ember/-internals/glimmer/index", ["exports", "@ember/polyfills", "@glim
     if (!_environment2.ENV._TEMPLATE_ONLY_GLIMMER_COMPONENTS) {
       registry.register((0, _container.privatize)`component:-default`, Component);
     }
+  }
+
+  function setComponentManager$1(stringOrFunction, obj) {
+    var factory;
+
+    if (_deprecatedFeatures.COMPONENT_MANAGER_STRING_LOOKUP && typeof stringOrFunction === 'string') {
+      (true && !(false) && (0, _debug.deprecate)('Passing the name of the component manager to "setupComponentManager" is deprecated. Please pass a function that produces an instance of the manager.', false, {
+        id: 'deprecate-string-based-component-manager',
+        until: '4.0.0',
+        url: 'https://emberjs.com/deprecations/v3.x/#toc_component-manager-string-lookup',
+        for: 'ember-source',
+        since: {
+          enabled: '3.8.0'
+        }
+      }));
+
+      factory = function (owner) {
+        return owner.lookup(`component-manager:${stringOrFunction}`);
+      };
+    } else {
+      factory = stringOrFunction;
+    }
+
+    return (0, _runtime2.setComponentManager)(factory, obj);
   }
   /**
     [Glimmer](https://github.com/tildeio/glimmer) is a templating engine used by Ember.js that is compatible with a subset of the [Handlebars](http://handlebarsjs.com/) syntax.
@@ -13893,7 +13347,6 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
       this._mixins = undefined;
       this._lazyChains = undefined;
       this._values = undefined;
-      this._tags = undefined;
       this._revisions = undefined; // initial value for all flags right now is false
       // see FLAGS const for detailed list of flags used
 
@@ -13920,21 +13373,33 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
     setSourceDestroying() {
       (true && !(false) && (0, _debug.deprecate)('setSourceDestroying is deprecated, use the destroy() API to destroy the object directly instead', false, {
         id: 'meta-destruction-apis',
-        until: '3.25.0'
+        until: '3.25.0',
+        for: 'ember-source',
+        since: {
+          enabled: '3.21.0'
+        }
       }));
     }
 
     setSourceDestroyed() {
       (true && !(false) && (0, _debug.deprecate)('setSourceDestroyed is deprecated, use the destroy() API to destroy the object directly instead', false, {
         id: 'meta-destruction-apis',
-        until: '3.25.0'
+        until: '3.25.0',
+        for: 'ember-source',
+        since: {
+          enabled: '3.21.0'
+        }
       }));
     }
 
     isSourceDestroying() {
       (true && !(false) && (0, _debug.deprecate)('isSourceDestroying is deprecated, use the isDestroying() API to check the object destruction state directly instead', false, {
         id: 'meta-destruction-apis',
-        until: '3.25.0'
+        until: '3.25.0',
+        for: 'ember-source',
+        since: {
+          enabled: '3.21.0'
+        }
       }));
       return (0, _runtime.isDestroying)(this.source);
     }
@@ -13942,7 +13407,11 @@ define("@ember/-internals/meta/lib/meta", ["exports", "@ember/-internals/utils",
     isSourceDestroyed() {
       (true && !(false) && (0, _debug.deprecate)('isSourceDestroyed is deprecated, use the isDestroyed() API to check the object destruction state directly instead', false, {
         id: 'meta-destruction-apis',
-        until: '3.25.0'
+        until: '3.25.0',
+        for: 'ember-source',
+        since: {
+          enabled: '3.21.0'
+        }
       }));
       return (0, _runtime.isDestroyed)(this.source);
     }
@@ -15348,7 +14817,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
         (true && !(segmentEnd === -1) && (0, _debug.deprecate)(`When using @each in a dependent-key or an observer, ` + `you can only chain one property level deep after ` + `the @each. That is, \`${path.slice(0, segmentEnd)}\` ` + `is allowed but \`${path}\` (which is what you passed) ` + `is not.\n\n` + `This was never supported. Currently, the extra segments ` + `are silently ignored, i.e. \`${path}\` behaves exactly ` + `the same as \`${path.slice(0, segmentEnd)}\`. ` + `In the future, this will throw an error.\n\n` + `If the current behavior is acceptable for your use case, ` + `please remove the extraneous segments by changing your ` + `key to \`${path.slice(0, segmentEnd)}\`. ` + `Otherwise, please create an intermediary computed property ` + `or switch to using tracked properties.`, segmentEnd === -1, {
           until: '3.17.0',
-          id: 'ember-metal.computed-deep-each'
+          id: 'ember-metal.computed-deep-each',
+          for: 'ember-source',
+          since: {
+            enabled: '3.13.0-beta.3'
+          }
         }));
         var arrLength = current.length;
 
@@ -15377,6 +14850,13 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
           if (item) {
             (true && !(typeof item === 'object') && (0, _debug.assert)(`When using @each to observe the array \`${current.toString()}\`, the items in the array must be objects`, typeof item === 'object'));
             chainTags.push(tagForProperty(item, segment, true));
+            currentMeta = (0, _meta2.peekMeta)(item);
+            descriptor = currentMeta !== null ? currentMeta.peekDescriptors(segment) : undefined; // If the key is an alias, we need to bootstrap it
+
+            if (descriptor !== undefined && typeof descriptor.altKey === 'string') {
+              // tslint:disable-next-line: no-unused-expression
+              item[segment];
+            }
           }
         } // Push the tag for the array length itself
 
@@ -15940,7 +15420,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     (true && !(false) && (0, _debug.deprecate)('Using getWithDefault has been deprecated. Instead, consider using Ember get and explicitly checking for undefined.', false, {
       id: 'ember-metal.get-with-default',
       until: '4.0.0',
-      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-metal-get-with-default'
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-metal-get-with-default',
+      for: 'ember-source',
+      since: {
+        enabled: '3.21.0'
+      }
     }));
     var value = get(root, key);
 
@@ -16344,12 +15828,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       (true && !(!propertyDesc || !propertyDesc.initializer) && (0, _debug.assert)(`@computed can only be used on empty fields. ${keyName} has an initial value (e.g. \`${keyName} = someValue\`)`, !propertyDesc || !propertyDesc.initializer));
       (true && !(!(this._hasConfig && propertyDesc && (typeof propertyDesc.get === 'function' || typeof propertyDesc.set === 'function'))) && (0, _debug.assert)(`Attempted to apply a computed property that already has a getter/setter to a ${keyName}, but it is a method or an accessor. If you passed @computed a function or getter/setter (e.g. \`@computed({ get() { ... } })\`), then it must be applied to a field`, !(this._hasConfig && propertyDesc && (typeof propertyDesc.get === 'function' || typeof propertyDesc.set === 'function'))));
 
-      if (true
-      /* DEBUG */
-      ) {
-        _validator.ALLOW_CYCLES.set((0, _validator.tagFor)(obj, keyName), true);
-      }
-
       if (this._hasConfig === false) {
         (true && !(propertyDesc && (typeof propertyDesc.get === 'function' || typeof propertyDesc.set === 'function')) && (0, _debug.assert)(`Attempted to use @computed on ${keyName}, but it did not have a getter or a setter. You must either pass a get a function or getter/setter to @computed directly (e.g. \`@computed({ get() { ... } })\`) or apply @computed directly to a getter/setter`, propertyDesc && (typeof propertyDesc.get === 'function' || typeof propertyDesc.set === 'function')));
         var {
@@ -16420,6 +15898,12 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
         if (_dependentKeys !== undefined) {
           (0, _validator.updateTag)(propertyTag, getChainTagsForKeys(obj, _dependentKeys, tagMeta, meta$$1));
+
+          if (true
+          /* DEBUG */
+          ) {
+            _validator.ALLOW_CYCLES.set(propertyTag, true);
+          }
         }
 
         meta$$1.setValueFor(keyName, ret);
@@ -16478,6 +15962,12 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
 
         if (_dependentKeys !== undefined) {
           (0, _validator.updateTag)(propertyTag, getChainTagsForKeys(obj, _dependentKeys, tagMeta, meta$$1));
+
+          if (true
+          /* DEBUG */
+          ) {
+            _validator.ALLOW_CYCLES.set(propertyTag, true);
+          }
         }
 
         meta$$1.setRevisionFor(keyName, (0, _validator.valueForTag)(propertyTag));
@@ -16496,7 +15986,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       (true && !(false) && (0, _debug.deprecate)(`The ${(0, _utils.toString)(obj)}#${keyName} computed property was just overridden. This removes the computed property and replaces it with a plain value, and has been deprecated. If you want this behavior, consider defining a setter which does it manually.`, false, {
         id: 'computed-property.override',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-override'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-override',
+        for: 'ember-source',
+        since: {
+          enabled: '3.9.0-beta.1'
+        }
       }));
       var cachedValue = (0, _meta2.meta)(obj).valueFor(keyName);
       defineProperty(obj, keyName, null, cachedValue);
@@ -16670,7 +16164,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       (true && !(false) && (0, _debug.deprecate)('Setting a computed property as volatile has been deprecated. Instead, consider using a native getter with native class syntax.', false, {
         id: 'computed-property.volatile',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-volatile'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-volatile',
+        for: 'ember-source',
+        since: {
+          enabled: '3.9.0-beta.1'
+        }
       }));
       descriptorForDecorator(this)._volatile = true;
       return this;
@@ -16725,7 +16223,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       (true && !(false) && (0, _debug.deprecate)('Setting dependency keys using the `.property()` modifier has been deprecated. Pass the dependency keys directly to computed as arguments instead. If you are using `.property()` on a computed property macro, consider refactoring your macro to receive additional dependent keys in its initial declaration.', false, {
         id: 'computed-property.property',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-property'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_computed-property-property',
+        for: 'ember-source',
+        since: {
+          enabled: '3.9.0-beta.1'
+        }
       }));
 
       descriptorForDecorator(this)._property(...keys);
@@ -18285,7 +17787,11 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
       (true && !(false) && (0, _debug.deprecate)(`You attempted to alias '${methodName}, but aliasMethod has been deprecated. Consider extracting the method into a shared utility function.`, false, {
         id: 'object.alias-method',
         until: '4.0.0',
-        url: 'https://emberjs.com/deprecations/v3.x#toc_object-alias-method'
+        url: 'https://emberjs.com/deprecations/v3.x#toc_object-alias-method',
+        for: 'ember-source',
+        since: {
+          enabled: '3.9.0'
+        }
       }));
       return new AliasImpl(methodName);
     };
@@ -18334,25 +17840,19 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
   function inject(type, ...args) {
     (true && !(typeof type === 'string') && (0, _debug.assert)('a string type must be provided to inject', typeof type === 'string'));
     var calledAsDecorator = isElementDescriptor(args);
-    var source, namespace;
     var name = calledAsDecorator ? undefined : args[0];
 
     var getInjection = function (propertyName) {
       var owner = (0, _owner.getOwner)(this) || this.container || this.__owner__; // fallback to `container` for backwards compat
 
       (true && !(Boolean(owner)) && (0, _debug.assert)(`Attempting to lookup an injected property on an object without a container, ensure that the object was instantiated via a container.`, Boolean(owner)));
-      return owner.lookup(`${type}:${name || propertyName}`, {
-        source,
-        namespace
-      });
+      return owner.lookup(`${type}:${name || propertyName}`);
     };
 
     if (true
     /* DEBUG */
     ) {
       DEBUG_INJECTION_FUNCTIONS.set(getInjection, {
-        namespace,
-        source,
         type,
         name
       });
@@ -18474,7 +17974,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     updated.
   
     @module @glimmer/tracking/primitives/cache
-    @category EMBER_CACHE_API
     @public
   */
 
@@ -18515,7 +18014,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     ```
   
     @method createCache
-    @category EMBER_CACHE_API
     @static
     @for @glimmer/tracking/primitives/cache
     @public
@@ -18538,7 +18036,6 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     ```
   
     @method getValue
-    @category EMBER_CACHE_API
     @static
     @for @glimmer/tracking/primitives/cache
     @public
@@ -18586,14 +18083,13 @@ define("@ember/-internals/metal/index", ["exports", "@ember/-internals/meta", "@
     accident.
   
     @method isConst
-    @category EMBER_CACHE_API
     @static
     @for @glimmer/tracking/primitives/cache
     @public
   */
 
 });
-define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils", "@ember/debug"], function (_exports, _utils, _debug) {
+define("@ember/-internals/owner/index", ["exports", "@glimmer/runtime", "@ember/-internals/utils", "@ember/debug"], function (_exports, _runtime, _utils, _debug) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -18601,14 +18097,8 @@ define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils", "
   });
   _exports.getOwner = getOwner;
   _exports.setOwner = setOwner;
-  _exports.OWNER = _exports.LEGACY_OWNER = void 0;
-
-  /**
-  @module @ember/application
-  */
+  _exports.LEGACY_OWNER = void 0;
   var LEGACY_OWNER = (0, _utils.enumerableSymbol)('LEGACY_OWNER');
-  _exports.LEGACY_OWNER = LEGACY_OWNER;
-  var OWNER = (0, _utils.symbol)('OWNER');
   /**
     Framework objects in an Ember application (components, services, routes, etc.)
     are created via a factory and dependency injection system. Each of these
@@ -18654,16 +18144,20 @@ define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils", "
     @public
   */
 
-  _exports.OWNER = OWNER;
+  _exports.LEGACY_OWNER = LEGACY_OWNER;
 
   function getOwner(object) {
-    var owner = object[OWNER];
+    var owner = (0, _runtime.getOwner)(object);
 
     if (owner === undefined) {
       owner = object[LEGACY_OWNER];
       (true && !(owner === undefined) && (0, _debug.deprecate)(`You accessed the owner using \`getOwner\` on an object, but it was not set on that object with \`setOwner\`. You must use \`setOwner\` to set the owner on all objects. You cannot use Object.assign().`, owner === undefined, {
         id: 'owner.legacy-owner-injection',
-        until: '3.25.0'
+        until: '3.25.0',
+        for: 'ember-source',
+        since: {
+          enabled: '3.22.0'
+        }
       }));
     }
 
@@ -18684,7 +18178,7 @@ define("@ember/-internals/owner/index", ["exports", "@ember/-internals/utils", "
 
 
   function setOwner(object, owner) {
-    object[OWNER] = owner;
+    (0, _runtime.setOwner)(object, owner);
     object[LEGACY_OWNER] = owner;
   }
 });
@@ -19085,7 +18579,7 @@ define("@ember/-internals/routing/lib/location/api", ["exports", "@ember/debug"]
   };
   _exports.default = _default;
 });
-define("@ember/-internals/routing/lib/location/auto_location", ["exports", "@ember/-internals/browser-environment", "@ember/-internals/metal", "@ember/-internals/owner", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/debug", "@ember/-internals/routing/lib/location/util"], function (_exports, _browserEnvironment, _metal, _owner, _runtime, _utils, _debug, _util) {
+define("@ember/-internals/routing/lib/location/auto_location", ["exports", "@ember/-internals/browser-environment", "@ember/-internals/metal", "@ember/-internals/owner", "@ember/-internals/runtime", "@ember/debug", "@ember/-internals/routing/lib/location/util"], function (_exports, _browserEnvironment, _metal, _owner, _runtime, _debug, _util) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -19258,11 +18752,13 @@ define("@ember/-internals/routing/lib/location/auto_location", ["exports", "@emb
 
   function delegateToConcreteImplementation(methodName) {
     return function (...args) {
+      var _a;
+
       var {
         concreteImplementation
       } = this;
       (true && !(Boolean(concreteImplementation)) && (0, _debug.assert)("AutoLocation's detect() method should be called before calling any other hooks.", Boolean(concreteImplementation)));
-      return (0, _utils.tryInvoke)(concreteImplementation, methodName, args);
+      return (_a = concreteImplementation[methodName]) === null || _a === void 0 ? void 0 : _a.call(concreteImplementation, ...args);
     };
   }
 
@@ -19604,6 +19100,16 @@ define("@ember/-internals/routing/lib/location/history_location", ["exports", "@
   
     Keep in mind that your server must serve the Ember app at all the routes you
     define.
+  
+    Using `HistoryLocation` will also result in location states being recorded by
+    the browser `history` API with the following schema:
+  
+    ```
+    window.history.state -> { path: '/', uuid: '3552e730-b4a6-46bd-b8bf-d8c3c1a97e0a' }
+    ```
+  
+    This allows each in-app location state to be tracked uniquely across history
+    state changes via the `uuid` field.
   
     @class HistoryLocation
     @extends EmberObject
@@ -20096,13 +19602,14 @@ define("@ember/-internals/routing/lib/location/util", ["exports"], function (_ex
     location.replace(getOrigin(location) + path);
   }
 });
-define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-internals/runtime", "@ember/debug", "@ember/object/computed", "@ember/polyfills", "@ember/service", "@glimmer/validator", "@ember/-internals/routing/lib/utils"], function (_exports, _runtime, _debug, _computed, _polyfills, _service, _validator, _utils) {
+define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-internals/owner", "@ember/-internals/runtime", "@ember/-internals/utils", "@ember/debug", "@ember/object/computed", "@ember/polyfills", "@ember/service", "@glimmer/validator", "@ember/-internals/routing/lib/utils"], function (_exports, _owner, _runtime, _utils, _debug, _computed, _polyfills, _service, _validator, _utils2) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = void 0;
+  var ROUTER = (0, _utils.symbol)('ROUTER');
   var freezeRouteInfo;
 
   if (true
@@ -20160,10 +19667,23 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
 
 
   class RouterService extends _service.default {
-    init() {
-      super.init(...arguments);
+    get _router() {
+      var router = this[ROUTER];
 
-      this._router.on('routeWillChange', transition => {
+      if (router !== undefined) {
+        return router;
+      }
+
+      var owner = (0, _owner.getOwner)(this);
+      router = owner.lookup('router:main');
+      router.setupRouter();
+      return this[ROUTER] = router;
+    }
+
+    constructor(owner) {
+      super(owner);
+      var router = owner.lookup('router:main');
+      router.on('routeWillChange', transition => {
         if (true
         /* DEBUG */
         ) {
@@ -20172,8 +19692,7 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
 
         this.trigger('routeWillChange', transition);
       });
-
-      this._router.on('routeDidChange', transition => {
+      router.on('routeDidChange', transition => {
         if (true
         /* DEBUG */
         ) {
@@ -20225,7 +19744,7 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
 
 
     transitionTo(...args) {
-      if ((0, _utils.resemblesURL)(args[0])) {
+      if ((0, _utils2.resemblesURL)(args[0])) {
         // NOTE: this `args[0] as string` cast is safe and TS correctly infers it
         // in 3.6+, so it can be removed when TS is upgraded.
         return this._router._doURLTransition('transitionTo', args[0]);
@@ -20235,7 +19754,7 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
         routeName,
         models,
         queryParams
-      } = (0, _utils.extractRouteArgs)(args);
+      } = (0, _utils2.extractRouteArgs)(args);
 
       var transition = this._router._doTransition(routeName, models, queryParams, true);
 
@@ -20354,7 +19873,7 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
           export default class extends Component {
          @service router;
             displayComments() {
-           return this.get('router').isActive('posts');
+           return this.router.isActive('posts');
          }
        });
        ```
@@ -20366,7 +19885,7 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
           export default class extends Component {
          @service router;
             displayComments(post) {
-           return this.get('router').isActive('posts', post.id);
+           return this.router.isActive('posts', post.id);
          }
        });
        ```
@@ -20387,7 +19906,7 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
         routeName,
         models,
         queryParams
-      } = (0, _utils.extractRouteArgs)(args);
+      } = (0, _utils2.extractRouteArgs)(args);
       var routerMicrolib = this._router._routerMicrolib; // When using isActive() in a getter, we want to entagle with the auto-tracking system
       // for example,
       // in
@@ -20427,7 +19946,7 @@ define("@ember/-internals/routing/lib/services/router", ["exports", "@ember/-int
         /* fromRouterService */
         );
 
-        return (0, _utils.shallowEqual)(queryParams, routerMicrolib.state.queryParams);
+        return (0, _utils2.shallowEqual)(queryParams, routerMicrolib.state.queryParams);
       }
 
       return true;
@@ -20673,7 +20192,7 @@ define("@ember/-internals/routing/lib/services/routing", ["exports", "@ember/obj
       });
     }
 
-    isActiveForRoute(contexts, queryParams, routeName, routerState, isCurrentWhenSpecified) {
+    isActiveForRoute(contexts, queryParams, routeName, routerState) {
       var handlers = this.router._routerMicrolib.recognizer.handlersFor(routeName);
 
       var leafName = handlers[handlers.length - 1].handler;
@@ -20691,7 +20210,7 @@ define("@ember/-internals/routing/lib/services/routing", ["exports", "@ember/obj
         routeName = leafName;
       }
 
-      return routerState.isActiveIntent(routeName, contexts, queryParams, !isCurrentWhenSpecified);
+      return routerState.isActiveIntent(routeName, contexts, queryParams);
     }
 
   }
@@ -20876,8 +20395,6 @@ define("@ember/-internals/routing/lib/system/dsl", ["exports", "@ember/debug", "
         createRoute(this, name, options);
       }
     }
-    /* eslint-enable no-dupe-class-members */
-
 
     push(url, name, callback, serialize) {
       var parts = name.split('.');
@@ -21287,6 +20804,13 @@ define("@ember/-internals/routing/lib/system/route-info", [], function () {
   */
 
   /**
+    Will contain the result `Route#buildRouteInfoMetadata`
+    for the corresponding Route.
+    @property {Any} metadata
+    @public
+  */
+
+  /**
     A reference to the parent route's `RouteInfo`.
     This can be used to traverse upward to the topmost
     `RouteInfo`.
@@ -21507,7 +21031,7 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
       ```
          ```app/routes/member/interest.js
       import Route from '@ember/routing/route';
-         export default class MemberInterestRoute Route {
+         export default class MemberInterestRoute extends Route {
         queryParams = {
           interestQp: { refreshModel: true }
         }
@@ -23635,7 +23159,11 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
           (true && !(false) && (0, _debug.deprecate)('You attempted to listen to the "didTransition" event which is deprecated. Please inject the router service and listen to the "routeDidChange" event.', false, {
             id: 'deprecate-router-events',
             until: '4.0.0',
-            url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events'
+            url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events',
+            for: 'ember-source',
+            since: {
+              enabled: '3.11.0'
+            }
           }));
         }
 
@@ -23643,7 +23171,11 @@ define("@ember/-internals/routing/lib/system/route", ["exports", "@ember/polyfil
           (true && !(false) && (0, _debug.deprecate)('You attempted to listen to the "willTransition" event which is deprecated. Please inject the router service and listen to the "routeWillChange" event.', false, {
             id: 'deprecate-router-events',
             until: '4.0.0',
-            url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events'
+            url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events',
+            for: 'ember-source',
+            since: {
+              enabled: '3.11.0'
+            }
           }));
         }
       }
@@ -23729,6 +23261,7 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
   class EmberRouter extends _runtime.Object {
     constructor() {
       super(...arguments);
+      this._didSetupRouter = false;
       this.currentURL = null;
       this.currentRouteName = null;
       this.currentPath = null;
@@ -23822,7 +23355,11 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
               (true && !(false) && (0, _debug.deprecate)('You attempted to override the "didTransition" method which is deprecated. Please inject the router service and listen to the "routeDidChange" event.', false, {
                 id: 'deprecate-router-events',
                 until: '4.0.0',
-                url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events'
+                url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events',
+                for: 'ember-source',
+                since: {
+                  enabled: '3.11.0'
+                }
               }));
             }
           }
@@ -23836,7 +23373,11 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
               (true && !(false) && (0, _debug.deprecate)('You attempted to override the "willTransition" method which is deprecated. Please inject the router service and listen to the "routeWillChange" event.', false, {
                 id: 'deprecate-router-events',
                 until: '4.0.0',
-                url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events'
+                url: 'https://emberjs.com/deprecations/v3.x#toc_deprecate-router-events',
+                for: 'ember-source',
+                since: {
+                  enabled: '3.11.0'
+                }
               }));
             }
           }
@@ -23979,9 +23520,9 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
 
 
     startRouting() {
-      var initialURL = (0, _metal.get)(this, 'initialURL');
-
       if (this.setupRouter()) {
+        var initialURL = (0, _metal.get)(this, 'initialURL');
+
         if (initialURL === undefined) {
           initialURL = (0, _metal.get)(this, 'location').getURL();
         }
@@ -23995,6 +23536,12 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
     }
 
     setupRouter() {
+      if (this._didSetupRouter) {
+        return false;
+      }
+
+      this._didSetupRouter = true;
+
       this._setupLocation();
 
       var location = (0, _metal.get)(this, 'location'); // Allow the Location class to cancel the router setup while it refreshes
@@ -24073,7 +23620,10 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
         this._toplevelView.setOutletState(liveRoutes);
 
         var instance = owner.lookup('-application-instance:main');
-        instance.didCreateRootView(this._toplevelView);
+
+        if (instance) {
+          instance.didCreateRootView(this._toplevelView);
+        }
       } else {
         this._toplevelView.setOutletState(liveRoutes);
       }
@@ -24203,6 +23753,8 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
 
 
     reset() {
+      this._didSetupRouter = false;
+
       if (this._routerMicrolib) {
         this._routerMicrolib.reset();
       }
@@ -25037,7 +24589,11 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
             (true && !(false) && (0, _debug.deprecate)('Accessing `currentPath` on `controller:application` is deprecated, use the `currentPath` property on `service:router` instead.', false, {
               id: 'application-controller.router-properties',
               until: '4.0.0',
-              url: 'https://emberjs.com/deprecations/v3.x#toc_application-controller-router-properties'
+              url: 'https://emberjs.com/deprecations/v3.x#toc_application-controller-router-properties',
+              for: 'ember-source',
+              since: {
+                enabled: '3.10.0-beta.1'
+              }
             }));
             return (0, _metal.get)(router, 'currentPath');
           }
@@ -25053,7 +24609,11 @@ define("@ember/-internals/routing/lib/system/router", ["exports", "@ember/-inter
             (true && !(false) && (0, _debug.deprecate)('Accessing `currentRouteName` on `controller:application` is deprecated, use the `currentRouteName` property on `service:router` instead.', false, {
               id: 'application-controller.router-properties',
               until: '4.0.0',
-              url: 'https://emberjs.com/deprecations/v3.x#toc_application-controller-router-properties'
+              url: 'https://emberjs.com/deprecations/v3.x#toc_application-controller-router-properties',
+              for: 'ember-source',
+              since: {
+                enabled: '3.10.0-beta.1'
+              }
             }));
             return (0, _metal.get)(router, 'currentRouteName');
           }
@@ -25358,14 +24918,14 @@ define("@ember/-internals/routing/lib/system/router_state", ["exports", "@ember/
       this.routerJsState = routerJsState;
     }
 
-    isActiveIntent(routeName, models, queryParams, queryParamsMustMatch) {
+    isActiveIntent(routeName, models, queryParams) {
       var state = this.routerJsState;
 
       if (!this.router.isActiveIntent(routeName, models, undefined, state)) {
         return false;
       }
 
-      if (queryParamsMustMatch && Object.keys(queryParams).length > 0) {
+      if (queryParams !== undefined && Object.keys(queryParams).length > 0) {
         var visibleQueryParams = (0, _polyfills.assign)({}, queryParams);
 
         this.emberRouter._prepareQueryParams(routeName, models, visibleQueryParams);
@@ -27761,8 +27321,8 @@ define("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
        Example Usage:
        ```javascript
       let things = Ember.A([{ food: 'apple', isFruit: true }, { food: 'beans', isFruit: false }]);
-       things.filterBy('food', 'beans'); // [{ food: 'beans' }]
-      things.filterBy('isFruit'); // [{ food: 'apple' }]
+       things.filterBy('food', 'beans'); // [{ food: 'beans', isFruit: false }]
+      things.filterBy('isFruit'); // [{ food: 'apple', isFruit: true }]
       ```
        @method filterBy
       @param {String} key the property to test
@@ -28068,7 +27628,7 @@ define("@ember/-internals/runtime/lib/mixins/array", ["exports", "@ember/-intern
     */
     invoke(methodName, ...args) {
       var ret = A();
-      this.forEach(item => ret.push((0, _utils.tryInvoke)(item, methodName, args)));
+      this.forEach(item => ret.push(item[methodName]?.(...args)));
       return ret;
     },
 
@@ -30622,7 +30182,7 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
       // setOwner has to set both OWNER and LEGACY_OWNER for backwards compatibility, and
       // LEGACY_OWNER is enumerable, so setting it would add an enumerable property to the object,
       // so we just set `OWNER` directly here.
-      this[_owner.OWNER] = owner; // prepare prototype...
+      this[_runtime.OWNER] = owner; // prepare prototype...
 
       this.constructor.proto();
       var self = this;
@@ -31389,7 +30949,7 @@ define("@ember/-internals/runtime/lib/system/core_object", ["exports", "@ember/-
     // Allows OWNER and INIT_FACTORY to be non-enumerable in IE11
     var instanceOwner = new WeakMap();
     var instanceFactory = new WeakMap();
-    Object.defineProperty(CoreObject.prototype, _owner.OWNER, {
+    Object.defineProperty(CoreObject.prototype, _runtime.OWNER, {
       get() {
         return instanceOwner.get(this);
       },
@@ -32422,10 +31982,21 @@ define("@ember/-internals/utils/index", ["exports", "@glimmer/util", "@ember/deb
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
+    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
+    (true && !(false) && (0, _debug.deprecate)(`Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.`, false, {
+      id: 'ember-utils.try-invoke',
+      until: '4.0.0',
+      for: 'ember-source',
+      since: {
+        available: '3.24.0'
+      },
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
+    }));
+
     if (canInvoke(obj, methodName)) {
       var method = obj[methodName];
       return method.apply(obj, args);
@@ -33214,8 +32785,8 @@ define("@ember/-internals/views/lib/mixins/text_support", ["exports", "@ember/-i
   @module ember
   */
   var KEY_EVENTS = {
-    13: 'insertNewline',
-    27: 'cancel'
+    Enter: 'insertNewline',
+    Escape: 'cancel'
   };
   /**
     `TextSupport` is a shared mixin used by both `TextField` and
@@ -33349,8 +32920,7 @@ define("@ember/-internals/views/lib/mixins/text_support", ["exports", "@ember/-i
     bubbles: false,
 
     interpretKeyEvents(event) {
-      var map = KEY_EVENTS;
-      var method = map[event.keyCode];
+      var method = KEY_EVENTS[event.key];
 
       this._elementValueDidChange();
 
@@ -35610,7 +35180,6 @@ define("@ember/application/instance", ["exports", "@ember/polyfills", "@ember/-i
     */
     startRouting() {
       this.router.startRouting();
-      this._didSetupRouter = true;
     },
 
     /**
@@ -35618,23 +35187,15 @@ define("@ember/application/instance", ["exports", "@ember/polyfills", "@ember/-i
       location before routing begins.
        Because setup should only occur once, multiple calls to `setupRouter`
       beyond the first call have no effect.
-      
-      This is commonly used in order to confirm things that rely on the router
+       This is commonly used in order to confirm things that rely on the router
       are functioning properly from tests that are primarily rendering related.
-      
-      For example, from within [ember-qunit](https://github.com/emberjs/ember-qunit)'s
+       For example, from within [ember-qunit](https://github.com/emberjs/ember-qunit)'s
       `setupRenderingTest` calling `this.owner.setupRouter()` would allow that
       rendering test to confirm that any `<LinkTo></LinkTo>`'s that are rendered
       have the correct URL.
-      
-      @public
+       @public
     */
     setupRouter() {
-      if (this._didSetupRouter) {
-        return;
-      }
-
-      this._didSetupRouter = true;
       this.router.setupRouter();
     },
 
@@ -36900,7 +36461,7 @@ define("@ember/application/lib/application", ["exports", "@ember/-internals/util
   });
 
   function commonSetupRegistry(registry) {
-    registry.register('router:main', _routing.Router.extend());
+    registry.register('router:main', _routing.Router);
     registry.register('-view-registry:main', {
       create() {
         return (0, _utils.dictionary)(null);
@@ -36921,7 +36482,6 @@ define("@ember/application/lib/application", ["exports", "@ember/-internals/util
 
     });
     registry.register('service:router', _routing.RouterService);
-    registry.injection('service:router', '_router', 'router:main');
   }
 
   function registerLibraries() {
@@ -37026,7 +36586,7 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     value: true
   });
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_GLIMMER_INVOKE_HELPER = _exports.EMBER_GLIMMER_HELPER_MANAGER = _exports.EMBER_DESTROYABLES = _exports.EMBER_CACHE_API = _exports.EMBER_GLIMMER_IN_ELEMENT = _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_NAMED_BLOCKS = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_MODERNIZED_BUILT_IN_COMPONENTS = _exports.EMBER_GLIMMER_INVOKE_HELPER = _exports.EMBER_GLIMMER_HELPER_MANAGER = _exports.EMBER_NAMED_BLOCKS = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -37042,13 +36602,9 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_LIBRARIES_ISREGISTERED: false,
     EMBER_IMPROVED_INSTRUMENTATION: false,
     EMBER_NAMED_BLOCKS: false,
-    EMBER_GLIMMER_SET_COMPONENT_TEMPLATE: true,
-    EMBER_ROUTING_MODEL_ARG: true,
-    EMBER_GLIMMER_IN_ELEMENT: true,
-    EMBER_CACHE_API: true,
-    EMBER_DESTROYABLES: true,
     EMBER_GLIMMER_HELPER_MANAGER: true,
-    EMBER_GLIMMER_INVOKE_HELPER: true
+    EMBER_GLIMMER_INVOKE_HELPER: true,
+    EMBER_MODERNIZED_BUILT_IN_COMPONENTS: false
   };
   /**
     The hash of enabled Canary features. Add to this, any canary features
@@ -37081,10 +36637,10 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.FEATURES = FEATURES;
 
   function isEnabled(feature) {
-    var featureValue = FEATURES[feature];
+    var value = FEATURES[feature];
 
-    if (featureValue === true || featureValue === false) {
-      return featureValue;
+    if (value === true || value === false) {
+      return value;
     } else if (_environment.ENV.ENABLE_OPTIONAL_FEATURES) {
       return true;
     } else {
@@ -37106,20 +36662,12 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_IMPROVED_INSTRUMENTATION = EMBER_IMPROVED_INSTRUMENTATION;
   var EMBER_NAMED_BLOCKS = featureValue(FEATURES.EMBER_NAMED_BLOCKS);
   _exports.EMBER_NAMED_BLOCKS = EMBER_NAMED_BLOCKS;
-  var EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = featureValue(FEATURES.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE);
-  _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = EMBER_GLIMMER_SET_COMPONENT_TEMPLATE;
-  var EMBER_ROUTING_MODEL_ARG = featureValue(FEATURES.EMBER_ROUTING_MODEL_ARG);
-  _exports.EMBER_ROUTING_MODEL_ARG = EMBER_ROUTING_MODEL_ARG;
-  var EMBER_GLIMMER_IN_ELEMENT = featureValue(FEATURES.EMBER_GLIMMER_IN_ELEMENT);
-  _exports.EMBER_GLIMMER_IN_ELEMENT = EMBER_GLIMMER_IN_ELEMENT;
-  var EMBER_CACHE_API = featureValue(FEATURES.EMBER_CACHE_API);
-  _exports.EMBER_CACHE_API = EMBER_CACHE_API;
-  var EMBER_DESTROYABLES = featureValue(FEATURES.EMBER_DESTROYABLES);
-  _exports.EMBER_DESTROYABLES = EMBER_DESTROYABLES;
   var EMBER_GLIMMER_HELPER_MANAGER = featureValue(FEATURES.EMBER_GLIMMER_HELPER_MANAGER);
   _exports.EMBER_GLIMMER_HELPER_MANAGER = EMBER_GLIMMER_HELPER_MANAGER;
   var EMBER_GLIMMER_INVOKE_HELPER = featureValue(FEATURES.EMBER_GLIMMER_INVOKE_HELPER);
   _exports.EMBER_GLIMMER_INVOKE_HELPER = EMBER_GLIMMER_INVOKE_HELPER;
+  var EMBER_MODERNIZED_BUILT_IN_COMPONENTS = featureValue(FEATURES.EMBER_MODERNIZED_BUILT_IN_COMPONENTS);
+  _exports.EMBER_MODERNIZED_BUILT_IN_COMPONENTS = EMBER_MODERNIZED_BUILT_IN_COMPONENTS;
 });
 define("@ember/component/index", ["exports", "@ember/-internals/glimmer"], function (_exports, _glimmer) {
   "use strict";
@@ -37501,9 +37049,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     });
     /**
       Display a debug notice.
-         Calls to this function are removed from production builds, so they can be
-      freely added for documentation and debugging purposes without worries of
-      incuring any performance penalty.
+         Calls to this function are not invoked in production builds.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -37689,7 +37235,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.missingOptionsUntilDeprecation = _exports.missingOptionsIdDeprecation = _exports.missingOptionsDeprecation = _exports.registerHandler = _exports.default = void 0;
+  _exports.SINCE_MISSING_DEPRECATIONS = _exports.FOR_MISSING_DEPRECATIONS = _exports.missingOptionsSinceDeprecation = _exports.missingOptionsForDeprecation = _exports.missingOptionsUntilDeprecation = _exports.missingOptionsIdDeprecation = _exports.missingOptionsDeprecation = _exports.registerHandler = _exports.default = void 0;
 
   /**
    @module @ember/debug
@@ -37744,7 +37290,20 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
   var missingOptionsUntilDeprecation;
   _exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
 
+  var missingOptionsForDeprecation = () => '';
+
+  _exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
+
+  var missingOptionsSinceDeprecation = () => '';
+
+  _exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
+
   var deprecate = () => {};
+
+  var FOR_MISSING_DEPRECATIONS = new Set();
+  _exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
+  var SINCE_MISSING_DEPRECATIONS = new Set();
+  _exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
 
   if (true
   /* DEBUG */
@@ -37821,6 +37380,14 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
     _exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
     _exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
     _exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+
+    _exports.missingOptionsForDeprecation = missingOptionsForDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`for\` in options. Missing options.for in "${id}" deprecation`;
+    };
+
+    _exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`since\` in options. Missing options.since in "${id}" deprecation`;
+    };
     /**
      @module @ember/debug
      @public
@@ -37842,17 +37409,45 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
         "view.helper.select".
       @param {string} options.until The version of Ember when this deprecation
         warning will be removed.
+      @param {String} options.for A namespace for the deprecation, usually the package name
+      @param {Object} options.since Describes when the deprecation became available and enabled.
       @param {String} [options.url] An optional url to the transition guide on the
-        emberjs.com website.
+            emberjs.com website.
       @static
       @public
       @since 1.0.0
     */
 
+
     deprecate = function deprecate(message, test, options) {
       (0, _index.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
       (0, _index.assert)(missingOptionsIdDeprecation, Boolean(options.id));
       (0, _index.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+
+      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
+        FOR_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
+          id: 'ember-source.deprecation-without-for',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
+        SINCE_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
+          id: 'ember-source.deprecation-without-since',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
       (0, _handlers.invoke)('deprecate', message, test, options);
     };
   }
@@ -38122,7 +37717,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
       when the associated parent object is destroyed.
   
     @module @ember/destroyable
-    @category EMBER_DESTROYABLES
     @public
   */
 
@@ -38143,7 +37737,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     Returns the associated child for convenience.
   
     @method associateDestroyableChild
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @param {Object|Function} parent the destroyable to entangle the child destroyables lifetime with
     @param {Object|Function} child the destroyable to be entangled with the parents lifetime
@@ -38168,7 +37761,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     ```
   
     @method isDestroying
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @param {Object|Function} destroyable the object to check
     @returns {Boolean}
@@ -38192,7 +37784,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     ```
   
     @method isDestroyed
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @param {Object|Function} destroyable the object to check
     @returns {Boolean}
@@ -38229,7 +37820,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     destroying, while others are not.
   
     @method destroy
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @param {Object|Function} destroyable the object to destroy
     @static
@@ -38245,7 +37835,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     available in non-production builds.
   
     @method assertDestroyablesDestroyed
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @static
     @public
@@ -38258,7 +37847,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     have completed when `assertDestroyablesDestroyed` is called.
   
     @method enableDestroyableTracking
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @static
     @public
@@ -38310,7 +37898,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     ```
   
     @method registerDestructor
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @param {Object|Function} destroyable the destroyable to register the destructor function with
     @param {Function} destructor the destructor to run when the destroyable object is destroyed
@@ -38343,7 +37930,6 @@ define("@ember/destroyable/index", ["exports", "@glimmer/runtime"], function (_e
     ```
   
     @method unregisterDestructor
-    @category EMBER_DESTROYABLES
     @for @ember/destroyable
     @param {Object|Function} destroyable the destroyable to unregister the destructor function from
     @param {Function} destructor the destructor to remove from the destroyable
@@ -39366,7 +38952,7 @@ define("@ember/instrumentation/index", ["exports", "@ember/-internals/environmen
     cache = {};
   }
 });
-define("@ember/modifier/index", ["exports", "@ember/-internals/glimmer"], function (_exports, _glimmer) {
+define("@ember/modifier/index", ["exports", "@glimmer/runtime", "@ember/-internals/glimmer"], function (_exports, _runtime, _glimmer) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -39375,7 +38961,7 @@ define("@ember/modifier/index", ["exports", "@ember/-internals/glimmer"], functi
   Object.defineProperty(_exports, "setModifierManager", {
     enumerable: true,
     get: function () {
-      return _glimmer.setModifierManager;
+      return _runtime.setModifierManager;
     }
   });
   Object.defineProperty(_exports, "capabilties", {
@@ -42552,7 +42138,11 @@ define("@ember/polyfills/lib/merge", ["exports", "@ember/debug"], function (_exp
     (true && !(false) && (0, _debug.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
       id: 'ember-polyfills.deprecate-merge',
       until: '4.0.0',
-      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
+      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge',
+      for: 'ember-source',
+      since: {
+        enabled: '3.6.0-beta.1'
+      }
     }));
 
     if (updates === null || typeof updates !== 'object') {
@@ -43438,7 +43028,7 @@ define("@ember/service/index", ["exports", "@ember/-internals/runtime", "@ember/
   var _default = Service;
   _exports.default = _default;
 });
-define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "@ember/-internals/environment", "@ember/-internals/utils"], function (_exports, _string_registry, _environment, _utils) {
+define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "@ember/-internals/environment", "@ember/-internals/utils", "@ember/debug"], function (_exports, _string_registry, _environment, _utils, _debug) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -43546,10 +43136,21 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
     @param {Array} formats Optional array of parameters to interpolate into string.
     @return {String} formatted string
     @public
+    @deprecated
   */
 
 
   function loc(str, formats) {
+    (true && !(false) && (0, _debug.deprecate)('loc is deprecated, please use a dedicated localization solution like ember-intl. More alternatives listed at https://emberobserver.com/categories/internationalization.', false, {
+      id: 'ember-string.loc',
+      until: '4.0.0',
+      for: 'ember-source',
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-string-loc',
+      since: {
+        available: '3.24'
+      }
+    }));
+
     if (!Array.isArray(formats) || arguments.length > 2) {
       formats = Array.prototype.slice.call(arguments, 1);
     }
@@ -43725,6 +43326,21 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
   }
 
   if (_environment.ENV.EXTEND_PROTOTYPES.String) {
+    var deprecateEmberStringPrototypeExtension = function (name, fn, message = `String prototype extensions are deprecated. Please import ${name} from '@ember/string' instead.`) {
+      return function () {
+        (true && !(false) && (0, _debug.deprecate)(message, false, {
+          id: 'ember-string.prototype-extensions',
+          for: 'ember-source',
+          since: {
+            available: '3.24'
+          },
+          until: '4.0.0',
+          url: 'https://deprecations.emberjs.com/v3.x/#toc_ember-string-prototype_extensions'
+        }));
+        return fn(this, ...arguments);
+      };
+    };
+
     Object.defineProperties(String.prototype, {
       /**
         See [String.w](/ember/release/classes/String/methods/w?anchor=w).
@@ -43732,16 +43348,13 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       w: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return w(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('w', w)
       },
 
       /**
@@ -43750,6 +43363,7 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       loc: {
         configurable: true,
@@ -43768,16 +43382,13 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       camelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return camelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('camelize', camelize)
       },
 
       /**
@@ -43786,16 +43397,13 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       decamelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return decamelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('decamelize', decamelize)
       },
 
       /**
@@ -43804,16 +43412,13 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       dasherize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return dasherize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('dasherize', dasherize)
       },
 
       /**
@@ -43822,16 +43427,13 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       underscore: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return underscore(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('underscore', underscore)
       },
 
       /**
@@ -43840,16 +43442,13 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       classify: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return classify(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('classify', classify)
       },
 
       /**
@@ -43858,16 +43457,13 @@ define("@ember/string/index", ["exports", "@ember/string/lib/string_registry", "
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       capitalize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return capitalize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('capitalize', capitalize)
       }
     });
   }
@@ -44419,11 +44015,10 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
   _exports.compileStd = compileStd;
   _exports.meta = meta;
   _exports.templateFactory = templateFactory;
-  _exports.Component = Component;
   _exports.resolveLayoutForTag = resolveLayoutForTag;
   _exports.syntaxCompilationContext = syntaxCompilationContext;
   _exports.templateCompilationContext = templateCompilationContext;
-  _exports.MINIMAL_CAPABILITIES = _exports.DEFAULT_CAPABILITIES = _exports.CompileTimeCompilationContextImpl = _exports.EMPTY_BLOCKS = _exports.WrappedBuilder = _exports.PartialDefinitionImpl = _exports.StdLib = _exports.debugCompiler = _exports.NONE = _exports.UNHANDLED = _exports.MacrosImpl = void 0;
+  _exports.MINIMAL_CAPABILITIES = _exports.DEFAULT_CAPABILITIES = _exports.CompileTimeCompilationContextImpl = _exports.EMPTY_BLOCKS = _exports.WrappedBuilder = _exports.templateCacheCounters = _exports.PartialDefinitionImpl = _exports.StdLib = _exports.debugCompiler = _exports.NONE = _exports.UNHANDLED = _exports.MacrosImpl = void 0;
 
   function arr(value) {
     return {
@@ -44442,13 +44037,6 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
   function serializable(value) {
     return {
       type: 'serializable',
-      value
-    };
-  }
-
-  function templateMeta(value) {
-    return {
-      type: 'template-meta',
       value
     };
   }
@@ -44515,10 +44103,10 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
   function resolveLayoutForTag(tag, {
     resolver,
     meta: {
-      referrer
+      owner
     }
   }) {
-    var component = resolver.lookupComponent(tag, referrer);
+    var component = resolver.lookupComponent(tag, owner);
     if (component === null) return component;
     var {
       handle,
@@ -45172,7 +44760,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
         params: restArgs,
         hash,
         atNames: false
-      }, meta.referrer);
+      }, meta.owner);
     }
 
     var nameOrError = expectString(name, meta, 'Expected call head to be a string');
@@ -45379,7 +44967,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
               {
                 var resolver = context.syntax.program.resolver;
                 var _name3 = context.meta.upvars[freeVar];
-                var resolvedHelper = resolver.lookupHelper(_name3, context.meta.referrer);
+                var resolvedHelper = resolver.lookupHelper(_name3, context.meta.owner);
                 var expressions;
 
                 if (resolvedHelper) {
@@ -45459,7 +45047,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       orElse,
       span
     } = op1;
-    var resolved = resolve(context.syntax.program.resolver, kind, name, context.meta.referrer);
+    var resolved = resolve(context.syntax.program.resolver, kind, name, context.meta.owner);
 
     if (resolved !== null) {
       return andThen(resolved);
@@ -45470,23 +45058,23 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     }
   }
 
-  function resolve(resolver, kind, name, referrer) {
+  function resolve(resolver, kind, name, owner) {
     switch (kind) {
       case "Modifier"
       /* Modifier */
       :
-        return resolver.lookupModifier(name, referrer);
+        return resolver.lookupModifier(name, owner);
 
       case "Helper"
       /* Helper */
       :
-        return resolver.lookupHelper(name, referrer);
+        return resolver.lookupHelper(name, owner);
 
       case "ComponentDefinition"
       /* ComponentDefinition */
       :
         {
-          var component = resolver.lookupComponent(name, referrer);
+          var component = resolver.lookupComponent(name, owner);
           return component && component.handle;
         }
     }
@@ -46123,7 +45711,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     ifTrue() {
       return [op(101
       /* InvokePartial */
-      , templateMeta(meta.referrer), strArray(meta.evalSymbols), arr(evalInfo)), op(39
+      , other(meta.owner), strArray(meta.evalSymbols), arr(evalInfo)), op(39
       /* PopScope */
       ), op(1
       /* PopFrame */
@@ -46598,7 +46186,6 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
         return (0, _util.encodeImmediate)(operand.value);
 
       case 'primitive':
-      case 'template-meta':
       case 'array':
       case 'other':
         return (0, _util.encodeHandle)(constants.value(operand.value));
@@ -46707,7 +46294,8 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       asPartial: layout.asPartial || false,
       evalSymbols: evalSymbols(layout),
       upvars: layout.block.upvars,
-      referrer: layout.referrer,
+      moduleName: layout.moduleName,
+      owner: layout.owner,
       size: layout.block.symbols.length
     };
   }
@@ -46789,19 +46377,101 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     /* Dup */
     , _vm.$sp, 1), op(34
     /* Load */
-    , _vm.$s0)];
+    , _vm.$s0), op(0
+    /* PushFrame */
+    )]; // Setup arguments
+
     var {
       symbols
-    } = symbolTable;
+    } = symbolTable; // As we push values onto the stack, we store the symbols associated  with them
+    // so that we can set them on the scope later on with SetVariable and SetBlock
+
+    var blockSymbols = [];
+    var argSymbols = [];
+    var argNames = []; // First we push the blocks onto the stack
+
+    var blockNames = blocks.names; // Starting with the attrs block, if it exists and is referenced in the component
+
+    if (attrs !== null) {
+      var symbol = symbols.indexOf(ATTRS_BLOCK);
+
+      if (symbol !== -1) {
+        out.push(PushYieldableBlock(attrs));
+        blockSymbols.push(symbol);
+      }
+    } // Followed by the other blocks, if they exist and are referenced in the component.
+    // Also store the index of the associated symbol.
+
+
+    for (var i = 0; i < blockNames.length; i++) {
+      var name = blockNames[i];
+
+      var _symbol = symbols.indexOf(`&${name}`);
+
+      if (_symbol !== -1) {
+        out.push(PushYieldableBlock(blocks.get(name)));
+        blockSymbols.push(_symbol);
+      }
+    } // Next up we have arguments. If the component has the `createArgs` capability,
+    // then it wants access to the arguments in JavaScript. We can't know whether
+    // or not an argument is used, so we have to give access to all of them.
+
 
     if (capabilities.createArgs) {
-      out.push(op(0
-      /* PushFrame */
-      ), op('SimpleArgs', {
-        params,
-        hash,
-        atNames: true
-      }));
+      // First we push positional arguments
+      var {
+        count,
+        actions
+      } = CompilePositional(params);
+      out.push(actions); // setup the flags with the count of positionals, and to indicate that atNames
+      // are used
+
+      var flags = count << 4;
+      flags |= 0b1000;
+      var names = _util.EMPTY_ARRAY; // Next, if named args exist, push them all. If they have an associated symbol
+      // in the invoked component (e.g. they are used within its template), we push
+      // that symbol. If not, we still push the expression as it may be used, and
+      // we store the symbol as -1 (this is used later).
+
+      if (hash !== null) {
+        names = hash[0];
+        var val = hash[1];
+
+        for (var _i2 = 0; _i2 < val.length; _i2++) {
+          var _symbol2 = symbols.indexOf(names[_i2]);
+
+          out.push(op('Expr', val[_i2]));
+          argSymbols.push(_symbol2);
+        }
+      } // Finally, push the VM arguments themselves. These args won't need access
+      // to blocks (they aren't accessible from userland anyways), so we push an
+      // empty array instead of the actual block names.
+
+
+      out.push(op(82
+      /* PushArgs */
+      , strArray(names), strArray(_util.EMPTY_ARRAY), flags)); // And push an extra pop operation to remove the args before we begin setting
+      // variables on the local context
+
+      argSymbols.push(-1);
+    } else if (hash !== null) {
+      // If the component does not have the `createArgs` capability, then the only
+      // expressions we need to push onto the stack are those that are actually
+      // referenced in the template of the invoked component (e.g. have symbols).
+      var _names = hash[0];
+      var _val = hash[1];
+
+      for (var _i3 = 0; _i3 < _val.length; _i3++) {
+        var _name4 = _names[_i3];
+
+        var _symbol3 = symbols.indexOf(_name4);
+
+        if (_symbol3 !== -1) {
+          out.push(op('Expr', _val[_i3]));
+          argSymbols.push(_symbol3);
+          argNames.push(_name4);
+        }
+      }
     }
 
     out.push(op(97
@@ -46820,95 +46490,59 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       , blocks.has('default') | 0, _vm.$s0));
     }
 
-    if (capabilities.createArgs) {
-      out.push(op(1
-      /* PopFrame */
-      ));
-    }
-
-    out.push(op(0
-    /* PushFrame */
-    ), op(88
+    out.push(op(88
     /* RegisterComponentDestructor */
     , _vm.$s0));
-    var bindings = [];
-    out.push(op(90
-    /* GetComponentSelf */
-    , _vm.$s0));
-    bindings.push({
-      symbol: 0,
-      isBlock: false
-    });
 
-    for (var i = 0; i < symbols.length; i++) {
-      var symbol = symbols[i];
-
-      switch (symbol.charAt(0)) {
-        case '&':
-          var callerBlock = void 0;
-
-          if (symbol === ATTRS_BLOCK) {
-            callerBlock = attrs;
-          } else {
-            callerBlock = blocks.get(symbol.slice(1));
-          }
-
-          if (callerBlock) {
-            out.push(PushYieldableBlock(callerBlock));
-            bindings.push({
-              symbol: i + 1,
-              isBlock: true
-            });
-          } else {
-            out.push(PushYieldableBlock(null));
-            bindings.push({
-              symbol: i + 1,
-              isBlock: true
-            });
-          }
-
-          break;
-
-        case '@':
-          if (!hash) {
-            break;
-          }
-
-          var [keys, values] = hash;
-          var lookupName = symbol;
-          var index = keys.indexOf(lookupName);
-
-          if (index !== -1) {
-            out.push(op('Expr', values[index]));
-            bindings.push({
-              symbol: i + 1,
-              isBlock: false
-            });
-          }
-
-          break;
-      }
+    if (capabilities.createArgs) {
+      out.push(op(90
+      /* GetComponentSelf */
+      , _vm.$s0));
+    } else {
+      out.push(op(90
+      /* GetComponentSelf */
+      , _vm.$s0, other(argNames)));
     }
 
-    out.push(op(36
+    out.push( // Setup the new root scope for the component
+    op(36
     /* RootScope */
-    , symbols.length + 1, Object.keys(blocks).length > 0 ? 1 : 0));
+    , symbols.length + 1, Object.keys(blocks).length > 0 ? 1 : 0), // Pop the self reference off the stack and set it to the symbol for `this`
+    // in the new scope. This is why all subsequent symbols are increased by one.
+    op(19
+    /* SetVariable */
+    , 0)); // Going in reverse, now we pop the args/blocks off the stack, starting with
+    // arguments, and assign them to their symbols in the new scope.
 
-    for (var _i2 = bindings.length - 1; _i2 >= 0; _i2--) {
-      var {
-        symbol: _symbol,
-        isBlock
-      } = bindings[_i2];
+    for (var _i4 = argSymbols.length - 1; _i4 >= 0; _i4--) {
+      var _symbol4 = argSymbols[_i4];
 
-      if (isBlock) {
-        out.push(op(20
-        /* SetBlock */
-        , _symbol));
+      if (_symbol4 === -1) {
+        // The expression was not bound to a local symbol, it was only pushed to be
+        // used with VM args in the javascript side
+        out.push(op(33
+        /* Pop */
+        , 1));
       } else {
         out.push(op(19
         /* SetVariable */
-        , _symbol));
+        , _symbol4 + 1));
       }
+    } // if any positional params exist, pop them off the stack as well
+
+
+    if (params !== null) {
+      out.push(op(33
+      /* Pop */
+      , params.length));
+    } // Finish up by popping off and assigning blocks
+
+
+    for (var _i5 = blockSymbols.length - 1; _i5 >= 0; _i5--) {
+      var _symbol5 = blockSymbols[_i5];
+      out.push(op(20
+      /* SetBlock */
+      , _symbol5 + 1));
     }
 
     out.push([op(28
@@ -46966,7 +46600,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
         /* ResolveCurriedComponent */
         ) : op(80
         /* ResolveDynamicComponent */
-        , templateMeta(meta$$1.referrer)), op(78
+        , other(meta$$1.owner)), op(78
         /* PushDynamicComponentInstance */
         ), InvokeComponent({
           capabilities: true,
@@ -47168,7 +46802,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     params,
     hash,
     atNames
-  }, referrer) {
+  }, owner) {
     return [op(0
     /* PushFrame */
     ), op('SimpleArgs', {
@@ -47179,7 +46813,7 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     /* CaptureArgs */
     ), op('Expr', definition), op(76
     /* CurryComponent */
-    , templateMeta(referrer)), op(1
+    , other(owner)), op(1
     /* PopFrame */
     ), op(35
     /* Fetch */
@@ -47295,8 +46929,9 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
     asPartial: false,
     evalSymbols: null,
     upvars: null,
+    moduleName: 'stdlib',
     // TODO: ??
-    referrer: {},
+    owner: null,
     size: 0
   };
 
@@ -47401,34 +47036,77 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
 
   _exports.WrappedBuilder = WrappedBuilder;
   var clientId = 0;
+  var templateCacheCounters = {
+    cacheHit: 0,
+    cacheMiss: 0
+  };
+  /**
+   * Wraps a template js in a template module to change it into a factory
+   * that handles lazy parsing the template and to create per env singletons
+   * of the template.
+   */
+
+  _exports.templateCacheCounters = templateCacheCounters;
 
   function templateFactory({
     id: templateId,
-    meta,
+    moduleName,
     block
   }) {
+    // TODO(template-refactors): This should be removed in the near future, as it
+    // appears that id is unused. It is currently kept for backwards compat reasons.
+    var id = templateId || `client-${clientId++}`; // TODO: This caches JSON serialized output once in case a template is
+    // compiled by multiple owners, but we haven't verified if this is actually
+    // helpful. We should benchmark this in the future.
+
     var parsedBlock;
-    var id = templateId || `client-${clientId++}`;
+    var ownerlessTemplate = null;
+    var templateCache = new WeakMap();
 
-    var create = envMeta => {
-      var newMeta = envMeta ? (0, _util.assign)({}, envMeta, meta) : meta;
-
-      if (!parsedBlock) {
+    var factory = owner => {
+      if (parsedBlock === undefined) {
         parsedBlock = JSON.parse(block);
       }
 
-      return new TemplateImpl({
-        id,
-        block: parsedBlock,
-        referrer: newMeta
-      });
+      if (owner === undefined) {
+        if (ownerlessTemplate === null) {
+          templateCacheCounters.cacheMiss++;
+          ownerlessTemplate = new TemplateImpl({
+            id,
+            block: parsedBlock,
+            moduleName,
+            owner: null
+          });
+        } else {
+          templateCacheCounters.cacheHit++;
+        }
+
+        return ownerlessTemplate;
+      }
+
+      var result = templateCache.get(owner);
+
+      if (result === undefined) {
+        templateCacheCounters.cacheMiss++;
+        result = new TemplateImpl({
+          id,
+          block: parsedBlock,
+          moduleName,
+          owner
+        });
+        templateCache.set(owner, result);
+      } else {
+        templateCacheCounters.cacheHit++;
+      }
+
+      return result;
     };
 
-    return {
-      id,
-      meta,
-      create
+    factory.__id = id;
+    factory.__meta = {
+      moduleName
     };
+    return factory;
   }
 
   class TemplateImpl {
@@ -47438,13 +47116,23 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       this.layout = null;
       this.partial = null;
       this.wrappedLayout = null;
-      var {
-        block
-      } = parsedLayout;
-      this.symbols = block.symbols;
-      this.hasEval = block.hasEval;
-      this.referrer = parsedLayout.referrer;
-      this.id = parsedLayout.id || `client-${clientId++}`;
+    }
+
+    get moduleName() {
+      return this.parsedLayout.moduleName;
+    }
+
+    get id() {
+      return this.parsedLayout.id;
+    } // TODO(template-refactors): This should be removed in the near future, it is
+    // only being exposed for backwards compatibility
+
+
+    get referrer() {
+      return {
+        moduleName: this.parsedLayout.moduleName,
+        owner: this.parsedLayout.owner
+      };
     }
 
     asLayout() {
@@ -47468,13 +47156,6 @@ define("@glimmer/opcode-compiler", ["exports", "@glimmer/vm", "@glimmer/util", "
       }));
     }
 
-  }
-
-  function Component(serialized, envMeta) {
-    var parsed = JSON.parse(serialized);
-    var factory = templateFactory(parsed);
-    var template = (0, _util.unwrapTemplate)(factory.create(envMeta));
-    return template.asLayout();
   }
 });
 define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _util) {
@@ -47572,10 +47253,6 @@ define("@glimmer/program", ["exports", "@glimmer/util"], function (_exports, _ut
       this.reifiedArrs = {
         [WELL_KNOWN_EMPTY_ARRAY_POSITION]: WELL_KNOWN_EMPTY_ARRAY
       };
-    }
-
-    templateMeta(meta) {
-      return this.value(meta);
     }
 
     getValue(index) {
@@ -48524,7 +48201,23 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   _exports.isDestroying = isDestroying;
   _exports.isDestroyed = isDestroyed;
   _exports._destroyChildren = destroyChildren;
-  _exports.TEMPLATE_ONLY_COMPONENT = _exports.SimpleComponentManager = _exports.assertDestroyablesDestroyed = _exports.enableDestroyableTracking = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.RehydrateBuilder = _exports.RemoteLiveBlock = _exports.UpdatableBlockImpl = _exports.NewElementBuilder = _exports.SimpleDynamicAttribute = _exports.DynamicAttribute = _exports.EMPTY_POSITIONAL = _exports.EMPTY_NAMED = _exports.EMPTY_ARGS = _exports.LowLevelVM = _exports.UpdatingVM = _exports.EnvironmentImpl = _exports.PartialScopeImpl = _exports.DynamicScopeImpl = _exports.DOMTreeConstruction = _exports.IDOMChanges = _exports.DOMChanges = _exports.MINIMAL_CAPABILITIES = _exports.DEFAULT_CAPABILITIES = _exports.CurriedComponentDefinition = _exports.CursorImpl = _exports.ConcreteBounds = void 0;
+  _exports.getComponentTemplate = getComponentTemplate;
+  _exports.setComponentTemplate = setComponentTemplate;
+  _exports.templateOnlyComponent = templateOnlyComponent;
+  _exports.isTemplateOnlyComponent = isTemplateOnlyComponent;
+  _exports.getOwner = getOwner;
+  _exports.setOwner = setOwner;
+  _exports.getComponentManager = getComponentManager;
+  _exports.setComponentManager = setComponentManager;
+  _exports.getHelperManager = getHelperManager;
+  _exports.setHelperManager = setHelperManager;
+  _exports.getModifierManager = getModifierManager;
+  _exports.setModifierManager = setModifierManager;
+  _exports.buildCapabilities = buildCapabilities;
+  _exports.isInternalComponentManager = isInternalComponentManager;
+  _exports.isInternalModifierManager = isInternalModifierManager;
+  _exports.isInternalHelper = isInternalHelper;
+  _exports.TEMPLATE_ONLY_COMPONENT = _exports.SimpleComponentManager = _exports.BaseInternalModifierManager = _exports.BaseInternalComponentManager = _exports.OWNER = _exports.TemplateOnlyComponent = _exports.assertDestroyablesDestroyed = _exports.enableDestroyableTracking = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.RehydrateBuilder = _exports.RemoteLiveBlock = _exports.UpdatableBlockImpl = _exports.NewElementBuilder = _exports.SimpleDynamicAttribute = _exports.DynamicAttribute = _exports.EMPTY_POSITIONAL = _exports.EMPTY_NAMED = _exports.EMPTY_ARGS = _exports.LowLevelVM = _exports.UpdatingVM = _exports.EnvironmentImpl = _exports.PartialScopeImpl = _exports.DynamicScopeImpl = _exports.DOMTreeConstruction = _exports.IDOMChanges = _exports.DOMChanges = _exports.MINIMAL_CAPABILITIES = _exports.DEFAULT_CAPABILITIES = _exports.CurriedComponentDefinition = _exports.CursorImpl = _exports.ConcreteBounds = void 0;
   // the VM in other classes, but are not intended to be a part of
   // Glimmer's API.
   var INNER_VM = (0, _util.symbol)('INNER_VM');
@@ -50053,8 +49746,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     var handle = vm.stack.popJs();
     var scope = vm.stack.popJs();
     var table = vm.stack.popJs();
-    var block = table ? [handle, scope, table] : null;
-    vm.scope().bindBlock(symbol$$1, block);
+    vm.scope().bindBlock(symbol$$1, [handle, scope, table]);
   });
   APPEND_OPCODES.add(102
   /* ResolveMaybeLocal */
@@ -50276,8 +49968,8 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     return new CurriedComponentDefinition(spec, args);
   }
 
-  function resolveComponent(resolver, name, meta) {
-    var definition = resolver.lookupComponent(name, meta);
+  function resolveComponent(resolver, name, owner) {
+    var definition = resolver.lookupComponent(name, owner);
     return definition;
   }
   /** @internal */
@@ -50287,6 +49979,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     return !hasCapability(capabilities, 1
     /* DynamicLayout */
     );
+  }
+
+  function hasCustomDebugRenderTreeLifecycle(manager) {
+    return 'getDebugCustomRenderTree' in manager;
   }
 
   var DEFAULT_CAPABILITIES = {
@@ -50334,7 +50030,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     });
   }
 
-  function createCurryComponentRef(inner, resolver, meta, args) {
+  function createCurryComponentRef(inner, resolver, owner, args) {
     var lastValue, lastDefinition;
     return (0, _reference.createComputeRef)(() => {
       var value = (0, _reference.valueForRef)(inner);
@@ -50348,7 +50044,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
       if (isCurriedComponentDefinition(value)) {
         definition = value;
       } else if (typeof value === 'string' && value) {
-        definition = resolveComponent(resolver, value, meta);
+        definition = resolveComponent(resolver, value, owner);
       }
 
       definition = curry$1(definition, args);
@@ -50367,7 +50063,497 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
       return new CurriedComponentDefinition(definition, args);
     }
   }
+  /*
+    The calling convention is:
+  
+    * 0-N block arguments at the bottom
+    * 0-N positional arguments next (left-to-right)
+    * 0-N named arguments next
+  */
 
+
+  class VMArgumentsImpl {
+    constructor() {
+      this.stack = null;
+      this.positional = new PositionalArgumentsImpl();
+      this.named = new NamedArgumentsImpl();
+      this.blocks = new BlockArgumentsImpl();
+    }
+
+    empty(stack) {
+      var base = stack[REGISTERS][_vm2.$sp] + 1;
+      this.named.empty(stack, base);
+      this.positional.empty(stack, base);
+      this.blocks.empty(stack, base);
+      return this;
+    }
+
+    setup(stack, names, blockNames, positionalCount, atNames) {
+      this.stack = stack;
+      /*
+             | ... | blocks      | positional  | named |
+             | ... | b0    b1    | p0 p1 p2 p3 | n0 n1 |
+       index | ... | 4/5/6 7/8/9 | 10 11 12 13 | 14 15 |
+                     ^             ^             ^  ^
+                   bbase         pbase       nbase  sp
+      */
+
+      var named = this.named;
+      var namedCount = names.length;
+      var namedBase = stack[REGISTERS][_vm2.$sp] - namedCount + 1;
+      named.setup(stack, namedBase, namedCount, names, atNames);
+      var positional = this.positional;
+      var positionalBase = namedBase - positionalCount;
+      positional.setup(stack, positionalBase, positionalCount);
+      var blocks = this.blocks;
+      var blocksCount = blockNames.length;
+      var blocksBase = positionalBase - blocksCount * 3;
+      blocks.setup(stack, blocksBase, blocksCount, blockNames);
+    }
+
+    get base() {
+      return this.blocks.base;
+    }
+
+    get length() {
+      return this.positional.length + this.named.length + this.blocks.length * 3;
+    }
+
+    at(pos) {
+      return this.positional.at(pos);
+    }
+
+    realloc(offset) {
+      var {
+        stack
+      } = this;
+
+      if (offset > 0 && stack !== null) {
+        var {
+          positional,
+          named
+        } = this;
+        var newBase = positional.base + offset;
+        var length = positional.length + named.length;
+
+        for (var i = length - 1; i >= 0; i--) {
+          stack.copy(i + positional.base, i + newBase);
+        }
+
+        positional.base += offset;
+        named.base += offset;
+        stack[REGISTERS][_vm2.$sp] += offset;
+      }
+    }
+
+    capture() {
+      var positional = this.positional.length === 0 ? EMPTY_POSITIONAL : this.positional.capture();
+      var named = this.named.length === 0 ? EMPTY_NAMED : this.named.capture();
+      return {
+        named,
+        positional
+      };
+    }
+
+    clear() {
+      var {
+        stack,
+        length
+      } = this;
+      if (length > 0 && stack !== null) stack.pop(length);
+    }
+
+  }
+
+  class PositionalArgumentsImpl {
+    constructor() {
+      this.base = 0;
+      this.length = 0;
+      this.stack = null;
+      this._references = null;
+    }
+
+    empty(stack, base) {
+      this.stack = stack;
+      this.base = base;
+      this.length = 0;
+      this._references = _util.EMPTY_ARRAY;
+    }
+
+    setup(stack, base, length) {
+      this.stack = stack;
+      this.base = base;
+      this.length = length;
+
+      if (length === 0) {
+        this._references = _util.EMPTY_ARRAY;
+      } else {
+        this._references = null;
+      }
+    }
+
+    at(position) {
+      var {
+        base,
+        length,
+        stack
+      } = this;
+
+      if (position < 0 || position >= length) {
+        return _reference.UNDEFINED_REFERENCE;
+      }
+
+      return stack.get(position, base);
+    }
+
+    capture() {
+      return this.references;
+    }
+
+    prepend(other) {
+      var additions = other.length;
+
+      if (additions > 0) {
+        var {
+          base,
+          length,
+          stack
+        } = this;
+        this.base = base = base - additions;
+        this.length = length + additions;
+
+        for (var i = 0; i < additions; i++) {
+          stack.set(other[i], i, base);
+        }
+
+        this._references = null;
+      }
+    }
+
+    get references() {
+      var references = this._references;
+
+      if (!references) {
+        var {
+          stack,
+          base,
+          length
+        } = this;
+        references = this._references = stack.slice(base, base + length);
+      }
+
+      return references;
+    }
+
+  }
+
+  class NamedArgumentsImpl {
+    constructor() {
+      this.base = 0;
+      this.length = 0;
+      this._references = null;
+      this._names = _util.EMPTY_ARRAY;
+      this._atNames = _util.EMPTY_ARRAY;
+    }
+
+    empty(stack, base) {
+      this.stack = stack;
+      this.base = base;
+      this.length = 0;
+      this._references = _util.EMPTY_ARRAY;
+      this._names = _util.EMPTY_ARRAY;
+      this._atNames = _util.EMPTY_ARRAY;
+    }
+
+    setup(stack, base, length, names, atNames) {
+      this.stack = stack;
+      this.base = base;
+      this.length = length;
+
+      if (length === 0) {
+        this._references = _util.EMPTY_ARRAY;
+        this._names = _util.EMPTY_ARRAY;
+        this._atNames = _util.EMPTY_ARRAY;
+      } else {
+        this._references = null;
+
+        if (atNames) {
+          this._names = null;
+          this._atNames = names;
+        } else {
+          this._names = names;
+          this._atNames = null;
+        }
+      }
+    }
+
+    get names() {
+      var names = this._names;
+
+      if (!names) {
+        names = this._names = this._atNames.map(this.toSyntheticName);
+      }
+
+      return names;
+    }
+
+    get atNames() {
+      var atNames = this._atNames;
+
+      if (!atNames) {
+        atNames = this._atNames = this._names.map(this.toAtName);
+      }
+
+      return atNames;
+    }
+
+    has(name) {
+      return this.names.indexOf(name) !== -1;
+    }
+
+    get(name, atNames = false) {
+      var {
+        base,
+        stack
+      } = this;
+      var names = atNames ? this.atNames : this.names;
+      var idx = names.indexOf(name);
+
+      if (idx === -1) {
+        return _reference.UNDEFINED_REFERENCE;
+      }
+
+      var ref = stack.get(idx, base);
+
+      if (true
+      /* DEBUG */
+      ) {
+        return (0, _reference.createDebugAliasRef)(atNames ? name : `@${name}`, ref);
+      } else {
+        return ref;
+      }
+    }
+
+    capture() {
+      var {
+        names,
+        references
+      } = this;
+      var map = (0, _util.dict)();
+
+      for (var i = 0; i < names.length; i++) {
+        var name = names[i];
+
+        if (true
+        /* DEBUG */
+        ) {
+          map[name] = (0, _reference.createDebugAliasRef)(`@${name}`, references[i]);
+        } else {
+          map[name] = references[i];
+        }
+      }
+
+      return map;
+    }
+
+    merge(other) {
+      var keys = Object.keys(other);
+
+      if (keys.length > 0) {
+        var {
+          names,
+          length,
+          stack
+        } = this;
+        var newNames = names.slice();
+
+        for (var i = 0; i < keys.length; i++) {
+          var name = keys[i];
+          var idx = newNames.indexOf(name);
+
+          if (idx === -1) {
+            length = newNames.push(name);
+            stack.pushJs(other[name]);
+          }
+        }
+
+        this.length = length;
+        this._references = null;
+        this._names = newNames;
+        this._atNames = null;
+      }
+    }
+
+    get references() {
+      var references = this._references;
+
+      if (!references) {
+        var {
+          base,
+          length,
+          stack
+        } = this;
+        references = this._references = stack.slice(base, base + length);
+      }
+
+      return references;
+    }
+
+    toSyntheticName(name) {
+      return name.slice(1);
+    }
+
+    toAtName(name) {
+      return `@${name}`;
+    }
+
+  }
+
+  function toSymbolName(name) {
+    return `&${name}`;
+  }
+
+  class BlockArgumentsImpl {
+    constructor() {
+      this.internalValues = null;
+      this._symbolNames = null;
+      this.internalTag = null;
+      this.names = _util.EMPTY_ARRAY;
+      this.length = 0;
+      this.base = 0;
+    }
+
+    empty(stack, base) {
+      this.stack = stack;
+      this.names = _util.EMPTY_ARRAY;
+      this.base = base;
+      this.length = 0;
+      this._symbolNames = null;
+      this.internalTag = _validator.CONSTANT_TAG;
+      this.internalValues = _util.EMPTY_ARRAY;
+    }
+
+    setup(stack, base, length, names) {
+      this.stack = stack;
+      this.names = names;
+      this.base = base;
+      this.length = length;
+      this._symbolNames = null;
+
+      if (length === 0) {
+        this.internalTag = _validator.CONSTANT_TAG;
+        this.internalValues = _util.EMPTY_ARRAY;
+      } else {
+        this.internalTag = null;
+        this.internalValues = null;
+      }
+    }
+
+    get values() {
+      var values = this.internalValues;
+
+      if (!values) {
+        var {
+          base,
+          length,
+          stack
+        } = this;
+        values = this.internalValues = stack.slice(base, base + length * 3);
+      }
+
+      return values;
+    }
+
+    has(name) {
+      return this.names.indexOf(name) !== -1;
+    }
+
+    get(name) {
+      var idx = this.names.indexOf(name);
+
+      if (idx === -1) {
+        return null;
+      }
+
+      var {
+        base,
+        stack
+      } = this;
+      var table = stack.get(idx * 3, base);
+      var scope = stack.get(idx * 3 + 1, base);
+      var handle = stack.get(idx * 3 + 2, base);
+      return handle === null ? null : [handle, scope, table];
+    }
+
+    capture() {
+      return new CapturedBlockArgumentsImpl(this.names, this.values);
+    }
+
+    get symbolNames() {
+      var symbolNames = this._symbolNames;
+
+      if (symbolNames === null) {
+        symbolNames = this._symbolNames = this.names.map(toSymbolName);
+      }
+
+      return symbolNames;
+    }
+
+  }
+
+  class CapturedBlockArgumentsImpl {
+    constructor(names, values) {
+      this.names = names;
+      this.values = values;
+      this.length = names.length;
+    }
+
+    has(name) {
+      return this.names.indexOf(name) !== -1;
+    }
+
+    get(name) {
+      var idx = this.names.indexOf(name);
+      if (idx === -1) return null;
+      return [this.values[idx * 3 + 2], this.values[idx * 3 + 1], this.values[idx * 3]];
+    }
+
+  }
+
+  function createCapturedArgs(named, positional) {
+    return {
+      named,
+      positional
+    };
+  }
+
+  function reifyNamed(named) {
+    var reified = (0, _util.dict)();
+
+    for (var key in named) {
+      reified[key] = (0, _reference.valueForRef)(named[key]);
+    }
+
+    return reified;
+  }
+
+  function reifyPositional(positional) {
+    return positional.map(_reference.valueForRef);
+  }
+
+  function reifyArgs(args) {
+    return {
+      named: reifyNamed(args.named),
+      positional: reifyPositional(args.positional)
+    };
+  }
+
+  var EMPTY_NAMED = Object.freeze(Object.create(null));
+  _exports.EMPTY_NAMED = EMPTY_NAMED;
+  var EMPTY_POSITIONAL = _util.EMPTY_ARRAY;
+  _exports.EMPTY_POSITIONAL = EMPTY_POSITIONAL;
+  var EMPTY_ARGS = createCapturedArgs(EMPTY_NAMED, EMPTY_POSITIONAL);
+  _exports.EMPTY_ARGS = EMPTY_ARGS;
   APPEND_OPCODES.add(38
   /* ChildScope */
   , vm => vm.pushChildScope());
@@ -50920,14 +51106,14 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   APPEND_OPCODES.add(76
   /* CurryComponent */
   , (vm, {
-    op1: _meta
+    op1: _owner
   }) => {
     var stack = vm.stack;
     var definition = stack.popJs();
     var capturedArgs = stack.popJs();
-    var meta = vm[CONSTANTS].getValue((0, _util.decodeHandle)(_meta));
+    var owner = vm[CONSTANTS].getValue((0, _util.decodeHandle)(_owner));
     var resolver = vm.runtime.resolver;
-    vm.loadValue(_vm2.$v0, createCurryComponentRef(definition, resolver, meta, capturedArgs));
+    vm.loadValue(_vm2.$v0, createCurryComponentRef(definition, resolver, owner, capturedArgs));
   });
   APPEND_OPCODES.add(77
   /* PushComponentDefinition */
@@ -50954,17 +51140,17 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   APPEND_OPCODES.add(80
   /* ResolveDynamicComponent */
   , (vm, {
-    op1: _meta
+    op1: _owner
   }) => {
     var stack = vm.stack;
     var component = (0, _reference.valueForRef)(stack.popJs());
-    var meta = vm[CONSTANTS].getValue(_meta);
+    var owner = vm[CONSTANTS].getValue(_owner);
     vm.loadValue(_vm2.$t1, null); // Clear the temp register
 
     var definition;
 
     if (typeof component === 'string') {
-      var resolvedDefinition = resolveComponent(vm.runtime.resolver, component, meta);
+      var resolvedDefinition = resolveComponent(vm.runtime.resolver, component, owner);
       definition = resolvedDefinition;
     } else {
       definition = component;
@@ -51380,16 +51566,76 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   APPEND_OPCODES.add(90
   /* GetComponentSelf */
   , (vm, {
-    op1: _state
+    op1: _state,
+    op2: _names
   }) => {
+    var instance = vm.fetchValue(_state);
     var {
       definition,
       state
-    } = vm.fetchValue(_state);
+    } = instance;
     var {
       manager
     } = definition;
-    vm.stack.pushJs(manager.getSelf(state));
+    var selfRef = manager.getSelf(state);
+
+    if (vm.env.debugRenderTree !== undefined) {
+      var _instance = vm.fetchValue(_state);
+
+      var {
+        definition: _definition2,
+        manager: _manager2
+      } = _instance;
+      var args;
+
+      if (vm.stack.peek() === vm[ARGS]) {
+        args = vm[ARGS].capture();
+      } else {
+        var names = vm[CONSTANTS].getValue(_names);
+        vm[ARGS].setup(vm.stack, names, [], 0, true);
+        args = vm[ARGS].capture();
+      }
+
+      var template = hasStaticLayout(_instance.capabilities, _manager2) ? _manager2.getStaticLayout(_definition2.state) : _manager2.getDynamicLayout(state, vm.runtime.resolver); // For tearing down the debugRenderTree
+
+      vm.associateDestroyable(_instance);
+
+      if (hasCustomDebugRenderTreeLifecycle(_manager2)) {
+        var nodes = _manager2.getDebugCustomRenderTree(_instance.definition.state, _instance.state, args, template);
+
+        nodes.forEach(node => {
+          var {
+            bucket
+          } = node;
+          vm.env.debugRenderTree.create(bucket, node);
+          registerDestructor(_instance, () => {
+            var _a;
+
+            (_a = vm.env.debugRenderTree) === null || _a === void 0 ? void 0 : _a.willDestroy(bucket);
+          });
+          vm.updateWith(new DebugRenderTreeUpdateOpcode(bucket));
+        });
+      } else {
+        var name = _manager2.getDebugName(_definition2.state);
+
+        vm.env.debugRenderTree.create(_instance, {
+          type: 'component',
+          name,
+          args,
+          template,
+          instance: (0, _reference.valueForRef)(selfRef)
+        });
+        vm.associateDestroyable(_instance);
+        registerDestructor(_instance, () => {
+          var _a;
+
+          (_a = vm.env.debugRenderTree) === null || _a === void 0 ? void 0 : _a.willDestroy(_instance);
+        });
+        vm.updateWith(new DebugRenderTreeUpdateOpcode(_instance));
+      }
+    }
+
+    vm.stack.pushJs(selfRef);
   });
   APPEND_OPCODES.add(91
   /* GetComponentTagName */
@@ -51424,20 +51670,22 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     var {
       capabilities
     } = instance;
-    var layout;
+    var template;
 
     if (hasStaticLayout(capabilities, manager)) {
-      layout = manager.getStaticLayout(definition.state, vm.runtime.resolver);
+      template = manager.getStaticLayout(definition.state);
     } else {
-      var template = (0, _util.unwrapTemplate)(manager.getDynamicLayout(instance.state, vm.runtime.resolver));
+      template = manager.getDynamicLayout(instance.state, vm.runtime.resolver);
+    }
 
-      if (hasCapability(capabilities, 1024
-      /* Wrapped */
-      )) {
-        layout = template.asWrappedLayout();
-      } else {
-        layout = template.asLayout();
-      }
+    var layout;
+
+    if (hasCapability(capabilities, 1024
+    /* Wrapped */
+    )) {
+      layout = (0, _util.unwrapTemplate)(template).asWrappedLayout();
+    } else {
+      layout = (0, _util.unwrapTemplate)(template).asLayout();
     }
 
     var handle = layout.compile(vm.context);
@@ -51567,18 +51815,35 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   , (vm, {
     op1: _state
   }) => {
+    var instance = vm.fetchValue(_state);
     var {
       manager,
       state,
       capabilities
-    } = vm.fetchValue(_state);
+    } = instance;
     var bounds = vm.elements().popBlock();
-    var mgr = manager;
-    mgr.didRenderLayout(state, bounds);
+
+    if (vm.env.debugRenderTree !== undefined) {
+      if (hasCustomDebugRenderTreeLifecycle(manager)) {
+        var nodes = manager.getDebugCustomRenderTree(instance.definition.state, state, EMPTY_ARGS);
+        nodes.reverse().forEach(node => {
+          var {
+            bucket
+          } = node;
+          vm.env.debugRenderTree.didRender(bucket, bounds);
+          vm.updateWith(new DebugRenderTreeDidRenderOpcode(bucket, bounds));
+        });
+      } else {
+        vm.env.debugRenderTree.didRender(instance, bounds);
+        vm.updateWith(new DebugRenderTreeDidRenderOpcode(instance, bounds));
+      }
+    }
 
     if (managerHasCapability(manager, capabilities, 512
     /* CreateInstance */
     )) {
+      var mgr = manager;
+      mgr.didRenderLayout(state, bounds);
       vm.env.didCreate(state, manager);
       vm.updateWith(new DidUpdateLayoutOpcode(manager, state, bounds));
     }
@@ -51626,6 +51891,37 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
       } = this;
       manager.didUpdateLayout(component, bounds);
       vm.env.didUpdate(component, manager);
+    }
+
+  }
+
+  class DebugRenderTreeUpdateOpcode extends UpdatingOpcode {
+    constructor(bucket) {
+      super();
+      this.bucket = bucket;
+      this.type = 'debug-render-tree-update';
+    }
+
+    evaluate(vm) {
+      var _a;
+
+      (_a = vm.env.debugRenderTree) === null || _a === void 0 ? void 0 : _a.update(this.bucket);
+    }
+
+  }
+
+  class DebugRenderTreeDidRenderOpcode extends UpdatingOpcode {
+    constructor(bucket, bounds) {
+      super();
+      this.bucket = bucket;
+      this.bounds = bounds;
+      this.type = 'debug-render-tree-did-render';
+    }
+
+    evaluate(vm) {
+      var _a;
+
+      (_a = vm.env.debugRenderTree) === null || _a === void 0 ? void 0 : _a.didRender(this.bucket, this.bounds);
     }
 
   }
@@ -51816,7 +52112,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   APPEND_OPCODES.add(101
   /* InvokePartial */
   , (vm, {
-    op1: _meta,
+    op1: _owner,
     op2: _symbols,
     op3: _evalInfo
   }) => {
@@ -51825,10 +52121,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
       stack
     } = vm;
     var name = (0, _reference.valueForRef)(stack.pop());
-    var meta = constants$$1.getValue((0, _util.decodeHandle)(_meta));
+    var owner = constants$$1.getValue((0, _util.decodeHandle)(_owner));
     var outerSymbols = constants$$1.getArray(_symbols);
     var evalInfo = constants$$1.getValue((0, _util.decodeHandle)(_evalInfo));
-    var handle = vm.runtime.resolver.lookupPartial(name, meta);
+    var handle = vm.runtime.resolver.lookupPartial(name, owner);
     var definition = vm.runtime.resolver.resolve(handle);
     var {
       symbolTable,
@@ -52301,6 +52597,210 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   _exports.DOMChanges = helper$1;
   var DOMTreeConstruction = DOM.DOMTreeConstruction;
   _exports.DOMTreeConstruction = DOMTreeConstruction;
+  var GUID = 0;
+
+  class Ref {
+    constructor(value) {
+      this.id = GUID++;
+      this.value = value;
+    }
+
+    get() {
+      return this.value;
+    }
+
+    release() {
+      if (true
+      /* DEBUG */
+      && this.value === null) {
+        throw new Error('BUG: double release?');
+      }
+
+      this.value = null;
+    }
+
+    toString() {
+      var label = `Ref ${this.id}`;
+
+      if (this.value === null) {
+        return `${label} (released)`;
+      } else {
+        try {
+          return `${label}: ${this.value}`;
+        } catch (_a) {
+          return label;
+        }
+      }
+    }
+
+  }
+
+  class DebugRenderTreeImpl {
+    constructor() {
+      this.stack = new _util.Stack();
+      this.refs = new WeakMap();
+      this.roots = new Set();
+      this.nodes = new WeakMap();
+    }
+
+    begin() {
+      this.reset();
+    }
+
+    create(state, node) {
+      var internalNode = (0, _util.assign)({}, node, {
+        bounds: null,
+        refs: new Set()
+      });
+      this.nodes.set(state, internalNode);
+      this.appendChild(internalNode, state);
+      this.enter(state);
+    }
+
+    update(state) {
+      this.enter(state);
+    }
+
+    didRender(state, bounds) {
+      if (true
+      /* DEBUG */
+      && this.stack.current !== state) {
+        throw new Error(`BUG: expecting ${this.stack.current}, got ${state}`);
+      }
+
+      this.nodeFor(state).bounds = bounds;
+      this.exit();
+    }
+
+    willDestroy(state) {
+      this.refs.get(state).release();
+    }
+
+    commit() {
+      this.reset();
+    }
+
+    capture() {
+      return this.captureRefs(this.roots);
+    }
+
+    reset() {
+      if (this.stack.size !== 0) {
+        // We probably encountered an error during the rendering loop. This will
+        // likely trigger undefined behavior and memory leaks as the error left
+        // things in an inconsistent state. It is recommended that the user
+        // refresh the page.
+        // TODO: We could warn here? But this happens all the time in our tests?
+        // Clean up the root reference to prevent errors from happening if we
+        // attempt to capture the render tree (Ember Inspector may do this)
+        var root = this.stack.toArray()[0];
+        var ref = this.refs.get(root);
+
+        if (ref !== undefined) {
+          this.roots.delete(ref);
+        }
+
+        while (!this.stack.isEmpty()) {
+          this.stack.pop();
+        }
+      }
+    }
+
+    enter(state) {
+      this.stack.push(state);
+    }
+
+    exit() {
+      if (true
+      /* DEBUG */
+      && this.stack.size === 0) {
+        throw new Error('BUG: unbalanced pop');
+      }
+
+      this.stack.pop();
+    }
+
+    nodeFor(state) {
+      return this.nodes.get(state);
+    }
+
+    appendChild(node, state) {
+      if (true
+      /* DEBUG */
+      && this.refs.has(state)) {
+        throw new Error('BUG: child already appended');
+      }
+
+      var parent = this.stack.current;
+      var ref = new Ref(state);
+      this.refs.set(state, ref);
+
+      if (parent) {
+        var parentNode = this.nodeFor(parent);
+        parentNode.refs.add(ref);
+        node.parent = parentNode;
+      } else {
+        this.roots.add(ref);
+      }
+    }
+
+    captureRefs(refs) {
+      var captured = [];
+      refs.forEach(ref => {
+        var state = ref.get();
+
+        if (state) {
+          captured.push(this.captureNode(`render-node:${ref.id}`, state));
+        } else {
+          refs.delete(ref);
+        }
+      });
+      return captured;
+    }
+
+    captureNode(id, state) {
+      var node = this.nodeFor(state);
+      var {
+        type,
+        name,
+        args,
+        instance,
+        refs
+      } = node;
+      var template = this.captureTemplate(node);
+      var bounds = this.captureBounds(node);
+      var children = this.captureRefs(refs);
+      return {
+        id,
+        type,
+        name,
+        args: reifyArgs(args),
+        instance,
+        template,
+        bounds,
+        children
+      };
+    }
+
+    captureTemplate({
+      template
+    }) {
+      return template && (0, _util.unwrapTemplate)(template).moduleName || null;
+    }
+
+    captureBounds(node) {
+      var bounds = node.bounds;
+      var parentElement = bounds.parentElement();
+      var firstNode = bounds.firstNode();
+      var lastNode = bounds.lastNode();
+      return {
+        parentElement,
+        firstNode,
+        lastNode
+      };
+    }
+
+  }
 
   var _a$1;
 
@@ -52346,9 +52846,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
 
       for (var i = 0; i < createdComponents.length; i++) {
         var component = createdComponents[i];
-        var _manager2 = createdManagers[i];
+        var _manager3 = createdManagers[i];
 
-        _manager2.didCreate(component);
+        _manager3.didCreate(component);
       }
 
       var {
@@ -52357,10 +52857,10 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
       } = this;
 
       for (var _i4 = 0; _i4 < updatedComponents.length; _i4++) {
-        var _component = updatedComponents[_i4];
-        var _manager3 = updatedManagers[_i4];
+        var _component2 = updatedComponents[_i4];
+        var _manager4 = updatedManagers[_i4];
 
-        _manager3.didUpdate(_component);
+        _manager4.didUpdate(_component2);
       }
 
       var {
@@ -52378,7 +52878,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
           var tag = (0, _validator.track)( // eslint-disable-next-line no-loop-func
           () => manager.install(modifier), true
           /* DEBUG */
-          && `- While rendering:\n\n  (instance of a \`${manager.getDebugName(modifier)}\` modifier)`);
+          && `- While rendering:\n  (instance of a \`${manager.getDebugName(modifier)}\` modifier)`);
           (0, _validator.updateTag)(modifierTag, tag);
         } else {
           manager.install(modifier);
@@ -52416,8 +52916,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
       this.delegate = delegate;
       this[_a$1] = null; // Delegate methods and values
 
-      this.extra = this.delegate.extra;
       this.isInteractive = this.delegate.isInteractive;
+      this.owner = this.delegate.owner;
+      this.debugRenderTree = this.delegate.enableDebugTooling ? new DebugRenderTreeImpl() : undefined;
 
       if (options.appendOperations) {
         this.appendOperations = options.appendOperations;
@@ -52441,7 +52942,9 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     }
 
     begin() {
-      this.delegate.onTransactionBegin();
+      var _b;
+
+      (_b = this.debugRenderTree) === null || _b === void 0 ? void 0 : _b.begin();
       this[TRANSACTION] = new TransactionImpl();
     }
 
@@ -52470,9 +52973,12 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     }
 
     commit() {
+      var _b;
+
       var transaction = this.transaction;
       this[TRANSACTION] = null;
       transaction.commit();
+      (_b = this.debugRenderTree) === null || _b === void 0 ? void 0 : _b.commit();
       this.delegate.onTransactionCommit();
     }
 
@@ -52511,497 +53017,6 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
       return (0, _reference.valueForRef)(scope.get(name));
     });
   }
-  /*
-    The calling convention is:
-  
-    * 0-N block arguments at the bottom
-    * 0-N positional arguments next (left-to-right)
-    * 0-N named arguments next
-  */
-
-
-  class VMArgumentsImpl {
-    constructor() {
-      this.stack = null;
-      this.positional = new PositionalArgumentsImpl();
-      this.named = new NamedArgumentsImpl();
-      this.blocks = new BlockArgumentsImpl();
-    }
-
-    empty(stack) {
-      var base = stack[REGISTERS][_vm2.$sp] + 1;
-      this.named.empty(stack, base);
-      this.positional.empty(stack, base);
-      this.blocks.empty(stack, base);
-      return this;
-    }
-
-    setup(stack, names, blockNames, positionalCount, atNames) {
-      this.stack = stack;
-      /*
-             | ... | blocks      | positional  | named |
-             | ... | b0    b1    | p0 p1 p2 p3 | n0 n1 |
-       index | ... | 4/5/6 7/8/9 | 10 11 12 13 | 14 15 |
-                     ^             ^             ^  ^
-                   bbase         pbase       nbase  sp
-      */
-
-      var named = this.named;
-      var namedCount = names.length;
-      var namedBase = stack[REGISTERS][_vm2.$sp] - namedCount + 1;
-      named.setup(stack, namedBase, namedCount, names, atNames);
-      var positional = this.positional;
-      var positionalBase = namedBase - positionalCount;
-      positional.setup(stack, positionalBase, positionalCount);
-      var blocks = this.blocks;
-      var blocksCount = blockNames.length;
-      var blocksBase = positionalBase - blocksCount * 3;
-      blocks.setup(stack, blocksBase, blocksCount, blockNames);
-    }
-
-    get base() {
-      return this.blocks.base;
-    }
-
-    get length() {
-      return this.positional.length + this.named.length + this.blocks.length * 3;
-    }
-
-    at(pos) {
-      return this.positional.at(pos);
-    }
-
-    realloc(offset) {
-      var {
-        stack
-      } = this;
-
-      if (offset > 0 && stack !== null) {
-        var {
-          positional,
-          named
-        } = this;
-        var newBase = positional.base + offset;
-        var length = positional.length + named.length;
-
-        for (var i = length - 1; i >= 0; i--) {
-          stack.copy(i + positional.base, i + newBase);
-        }
-
-        positional.base += offset;
-        named.base += offset;
-        stack[REGISTERS][_vm2.$sp] += offset;
-      }
-    }
-
-    capture() {
-      var positional = this.positional.length === 0 ? EMPTY_POSITIONAL : this.positional.capture();
-      var named = this.named.length === 0 ? EMPTY_NAMED : this.named.capture();
-      return {
-        named,
-        positional
-      };
-    }
-
-    clear() {
-      var {
-        stack,
-        length
-      } = this;
-      if (length > 0 && stack !== null) stack.pop(length);
-    }
-
-  }
-
-  class PositionalArgumentsImpl {
-    constructor() {
-      this.base = 0;
-      this.length = 0;
-      this.stack = null;
-      this._references = null;
-    }
-
-    empty(stack, base) {
-      this.stack = stack;
-      this.base = base;
-      this.length = 0;
-      this._references = _util.EMPTY_ARRAY;
-    }
-
-    setup(stack, base, length) {
-      this.stack = stack;
-      this.base = base;
-      this.length = length;
-
-      if (length === 0) {
-        this._references = _util.EMPTY_ARRAY;
-      } else {
-        this._references = null;
-      }
-    }
-
-    at(position) {
-      var {
-        base,
-        length,
-        stack
-      } = this;
-
-      if (position < 0 || position >= length) {
-        return _reference.UNDEFINED_REFERENCE;
-      }
-
-      return stack.get(position, base);
-    }
-
-    capture() {
-      return this.references;
-    }
-
-    prepend(other) {
-      var additions = other.length;
-
-      if (additions > 0) {
-        var {
-          base,
-          length,
-          stack
-        } = this;
-        this.base = base = base - additions;
-        this.length = length + additions;
-
-        for (var i = 0; i < additions; i++) {
-          stack.set(other[i], i, base);
-        }
-
-        this._references = null;
-      }
-    }
-
-    get references() {
-      var references = this._references;
-
-      if (!references) {
-        var {
-          stack,
-          base,
-          length
-        } = this;
-        references = this._references = stack.slice(base, base + length);
-      }
-
-      return references;
-    }
-
-  }
-
-  class NamedArgumentsImpl {
-    constructor() {
-      this.base = 0;
-      this.length = 0;
-      this._references = null;
-      this._names = _util.EMPTY_ARRAY;
-      this._atNames = _util.EMPTY_ARRAY;
-    }
-
-    empty(stack, base) {
-      this.stack = stack;
-      this.base = base;
-      this.length = 0;
-      this._references = _util.EMPTY_ARRAY;
-      this._names = _util.EMPTY_ARRAY;
-      this._atNames = _util.EMPTY_ARRAY;
-    }
-
-    setup(stack, base, length, names, atNames) {
-      this.stack = stack;
-      this.base = base;
-      this.length = length;
-
-      if (length === 0) {
-        this._references = _util.EMPTY_ARRAY;
-        this._names = _util.EMPTY_ARRAY;
-        this._atNames = _util.EMPTY_ARRAY;
-      } else {
-        this._references = null;
-
-        if (atNames) {
-          this._names = null;
-          this._atNames = names;
-        } else {
-          this._names = names;
-          this._atNames = null;
-        }
-      }
-    }
-
-    get names() {
-      var names = this._names;
-
-      if (!names) {
-        names = this._names = this._atNames.map(this.toSyntheticName);
-      }
-
-      return names;
-    }
-
-    get atNames() {
-      var atNames = this._atNames;
-
-      if (!atNames) {
-        atNames = this._atNames = this._names.map(this.toAtName);
-      }
-
-      return atNames;
-    }
-
-    has(name) {
-      return this.names.indexOf(name) !== -1;
-    }
-
-    get(name, atNames = false) {
-      var {
-        base,
-        stack
-      } = this;
-      var names = atNames ? this.atNames : this.names;
-      var idx = names.indexOf(name);
-
-      if (idx === -1) {
-        return _reference.UNDEFINED_REFERENCE;
-      }
-
-      var ref = stack.get(idx, base);
-
-      if (true
-      /* DEBUG */
-      ) {
-        return (0, _reference.createDebugAliasRef)(atNames ? name : `@${name}`, ref);
-      } else {
-        return ref;
-      }
-    }
-
-    capture() {
-      var {
-        names,
-        references
-      } = this;
-      var map = (0, _util.dict)();
-
-      for (var i = 0; i < names.length; i++) {
-        var name = names[i];
-
-        if (true
-        /* DEBUG */
-        ) {
-          map[name] = (0, _reference.createDebugAliasRef)(`@${name}`, references[i]);
-        } else {
-          map[name] = references[i];
-        }
-      }
-
-      return map;
-    }
-
-    merge(other) {
-      var keys = Object.keys(other);
-
-      if (keys.length > 0) {
-        var {
-          names,
-          length,
-          stack
-        } = this;
-        var newNames = names.slice();
-
-        for (var i = 0; i < keys.length; i++) {
-          var name = keys[i];
-          var idx = newNames.indexOf(name);
-
-          if (idx === -1) {
-            length = newNames.push(name);
-            stack.pushJs(other[name]);
-          }
-        }
-
-        this.length = length;
-        this._references = null;
-        this._names = newNames;
-        this._atNames = null;
-      }
-    }
-
-    get references() {
-      var references = this._references;
-
-      if (!references) {
-        var {
-          base,
-          length,
-          stack
-        } = this;
-        references = this._references = stack.slice(base, base + length);
-      }
-
-      return references;
-    }
-
-    toSyntheticName(name) {
-      return name.slice(1);
-    }
-
-    toAtName(name) {
-      return `@${name}`;
-    }
-
-  }
-
-  function toSymbolName(name) {
-    return `&${name}`;
-  }
-
-  class BlockArgumentsImpl {
-    constructor() {
-      this.internalValues = null;
-      this._symbolNames = null;
-      this.internalTag = null;
-      this.names = _util.EMPTY_ARRAY;
-      this.length = 0;
-      this.base = 0;
-    }
-
-    empty(stack, base) {
-      this.stack = stack;
-      this.names = _util.EMPTY_ARRAY;
-      this.base = base;
-      this.length = 0;
-      this._symbolNames = null;
-      this.internalTag = _validator.CONSTANT_TAG;
-      this.internalValues = _util.EMPTY_ARRAY;
-    }
-
-    setup(stack, base, length, names) {
-      this.stack = stack;
-      this.names = names;
-      this.base = base;
-      this.length = length;
-      this._symbolNames = null;
-
-      if (length === 0) {
-        this.internalTag = _validator.CONSTANT_TAG;
-        this.internalValues = _util.EMPTY_ARRAY;
-      } else {
-        this.internalTag = null;
-        this.internalValues = null;
-      }
-    }
-
-    get values() {
-      var values = this.internalValues;
-
-      if (!values) {
-        var {
-          base,
-          length,
-          stack
-        } = this;
-        values = this.internalValues = stack.slice(base, base + length * 3);
-      }
-
-      return values;
-    }
-
-    has(name) {
-      return this.names.indexOf(name) !== -1;
-    }
-
-    get(name) {
-      var idx = this.names.indexOf(name);
-
-      if (idx === -1) {
-        return null;
-      }
-
-      var {
-        base,
-        stack
-      } = this;
-      var table = stack.get(idx * 3, base);
-      var scope = stack.get(idx * 3 + 1, base);
-      var handle = stack.get(idx * 3 + 2, base);
-      return handle === null ? null : [handle, scope, table];
-    }
-
-    capture() {
-      return new CapturedBlockArgumentsImpl(this.names, this.values);
-    }
-
-    get symbolNames() {
-      var symbolNames = this._symbolNames;
-
-      if (symbolNames === null) {
-        symbolNames = this._symbolNames = this.names.map(toSymbolName);
-      }
-
-      return symbolNames;
-    }
-
-  }
-
-  class CapturedBlockArgumentsImpl {
-    constructor(names, values) {
-      this.names = names;
-      this.values = values;
-      this.length = names.length;
-    }
-
-    has(name) {
-      return this.names.indexOf(name) !== -1;
-    }
-
-    get(name) {
-      var idx = this.names.indexOf(name);
-      if (idx === -1) return null;
-      return [this.values[idx * 3 + 2], this.values[idx * 3 + 1], this.values[idx * 3]];
-    }
-
-  }
-
-  function createCapturedArgs(named, positional) {
-    return {
-      named,
-      positional
-    };
-  }
-
-  function reifyNamed(named) {
-    var reified = (0, _util.dict)();
-
-    for (var key in named) {
-      reified[key] = (0, _reference.valueForRef)(named[key]);
-    }
-
-    return reified;
-  }
-
-  function reifyPositional(positional) {
-    return positional.map(_reference.valueForRef);
-  }
-
-  function reifyArgs(args) {
-    return {
-      named: reifyNamed(args.named),
-      positional: reifyPositional(args.positional)
-    };
-  }
-
-  var EMPTY_NAMED = Object.freeze(Object.create(null));
-  _exports.EMPTY_NAMED = EMPTY_NAMED;
-  var EMPTY_POSITIONAL = _util.EMPTY_ARRAY;
-  _exports.EMPTY_POSITIONAL = EMPTY_POSITIONAL;
-  var EMPTY_ARGS = createCapturedArgs(EMPTY_NAMED, EMPTY_POSITIONAL);
-  _exports.EMPTY_ARGS = EMPTY_ARGS;
 
   function initializeRegistersWithSP(sp) {
     return [0, -1, sp, 0];
@@ -53174,14 +53189,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
         var hasErrored = true;
 
         try {
-          this._execute(opcodes, handler); // using a boolean here to avoid breaking ergonomics of "pause on uncaught exceptions"
+          (0, _validator.runInTrackingTransaction)(() => this._execute(opcodes, handler), '- While rendering:'); // using a boolean here to avoid breaking ergonomics of "pause on uncaught exceptions"
           // which would happen with a `catch` + `throw`
-
 
           hasErrored = false;
         } finally {
           if (hasErrored) {
-            console.error(`\n\nError occurred while rendering:\n\n${(0, _validator.resetTracking)()}\n\n`);
+            console.error(`\n\nError occurred:\n\n${(0, _validator.resetTracking)()}\n\n`);
           }
         }
       } else {
@@ -54197,7 +54211,7 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
               elements.popBlock();
             }
 
-            console.error(`\n\nError occurred while rendering:\n\n${(0, _validator.resetTracking)()}\n\n`);
+            console.error(`\n\nError occurred:\n\n${(0, _validator.resetTracking)()}\n\n`);
           }
         }
       } else {
@@ -54280,7 +54294,13 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
     }
 
     sync() {
-      return this.vm.execute();
+      if (true
+      /* DEBUG */
+      ) {
+        return (0, _validator.runInTrackingTransaction)(() => this.vm.execute(), '- While rendering:');
+      } else {
+        return this.vm.execute();
+      }
     }
 
   }
@@ -54877,6 +54897,309 @@ define("@glimmer/runtime", ["exports", "@glimmer/util", "@glimmer/global-context
   function rehydrationBuilder(env, cursor) {
     return RehydrateBuilder.forInitialRender(env, cursor);
   }
+
+  var TEMPLATES = new WeakMap();
+  var getPrototypeOf = Object.getPrototypeOf;
+
+  function setComponentTemplate(factory, obj) {
+    if (true
+    /* DEBUG */
+    && !(obj !== null && (typeof obj === 'object' || typeof obj === 'function'))) {
+      throw new Error(`Cannot call \`setComponentTemplate\` on \`${(0, _util.debugToString)(obj)}\``);
+    }
+
+    if (true
+    /* DEBUG */
+    && TEMPLATES.has(obj)) {
+      throw new Error(`Cannot call \`setComponentTemplate\` multiple times on the same class (\`${(0, _util.debugToString)(obj)}\`)`);
+    }
+
+    TEMPLATES.set(obj, factory);
+    return obj;
+  }
+
+  function getComponentTemplate(obj) {
+    var pointer = obj;
+
+    while (pointer !== null) {
+      var template = TEMPLATES.get(pointer);
+
+      if (template !== undefined) {
+        return template;
+      }
+
+      pointer = getPrototypeOf(pointer);
+    }
+
+    return undefined;
+  } // This is only exported for types, don't use this class directly
+
+
+  class TemplateOnlyComponent {
+    constructor(moduleName = '@glimmer/component/template-only') {
+      this.moduleName = moduleName;
+    }
+
+    toString() {
+      return this.moduleName;
+    }
+
+  }
+  /**
+    This utility function is used to declare a given component has no backing class. When the rendering engine detects this it
+    is able to perform a number of optimizations. Templates that are associated with `templateOnly()` will be rendered _as is_
+    without adding a wrapping `<div>` (or any of the other element customization behaviors of [@ember/component](/ember/release/classes/Component)).
+    Specifically, this means that the template will be rendered as "outer HTML".
+  
+    In general, this method will be used by build time tooling and would not be directly written in an application. However,
+    at times it may be useful to use directly to leverage the "outer HTML" semantics mentioned above. For example, if an addon would like
+    to use these semantics for its templates but cannot be certain it will only be consumed by applications that have enabled the
+    `template-only-glimmer-components` optional feature.
+  
+    @example
+  
+    ```js
+    import { templateOnlyComponent } from '@glimmer/runtime';
+  
+    export default templateOnlyComponent();
+    ```
+  
+    @public
+    @method templateOnly
+    @param {String} moduleName the module name that the template only component represents, this will be used for debugging purposes
+    @category EMBER_GLIMMER_SET_COMPONENT_TEMPLATE
+  */
+
+
+  _exports.TemplateOnlyComponent = TemplateOnlyComponent;
+
+  function templateOnlyComponent(moduleName) {
+    return new TemplateOnlyComponent(moduleName);
+  }
+
+  function isTemplateOnlyComponent(component) {
+    return component instanceof TemplateOnlyComponent;
+  }
+
+  var OWNER = (0, _util.symbol)('OWNER');
+  /**
+    Framework objects in a Glimmer application may receive an owner object.
+    Glimmer is unopinionated about this owner, but will forward it through its
+    internal resolution system, and through its managers if it is provided.
+  */
+
+  _exports.OWNER = OWNER;
+
+  function getOwner(object) {
+    return object[OWNER];
+  }
+  /**
+    `setOwner` set's an object's owner
+  */
+
+
+  function setOwner(object, owner) {
+    object[OWNER] = owner;
+  }
+
+  var INTERNAL_MANAGERS = new _util._WeakSet();
+
+  function isInternalComponentManager(manager) {
+    return INTERNAL_MANAGERS.has(manager);
+  }
+
+  function isInternalModifierManager(manager) {
+    return INTERNAL_MANAGERS.has(manager);
+  }
+
+  function isInternalHelper(manager) {
+    return typeof manager === 'function';
+  }
+
+  class BaseInternalComponentManager {
+    constructor() {
+      INTERNAL_MANAGERS.add(this);
+    }
+
+    didCreateElement(_component, _element, _operations) {// noop
+    }
+
+    didRenderLayout(_component, _bounds) {// noop
+    }
+
+    didCreate(_bucket) {// noop
+    }
+
+    update(_bucket, _dynamicScope) {// noop
+    }
+
+    didUpdateLayout(_bucket, _bounds) {// noop
+    }
+
+    didUpdate(_bucket) {// noop
+    }
+
+  }
+
+  _exports.BaseInternalComponentManager = BaseInternalComponentManager;
+
+  class BaseInternalModifierManager {
+    constructor() {
+      INTERNAL_MANAGERS.add(this);
+    }
+
+  }
+
+  _exports.BaseInternalModifierManager = BaseInternalModifierManager;
+  var COMPONENT_MANAGERS = new WeakMap();
+  var FROM_CAPABILITIES = true
+  /* DEBUG */
+  ? new _util._WeakSet() : undefined;
+  var MODIFIER_MANAGERS = new WeakMap();
+  var HELPER_MANAGERS = new WeakMap();
+  var OWNER_MANAGER_INSTANCES = new WeakMap();
+  var UNDEFINED_MANAGER_INSTANCES = new WeakMap(); ///////////
+
+  var getPrototypeOf$1 = Object.getPrototypeOf;
+
+  function setManager(map, factory, obj) {
+    if (true
+    /* DEBUG */
+    && (typeof obj !== 'object' || obj === null) && typeof obj !== 'function') {
+      throw new Error(`Attempted to set a manager on a non-object value. Managers can only be associated with objects or functions. Value was ${(0, _util.debugToString)(obj)}`);
+    }
+
+    if (true
+    /* DEBUG */
+    && map.has(obj)) {
+      throw new Error(`Attempted to set the same type of manager multiple times on a value. You can only associate one manager of each type with a given value. Value was ${(0, _util.debugToString)(obj)}`);
+    }
+
+    map.set(obj, factory);
+    return obj;
+  }
+
+  function getManager(map, obj) {
+    var pointer = obj;
+
+    while (pointer !== undefined && pointer !== null) {
+      var manager = map.get(pointer);
+
+      if (manager !== undefined) {
+        return manager;
+      }
+
+      pointer = getPrototypeOf$1(pointer);
+    }
+
+    return undefined;
+  }
+
+  function getManagerInstanceForOwner(owner, factory) {
+    var managers;
+
+    if (owner === undefined) {
+      managers = UNDEFINED_MANAGER_INSTANCES;
+    } else {
+      managers = OWNER_MANAGER_INSTANCES.get(owner);
+
+      if (managers === undefined) {
+        managers = new WeakMap();
+        OWNER_MANAGER_INSTANCES.set(owner, managers);
+      }
+    }
+
+    var instance = managers.get(factory);
+
+    if (instance === undefined) {
+      instance = factory(owner);
+      managers.set(factory, instance);
+    } // We know for sure that it's the correct type at this point, but TS can't know
+
+
+    return instance;
+  } ///////////
+
+
+  function setModifierManager(factory, definition) {
+    return setManager(MODIFIER_MANAGERS, factory, definition);
+  }
+
+  function getModifierManager(owner, definition) {
+    var factory = getManager(MODIFIER_MANAGERS, definition);
+
+    if (factory !== undefined) {
+      var manager = getManagerInstanceForOwner(owner, factory);
+
+      if (true
+      /* DEBUG */
+      && !isInternalModifierManager(manager) && !FROM_CAPABILITIES.has(manager.capabilities)) {
+        // TODO: This error message should make sense in both Ember and Glimmer https://github.com/glimmerjs/glimmer-vm/issues/1200
+        throw new Error(`Custom modifier managers must have a \`capabilities\` property that is the result of calling the \`capabilities('3.13' | '3.22')\` (imported via \`import { capabilities } from '@ember/modifier';\`). Received: \`${JSON.stringify(manager.capabilities)}\` for: \`${manager}\``);
+      }
+
+      return manager;
+    }
+
+    return undefined;
+  }
+
+  function setHelperManager(factory, definition) {
+    return setManager(HELPER_MANAGERS, factory, definition);
+  }
+
+  function getHelperManager(owner, definition) {
+    var factory = getManager(HELPER_MANAGERS, definition);
+
+    if (factory !== undefined) {
+      var manager = getManagerInstanceForOwner(owner, factory);
+
+      if (true
+      /* DEBUG */
+      && !isInternalHelper(manager) && !FROM_CAPABILITIES.has(manager.capabilities)) {
+        // TODO: This error message should make sense in both Ember and Glimmer https://github.com/glimmerjs/glimmer-vm/issues/1200
+        throw new Error(`Custom helper managers must have a \`capabilities\` property that is the result of calling the \`capabilities('3.23')\` (imported via \`import { capabilities } from '@ember/helper';\`). Received: \`${JSON.stringify(manager.capabilities)}\` for: \`${manager}\``);
+      }
+
+      return manager;
+    }
+
+    return undefined;
+  }
+
+  function setComponentManager(factory, obj) {
+    return setManager(COMPONENT_MANAGERS, factory, obj);
+  }
+
+  function getComponentManager(owner, definition) {
+    var factory = getManager(COMPONENT_MANAGERS, definition);
+
+    if (factory !== undefined) {
+      var manager = getManagerInstanceForOwner(owner, factory);
+
+      if (true
+      /* DEBUG */
+      && !isInternalComponentManager(manager) && !FROM_CAPABILITIES.has(manager.capabilities)) {
+        // TODO: This error message should make sense in both Ember and Glimmer https://github.com/glimmerjs/glimmer-vm/issues/1200
+        throw new Error(`Custom component managers must have a \`capabilities\` property that is the result of calling the \`capabilities('3.4' | '3.13')\` (imported via \`import { capabilities } from '@ember/component';\`). Received: \`${JSON.stringify(manager.capabilities)}\` for: \`${manager}\``);
+      }
+
+      return manager;
+    }
+
+    return undefined;
+  }
+
+  function buildCapabilities(capabilities) {
+    if (true
+    /* DEBUG */
+    ) {
+      FROM_CAPABILITIES.add(capabilities);
+      Object.freeze(capabilities);
+    }
+
+    return capabilities;
+  }
 });
 define("@glimmer/util", ["exports"], function (_exports) {
   "use strict";
@@ -54923,7 +55246,7 @@ define("@glimmer/util", ["exports"], function (_exports) {
   _exports.extractHandle = extractHandle;
   _exports.isOkHandle = isOkHandle;
   _exports.isErrHandle = isErrHandle;
-  _exports.symbol = _exports.tuple = _exports.verifySteps = _exports.logStep = _exports.endTestSteps = _exports.beginTestSteps = _exports.debugToString = _exports._WeakSet = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
+  _exports.symbol = _exports.tuple = _exports.HAS_NATIVE_SYMBOL = _exports.verifySteps = _exports.logStep = _exports.endTestSteps = _exports.beginTestSteps = _exports.debugToString = _exports._WeakSet = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
   var EMPTY_ARRAY = Object.freeze([]); // import Logger from './logger';
   // let alreadyWarned = false;
 
@@ -55079,6 +55402,17 @@ define("@glimmer/util", ["exports"], function (_exports) {
     return vals;
   }
 
+  var HAS_NATIVE_SYMBOL = function () {
+    if (typeof Symbol !== 'function') {
+      return false;
+    } // eslint-disable-next-line symbol-description
+
+
+    return typeof Symbol() === 'symbol';
+  }();
+
+  _exports.HAS_NATIVE_SYMBOL = HAS_NATIVE_SYMBOL;
+
   function keys(obj) {
     return Object.keys(obj);
   }
@@ -55104,7 +55438,7 @@ define("@glimmer/util", ["exports"], function (_exports) {
   var tuple = (...args) => args;
 
   _exports.tuple = tuple;
-  var symbol = typeof Symbol !== 'undefined' ? Symbol : key => `__${key}${Math.floor(Math.random() * Date.now())}__`;
+  var symbol = HAS_NATIVE_SYMBOL ? Symbol : key => `__${key}${Math.floor(Math.random() * Date.now())}__`;
   _exports.symbol = symbol;
 
   function strip(strings, ...args) {
@@ -55449,7 +55783,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills", "@glimmer/global-co
   _exports.isConst = isConst;
   _exports.getValue = getValue;
   _exports.trackedData = trackedData;
-  _exports.deprecateMutationsInTrackingTransaction = _exports.runInTrackingTransaction = _exports.setTrackingTransactionEnv = _exports.logTrackingStack = _exports.VOLATILE = _exports.VOLATILE_TAG = _exports.VolatileTag = _exports.updateTag = _exports.INITIAL = _exports.dirtyTag = _exports.CURRENT_TAG = _exports.CurrentTag = _exports.CONSTANT = _exports.CONSTANT_TAG = _exports.COMPUTE = _exports.combine = _exports.ALLOW_CYCLES = void 0;
+  _exports.deprecateMutationsInTrackingTransaction = _exports.endTrackingTransaction = _exports.beginTrackingTransaction = _exports.runInTrackingTransaction = _exports.setTrackingTransactionEnv = _exports.logTrackingStack = _exports.VOLATILE = _exports.VOLATILE_TAG = _exports.VolatileTag = _exports.updateTag = _exports.INITIAL = _exports.dirtyTag = _exports.CURRENT_TAG = _exports.CurrentTag = _exports.CONSTANT = _exports.CONSTANT_TAG = _exports.COMPUTE = _exports.combine = _exports.ALLOW_CYCLES = void 0;
 
   // eslint-disable-next-line @typescript-eslint/ban-types
   function indexable(input) {
@@ -55479,7 +55813,9 @@ define("@glimmer/validator", ["exports", "@ember/polyfills", "@glimmer/global-co
   }
 
   var beginTrackingTransaction;
+  _exports.beginTrackingTransaction = beginTrackingTransaction;
   var endTrackingTransaction;
+  _exports.endTrackingTransaction = endTrackingTransaction;
   var runInTrackingTransaction;
   _exports.runInTrackingTransaction = runInTrackingTransaction;
   var deprecateMutationsInTrackingTransaction;
@@ -55529,7 +55865,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills", "@glimmer/global-co
 
     _exports.setTrackingTransactionEnv = setTrackingTransactionEnv = env => (0, _polyfills.assign)(TRANSACTION_ENV, env);
 
-    beginTrackingTransaction = (_debugLabel, deprecate = false) => {
+    _exports.beginTrackingTransaction = beginTrackingTransaction = (_debugLabel, deprecate = false) => {
       CONSUMED_TAGS = CONSUMED_TAGS || new WeakMap();
       var debugLabel = _debugLabel || undefined;
       var parent = TRANSACTION_STACK[TRANSACTION_STACK.length - 1] || null;
@@ -55540,7 +55876,7 @@ define("@glimmer/validator", ["exports", "@ember/polyfills", "@glimmer/global-co
       });
     };
 
-    endTrackingTransaction = () => {
+    _exports.endTrackingTransaction = endTrackingTransaction = () => {
       if (TRANSACTION_STACK.length === 0) {
         throw new Error('attempted to close a tracking transaction, but one was not open');
       }
@@ -55577,11 +55913,16 @@ define("@glimmer/validator", ["exports", "@ember/polyfills", "@glimmer/global-co
 
     _exports.runInTrackingTransaction = runInTrackingTransaction = (fn, debugLabel) => {
       beginTrackingTransaction(debugLabel);
+      var didError = true;
 
       try {
-        fn();
+        var value = fn();
+        didError = false;
+        return value;
       } finally {
-        endTrackingTransaction();
+        if (didError !== true) {
+          endTrackingTransaction();
+        }
       }
     };
     /**
@@ -60443,7 +60784,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
     return -1;
   }
 });
-define("ember/index", ["exports", "require", "@ember/-internals/environment", "node-module", "@ember/-internals/utils", "@ember/-internals/container", "@ember/instrumentation", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/canary-features", "@ember/debug", "backburner", "@ember/-internals/console", "@ember/controller", "@ember/controller/lib/controller_mixin", "@ember/string", "@ember/service", "@ember/object", "@ember/object/compat", "@ember/object/computed", "@ember/-internals/runtime", "@ember/-internals/glimmer", "ember/version", "@ember/-internals/views", "@ember/-internals/routing", "@ember/-internals/extension-support", "@ember/error", "@ember/runloop", "@ember/-internals/error-handling", "@ember/-internals/owner", "@ember/application", "@ember/application/globals-resolver", "@ember/application/instance", "@ember/engine", "@ember/engine/instance", "@ember/polyfills", "@ember/deprecated-features", "@ember/component/template-only", "@ember/destroyable"], function (_exports, _require, _environment, _nodeModule, utils, _container, instrumentation, _meta, metal, _canaryFeatures, EmberDebug, _backburner, _console, _controller, _controller_mixin, _string, _service, _object, _compat, _computed, _runtime, _glimmer, _version, views, routing, extensionSupport, _error, runloop, _errorHandling, _owner, _application, _globalsResolver, _instance, _engine, _instance2, _polyfills, _deprecatedFeatures, _templateOnly, _destroyable) {
+define("ember/index", ["exports", "require", "@ember/-internals/environment", "node-module", "@ember/-internals/utils", "@ember/-internals/container", "@ember/instrumentation", "@ember/-internals/meta", "@ember/-internals/metal", "@ember/canary-features", "@ember/debug", "backburner", "@ember/-internals/console", "@ember/controller", "@ember/controller/lib/controller_mixin", "@ember/string", "@ember/service", "@ember/object", "@ember/object/compat", "@ember/object/computed", "@ember/-internals/runtime", "@ember/-internals/glimmer", "ember/version", "@ember/-internals/views", "@ember/-internals/routing", "@ember/-internals/extension-support", "@ember/error", "@ember/runloop", "@ember/-internals/error-handling", "@ember/-internals/owner", "@ember/application", "@ember/application/globals-resolver", "@ember/application/instance", "@ember/engine", "@ember/engine/instance", "@ember/polyfills", "@ember/deprecated-features", "@ember/component/template-only", "@glimmer/runtime", "@ember/destroyable"], function (_exports, _require, _environment, _nodeModule, utils, _container, instrumentation, _meta, metal, _canaryFeatures, EmberDebug, _backburner, _console, _controller, _controller_mixin, _string, _service, _object, _compat, _computed, _runtime, _glimmer, _version, views, routing, extensionSupport, _error, runloop, _errorHandling, _owner, _application, _globalsResolver, _instance, _engine, _instance2, _polyfills, _deprecatedFeatures, _templateOnly, _runtime2, _destroyable) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -60622,26 +60963,16 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.observer = metal.observer;
   Ember.mixin = metal.mixin;
   Ember.Mixin = metal.Mixin;
-
-  if (true
-  /* EMBER_CACHE_API */
-  ) {
-      Ember._createCache = metal.createCache;
-      Ember._cacheGetValue = metal.getValue;
-      Ember._cacheIsConst = metal.isConst;
-    }
-
-  if (true
-  /* EMBER_DESTROYABLES */
-  ) {
-      Ember._registerDestructor = _destroyable.registerDestructor;
-      Ember._unregisterDestructor = _destroyable.unregisterDestructor;
-      Ember._associateDestroyableChild = _destroyable.associateDestroyableChild;
-      Ember._assertDestroyablesDestroyed = _destroyable.assertDestroyablesDestroyed;
-      Ember._enableDestroyableTracking = _destroyable.enableDestroyableTracking;
-      Ember._isDestroying = _destroyable.isDestroying;
-      Ember._isDestroyed = _destroyable.isDestroyed;
-    }
+  Ember._createCache = metal.createCache;
+  Ember._cacheGetValue = metal.getValue;
+  Ember._cacheIsConst = metal.isConst;
+  Ember._registerDestructor = _destroyable.registerDestructor;
+  Ember._unregisterDestructor = _destroyable.unregisterDestructor;
+  Ember._associateDestroyableChild = _destroyable.associateDestroyableChild;
+  Ember._assertDestroyablesDestroyed = _destroyable.assertDestroyablesDestroyed;
+  Ember._enableDestroyableTracking = _destroyable.enableDestroyableTracking;
+  Ember._isDestroying = _destroyable.isDestroying;
+  Ember._isDestroyed = _destroyable.isDestroyed;
   /**
     A function may be assigned to `Ember.onerror` to be called when Ember
     internals encounter an error. This is useful for specialized error handling
@@ -60665,7 +60996,6 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
     @param {Exception} error the error object
     @public
   */
-
 
   Object.defineProperty(Ember, 'onerror', {
     get: _errorHandling.getOnerror,
@@ -60820,28 +61150,47 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
   Ember.Component = _glimmer.Component;
   _glimmer.Helper.helper = _glimmer.helper;
   Ember.Helper = _glimmer.Helper;
-  Ember.Checkbox = _glimmer.Checkbox;
-  Ember.TextField = _glimmer.TextField;
-  Ember.TextArea = _glimmer.TextArea;
-  Ember.LinkComponent = _glimmer.LinkComponent;
+
+  if (false
+  /* EMBER_MODERNIZED_BUILT_IN_COMPONENTS */
+  ) {
+      [['Checkbox', '@ember/component/checkbox', _glimmer.Checkbox], ['TextField', '@ember/component/text-field', _glimmer.TextField], ['TextArea', '@ember/component/text-area', _glimmer.TextArea], ['LinkComponent', '@ember/routing/link-component', _glimmer.LinkComponent], ['TextSupport', '@ember/-internals/views', views.TextSupport]].forEach(([name, path, value]) => {
+        Object.defineProperty(Ember, name, {
+          get() {
+            (true && !(false) && (0, EmberDebug.deprecate)(`Using Ember.${name} or importing from '${path}' has been deprecated, install the ` + `\`ember-legacy-built-in-components\` addon and use \`import { ${name} } from ` + `'ember-legacy-built-in-components';\` instead`, false, {
+              id: 'ember.legacy-built-in-components',
+              until: '4.0.0'
+            }));
+            return value;
+          },
+
+          configurable: true,
+          enumerable: true
+        }); // Expose a non-deprecated version for tests and the ember-legacy-built-in-components addon
+
+        Ember[`_Legacy${name}`] = value;
+      });
+    } else {
+    Ember.Checkbox = _glimmer.Checkbox;
+    Ember.TextField = _glimmer.TextField;
+    Ember.TextArea = _glimmer.TextArea;
+    Ember.LinkComponent = _glimmer.LinkComponent;
+    Ember.TextSupport = views.TextSupport;
+  }
+
   Ember._setComponentManager = _glimmer.setComponentManager;
   Ember._componentManagerCapabilities = _glimmer.capabilities;
-  Ember._setModifierManager = _glimmer.setModifierManager;
+  Ember._setModifierManager = _runtime2.setModifierManager;
   Ember._modifierManagerCapabilities = _glimmer.modifierCapabilities;
-
-  if (true
-  /* EMBER_GLIMMER_SET_COMPONENT_TEMPLATE */
-  ) {
-      Ember._getComponentTemplate = _glimmer.getComponentTemplate;
-      Ember._setComponentTemplate = _glimmer.setComponentTemplate;
-      Ember._templateOnlyComponent = _templateOnly.default;
-    }
+  Ember._getComponentTemplate = _runtime2.getComponentTemplate;
+  Ember._setComponentTemplate = _runtime2.setComponentTemplate;
+  Ember._templateOnlyComponent = _templateOnly.default;
 
   if (true
   /* EMBER_GLIMMER_HELPER_MANAGER */
   ) {
       Ember._helperManagerCapabilities = _glimmer.helperCapabilities;
-      Ember._setHelperManager = _glimmer.setHelperManager;
+      Ember._setHelperManager = _runtime2.setHelperManager;
     }
 
   if (true
@@ -60923,7 +61272,6 @@ define("ember/index", ["exports", "require", "@ember/-internals/environment", "n
     getChildViews: views.getChildViews,
     isSerializationFirstNode: _glimmer.isSerializationFirstNode
   };
-  Ember.TextSupport = views.TextSupport;
   Ember.ComponentLookup = views.ComponentLookup;
   Ember.EventDispatcher = views.EventDispatcher; // ****@ember/-internals/routing****
 
@@ -60993,7 +61341,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.23.1";
+  var _default = "3.24.0";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {
