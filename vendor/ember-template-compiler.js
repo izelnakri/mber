@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.23.1
+ * @version   3.24.0
  */
 
 /*globals process */
@@ -1078,10 +1078,21 @@ define("@ember/-internals/utils/index", ["exports", "@glimmer/util", "@ember/deb
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
+    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
+    (true && !(false) && (0, _debug.deprecate)("Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.", false, {
+      id: 'ember-utils.try-invoke',
+      until: '4.0.0',
+      for: 'ember-source',
+      since: {
+        available: '3.24.0'
+      },
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
+    }));
+
     if (canInvoke(obj, methodName)) {
       var method = obj[methodName];
       return method.apply(obj, args);
@@ -1355,7 +1366,7 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     value: true
   });
   _exports.isEnabled = isEnabled;
-  _exports.EMBER_GLIMMER_INVOKE_HELPER = _exports.EMBER_GLIMMER_HELPER_MANAGER = _exports.EMBER_DESTROYABLES = _exports.EMBER_CACHE_API = _exports.EMBER_GLIMMER_IN_ELEMENT = _exports.EMBER_ROUTING_MODEL_ARG = _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = _exports.EMBER_NAMED_BLOCKS = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
+  _exports.EMBER_MODERNIZED_BUILT_IN_COMPONENTS = _exports.EMBER_GLIMMER_INVOKE_HELPER = _exports.EMBER_GLIMMER_HELPER_MANAGER = _exports.EMBER_NAMED_BLOCKS = _exports.EMBER_IMPROVED_INSTRUMENTATION = _exports.EMBER_LIBRARIES_ISREGISTERED = _exports.FEATURES = _exports.DEFAULT_FEATURES = void 0;
 
   /**
     Set `EmberENV.FEATURES` in your application's `config/environment.js` file
@@ -1371,13 +1382,9 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
     EMBER_LIBRARIES_ISREGISTERED: false,
     EMBER_IMPROVED_INSTRUMENTATION: false,
     EMBER_NAMED_BLOCKS: false,
-    EMBER_GLIMMER_SET_COMPONENT_TEMPLATE: true,
-    EMBER_ROUTING_MODEL_ARG: true,
-    EMBER_GLIMMER_IN_ELEMENT: true,
-    EMBER_CACHE_API: true,
-    EMBER_DESTROYABLES: true,
     EMBER_GLIMMER_HELPER_MANAGER: true,
-    EMBER_GLIMMER_INVOKE_HELPER: true
+    EMBER_GLIMMER_INVOKE_HELPER: true,
+    EMBER_MODERNIZED_BUILT_IN_COMPONENTS: false
   };
   /**
     The hash of enabled Canary features. Add to this, any canary features
@@ -1410,10 +1417,10 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.FEATURES = FEATURES;
 
   function isEnabled(feature) {
-    var featureValue = FEATURES[feature];
+    var value = FEATURES[feature];
 
-    if (featureValue === true || featureValue === false) {
-      return featureValue;
+    if (value === true || value === false) {
+      return value;
     } else if (_environment.ENV.ENABLE_OPTIONAL_FEATURES) {
       return true;
     } else {
@@ -1435,20 +1442,12 @@ define("@ember/canary-features/index", ["exports", "@ember/-internals/environmen
   _exports.EMBER_IMPROVED_INSTRUMENTATION = EMBER_IMPROVED_INSTRUMENTATION;
   var EMBER_NAMED_BLOCKS = featureValue(FEATURES.EMBER_NAMED_BLOCKS);
   _exports.EMBER_NAMED_BLOCKS = EMBER_NAMED_BLOCKS;
-  var EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = featureValue(FEATURES.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE);
-  _exports.EMBER_GLIMMER_SET_COMPONENT_TEMPLATE = EMBER_GLIMMER_SET_COMPONENT_TEMPLATE;
-  var EMBER_ROUTING_MODEL_ARG = featureValue(FEATURES.EMBER_ROUTING_MODEL_ARG);
-  _exports.EMBER_ROUTING_MODEL_ARG = EMBER_ROUTING_MODEL_ARG;
-  var EMBER_GLIMMER_IN_ELEMENT = featureValue(FEATURES.EMBER_GLIMMER_IN_ELEMENT);
-  _exports.EMBER_GLIMMER_IN_ELEMENT = EMBER_GLIMMER_IN_ELEMENT;
-  var EMBER_CACHE_API = featureValue(FEATURES.EMBER_CACHE_API);
-  _exports.EMBER_CACHE_API = EMBER_CACHE_API;
-  var EMBER_DESTROYABLES = featureValue(FEATURES.EMBER_DESTROYABLES);
-  _exports.EMBER_DESTROYABLES = EMBER_DESTROYABLES;
   var EMBER_GLIMMER_HELPER_MANAGER = featureValue(FEATURES.EMBER_GLIMMER_HELPER_MANAGER);
   _exports.EMBER_GLIMMER_HELPER_MANAGER = EMBER_GLIMMER_HELPER_MANAGER;
   var EMBER_GLIMMER_INVOKE_HELPER = featureValue(FEATURES.EMBER_GLIMMER_INVOKE_HELPER);
   _exports.EMBER_GLIMMER_INVOKE_HELPER = EMBER_GLIMMER_INVOKE_HELPER;
+  var EMBER_MODERNIZED_BUILT_IN_COMPONENTS = featureValue(FEATURES.EMBER_MODERNIZED_BUILT_IN_COMPONENTS);
+  _exports.EMBER_MODERNIZED_BUILT_IN_COMPONENTS = EMBER_MODERNIZED_BUILT_IN_COMPONENTS;
 });
 define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment", "@ember/error", "@ember/debug/lib/deprecate", "@ember/debug/lib/testing", "@ember/debug/lib/warn", "@ember/debug/lib/capture-render-tree"], function (_exports, _browserEnvironment, _error, _deprecate2, _testing, _warn2, _captureRenderTree) {
   "use strict";
@@ -1626,9 +1625,7 @@ define("@ember/debug/index", ["exports", "@ember/-internals/browser-environment"
     });
     /**
       Display a debug notice.
-         Calls to this function are removed from production builds, so they can be
-      freely added for documentation and debugging purposes without worries of
-      incuring any performance penalty.
+         Calls to this function are not invoked in production builds.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -1829,7 +1826,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.missingOptionsUntilDeprecation = _exports.missingOptionsIdDeprecation = _exports.missingOptionsDeprecation = _exports.registerHandler = _exports.default = void 0;
+  _exports.SINCE_MISSING_DEPRECATIONS = _exports.FOR_MISSING_DEPRECATIONS = _exports.missingOptionsSinceDeprecation = _exports.missingOptionsForDeprecation = _exports.missingOptionsUntilDeprecation = _exports.missingOptionsIdDeprecation = _exports.missingOptionsDeprecation = _exports.registerHandler = _exports.default = void 0;
 
   /**
    @module @ember/debug
@@ -1884,7 +1881,24 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
   var missingOptionsUntilDeprecation;
   _exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
 
+  var missingOptionsForDeprecation = function missingOptionsForDeprecation() {
+    return '';
+  };
+
+  _exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
+
+  var missingOptionsSinceDeprecation = function missingOptionsSinceDeprecation() {
+    return '';
+  };
+
+  _exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
+
   var deprecate = function deprecate() {};
+
+  var FOR_MISSING_DEPRECATIONS = new Set();
+  _exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
+  var SINCE_MISSING_DEPRECATIONS = new Set();
+  _exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
 
   if (true
   /* DEBUG */
@@ -1963,6 +1977,14 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
     _exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
     _exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
     _exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+
+    _exports.missingOptionsForDeprecation = missingOptionsForDeprecation = function missingOptionsForDeprecation(id) {
+      return "When calling `deprecate` you must provide `for` in options. Missing options.for in \"" + id + "\" deprecation";
+    };
+
+    _exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = function missingOptionsSinceDeprecation(id) {
+      return "When calling `deprecate` you must provide `since` in options. Missing options.since in \"" + id + "\" deprecation";
+    };
     /**
      @module @ember/debug
      @public
@@ -1984,17 +2006,45 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
         "view.helper.select".
       @param {string} options.until The version of Ember when this deprecation
         warning will be removed.
+      @param {String} options.for A namespace for the deprecation, usually the package name
+      @param {Object} options.since Describes when the deprecation became available and enabled.
       @param {String} [options.url] An optional url to the transition guide on the
-        emberjs.com website.
+            emberjs.com website.
       @static
       @public
       @since 1.0.0
     */
 
+
     deprecate = function deprecate(message, test, options) {
       (0, _index.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
       (0, _index.assert)(missingOptionsIdDeprecation, Boolean(options.id));
       (0, _index.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+
+      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
+        FOR_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
+          id: 'ember-source.deprecation-without-for',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
+        SINCE_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
+          id: 'ember-source.deprecation-without-since',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
       (0, _handlers.invoke)('deprecate', message, test, options);
     };
   }
@@ -2349,7 +2399,11 @@ define("@ember/polyfills/lib/merge", ["exports", "@ember/debug"], function (_exp
     (true && !(false) && (0, _debug.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
       id: 'ember-polyfills.deprecate-merge',
       until: '4.0.0',
-      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
+      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge',
+      for: 'ember-source',
+      since: {
+        enabled: '3.6.0-beta.1'
+      }
     }));
 
     if (updates === null || typeof updates !== 'object') {
@@ -3662,8 +3716,8 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       this.locals = (0, _util.dict)();
 
       for (var _iterator = (0, _emberBabel.createForOfIteratorHelperLoose)(locals), _step; !(_step = _iterator()).done;) {
-        var local = _step.value;
-        this.locals[local] = parent.top.symbol(local);
+        var _local = _step.value;
+        this.locals[_local] = parent.top.symbol(_local);
       }
     }
 
@@ -6060,18 +6114,32 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
 
   _exports.defaultId = defaultId;
   var defaultOptions = {
-    id: defaultId,
-    meta: {}
+    id: defaultId
   };
+  /*
+   * Compile a string into a template javascript string.
+   *
+   * Example usage:
+   *     import { precompile } from '@glimmer/compiler';
+   *     import { templateFactory } from 'glimer-runtime';
+   *     let templateJs = precompile("Howdy {{name}}");
+   *     let factory = templateFactory(new Function("return " + templateJs)());
+   *     let template = factory.create(env);
+   *
+   * @method precompile
+   * @param {string} string a Glimmer template string
+   * @return {string} a template javascript string
+   */
 
   function precompile(string, options) {
     if (options === void 0) {
       options = defaultOptions;
     }
 
+    var _a;
+
     var ast = (0, _syntax.preprocess)(string, options);
-    var _options = options,
-        meta = _options.meta;
+    var moduleName = (_a = options.meta) === null || _a === void 0 ? void 0 : _a.moduleName;
 
     var _TemplateCompiler$com = TemplateCompiler.compile(ast, string, options),
         block = _TemplateCompiler$com.block;
@@ -6079,9 +6147,9 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
     var idFn = options.id || defaultId;
     var blockJSON = JSON.stringify(block.toJSON());
     var templateJSONObject = {
-      id: idFn(JSON.stringify(meta) + blockJSON),
+      id: idFn(moduleName + blockJSON),
       block: blockJSON,
-      meta: meta
+      moduleName: moduleName !== null && moduleName !== void 0 ? moduleName : '(unknown template module)'
     }; // JSON is javascript
 
     return JSON.stringify(templateJSONObject);
@@ -6098,8 +6166,8 @@ define("@glimmer/compiler", ["exports", "ember-babel", "node-module", "@glimmer/
       var out = [];
 
       for (var _iterator2 = (0, _emberBabel.createForOfIteratorHelperLoose)(this.program.statements), _step2; !(_step2 = _iterator2()).done;) {
-        var statement = _step2.value;
-        out.push(this.formatOpcode(statement));
+        var _statement = _step2.value;
+        out.push(this.formatOpcode(_statement));
       }
 
       return out;
@@ -6611,19 +6679,20 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
     }
 
     for (var _i = 0, _args = args; _i < _args.length; _i++) {
-      var arg = _args[_i];
+      var _arg = _args[_i];
 
-      switch (arg[0]) {
+      switch (_arg[0]) {
         case 'attrs':
           {
-            var rest = arg.slice(1);
+            var rest = _arg.slice(1);
+
             out.attrs = rest.map(normalizeAttr);
             break;
           }
 
         case 'modifiers':
           {
-            var _rest = arg.slice(1);
+            var _rest = _arg.slice(1);
 
             out.modifiers = _rest.map(normalizeModifier);
             break;
@@ -6631,7 +6700,7 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
 
         case 'body':
           {
-            var _rest2 = arg.slice(1);
+            var _rest2 = _arg.slice(1);
 
             out.children = _rest2;
             break;
@@ -6639,7 +6708,7 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
 
         case 'comments':
           {
-            var _rest3 = arg.slice(1);
+            var _rest3 = _arg.slice(1);
 
             out.comments = _rest3;
             break;
@@ -6647,7 +6716,7 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
 
         case 'as':
           {
-            var _rest4 = arg.slice(1);
+            var _rest4 = _arg.slice(1);
 
             out.blockParams = _rest4;
             break;
@@ -6655,7 +6724,7 @@ define("@glimmer/syntax", ["exports", "ember-babel", "@glimmer/util", "simple-ht
 
         case 'loc':
           {
-            var _rest5 = arg[1];
+            var _rest5 = _arg[1];
             out.loc = _rest5;
             break;
           }
@@ -8938,7 +9007,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
   _exports.extractHandle = extractHandle;
   _exports.isOkHandle = isOkHandle;
   _exports.isErrHandle = isErrHandle;
-  _exports.symbol = _exports.tuple = _exports.verifySteps = _exports.logStep = _exports.endTestSteps = _exports.beginTestSteps = _exports.debugToString = _exports._WeakSet = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
+  _exports.symbol = _exports.tuple = _exports.HAS_NATIVE_SYMBOL = _exports.verifySteps = _exports.logStep = _exports.endTestSteps = _exports.beginTestSteps = _exports.debugToString = _exports._WeakSet = _exports.SERIALIZATION_FIRST_NODE_STRING = _exports.Stack = _exports.DictSet = _exports.EMPTY_ARRAY = void 0;
   var EMPTY_ARRAY = Object.freeze([]); // import Logger from './logger';
   // let alreadyWarned = false;
 
@@ -9100,6 +9169,17 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
     return vals;
   }
 
+  var HAS_NATIVE_SYMBOL = function () {
+    if (typeof Symbol !== 'function') {
+      return false;
+    } // eslint-disable-next-line symbol-description
+
+
+    return typeof Symbol() === 'symbol';
+  }();
+
+  _exports.HAS_NATIVE_SYMBOL = HAS_NATIVE_SYMBOL;
+
   function keys(obj) {
     return Object.keys(obj);
   }
@@ -9135,7 +9215,7 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
   };
 
   _exports.tuple = tuple;
-  var symbol = typeof Symbol !== 'undefined' ? Symbol : function (key) {
+  var symbol = HAS_NATIVE_SYMBOL ? Symbol : function (key) {
     return "__" + key + Math.floor(Math.random() * Date.now()) + "__";
   };
   _exports.symbol = symbol;
@@ -9166,16 +9246,18 @@ define("@glimmer/util", ["exports", "ember-babel"], function (_exports, _emberBa
     var min = Infinity;
 
     for (var _iterator = (0, _emberBabel.createForOfIteratorHelperLoose)(lines), _step; !(_step = _iterator()).done;) {
-      var line = _step.value;
-      var leading = line.match(/^\s*/)[0].length;
-      min = Math.min(min, leading);
+      var _line2 = _step.value;
+
+      var _leading = _line2.match(/^\s*/)[0].length;
+
+      min = Math.min(min, _leading);
     }
 
     var stripped = [];
 
     for (var _iterator2 = (0, _emberBabel.createForOfIteratorHelperLoose)(lines), _step2; !(_step2 = _iterator2()).done;) {
-      var _line = _step2.value;
-      stripped.push(_line.slice(min));
+      var _line3 = _step2.value;
+      stripped.push(_line3.slice(min));
     }
 
     return stripped.join('\n');
@@ -12828,13 +12910,21 @@ define("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
                     (true && !(false) && (0, _debug.deprecate)(deprecationMessage(node, eventName, value.chars), false, {
                       id: 'ember-component.send-action',
                       until: '4.0.0',
-                      url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action'
+                      url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action',
+                      for: 'ember-source',
+                      since: {
+                        enabled: '3.4.0'
+                      }
                     }));
                   } else if (value.type === 'MustacheStatement' && value.path.type === 'StringLiteral') {
                     (true && !(false) && (0, _debug.deprecate)(deprecationMessage(node, eventName, value.path.original), false, {
                       id: 'ember-component.send-action',
                       until: '4.0.0',
-                      url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action'
+                      url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action',
+                      for: 'ember-source',
+                      since: {
+                        enabled: '3.4.0'
+                      }
                     }));
                   }
                 }
@@ -12851,7 +12941,11 @@ define("ember-template-compiler/lib/plugins/deprecate-send-action", ["exports", 
                 (true && !(false) && (0, _debug.deprecate)(deprecationMessage(node, pair.key, pair.value.original), false, {
                   id: 'ember-component.send-action',
                   until: '4.0.0',
-                  url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action'
+                  url: 'https://emberjs.com/deprecations/v3.x#toc_ember-component-send-action',
+                  for: 'ember-source',
+                  since: {
+                    enabled: '3.4.0'
+                  }
                 }));
               }
             });
@@ -13459,36 +13553,29 @@ define("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
           if (!(0, _utils.isPath)(node.path)) return;
 
           if (node.path.original === 'in-element') {
-            if (true
-            /* EMBER_GLIMMER_IN_ELEMENT */
-            ) {
-                var originalValue = node.params[0];
+            var originalValue = node.params[0];
 
-                if (originalValue && !env.isProduction) {
-                  var subExpr = b.sexpr('-in-el-null', [originalValue]);
-                  node.params.shift();
-                  node.params.unshift(subExpr);
-                }
-
-                node.hash.pairs.forEach(function (pair) {
-                  if (pair.key === 'insertBefore') {
-                    (true && !(pair.value.type === 'NullLiteral' || pair.value.type === 'UndefinedLiteral') && (0, _debug.assert)("Can only pass null to insertBefore in in-element, received: " + JSON.stringify(pair.value), pair.value.type === 'NullLiteral' || pair.value.type === 'UndefinedLiteral'));
-                  }
-                });
-              } else {
-              (true && !(false) && (0, _debug.assert)(assertMessage(moduleName, node)));
+            if (originalValue && !env.isProduction) {
+              var subExpr = b.sexpr('-in-el-null', [originalValue]);
+              node.params.shift();
+              node.params.unshift(subExpr);
             }
-          } else if (node.path.original === '-in-element') {
-            if (true
-            /* EMBER_GLIMMER_IN_ELEMENT */
-            ) {
-                var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
-                (true && !(false) && (0, _debug.deprecate)("The use of the private `{{-in-element}}` is deprecated, please refactor to the public `{{in-element}}`. " + sourceInformation, false, {
-                  id: 'glimmer.private-in-element',
-                  until: '3.25.0'
-                }));
-              }
 
+            node.hash.pairs.forEach(function (pair) {
+              if (pair.key === 'insertBefore') {
+                (true && !(pair.value.type === 'NullLiteral' || pair.value.type === 'UndefinedLiteral') && (0, _debug.assert)("Can only pass null to insertBefore in in-element, received: " + JSON.stringify(pair.value), pair.value.type === 'NullLiteral' || pair.value.type === 'UndefinedLiteral'));
+              }
+            });
+          } else if (node.path.original === '-in-element') {
+            var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
+            (true && !(false) && (0, _debug.deprecate)("The use of the private `{{-in-element}}` is deprecated, please refactor to the public `{{in-element}}`. " + sourceInformation, false, {
+              id: 'glimmer.private-in-element',
+              until: '3.25.0',
+              for: 'ember-source',
+              since: {
+                enabled: '3.20.0'
+              }
+            }));
             node.path.original = 'in-element';
             node.path.parts = ['in-element']; // replicate special hash arguments added here:
             // https://github.com/glimmerjs/glimmer-vm/blob/ba9b37d44b85fa1385eeeea71910ff5798198c8e/packages/%40glimmer/syntax/lib/parser/handlebars-node-visitors.ts#L340-L363
@@ -13511,11 +13598,6 @@ define("ember-template-compiler/lib/plugins/transform-in-element", ["exports", "
         }
       }
     };
-  }
-
-  function assertMessage(moduleName, node) {
-    var sourceInformation = (0, _calculateLocationDisplay.default)(moduleName, node.loc);
-    return "The {{in-element}} helper cannot be used. " + sourceInformation;
   }
 });
 define("ember-template-compiler/lib/plugins/transform-link-to", ["exports", "@ember/debug", "ember-template-compiler/lib/system/calculate-location-display", "ember-template-compiler/lib/plugins/utils"], function (_exports, _debug, _calculateLocationDisplay, _utils) {
@@ -13891,20 +13973,23 @@ define("ember-template-compiler/lib/plugins/utils", ["exports", "ember-babel"], 
     var node = {
       enter: function enter(node) {
         for (var _iterator = (0, _emberBabel.createForOfIteratorHelperLoose)(node.blockParams), _step; !(_step = _iterator()).done;) {
-          var param = _step.value;
-          var value = locals.get(param) || 0;
-          locals.set(param, value + 1);
+          var _param = _step.value;
+
+          var _value = locals.get(_param) || 0;
+
+          locals.set(_param, _value + 1);
         }
       },
       exit: function exit(node) {
         for (var _iterator2 = (0, _emberBabel.createForOfIteratorHelperLoose)(node.blockParams), _step2; !(_step2 = _iterator2()).done;) {
-          var param = _step2.value;
-          var value = locals.get(param) - 1;
+          var _param2 = _step2.value;
 
-          if (value === 0) {
-            locals.delete(param);
+          var _value2 = locals.get(_param2) - 1;
+
+          if (_value2 === 0) {
+            locals.delete(_param2);
           } else {
-            locals.set(param, value);
+            locals.set(_param2, _value2);
           }
         }
       }
@@ -14267,7 +14352,7 @@ define("ember/version", ["exports"], function (_exports) {
     value: true
   });
   _exports.default = void 0;
-  var _default = "3.23.1";
+  var _default = "3.24.0";
   _exports.default = _default;
 });
 define("node-module/index", ["exports"], function (_exports) {

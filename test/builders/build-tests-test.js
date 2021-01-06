@@ -134,8 +134,8 @@ test.serial('buildTests(custom) works', async (t) => {
   const testsJSBuffer = await fs.readFile(TESTS_JS_OUTPUT_PATH);
   const testsJSCode = testsJSBuffer.toString().trim();
 
-  t.true(testsJSBuffer.length < TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
-  t.true(stats.size < TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(testsJSBuffer.length <= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
+  t.true(stats.size <= TESTS_JS_DEFAULT_TARGET_BYTE_SIZE);
   t.true(codeIncludesAMDModule(testsJSCode, 'coolapp/tests/test-helper'));
   t.true(
     codeIncludesAMDModule(testsJSCode, 'coolapp/src/ui/components/welcome-page/integration-test')
