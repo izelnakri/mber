@@ -2885,6 +2885,7 @@ var hasOwn = require('has');
 var $concat = bind.call(Function.call, Array.prototype.concat);
 var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
 var $replace = bind.call(Function.call, String.prototype.replace);
+var $strSlice = bind.call(Function.call, String.prototype.slice);
 /* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
 
 var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
@@ -2892,6 +2893,15 @@ var reEscapeChar = /\\(\\)?/g;
 /** Used to match backslashes in property paths. */
 
 var stringToPath = function stringToPath(string) {
+  var first = $strSlice(string, 0, 1);
+  var last = $strSlice(string, -1);
+
+  if (first === '%' && last !== '%') {
+    throw new $SyntaxError('invalid intrinsic syntax, expected closing `%`');
+  } else if (last === '%' && first !== '%') {
+    throw new $SyntaxError('invalid intrinsic syntax, expected opening `%`');
+  }
+
   var result = [];
   $replace(string, rePropName, function (match, number, quote, subString) {
     result[result.length] = quote ? $replace(subString, reEscapeChar, '$1') : number || match;
@@ -2951,6 +2961,12 @@ module.exports = function GetIntrinsic(name, allowMissing) {
 
   for (var i = 1, isOwn = true; i < parts.length; i += 1) {
     var part = parts[i];
+    var first = $strSlice(part, 0, 1);
+    var last = $strSlice(part, -1);
+
+    if ((first === '"' || first === "'" || first === '`' || last === '"' || last === "'" || last === '`') && first !== last) {
+      throw new $SyntaxError('property names with quotes must have matching quotes');
+    }
 
     if (part === 'constructor' || !isOwn) {
       skipFurtherCaching = true;
@@ -2962,20 +2978,23 @@ module.exports = function GetIntrinsic(name, allowMissing) {
     if (hasOwn(INTRINSICS, intrinsicRealName)) {
       value = INTRINSICS[intrinsicRealName];
     } else if (value != null) {
+      if (!(part in value)) {
+        if (!allowMissing) {
+          throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
+        }
+
+        return void undefined;
+      }
+
       if ($gOPD && i + 1 >= parts.length) {
         var desc = $gOPD(value, part);
-        isOwn = !!desc;
-
-        if (!allowMissing && !(part in value)) {
-          throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
-        } // By convention, when a data property is converted to an accessor
+        isOwn = !!desc; // By convention, when a data property is converted to an accessor
         // property to emulate a data property that does not suffer from
         // the override mistake, that accessor's getter is marked with
         // an `originalValue` property. Here, when we detect this, we
         // uphold the illusion by pretending to see that original data
         // property, i.e., returning the value rather than the getter
         // itself.
-
 
         if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
           value = desc.get;
@@ -5594,6 +5613,378 @@ var environment = createCommonjsModule(function (module, exports) {
     return ENV;
   }
 });
+var browserEnvironment = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
+
+  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
+  exports.hasDOM = hasDom;
+  const window = hasDom ? self : null;
+  exports.window = window;
+  const location$1 = hasDom ? self.location : null;
+  exports.location = location$1;
+  const history$1 = hasDom ? self.history : null;
+  exports.history = history$1;
+  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
+  exports.userAgent = userAgent;
+  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
+  exports.isChrome = isChrome;
+  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
+  exports.isFirefox = isFirefox;
+});
+var error = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /**
+   @module @ember/error
+  */
+
+  /**
+    The JavaScript Error object used by Ember.assert.
+  
+    @class Error
+    @namespace Ember
+    @extends Error
+    @constructor
+    @public
+  */
+
+  var _default = Error;
+  exports.default = _default;
+});
+var handlers = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
+  let HANDLERS = {};
+  exports.HANDLERS = HANDLERS;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let invoke = () => {};
+
+  exports.invoke = invoke;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+      let nextHandler = HANDLERS[type] || (() => {});
+
+      HANDLERS[type] = (message, options) => {
+        callback(message, options, nextHandler);
+      };
+    };
+
+    exports.invoke = invoke = function invoke(type, message, test, options) {
+      if (test) {
+        return;
+      }
+
+      let handlerForType = HANDLERS[type];
+
+      if (handlerForType) {
+        handlerForType(message, options);
+      }
+    };
+  }
+});
+var deprecate_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
+  /**
+   @module @ember/debug
+   @public
+  */
+
+  /**
+    Allows for runtime registration of handler functions that override the default deprecation behavior.
+    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
+    The following example demonstrates its usage by registering a handler that throws an error if the
+    message contains the word "should", otherwise defers to the default handler.
+  
+    ```javascript
+    import { registerDeprecationHandler } from '@ember/debug';
+  
+    registerDeprecationHandler((message, options, next) => {
+      if (message.indexOf('should') !== -1) {
+        throw new Error(`Deprecation message with should: ${message}`);
+      } else {
+        // defer to whatever handler was registered before this one
+        next(message, options);
+      }
+    });
+    ```
+  
+    The handler function takes the following arguments:
+  
+    <ul>
+      <li> <code>message</code> - The message received from the deprecation call.</li>
+      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
+        <ul>
+          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
+          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
+        </ul>
+      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+    </ul>
+  
+    @public
+    @static
+    @method registerDeprecationHandler
+    @for @ember/debug
+    @param handler {Function} A function to handle deprecation calls.
+    @since 2.1.0
+  */
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  let missingOptionsUntilDeprecation;
+  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
+
+  let deprecate = () => {};
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('deprecate', handler);
+    };
+
+    let formatMessage = function formatMessage(_message, options) {
+      let message = _message;
+
+      if (options && options.id) {
+        message = message + ` [deprecation id: ${options.id}]`;
+      }
+
+      if (options && options.url) {
+        message += ` See ${options.url} for more details.`;
+      }
+
+      return message;
+    };
+
+    registerHandler(function logDeprecationToConsole(message, options) {
+      let updatedMessage = formatMessage(message, options);
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+    });
+    let captureErrorForStack;
+
+    if (new Error().stack) {
+      captureErrorForStack = () => new Error();
+    } else {
+      captureErrorForStack = () => {
+        try {
+          __fail__.fail();
+        } catch (e) {
+          return e;
+        }
+      };
+    }
+
+    registerHandler(function logDeprecationStackTrace(message, options, next) {
+      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+        let stackStr = '';
+        let error = captureErrorForStack();
+        let stack;
+
+        if (error.stack) {
+          if (error['arguments']) {
+            // Chrome
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack.shift();
+          } else {
+            // Firefox
+            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+          }
+
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+        }
+
+        let updatedMessage = formatMessage(message, options);
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+      } else {
+        next(message, options);
+      }
+    });
+    registerHandler(function raiseOnDeprecation(message, options, next) {
+      if (environment.ENV.RAISE_ON_DEPRECATION) {
+        let updatedMessage = formatMessage(message);
+        throw new Error(updatedMessage);
+      } else {
+        next(message, options);
+      }
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+    /**
+     @module @ember/debug
+     @public
+     */
+
+    /**
+      Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only).
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         @method deprecate
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+      @param {Object} options
+      @param {String} options.id A unique id for this deprecation. The id can be
+        used by Ember debugging tools to change the behavior (raise, log or silence)
+        for that specific deprecation. The id should be namespaced by dots, e.g.
+        "view.helper.select".
+      @param {string} options.until The version of Ember when this deprecation
+        warning will be removed.
+      @param {String} [options.url] An optional url to the transition guide on the
+        emberjs.com website.
+      @static
+      @public
+      @since 1.0.0
+    */
+
+    deprecate = function deprecate(message, test, options) {
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
+      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+      (0, handlers.invoke)('deprecate', message, test, options);
+    };
+  }
+
+  var _default = deprecate;
+  exports.default = _default;
+});
+var isTesting_1 = isTesting;
+var setTesting_1 = setTesting;
+let testing = false;
+
+function isTesting() {
+  return testing;
+}
+
+function setTesting(value) {
+  testing = Boolean(value);
+}
+
+var testing_1 = /*#__PURE__*/Object.defineProperty({
+  isTesting: isTesting_1,
+  setTesting: setTesting_1
+}, '__esModule', {
+  value: true
+});
+var warn_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let warn = () => {};
+
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+
+  if (es5.DEBUG) {
+    /**
+      Allows for runtime registration of handler functions that override the default warning behavior.
+      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+      default warning behavior.
+         ```javascript
+      import { registerWarnHandler } from '@ember/debug';
+         // next is not called, so no warnings get the default behavior
+      registerWarnHandler(() => {});
+      ```
+         The handler function takes the following arguments:
+         <ul>
+        <li> <code>message</code> - The message received from the warn call. </li>
+        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+          <ul>
+            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+          </ul>
+        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+      </ul>
+         @public
+      @static
+      @method registerWarnHandler
+      @for @ember/debug
+      @param handler {Function} A function to handle warnings.
+      @since 2.1.0
+    */
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('warn', handler);
+    };
+
+    registerHandler(function logWarning(message) {
+      /* eslint-disable no-console */
+      console.warn(`WARNING: ${message}`);
+      /* eslint-enable no-console */
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+    /**
+      Display a warning with the provided message.
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         ```javascript
+      import { warn } from '@ember/debug';
+      import tomsterCount from './tomster-counter'; // a module in my project
+         // Log a warning if we have more than 3 tomsters
+      warn('Too many tomsters!', tomsterCount <= 3, {
+        id: 'ember-debug.too-many-tomsters'
+      });
+      ```
+         @method warn
+      @for @ember/debug
+      @static
+      @param {String} message A warning to display.
+      @param {Boolean} test An optional boolean. If falsy, the warning
+        will be displayed.
+      @param {Object} options An object that can be used to pass a unique
+        `id` for this warning.  The `id` can be used by Ember debugging tools
+        to change the behavior (raise, log, or silence) for that specific warning.
+        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+      @public
+      @since 1.0.0
+    */
+
+    warn = function warn(message, test, options) {
+      if (arguments.length === 2 && typeof test === 'object') {
+        options = test;
+        test = false;
+      }
+
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
+      (0, handlers.invoke)('warn', message, test, options);
+    };
+  }
+
+  var _default = warn;
+  exports.default = _default;
+});
 var arrayUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -5602,7 +5993,7 @@ var arrayUtils = createCommonjsModule(function (module, exports) {
 });
 var debugAssert_1 = debugAssert;
 var prodAssert_1 = prodAssert;
-var deprecate_1 = deprecate; // import Logger from './logger';
+var deprecate_1$1 = deprecate; // import Logger from './logger';
 // let alreadyWarned = false;
 
 function debugAssert(test, msg) {
@@ -5625,7 +6016,7 @@ var _default = debugAssert;
 var assert = /*#__PURE__*/Object.defineProperty({
   debugAssert: debugAssert_1,
   prodAssert: prodAssert_1,
-  deprecate: deprecate_1,
+  deprecate: deprecate_1$1,
   default: _default
 }, '__esModule', {
   value: true
@@ -6615,427 +7006,6 @@ var es5$1 = createCommonjsModule(function (module, exports) {
     console.trace(desc + ' :: ' + JSON.stringify(value) + ' (' + value + ')');
   }
 });
-var browserEnvironment = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
-
-  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
-  exports.hasDOM = hasDom;
-  const window = hasDom ? self : null;
-  exports.window = window;
-  const location$1 = hasDom ? self.location : null;
-  exports.location = location$1;
-  const history$1 = hasDom ? self.history : null;
-  exports.history = history$1;
-  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
-  exports.userAgent = userAgent;
-  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
-  exports.isChrome = isChrome;
-  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
-  exports.isFirefox = isFirefox;
-});
-var error = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /**
-   @module @ember/error
-  */
-
-  /**
-    The JavaScript Error object used by Ember.assert.
-  
-    @class Error
-    @namespace Ember
-    @extends Error
-    @constructor
-    @public
-  */
-
-  var _default = Error;
-  exports.default = _default;
-});
-var handlers = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
-  let HANDLERS = {};
-  exports.HANDLERS = HANDLERS;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let invoke = () => {};
-
-  exports.invoke = invoke;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
-      let nextHandler = HANDLERS[type] || (() => {});
-
-      HANDLERS[type] = (message, options) => {
-        callback(message, options, nextHandler);
-      };
-    };
-
-    exports.invoke = invoke = function invoke(type, message, test, options) {
-      if (test) {
-        return;
-      }
-
-      let handlerForType = HANDLERS[type];
-
-      if (handlerForType) {
-        handlerForType(message, options);
-      }
-    };
-  }
-});
-var deprecate_1$1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.SINCE_MISSING_DEPRECATIONS = exports.FOR_MISSING_DEPRECATIONS = exports.missingOptionsSinceDeprecation = exports.missingOptionsForDeprecation = exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
-  /**
-   @module @ember/debug
-   @public
-  */
-
-  /**
-    Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
-    The following example demonstrates its usage by registering a handler that throws an error if the
-    message contains the word "should", otherwise defers to the default handler.
-  
-    ```javascript
-    import { registerDeprecationHandler } from '@ember/debug';
-  
-    registerDeprecationHandler((message, options, next) => {
-      if (message.indexOf('should') !== -1) {
-        throw new Error(`Deprecation message with should: ${message}`);
-      } else {
-        // defer to whatever handler was registered before this one
-        next(message, options);
-      }
-    });
-    ```
-  
-    The handler function takes the following arguments:
-  
-    <ul>
-      <li> <code>message</code> - The message received from the deprecation call.</li>
-      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
-        <ul>
-          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
-          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
-        </ul>
-      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-    </ul>
-  
-    @public
-    @static
-    @method registerDeprecationHandler
-    @for @ember/debug
-    @param handler {Function} A function to handle deprecation calls.
-    @since 2.1.0
-  */
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-  let missingOptionsUntilDeprecation;
-  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
-
-  let missingOptionsForDeprecation = () => '';
-
-  exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
-
-  let missingOptionsSinceDeprecation = () => '';
-
-  exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
-
-  let deprecate = () => {};
-
-  let FOR_MISSING_DEPRECATIONS = new Set();
-  exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
-  let SINCE_MISSING_DEPRECATIONS = new Set();
-  exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('deprecate', handler);
-    };
-
-    let formatMessage = function formatMessage(_message, options) {
-      let message = _message;
-
-      if (options && options.id) {
-        message = message + ` [deprecation id: ${options.id}]`;
-      }
-
-      if (options && options.url) {
-        message += ` See ${options.url} for more details.`;
-      }
-
-      return message;
-    };
-
-    registerHandler(function logDeprecationToConsole(message, options) {
-      let updatedMessage = formatMessage(message, options);
-      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
-    });
-    let captureErrorForStack;
-
-    if (new Error().stack) {
-      captureErrorForStack = () => new Error();
-    } else {
-      captureErrorForStack = () => {
-        try {
-          __fail__.fail();
-        } catch (e) {
-          return e;
-        }
-      };
-    }
-
-    registerHandler(function logDeprecationStackTrace(message, options, next) {
-      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
-        let stackStr = '';
-        let error = captureErrorForStack();
-        let stack;
-
-        if (error.stack) {
-          if (error['arguments']) {
-            // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
-            stack.shift();
-          } else {
-            // Firefox
-            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
-          }
-
-          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
-        }
-
-        let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
-      } else {
-        next(message, options);
-      }
-    });
-    registerHandler(function raiseOnDeprecation(message, options, next) {
-      if (environment.ENV.RAISE_ON_DEPRECATION) {
-        let updatedMessage = formatMessage(message);
-        throw new Error(updatedMessage);
-      } else {
-        next(message, options);
-      }
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
-    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
-
-    exports.missingOptionsForDeprecation = missingOptionsForDeprecation = id => {
-      return `When calling \`deprecate\` you must provide \`for\` in options. Missing options.for in "${id}" deprecation`;
-    };
-
-    exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = id => {
-      return `When calling \`deprecate\` you must provide \`since\` in options. Missing options.since in "${id}" deprecation`;
-    };
-    /**
-     @module @ember/debug
-     @public
-     */
-
-    /**
-      Display a deprecation warning with the provided message and a stack trace
-      (Chrome and Firefox only).
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         @method deprecate
-      @for @ember/debug
-      @param {String} message A description of the deprecation.
-      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
-      @param {Object} options
-      @param {String} options.id A unique id for this deprecation. The id can be
-        used by Ember debugging tools to change the behavior (raise, log or silence)
-        for that specific deprecation. The id should be namespaced by dots, e.g.
-        "view.helper.select".
-      @param {string} options.until The version of Ember when this deprecation
-        warning will be removed.
-      @param {String} options.for A namespace for the deprecation, usually the package name
-      @param {Object} options.since Describes when the deprecation became available and enabled.
-      @param {String} [options.url] An optional url to the transition guide on the
-            emberjs.com website.
-      @static
-      @public
-      @since 1.0.0
-    */
-
-
-    deprecate = function deprecate(message, test, options) {
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
-      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
-
-      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
-        FOR_MISSING_DEPRECATIONS.add(options.id);
-        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
-          id: 'ember-source.deprecation-without-for',
-          until: '4.0.0',
-          for: 'ember-source',
-          since: {
-            available: '3.24.0'
-          }
-        });
-      }
-
-      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
-        SINCE_MISSING_DEPRECATIONS.add(options.id);
-        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
-          id: 'ember-source.deprecation-without-since',
-          until: '4.0.0',
-          for: 'ember-source',
-          since: {
-            available: '3.24.0'
-          }
-        });
-      }
-
-      (0, handlers.invoke)('deprecate', message, test, options);
-    };
-  }
-
-  var _default = deprecate;
-  exports.default = _default;
-});
-var isTesting_1 = isTesting;
-var setTesting_1 = setTesting;
-let testing = false;
-
-function isTesting() {
-  return testing;
-}
-
-function setTesting(value) {
-  testing = Boolean(value);
-}
-
-var testing_1 = /*#__PURE__*/Object.defineProperty({
-  isTesting: isTesting_1,
-  setTesting: setTesting_1
-}, '__esModule', {
-  value: true
-});
-var warn_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let warn = () => {};
-
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  /**
-  @module @ember/debug
-  */
-
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-
-  if (es5.DEBUG) {
-    /**
-      Allows for runtime registration of handler functions that override the default warning behavior.
-      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
-      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
-      default warning behavior.
-         ```javascript
-      import { registerWarnHandler } from '@ember/debug';
-         // next is not called, so no warnings get the default behavior
-      registerWarnHandler(() => {});
-      ```
-         The handler function takes the following arguments:
-         <ul>
-        <li> <code>message</code> - The message received from the warn call. </li>
-        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
-          <ul>
-            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
-          </ul>
-        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-      </ul>
-         @public
-      @static
-      @method registerWarnHandler
-      @for @ember/debug
-      @param handler {Function} A function to handle warnings.
-      @since 2.1.0
-    */
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('warn', handler);
-    };
-
-    registerHandler(function logWarning(message) {
-      /* eslint-disable no-console */
-      console.warn(`WARNING: ${message}`);
-      /* eslint-enable no-console */
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
-    /**
-      Display a warning with the provided message.
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         ```javascript
-      import { warn } from '@ember/debug';
-      import tomsterCount from './tomster-counter'; // a module in my project
-         // Log a warning if we have more than 3 tomsters
-      warn('Too many tomsters!', tomsterCount <= 3, {
-        id: 'ember-debug.too-many-tomsters'
-      });
-      ```
-         @method warn
-      @for @ember/debug
-      @static
-      @param {String} message A warning to display.
-      @param {Boolean} test An optional boolean. If falsy, the warning
-        will be displayed.
-      @param {Object} options An object that can be used to pass a unique
-        `id` for this warning.  The `id` can be used by Ember debugging tools
-        to change the behavior (raise, log, or silence) for that specific warning.
-        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
-      @public
-      @since 1.0.0
-    */
-
-    warn = function warn(message, test, options) {
-      if (arguments.length === 2 && typeof test === 'object') {
-        options = test;
-        test = false;
-      }
-
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
-      (0, handlers.invoke)('warn', message, test, options);
-    };
-  }
-
-  var _default = warn;
-  exports.default = _default;
-});
 var _default$1 = captureRenderTree;
 /**
   @module @ember/debug
@@ -7105,7 +7075,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
 
   var _error = _interopRequireDefault(error);
 
-  var _deprecate2 = _interopRequireWildcard(deprecate_1$1);
+  var _deprecate2 = _interopRequireWildcard(deprecate_1);
 
   var _warn2 = _interopRequireWildcard(warn_1);
 
@@ -7303,7 +7273,9 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     });
     /**
       Display a debug notice.
-         Calls to this function are not invoked in production builds.
+         Calls to this function are removed from production builds, so they can be
+      freely added for documentation and debugging purposes without worries of
+      incuring any performance penalty.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -7449,6 +7421,241 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     }
   }
 });
+var _default$2 = merge;
+/**
+  Merge the contents of two objects together into the first object.
+
+  ```javascript
+  import { merge } from '@ember/polyfills';
+
+  merge({ first: 'Tom' }, { last: 'Dale' }); // { first: 'Tom', last: 'Dale' }
+  var a = { first: 'Yehuda' };
+  var b = { last: 'Katz' };
+  merge(a, b); // a == { first: 'Yehuda', last: 'Katz' }, b == { last: 'Katz' }
+  ```
+
+  @method merge
+  @static
+  @for @ember/polyfills
+  @param {Object} original The object to merge into
+  @param {Object} updates The object to copy properties from
+  @return {Object}
+  @deprecated
+  @public
+*/
+
+function merge(original, updates) {
+  (0, debug_1.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
+    id: 'ember-polyfills.deprecate-merge',
+    until: '4.0.0',
+    url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
+  });
+
+  if (updates === null || typeof updates !== 'object') {
+    return original;
+  }
+
+  let props = Object.keys(updates);
+  let prop;
+
+  for (let i = 0; i < props.length; i++) {
+    prop = props[i];
+    original[prop] = updates[prop];
+  }
+
+  return original;
+}
+
+var merge_1 = /*#__PURE__*/Object.defineProperty({
+  default: _default$2
+}, '__esModule', {
+  value: true
+});
+var assign_1$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.assign = assign;
+  exports.default = void 0;
+  /**
+   @module @ember/polyfills
+  */
+
+  /**
+    Copy properties from a source object to a target object. Source arguments remain unchanged.
+  
+    ```javascript
+    import { assign } from '@ember/polyfills';
+  
+    var a = { first: 'Yehuda' };
+    var b = { last: 'Katz' };
+    var c = { company: 'Other Company' };
+    var d = { company: 'Tilde Inc.' };
+    assign(a, b, c, d); // a === { first: 'Yehuda', last: 'Katz', company: 'Tilde Inc.' };
+    ```
+  
+    @method assign
+    @for @ember/polyfills
+    @param {Object} target The object to assign into
+    @param {Object} ...args The objects to copy properties from
+    @return {Object}
+    @public
+    @static
+  */
+
+  function assign(target) {
+    for (let i = 1; i < arguments.length; i++) {
+      let arg = arguments[i];
+
+      if (!arg) {
+        continue;
+      }
+
+      let updates = Object.keys(arg);
+
+      for (let i = 0; i < updates.length; i++) {
+        let prop = updates[i];
+        target[prop] = arg[prop];
+      }
+    }
+
+    return target;
+  } // Note: We use the bracket notation so
+  //       that the babel plugin does not
+  //       transform it.
+  // https://www.npmjs.com/package/babel-plugin-transform-object-assign
+
+
+  const {
+    assign: _assign
+  } = Object;
+
+  var _default = _assign || assign;
+
+  exports.default = _default;
+});
+var weak_set = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /* globals WeakSet */
+
+  var _default = typeof WeakSet === 'function' ? WeakSet : class WeakSetPolyFill {
+    constructor() {
+      this._map = new WeakMap();
+    }
+
+    add(val) {
+      this._map.set(val, true);
+
+      return this;
+    }
+
+    delete(val) {
+      return this._map.delete(val);
+    }
+
+    has(val) {
+      return this._map.has(val);
+    }
+
+  };
+
+  exports.default = _default;
+});
+var polyfills = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, "assign", {
+    enumerable: true,
+    get: function () {
+      return _assign.default;
+    }
+  });
+  Object.defineProperty(exports, "assignPolyfill", {
+    enumerable: true,
+    get: function () {
+      return _assign.assign;
+    }
+  });
+  Object.defineProperty(exports, "_WeakSet", {
+    enumerable: true,
+    get: function () {
+      return _weak_set.default;
+    }
+  });
+  exports.merge = void 0;
+
+  var _merge = _interopRequireDefault(merge_1);
+
+  var _assign = _interopRequireWildcard(assign_1$1);
+
+  var _weak_set = _interopRequireDefault(weak_set);
+
+  function _getRequireWildcardCache() {
+    if (typeof WeakMap !== "function") return null;
+    var cache = new WeakMap();
+
+    _getRequireWildcardCache = function () {
+      return cache;
+    };
+
+    return cache;
+  }
+
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    }
+
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+      return {
+        default: obj
+      };
+    }
+
+    var cache = _getRequireWildcardCache();
+
+    if (cache && cache.has(obj)) {
+      return cache.get(obj);
+    }
+
+    var newObj = {};
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+
+        if (desc && (desc.get || desc.set)) {
+          Object.defineProperty(newObj, key, desc);
+        } else {
+          newObj[key] = obj[key];
+        }
+      }
+    }
+
+    newObj.default = obj;
+
+    if (cache) {
+      cache.set(obj, newObj);
+    }
+
+    return newObj;
+  }
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  let merge = deprecatedFeatures.MERGE ? _merge.default : undefined; // Export `assignPolyfill` for testing
+
+  exports.merge = merge;
+});
 var utils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -7475,9 +7682,8 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
-  exports.setEmberArray = setEmberArray;
   exports.isEmberArray = isEmberArray;
-  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
+  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.EMBER_ARRAY = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
   /**
     Strongly hint runtimes to intern the provided string.
   
@@ -7853,7 +8059,7 @@ var utils = createCommonjsModule(function (module, exports) {
     meta.listeners = listeners;
   }
 
-  const IS_WRAPPED_FUNCTION_SET = new es5$1._WeakSet();
+  const IS_WRAPPED_FUNCTION_SET = new polyfills._WeakSet();
   /**
     Wraps the passed function so that `this._super` will point to the superFunc
     when the function is invoked. This is the primitive we use to implement
@@ -7982,7 +8188,7 @@ var utils = createCommonjsModule(function (module, exports) {
     }
 
     if (seen === undefined) {
-      seen = new es5$1._WeakSet();
+      seen = new polyfills._WeakSet();
     } else {
       if (seen.has(value)) return `[Circular]`;
     }
@@ -8105,21 +8311,10 @@ var utils = createCommonjsModule(function (module, exports) {
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
-    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
-    (0, debug_1.deprecate)(`Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.`, false, {
-      id: 'ember-utils.try-invoke',
-      until: '4.0.0',
-      for: 'ember-source',
-      since: {
-        available: '3.24.0'
-      },
-      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
-    });
-
     if (canInvoke(obj, methodName)) {
       let method = obj[methodName];
       return method.apply(obj, args);
@@ -8194,7 +8389,7 @@ var utils = createCommonjsModule(function (module, exports) {
 
   const HAS_NATIVE_PROXY = typeof Proxy === 'function';
   exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
-  const PROXIES = new es5$1._WeakSet();
+  const PROXIES = new polyfills._WeakSet();
 
   function isProxy(value) {
     if (isObject(value)) {
@@ -8250,14 +8445,11 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   exports.Cache = Cache;
-  const EMBER_ARRAYS = new es5$1._WeakSet();
-
-  function setEmberArray(obj) {
-    EMBER_ARRAYS.add(obj);
-  }
+  const EMBER_ARRAY = symbol('EMBER_ARRAY');
+  exports.EMBER_ARRAY = EMBER_ARRAY;
 
   function isEmberArray(obj) {
-    return EMBER_ARRAYS.has(obj);
+    return obj && obj[EMBER_ARRAY];
   }
 
   let setupMandatorySetter;
@@ -8281,7 +8473,7 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   if (es5.DEBUG) {
-    let SEEN_TAGS = new es5$1._WeakSet();
+    let SEEN_TAGS = new polyfills._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
 
     let propertyIsEnumerable = function (obj, key) {
@@ -8492,21 +8684,10 @@ var string$1 = createCommonjsModule(function (module, exports) {
     @param {Array} formats Optional array of parameters to interpolate into string.
     @return {String} formatted string
     @public
-    @deprecated
   */
 
 
   function loc(str, formats) {
-    (0, debug_1.deprecate)('loc is deprecated, please use a dedicated localization solution like ember-intl. More alternatives listed at https://emberobserver.com/categories/internationalization.', false, {
-      id: 'ember-string.loc',
-      until: '4.0.0',
-      for: 'ember-source',
-      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-string-loc',
-      since: {
-        available: '3.24'
-      }
-    });
-
     if (!Array.isArray(formats) || arguments.length > 2) {
       formats = Array.prototype.slice.call(arguments, 1);
     }
@@ -8682,21 +8863,6 @@ var string$1 = createCommonjsModule(function (module, exports) {
   }
 
   if (environment.ENV.EXTEND_PROTOTYPES.String) {
-    let deprecateEmberStringPrototypeExtension = function (name, fn, message = `String prototype extensions are deprecated. Please import ${name} from '@ember/string' instead.`) {
-      return function () {
-        (0, debug_1.deprecate)(message, false, {
-          id: 'ember-string.prototype-extensions',
-          for: 'ember-source',
-          since: {
-            available: '3.24'
-          },
-          until: '4.0.0',
-          url: 'https://deprecations.emberjs.com/v3.x/#toc_ember-string-prototype_extensions'
-        });
-        return fn(this, ...arguments);
-      };
-    };
-
     Object.defineProperties(String.prototype, {
       /**
         See [String.w](/ember/release/classes/String/methods/w?anchor=w).
@@ -8704,13 +8870,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       w: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('w', w)
+
+        value() {
+          return w(this);
+        }
+
       },
 
       /**
@@ -8719,7 +8888,6 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       loc: {
         configurable: true,
@@ -8738,13 +8906,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       camelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('camelize', camelize)
+
+        value() {
+          return camelize(this);
+        }
+
       },
 
       /**
@@ -8753,13 +8924,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       decamelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('decamelize', decamelize)
+
+        value() {
+          return decamelize(this);
+        }
+
       },
 
       /**
@@ -8768,13 +8942,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       dasherize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('dasherize', dasherize)
+
+        value() {
+          return dasherize(this);
+        }
+
       },
 
       /**
@@ -8783,13 +8960,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       underscore: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('underscore', underscore)
+
+        value() {
+          return underscore(this);
+        }
+
       },
 
       /**
@@ -8798,13 +8978,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       classify: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('classify', classify)
+
+        value() {
+          return classify(this);
+        }
+
       },
 
       /**
@@ -8813,13 +8996,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       capitalize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('capitalize', capitalize)
+
+        value() {
+          return capitalize(this);
+        }
+
       }
     });
   }
@@ -9591,7 +9777,7 @@ class MemServerModel {
 
 }
 
-var _default$2 = MemServerModel;
+var _default$3 = MemServerModel;
 MemServerModel._DB = {};
 MemServerModel._modelDefinitions = {};
 MemServerModel._attributes = {};
@@ -9623,7 +9809,7 @@ function comparison(model, options, keys, index = 0) {
   return false;
 }
 
-module.exports = _default$2;
+module.exports = _default$3;
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 },{"_process":15,"available-typed-arrays":2,"buffer":4,"call-bind/callBound":5}],15:[function(require,module,exports){
@@ -12098,6 +12284,7 @@ var hasOwn = require('has');
 var $concat = bind.call(Function.call, Array.prototype.concat);
 var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
 var $replace = bind.call(Function.call, String.prototype.replace);
+var $strSlice = bind.call(Function.call, String.prototype.slice);
 /* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
 
 var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
@@ -12105,6 +12292,15 @@ var reEscapeChar = /\\(\\)?/g;
 /** Used to match backslashes in property paths. */
 
 var stringToPath = function stringToPath(string) {
+  var first = $strSlice(string, 0, 1);
+  var last = $strSlice(string, -1);
+
+  if (first === '%' && last !== '%') {
+    throw new $SyntaxError('invalid intrinsic syntax, expected closing `%`');
+  } else if (last === '%' && first !== '%') {
+    throw new $SyntaxError('invalid intrinsic syntax, expected opening `%`');
+  }
+
   var result = [];
   $replace(string, rePropName, function (match, number, quote, subString) {
     result[result.length] = quote ? $replace(subString, reEscapeChar, '$1') : number || match;
@@ -12164,6 +12360,12 @@ module.exports = function GetIntrinsic(name, allowMissing) {
 
   for (var i = 1, isOwn = true; i < parts.length; i += 1) {
     var part = parts[i];
+    var first = $strSlice(part, 0, 1);
+    var last = $strSlice(part, -1);
+
+    if ((first === '"' || first === "'" || first === '`' || last === '"' || last === "'" || last === '`') && first !== last) {
+      throw new $SyntaxError('property names with quotes must have matching quotes');
+    }
 
     if (part === 'constructor' || !isOwn) {
       skipFurtherCaching = true;
@@ -12175,20 +12377,23 @@ module.exports = function GetIntrinsic(name, allowMissing) {
     if (hasOwn(INTRINSICS, intrinsicRealName)) {
       value = INTRINSICS[intrinsicRealName];
     } else if (value != null) {
+      if (!(part in value)) {
+        if (!allowMissing) {
+          throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
+        }
+
+        return void undefined;
+      }
+
       if ($gOPD && i + 1 >= parts.length) {
         var desc = $gOPD(value, part);
-        isOwn = !!desc;
-
-        if (!allowMissing && !(part in value)) {
-          throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
-        } // By convention, when a data property is converted to an accessor
+        isOwn = !!desc; // By convention, when a data property is converted to an accessor
         // property to emulate a data property that does not suffer from
         // the override mistake, that accessor's getter is marked with
         // an `originalValue` property. Here, when we detect this, we
         // uphold the illusion by pretending to see that original data
         // property, i.e., returning the value rather than the getter
         // itself.
-
 
         if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
           value = desc.get;
@@ -14807,6 +15012,378 @@ var environment = createCommonjsModule(function (module, exports) {
     return ENV;
   }
 });
+var browserEnvironment = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
+
+  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
+  exports.hasDOM = hasDom;
+  const window = hasDom ? self : null;
+  exports.window = window;
+  const location$1 = hasDom ? self.location : null;
+  exports.location = location$1;
+  const history$1 = hasDom ? self.history : null;
+  exports.history = history$1;
+  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
+  exports.userAgent = userAgent;
+  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
+  exports.isChrome = isChrome;
+  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
+  exports.isFirefox = isFirefox;
+});
+var error = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /**
+   @module @ember/error
+  */
+
+  /**
+    The JavaScript Error object used by Ember.assert.
+  
+    @class Error
+    @namespace Ember
+    @extends Error
+    @constructor
+    @public
+  */
+
+  var _default = Error;
+  exports.default = _default;
+});
+var handlers = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
+  let HANDLERS = {};
+  exports.HANDLERS = HANDLERS;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let invoke = () => {};
+
+  exports.invoke = invoke;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+      let nextHandler = HANDLERS[type] || (() => {});
+
+      HANDLERS[type] = (message, options) => {
+        callback(message, options, nextHandler);
+      };
+    };
+
+    exports.invoke = invoke = function invoke(type, message, test, options) {
+      if (test) {
+        return;
+      }
+
+      let handlerForType = HANDLERS[type];
+
+      if (handlerForType) {
+        handlerForType(message, options);
+      }
+    };
+  }
+});
+var deprecate_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
+  /**
+   @module @ember/debug
+   @public
+  */
+
+  /**
+    Allows for runtime registration of handler functions that override the default deprecation behavior.
+    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
+    The following example demonstrates its usage by registering a handler that throws an error if the
+    message contains the word "should", otherwise defers to the default handler.
+  
+    ```javascript
+    import { registerDeprecationHandler } from '@ember/debug';
+  
+    registerDeprecationHandler((message, options, next) => {
+      if (message.indexOf('should') !== -1) {
+        throw new Error(`Deprecation message with should: ${message}`);
+      } else {
+        // defer to whatever handler was registered before this one
+        next(message, options);
+      }
+    });
+    ```
+  
+    The handler function takes the following arguments:
+  
+    <ul>
+      <li> <code>message</code> - The message received from the deprecation call.</li>
+      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
+        <ul>
+          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
+          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
+        </ul>
+      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+    </ul>
+  
+    @public
+    @static
+    @method registerDeprecationHandler
+    @for @ember/debug
+    @param handler {Function} A function to handle deprecation calls.
+    @since 2.1.0
+  */
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  let missingOptionsUntilDeprecation;
+  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
+
+  let deprecate = () => {};
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('deprecate', handler);
+    };
+
+    let formatMessage = function formatMessage(_message, options) {
+      let message = _message;
+
+      if (options && options.id) {
+        message = message + ` [deprecation id: ${options.id}]`;
+      }
+
+      if (options && options.url) {
+        message += ` See ${options.url} for more details.`;
+      }
+
+      return message;
+    };
+
+    registerHandler(function logDeprecationToConsole(message, options) {
+      let updatedMessage = formatMessage(message, options);
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+    });
+    let captureErrorForStack;
+
+    if (new Error().stack) {
+      captureErrorForStack = () => new Error();
+    } else {
+      captureErrorForStack = () => {
+        try {
+          __fail__.fail();
+        } catch (e) {
+          return e;
+        }
+      };
+    }
+
+    registerHandler(function logDeprecationStackTrace(message, options, next) {
+      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+        let stackStr = '';
+        let error = captureErrorForStack();
+        let stack;
+
+        if (error.stack) {
+          if (error['arguments']) {
+            // Chrome
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack.shift();
+          } else {
+            // Firefox
+            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+          }
+
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+        }
+
+        let updatedMessage = formatMessage(message, options);
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+      } else {
+        next(message, options);
+      }
+    });
+    registerHandler(function raiseOnDeprecation(message, options, next) {
+      if (environment.ENV.RAISE_ON_DEPRECATION) {
+        let updatedMessage = formatMessage(message);
+        throw new Error(updatedMessage);
+      } else {
+        next(message, options);
+      }
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+    /**
+     @module @ember/debug
+     @public
+     */
+
+    /**
+      Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only).
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         @method deprecate
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+      @param {Object} options
+      @param {String} options.id A unique id for this deprecation. The id can be
+        used by Ember debugging tools to change the behavior (raise, log or silence)
+        for that specific deprecation. The id should be namespaced by dots, e.g.
+        "view.helper.select".
+      @param {string} options.until The version of Ember when this deprecation
+        warning will be removed.
+      @param {String} [options.url] An optional url to the transition guide on the
+        emberjs.com website.
+      @static
+      @public
+      @since 1.0.0
+    */
+
+    deprecate = function deprecate(message, test, options) {
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
+      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+      (0, handlers.invoke)('deprecate', message, test, options);
+    };
+  }
+
+  var _default = deprecate;
+  exports.default = _default;
+});
+var isTesting_1 = isTesting;
+var setTesting_1 = setTesting;
+let testing = false;
+
+function isTesting() {
+  return testing;
+}
+
+function setTesting(value) {
+  testing = Boolean(value);
+}
+
+var testing_1 = /*#__PURE__*/Object.defineProperty({
+  isTesting: isTesting_1,
+  setTesting: setTesting_1
+}, '__esModule', {
+  value: true
+});
+var warn_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let warn = () => {};
+
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+
+  if (es5.DEBUG) {
+    /**
+      Allows for runtime registration of handler functions that override the default warning behavior.
+      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+      default warning behavior.
+         ```javascript
+      import { registerWarnHandler } from '@ember/debug';
+         // next is not called, so no warnings get the default behavior
+      registerWarnHandler(() => {});
+      ```
+         The handler function takes the following arguments:
+         <ul>
+        <li> <code>message</code> - The message received from the warn call. </li>
+        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+          <ul>
+            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+          </ul>
+        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+      </ul>
+         @public
+      @static
+      @method registerWarnHandler
+      @for @ember/debug
+      @param handler {Function} A function to handle warnings.
+      @since 2.1.0
+    */
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('warn', handler);
+    };
+
+    registerHandler(function logWarning(message) {
+      /* eslint-disable no-console */
+      console.warn(`WARNING: ${message}`);
+      /* eslint-enable no-console */
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+    /**
+      Display a warning with the provided message.
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         ```javascript
+      import { warn } from '@ember/debug';
+      import tomsterCount from './tomster-counter'; // a module in my project
+         // Log a warning if we have more than 3 tomsters
+      warn('Too many tomsters!', tomsterCount <= 3, {
+        id: 'ember-debug.too-many-tomsters'
+      });
+      ```
+         @method warn
+      @for @ember/debug
+      @static
+      @param {String} message A warning to display.
+      @param {Boolean} test An optional boolean. If falsy, the warning
+        will be displayed.
+      @param {Object} options An object that can be used to pass a unique
+        `id` for this warning.  The `id` can be used by Ember debugging tools
+        to change the behavior (raise, log, or silence) for that specific warning.
+        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+      @public
+      @since 1.0.0
+    */
+
+    warn = function warn(message, test, options) {
+      if (arguments.length === 2 && typeof test === 'object') {
+        options = test;
+        test = false;
+      }
+
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
+      (0, handlers.invoke)('warn', message, test, options);
+    };
+  }
+
+  var _default = warn;
+  exports.default = _default;
+});
 var arrayUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -14815,7 +15392,7 @@ var arrayUtils = createCommonjsModule(function (module, exports) {
 });
 var debugAssert_1 = debugAssert;
 var prodAssert_1 = prodAssert;
-var deprecate_1 = deprecate; // import Logger from './logger';
+var deprecate_1$1 = deprecate; // import Logger from './logger';
 // let alreadyWarned = false;
 
 function debugAssert(test, msg) {
@@ -14838,7 +15415,7 @@ var _default = debugAssert;
 var assert = /*#__PURE__*/Object.defineProperty({
   debugAssert: debugAssert_1,
   prodAssert: prodAssert_1,
-  deprecate: deprecate_1,
+  deprecate: deprecate_1$1,
   default: _default
 }, '__esModule', {
   value: true
@@ -15828,427 +16405,6 @@ var es5$1 = createCommonjsModule(function (module, exports) {
     console.trace(desc + ' :: ' + JSON.stringify(value) + ' (' + value + ')');
   }
 });
-var browserEnvironment = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
-
-  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
-  exports.hasDOM = hasDom;
-  const window = hasDom ? self : null;
-  exports.window = window;
-  const location$1 = hasDom ? self.location : null;
-  exports.location = location$1;
-  const history$1 = hasDom ? self.history : null;
-  exports.history = history$1;
-  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
-  exports.userAgent = userAgent;
-  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
-  exports.isChrome = isChrome;
-  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
-  exports.isFirefox = isFirefox;
-});
-var error = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /**
-   @module @ember/error
-  */
-
-  /**
-    The JavaScript Error object used by Ember.assert.
-  
-    @class Error
-    @namespace Ember
-    @extends Error
-    @constructor
-    @public
-  */
-
-  var _default = Error;
-  exports.default = _default;
-});
-var handlers = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
-  let HANDLERS = {};
-  exports.HANDLERS = HANDLERS;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let invoke = () => {};
-
-  exports.invoke = invoke;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
-      let nextHandler = HANDLERS[type] || (() => {});
-
-      HANDLERS[type] = (message, options) => {
-        callback(message, options, nextHandler);
-      };
-    };
-
-    exports.invoke = invoke = function invoke(type, message, test, options) {
-      if (test) {
-        return;
-      }
-
-      let handlerForType = HANDLERS[type];
-
-      if (handlerForType) {
-        handlerForType(message, options);
-      }
-    };
-  }
-});
-var deprecate_1$1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.SINCE_MISSING_DEPRECATIONS = exports.FOR_MISSING_DEPRECATIONS = exports.missingOptionsSinceDeprecation = exports.missingOptionsForDeprecation = exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
-  /**
-   @module @ember/debug
-   @public
-  */
-
-  /**
-    Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
-    The following example demonstrates its usage by registering a handler that throws an error if the
-    message contains the word "should", otherwise defers to the default handler.
-  
-    ```javascript
-    import { registerDeprecationHandler } from '@ember/debug';
-  
-    registerDeprecationHandler((message, options, next) => {
-      if (message.indexOf('should') !== -1) {
-        throw new Error(`Deprecation message with should: ${message}`);
-      } else {
-        // defer to whatever handler was registered before this one
-        next(message, options);
-      }
-    });
-    ```
-  
-    The handler function takes the following arguments:
-  
-    <ul>
-      <li> <code>message</code> - The message received from the deprecation call.</li>
-      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
-        <ul>
-          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
-          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
-        </ul>
-      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-    </ul>
-  
-    @public
-    @static
-    @method registerDeprecationHandler
-    @for @ember/debug
-    @param handler {Function} A function to handle deprecation calls.
-    @since 2.1.0
-  */
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-  let missingOptionsUntilDeprecation;
-  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
-
-  let missingOptionsForDeprecation = () => '';
-
-  exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
-
-  let missingOptionsSinceDeprecation = () => '';
-
-  exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
-
-  let deprecate = () => {};
-
-  let FOR_MISSING_DEPRECATIONS = new Set();
-  exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
-  let SINCE_MISSING_DEPRECATIONS = new Set();
-  exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('deprecate', handler);
-    };
-
-    let formatMessage = function formatMessage(_message, options) {
-      let message = _message;
-
-      if (options && options.id) {
-        message = message + ` [deprecation id: ${options.id}]`;
-      }
-
-      if (options && options.url) {
-        message += ` See ${options.url} for more details.`;
-      }
-
-      return message;
-    };
-
-    registerHandler(function logDeprecationToConsole(message, options) {
-      let updatedMessage = formatMessage(message, options);
-      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
-    });
-    let captureErrorForStack;
-
-    if (new Error().stack) {
-      captureErrorForStack = () => new Error();
-    } else {
-      captureErrorForStack = () => {
-        try {
-          __fail__.fail();
-        } catch (e) {
-          return e;
-        }
-      };
-    }
-
-    registerHandler(function logDeprecationStackTrace(message, options, next) {
-      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
-        let stackStr = '';
-        let error = captureErrorForStack();
-        let stack;
-
-        if (error.stack) {
-          if (error['arguments']) {
-            // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
-            stack.shift();
-          } else {
-            // Firefox
-            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
-          }
-
-          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
-        }
-
-        let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
-      } else {
-        next(message, options);
-      }
-    });
-    registerHandler(function raiseOnDeprecation(message, options, next) {
-      if (environment.ENV.RAISE_ON_DEPRECATION) {
-        let updatedMessage = formatMessage(message);
-        throw new Error(updatedMessage);
-      } else {
-        next(message, options);
-      }
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
-    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
-
-    exports.missingOptionsForDeprecation = missingOptionsForDeprecation = id => {
-      return `When calling \`deprecate\` you must provide \`for\` in options. Missing options.for in "${id}" deprecation`;
-    };
-
-    exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = id => {
-      return `When calling \`deprecate\` you must provide \`since\` in options. Missing options.since in "${id}" deprecation`;
-    };
-    /**
-     @module @ember/debug
-     @public
-     */
-
-    /**
-      Display a deprecation warning with the provided message and a stack trace
-      (Chrome and Firefox only).
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         @method deprecate
-      @for @ember/debug
-      @param {String} message A description of the deprecation.
-      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
-      @param {Object} options
-      @param {String} options.id A unique id for this deprecation. The id can be
-        used by Ember debugging tools to change the behavior (raise, log or silence)
-        for that specific deprecation. The id should be namespaced by dots, e.g.
-        "view.helper.select".
-      @param {string} options.until The version of Ember when this deprecation
-        warning will be removed.
-      @param {String} options.for A namespace for the deprecation, usually the package name
-      @param {Object} options.since Describes when the deprecation became available and enabled.
-      @param {String} [options.url] An optional url to the transition guide on the
-            emberjs.com website.
-      @static
-      @public
-      @since 1.0.0
-    */
-
-
-    deprecate = function deprecate(message, test, options) {
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
-      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
-
-      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
-        FOR_MISSING_DEPRECATIONS.add(options.id);
-        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
-          id: 'ember-source.deprecation-without-for',
-          until: '4.0.0',
-          for: 'ember-source',
-          since: {
-            available: '3.24.0'
-          }
-        });
-      }
-
-      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
-        SINCE_MISSING_DEPRECATIONS.add(options.id);
-        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
-          id: 'ember-source.deprecation-without-since',
-          until: '4.0.0',
-          for: 'ember-source',
-          since: {
-            available: '3.24.0'
-          }
-        });
-      }
-
-      (0, handlers.invoke)('deprecate', message, test, options);
-    };
-  }
-
-  var _default = deprecate;
-  exports.default = _default;
-});
-var isTesting_1 = isTesting;
-var setTesting_1 = setTesting;
-let testing = false;
-
-function isTesting() {
-  return testing;
-}
-
-function setTesting(value) {
-  testing = Boolean(value);
-}
-
-var testing_1 = /*#__PURE__*/Object.defineProperty({
-  isTesting: isTesting_1,
-  setTesting: setTesting_1
-}, '__esModule', {
-  value: true
-});
-var warn_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let warn = () => {};
-
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  /**
-  @module @ember/debug
-  */
-
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-
-  if (es5.DEBUG) {
-    /**
-      Allows for runtime registration of handler functions that override the default warning behavior.
-      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
-      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
-      default warning behavior.
-         ```javascript
-      import { registerWarnHandler } from '@ember/debug';
-         // next is not called, so no warnings get the default behavior
-      registerWarnHandler(() => {});
-      ```
-         The handler function takes the following arguments:
-         <ul>
-        <li> <code>message</code> - The message received from the warn call. </li>
-        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
-          <ul>
-            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
-          </ul>
-        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-      </ul>
-         @public
-      @static
-      @method registerWarnHandler
-      @for @ember/debug
-      @param handler {Function} A function to handle warnings.
-      @since 2.1.0
-    */
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('warn', handler);
-    };
-
-    registerHandler(function logWarning(message) {
-      /* eslint-disable no-console */
-      console.warn(`WARNING: ${message}`);
-      /* eslint-enable no-console */
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
-    /**
-      Display a warning with the provided message.
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         ```javascript
-      import { warn } from '@ember/debug';
-      import tomsterCount from './tomster-counter'; // a module in my project
-         // Log a warning if we have more than 3 tomsters
-      warn('Too many tomsters!', tomsterCount <= 3, {
-        id: 'ember-debug.too-many-tomsters'
-      });
-      ```
-         @method warn
-      @for @ember/debug
-      @static
-      @param {String} message A warning to display.
-      @param {Boolean} test An optional boolean. If falsy, the warning
-        will be displayed.
-      @param {Object} options An object that can be used to pass a unique
-        `id` for this warning.  The `id` can be used by Ember debugging tools
-        to change the behavior (raise, log, or silence) for that specific warning.
-        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
-      @public
-      @since 1.0.0
-    */
-
-    warn = function warn(message, test, options) {
-      if (arguments.length === 2 && typeof test === 'object') {
-        options = test;
-        test = false;
-      }
-
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
-      (0, handlers.invoke)('warn', message, test, options);
-    };
-  }
-
-  var _default = warn;
-  exports.default = _default;
-});
 var _default$1 = captureRenderTree;
 /**
   @module @ember/debug
@@ -16318,7 +16474,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
 
   var _error = _interopRequireDefault(error);
 
-  var _deprecate2 = _interopRequireWildcard(deprecate_1$1);
+  var _deprecate2 = _interopRequireWildcard(deprecate_1);
 
   var _warn2 = _interopRequireWildcard(warn_1);
 
@@ -16516,7 +16672,9 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     });
     /**
       Display a debug notice.
-         Calls to this function are not invoked in production builds.
+         Calls to this function are removed from production builds, so they can be
+      freely added for documentation and debugging purposes without worries of
+      incuring any performance penalty.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -16662,6 +16820,241 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     }
   }
 });
+var _default$2 = merge;
+/**
+  Merge the contents of two objects together into the first object.
+
+  ```javascript
+  import { merge } from '@ember/polyfills';
+
+  merge({ first: 'Tom' }, { last: 'Dale' }); // { first: 'Tom', last: 'Dale' }
+  var a = { first: 'Yehuda' };
+  var b = { last: 'Katz' };
+  merge(a, b); // a == { first: 'Yehuda', last: 'Katz' }, b == { last: 'Katz' }
+  ```
+
+  @method merge
+  @static
+  @for @ember/polyfills
+  @param {Object} original The object to merge into
+  @param {Object} updates The object to copy properties from
+  @return {Object}
+  @deprecated
+  @public
+*/
+
+function merge(original, updates) {
+  (0, debug_1.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
+    id: 'ember-polyfills.deprecate-merge',
+    until: '4.0.0',
+    url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
+  });
+
+  if (updates === null || typeof updates !== 'object') {
+    return original;
+  }
+
+  let props = Object.keys(updates);
+  let prop;
+
+  for (let i = 0; i < props.length; i++) {
+    prop = props[i];
+    original[prop] = updates[prop];
+  }
+
+  return original;
+}
+
+var merge_1 = /*#__PURE__*/Object.defineProperty({
+  default: _default$2
+}, '__esModule', {
+  value: true
+});
+var assign_1$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.assign = assign;
+  exports.default = void 0;
+  /**
+   @module @ember/polyfills
+  */
+
+  /**
+    Copy properties from a source object to a target object. Source arguments remain unchanged.
+  
+    ```javascript
+    import { assign } from '@ember/polyfills';
+  
+    var a = { first: 'Yehuda' };
+    var b = { last: 'Katz' };
+    var c = { company: 'Other Company' };
+    var d = { company: 'Tilde Inc.' };
+    assign(a, b, c, d); // a === { first: 'Yehuda', last: 'Katz', company: 'Tilde Inc.' };
+    ```
+  
+    @method assign
+    @for @ember/polyfills
+    @param {Object} target The object to assign into
+    @param {Object} ...args The objects to copy properties from
+    @return {Object}
+    @public
+    @static
+  */
+
+  function assign(target) {
+    for (let i = 1; i < arguments.length; i++) {
+      let arg = arguments[i];
+
+      if (!arg) {
+        continue;
+      }
+
+      let updates = Object.keys(arg);
+
+      for (let i = 0; i < updates.length; i++) {
+        let prop = updates[i];
+        target[prop] = arg[prop];
+      }
+    }
+
+    return target;
+  } // Note: We use the bracket notation so
+  //       that the babel plugin does not
+  //       transform it.
+  // https://www.npmjs.com/package/babel-plugin-transform-object-assign
+
+
+  const {
+    assign: _assign
+  } = Object;
+
+  var _default = _assign || assign;
+
+  exports.default = _default;
+});
+var weak_set = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /* globals WeakSet */
+
+  var _default = typeof WeakSet === 'function' ? WeakSet : class WeakSetPolyFill {
+    constructor() {
+      this._map = new WeakMap();
+    }
+
+    add(val) {
+      this._map.set(val, true);
+
+      return this;
+    }
+
+    delete(val) {
+      return this._map.delete(val);
+    }
+
+    has(val) {
+      return this._map.has(val);
+    }
+
+  };
+
+  exports.default = _default;
+});
+var polyfills = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, "assign", {
+    enumerable: true,
+    get: function () {
+      return _assign.default;
+    }
+  });
+  Object.defineProperty(exports, "assignPolyfill", {
+    enumerable: true,
+    get: function () {
+      return _assign.assign;
+    }
+  });
+  Object.defineProperty(exports, "_WeakSet", {
+    enumerable: true,
+    get: function () {
+      return _weak_set.default;
+    }
+  });
+  exports.merge = void 0;
+
+  var _merge = _interopRequireDefault(merge_1);
+
+  var _assign = _interopRequireWildcard(assign_1$1);
+
+  var _weak_set = _interopRequireDefault(weak_set);
+
+  function _getRequireWildcardCache() {
+    if (typeof WeakMap !== "function") return null;
+    var cache = new WeakMap();
+
+    _getRequireWildcardCache = function () {
+      return cache;
+    };
+
+    return cache;
+  }
+
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    }
+
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+      return {
+        default: obj
+      };
+    }
+
+    var cache = _getRequireWildcardCache();
+
+    if (cache && cache.has(obj)) {
+      return cache.get(obj);
+    }
+
+    var newObj = {};
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+
+        if (desc && (desc.get || desc.set)) {
+          Object.defineProperty(newObj, key, desc);
+        } else {
+          newObj[key] = obj[key];
+        }
+      }
+    }
+
+    newObj.default = obj;
+
+    if (cache) {
+      cache.set(obj, newObj);
+    }
+
+    return newObj;
+  }
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  let merge = deprecatedFeatures.MERGE ? _merge.default : undefined; // Export `assignPolyfill` for testing
+
+  exports.merge = merge;
+});
 var utils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -16688,9 +17081,8 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
-  exports.setEmberArray = setEmberArray;
   exports.isEmberArray = isEmberArray;
-  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
+  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.EMBER_ARRAY = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
   /**
     Strongly hint runtimes to intern the provided string.
   
@@ -17066,7 +17458,7 @@ var utils = createCommonjsModule(function (module, exports) {
     meta.listeners = listeners;
   }
 
-  const IS_WRAPPED_FUNCTION_SET = new es5$1._WeakSet();
+  const IS_WRAPPED_FUNCTION_SET = new polyfills._WeakSet();
   /**
     Wraps the passed function so that `this._super` will point to the superFunc
     when the function is invoked. This is the primitive we use to implement
@@ -17195,7 +17587,7 @@ var utils = createCommonjsModule(function (module, exports) {
     }
 
     if (seen === undefined) {
-      seen = new es5$1._WeakSet();
+      seen = new polyfills._WeakSet();
     } else {
       if (seen.has(value)) return `[Circular]`;
     }
@@ -17318,21 +17710,10 @@ var utils = createCommonjsModule(function (module, exports) {
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
-    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
-    (0, debug_1.deprecate)(`Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.`, false, {
-      id: 'ember-utils.try-invoke',
-      until: '4.0.0',
-      for: 'ember-source',
-      since: {
-        available: '3.24.0'
-      },
-      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
-    });
-
     if (canInvoke(obj, methodName)) {
       let method = obj[methodName];
       return method.apply(obj, args);
@@ -17407,7 +17788,7 @@ var utils = createCommonjsModule(function (module, exports) {
 
   const HAS_NATIVE_PROXY = typeof Proxy === 'function';
   exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
-  const PROXIES = new es5$1._WeakSet();
+  const PROXIES = new polyfills._WeakSet();
 
   function isProxy(value) {
     if (isObject(value)) {
@@ -17463,14 +17844,11 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   exports.Cache = Cache;
-  const EMBER_ARRAYS = new es5$1._WeakSet();
-
-  function setEmberArray(obj) {
-    EMBER_ARRAYS.add(obj);
-  }
+  const EMBER_ARRAY = symbol('EMBER_ARRAY');
+  exports.EMBER_ARRAY = EMBER_ARRAY;
 
   function isEmberArray(obj) {
-    return EMBER_ARRAYS.has(obj);
+    return obj && obj[EMBER_ARRAY];
   }
 
   let setupMandatorySetter;
@@ -17494,7 +17872,7 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   if (es5.DEBUG) {
-    let SEEN_TAGS = new es5$1._WeakSet();
+    let SEEN_TAGS = new polyfills._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
 
     let propertyIsEnumerable = function (obj, key) {
@@ -17705,21 +18083,10 @@ var string$1 = createCommonjsModule(function (module, exports) {
     @param {Array} formats Optional array of parameters to interpolate into string.
     @return {String} formatted string
     @public
-    @deprecated
   */
 
 
   function loc(str, formats) {
-    (0, debug_1.deprecate)('loc is deprecated, please use a dedicated localization solution like ember-intl. More alternatives listed at https://emberobserver.com/categories/internationalization.', false, {
-      id: 'ember-string.loc',
-      until: '4.0.0',
-      for: 'ember-source',
-      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-string-loc',
-      since: {
-        available: '3.24'
-      }
-    });
-
     if (!Array.isArray(formats) || arguments.length > 2) {
       formats = Array.prototype.slice.call(arguments, 1);
     }
@@ -17895,21 +18262,6 @@ var string$1 = createCommonjsModule(function (module, exports) {
   }
 
   if (environment.ENV.EXTEND_PROTOTYPES.String) {
-    let deprecateEmberStringPrototypeExtension = function (name, fn, message = `String prototype extensions are deprecated. Please import ${name} from '@ember/string' instead.`) {
-      return function () {
-        (0, debug_1.deprecate)(message, false, {
-          id: 'ember-string.prototype-extensions',
-          for: 'ember-source',
-          since: {
-            available: '3.24'
-          },
-          until: '4.0.0',
-          url: 'https://deprecations.emberjs.com/v3.x/#toc_ember-string-prototype_extensions'
-        });
-        return fn(this, ...arguments);
-      };
-    };
-
     Object.defineProperties(String.prototype, {
       /**
         See [String.w](/ember/release/classes/String/methods/w?anchor=w).
@@ -17917,13 +18269,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       w: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('w', w)
+
+        value() {
+          return w(this);
+        }
+
       },
 
       /**
@@ -17932,7 +18287,6 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       loc: {
         configurable: true,
@@ -17951,13 +18305,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       camelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('camelize', camelize)
+
+        value() {
+          return camelize(this);
+        }
+
       },
 
       /**
@@ -17966,13 +18323,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       decamelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('decamelize', decamelize)
+
+        value() {
+          return decamelize(this);
+        }
+
       },
 
       /**
@@ -17981,13 +18341,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       dasherize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('dasherize', dasherize)
+
+        value() {
+          return dasherize(this);
+        }
+
       },
 
       /**
@@ -17996,13 +18359,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       underscore: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('underscore', underscore)
+
+        value() {
+          return underscore(this);
+        }
+
       },
 
       /**
@@ -18011,13 +18377,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       classify: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('classify', classify)
+
+        value() {
+          return classify(this);
+        }
+
       },
 
       /**
@@ -18026,13 +18395,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       capitalize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('capitalize', capitalize)
+
+        value() {
+          return capitalize(this);
+        }
+
       }
     });
   }
@@ -18804,7 +19176,7 @@ class MemServerModel {
 
 }
 
-var _default$2 = MemServerModel;
+var _default$3 = MemServerModel;
 MemServerModel._DB = {};
 MemServerModel._modelDefinitions = {};
 MemServerModel._attributes = {};
@@ -18836,7 +19208,7 @@ function comparison(model, options, keys, index = 0) {
   return false;
 }
 
-module.exports = _default$2;
+module.exports = _default$3;
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
 },{"_process":16,"available-typed-arrays":2,"buffer":4,"call-bind/callBound":5}],15:[function(require,module,exports){
@@ -22548,6 +22920,378 @@ var environment = createCommonjsModule(function (module, exports) {
     return ENV;
   }
 });
+var browserEnvironment = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
+
+  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
+  exports.hasDOM = hasDom;
+  const window = hasDom ? self : null;
+  exports.window = window;
+  const location$1 = hasDom ? self.location : null;
+  exports.location = location$1;
+  const history$1 = hasDom ? self.history : null;
+  exports.history = history$1;
+  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
+  exports.userAgent = userAgent;
+  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
+  exports.isChrome = isChrome;
+  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
+  exports.isFirefox = isFirefox;
+});
+var error = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /**
+   @module @ember/error
+  */
+
+  /**
+    The JavaScript Error object used by Ember.assert.
+  
+    @class Error
+    @namespace Ember
+    @extends Error
+    @constructor
+    @public
+  */
+
+  var _default = Error;
+  exports.default = _default;
+});
+var handlers = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
+  let HANDLERS = {};
+  exports.HANDLERS = HANDLERS;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let invoke = () => {};
+
+  exports.invoke = invoke;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+      let nextHandler = HANDLERS[type] || (() => {});
+
+      HANDLERS[type] = (message, options) => {
+        callback(message, options, nextHandler);
+      };
+    };
+
+    exports.invoke = invoke = function invoke(type, message, test, options) {
+      if (test) {
+        return;
+      }
+
+      let handlerForType = HANDLERS[type];
+
+      if (handlerForType) {
+        handlerForType(message, options);
+      }
+    };
+  }
+});
+var deprecate_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
+  /**
+   @module @ember/debug
+   @public
+  */
+
+  /**
+    Allows for runtime registration of handler functions that override the default deprecation behavior.
+    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
+    The following example demonstrates its usage by registering a handler that throws an error if the
+    message contains the word "should", otherwise defers to the default handler.
+  
+    ```javascript
+    import { registerDeprecationHandler } from '@ember/debug';
+  
+    registerDeprecationHandler((message, options, next) => {
+      if (message.indexOf('should') !== -1) {
+        throw new Error(`Deprecation message with should: ${message}`);
+      } else {
+        // defer to whatever handler was registered before this one
+        next(message, options);
+      }
+    });
+    ```
+  
+    The handler function takes the following arguments:
+  
+    <ul>
+      <li> <code>message</code> - The message received from the deprecation call.</li>
+      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
+        <ul>
+          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
+          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
+        </ul>
+      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+    </ul>
+  
+    @public
+    @static
+    @method registerDeprecationHandler
+    @for @ember/debug
+    @param handler {Function} A function to handle deprecation calls.
+    @since 2.1.0
+  */
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  let missingOptionsUntilDeprecation;
+  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
+
+  let deprecate = () => {};
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('deprecate', handler);
+    };
+
+    let formatMessage = function formatMessage(_message, options) {
+      let message = _message;
+
+      if (options && options.id) {
+        message = message + ` [deprecation id: ${options.id}]`;
+      }
+
+      if (options && options.url) {
+        message += ` See ${options.url} for more details.`;
+      }
+
+      return message;
+    };
+
+    registerHandler(function logDeprecationToConsole(message, options) {
+      let updatedMessage = formatMessage(message, options);
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+    });
+    let captureErrorForStack;
+
+    if (new Error().stack) {
+      captureErrorForStack = () => new Error();
+    } else {
+      captureErrorForStack = () => {
+        try {
+          __fail__.fail();
+        } catch (e) {
+          return e;
+        }
+      };
+    }
+
+    registerHandler(function logDeprecationStackTrace(message, options, next) {
+      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+        let stackStr = '';
+        let error = captureErrorForStack();
+        let stack;
+
+        if (error.stack) {
+          if (error['arguments']) {
+            // Chrome
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack.shift();
+          } else {
+            // Firefox
+            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+          }
+
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+        }
+
+        let updatedMessage = formatMessage(message, options);
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+      } else {
+        next(message, options);
+      }
+    });
+    registerHandler(function raiseOnDeprecation(message, options, next) {
+      if (environment.ENV.RAISE_ON_DEPRECATION) {
+        let updatedMessage = formatMessage(message);
+        throw new Error(updatedMessage);
+      } else {
+        next(message, options);
+      }
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+    /**
+     @module @ember/debug
+     @public
+     */
+
+    /**
+      Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only).
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         @method deprecate
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+      @param {Object} options
+      @param {String} options.id A unique id for this deprecation. The id can be
+        used by Ember debugging tools to change the behavior (raise, log or silence)
+        for that specific deprecation. The id should be namespaced by dots, e.g.
+        "view.helper.select".
+      @param {string} options.until The version of Ember when this deprecation
+        warning will be removed.
+      @param {String} [options.url] An optional url to the transition guide on the
+        emberjs.com website.
+      @static
+      @public
+      @since 1.0.0
+    */
+
+    deprecate = function deprecate(message, test, options) {
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
+      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+      (0, handlers.invoke)('deprecate', message, test, options);
+    };
+  }
+
+  var _default = deprecate;
+  exports.default = _default;
+});
+var isTesting_1 = isTesting;
+var setTesting_1 = setTesting;
+let testing = false;
+
+function isTesting() {
+  return testing;
+}
+
+function setTesting(value) {
+  testing = Boolean(value);
+}
+
+var testing_1 = /*#__PURE__*/Object.defineProperty({
+  isTesting: isTesting_1,
+  setTesting: setTesting_1
+}, '__esModule', {
+  value: true
+});
+var warn_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let warn = () => {};
+
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+
+  if (es5.DEBUG) {
+    /**
+      Allows for runtime registration of handler functions that override the default warning behavior.
+      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+      default warning behavior.
+         ```javascript
+      import { registerWarnHandler } from '@ember/debug';
+         // next is not called, so no warnings get the default behavior
+      registerWarnHandler(() => {});
+      ```
+         The handler function takes the following arguments:
+         <ul>
+        <li> <code>message</code> - The message received from the warn call. </li>
+        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+          <ul>
+            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+          </ul>
+        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+      </ul>
+         @public
+      @static
+      @method registerWarnHandler
+      @for @ember/debug
+      @param handler {Function} A function to handle warnings.
+      @since 2.1.0
+    */
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('warn', handler);
+    };
+
+    registerHandler(function logWarning(message) {
+      /* eslint-disable no-console */
+      console.warn(`WARNING: ${message}`);
+      /* eslint-enable no-console */
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+    /**
+      Display a warning with the provided message.
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         ```javascript
+      import { warn } from '@ember/debug';
+      import tomsterCount from './tomster-counter'; // a module in my project
+         // Log a warning if we have more than 3 tomsters
+      warn('Too many tomsters!', tomsterCount <= 3, {
+        id: 'ember-debug.too-many-tomsters'
+      });
+      ```
+         @method warn
+      @for @ember/debug
+      @static
+      @param {String} message A warning to display.
+      @param {Boolean} test An optional boolean. If falsy, the warning
+        will be displayed.
+      @param {Object} options An object that can be used to pass a unique
+        `id` for this warning.  The `id` can be used by Ember debugging tools
+        to change the behavior (raise, log, or silence) for that specific warning.
+        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+      @public
+      @since 1.0.0
+    */
+
+    warn = function warn(message, test, options) {
+      if (arguments.length === 2 && typeof test === 'object') {
+        options = test;
+        test = false;
+      }
+
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
+      (0, handlers.invoke)('warn', message, test, options);
+    };
+  }
+
+  var _default = warn;
+  exports.default = _default;
+});
 var arrayUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -22556,7 +23300,7 @@ var arrayUtils = createCommonjsModule(function (module, exports) {
 });
 var debugAssert_1 = debugAssert;
 var prodAssert_1 = prodAssert;
-var deprecate_1 = deprecate; // import Logger from './logger';
+var deprecate_1$1 = deprecate; // import Logger from './logger';
 // let alreadyWarned = false;
 
 function debugAssert(test, msg) {
@@ -22579,7 +23323,7 @@ var _default = debugAssert;
 var assert = /*#__PURE__*/Object.defineProperty({
   debugAssert: debugAssert_1,
   prodAssert: prodAssert_1,
-  deprecate: deprecate_1,
+  deprecate: deprecate_1$1,
   default: _default
 }, '__esModule', {
   value: true
@@ -23569,427 +24313,6 @@ var es5$1 = createCommonjsModule(function (module, exports) {
     console.trace(desc + ' :: ' + JSON.stringify(value) + ' (' + value + ')');
   }
 });
-var browserEnvironment = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
-
-  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
-  exports.hasDOM = hasDom;
-  const window = hasDom ? self : null;
-  exports.window = window;
-  const location$1 = hasDom ? self.location : null;
-  exports.location = location$1;
-  const history$1 = hasDom ? self.history : null;
-  exports.history = history$1;
-  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
-  exports.userAgent = userAgent;
-  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
-  exports.isChrome = isChrome;
-  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
-  exports.isFirefox = isFirefox;
-});
-var error = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /**
-   @module @ember/error
-  */
-
-  /**
-    The JavaScript Error object used by Ember.assert.
-  
-    @class Error
-    @namespace Ember
-    @extends Error
-    @constructor
-    @public
-  */
-
-  var _default = Error;
-  exports.default = _default;
-});
-var handlers = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
-  let HANDLERS = {};
-  exports.HANDLERS = HANDLERS;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let invoke = () => {};
-
-  exports.invoke = invoke;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
-      let nextHandler = HANDLERS[type] || (() => {});
-
-      HANDLERS[type] = (message, options) => {
-        callback(message, options, nextHandler);
-      };
-    };
-
-    exports.invoke = invoke = function invoke(type, message, test, options) {
-      if (test) {
-        return;
-      }
-
-      let handlerForType = HANDLERS[type];
-
-      if (handlerForType) {
-        handlerForType(message, options);
-      }
-    };
-  }
-});
-var deprecate_1$1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.SINCE_MISSING_DEPRECATIONS = exports.FOR_MISSING_DEPRECATIONS = exports.missingOptionsSinceDeprecation = exports.missingOptionsForDeprecation = exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
-  /**
-   @module @ember/debug
-   @public
-  */
-
-  /**
-    Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
-    The following example demonstrates its usage by registering a handler that throws an error if the
-    message contains the word "should", otherwise defers to the default handler.
-  
-    ```javascript
-    import { registerDeprecationHandler } from '@ember/debug';
-  
-    registerDeprecationHandler((message, options, next) => {
-      if (message.indexOf('should') !== -1) {
-        throw new Error(`Deprecation message with should: ${message}`);
-      } else {
-        // defer to whatever handler was registered before this one
-        next(message, options);
-      }
-    });
-    ```
-  
-    The handler function takes the following arguments:
-  
-    <ul>
-      <li> <code>message</code> - The message received from the deprecation call.</li>
-      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
-        <ul>
-          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
-          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
-        </ul>
-      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-    </ul>
-  
-    @public
-    @static
-    @method registerDeprecationHandler
-    @for @ember/debug
-    @param handler {Function} A function to handle deprecation calls.
-    @since 2.1.0
-  */
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-  let missingOptionsUntilDeprecation;
-  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
-
-  let missingOptionsForDeprecation = () => '';
-
-  exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
-
-  let missingOptionsSinceDeprecation = () => '';
-
-  exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
-
-  let deprecate = () => {};
-
-  let FOR_MISSING_DEPRECATIONS = new Set();
-  exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
-  let SINCE_MISSING_DEPRECATIONS = new Set();
-  exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('deprecate', handler);
-    };
-
-    let formatMessage = function formatMessage(_message, options) {
-      let message = _message;
-
-      if (options && options.id) {
-        message = message + ` [deprecation id: ${options.id}]`;
-      }
-
-      if (options && options.url) {
-        message += ` See ${options.url} for more details.`;
-      }
-
-      return message;
-    };
-
-    registerHandler(function logDeprecationToConsole(message, options) {
-      let updatedMessage = formatMessage(message, options);
-      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
-    });
-    let captureErrorForStack;
-
-    if (new Error().stack) {
-      captureErrorForStack = () => new Error();
-    } else {
-      captureErrorForStack = () => {
-        try {
-          __fail__.fail();
-        } catch (e) {
-          return e;
-        }
-      };
-    }
-
-    registerHandler(function logDeprecationStackTrace(message, options, next) {
-      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
-        let stackStr = '';
-        let error = captureErrorForStack();
-        let stack;
-
-        if (error.stack) {
-          if (error['arguments']) {
-            // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
-            stack.shift();
-          } else {
-            // Firefox
-            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
-          }
-
-          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
-        }
-
-        let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
-      } else {
-        next(message, options);
-      }
-    });
-    registerHandler(function raiseOnDeprecation(message, options, next) {
-      if (environment.ENV.RAISE_ON_DEPRECATION) {
-        let updatedMessage = formatMessage(message);
-        throw new Error(updatedMessage);
-      } else {
-        next(message, options);
-      }
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
-    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
-
-    exports.missingOptionsForDeprecation = missingOptionsForDeprecation = id => {
-      return `When calling \`deprecate\` you must provide \`for\` in options. Missing options.for in "${id}" deprecation`;
-    };
-
-    exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = id => {
-      return `When calling \`deprecate\` you must provide \`since\` in options. Missing options.since in "${id}" deprecation`;
-    };
-    /**
-     @module @ember/debug
-     @public
-     */
-
-    /**
-      Display a deprecation warning with the provided message and a stack trace
-      (Chrome and Firefox only).
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         @method deprecate
-      @for @ember/debug
-      @param {String} message A description of the deprecation.
-      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
-      @param {Object} options
-      @param {String} options.id A unique id for this deprecation. The id can be
-        used by Ember debugging tools to change the behavior (raise, log or silence)
-        for that specific deprecation. The id should be namespaced by dots, e.g.
-        "view.helper.select".
-      @param {string} options.until The version of Ember when this deprecation
-        warning will be removed.
-      @param {String} options.for A namespace for the deprecation, usually the package name
-      @param {Object} options.since Describes when the deprecation became available and enabled.
-      @param {String} [options.url] An optional url to the transition guide on the
-            emberjs.com website.
-      @static
-      @public
-      @since 1.0.0
-    */
-
-
-    deprecate = function deprecate(message, test, options) {
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
-      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
-
-      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
-        FOR_MISSING_DEPRECATIONS.add(options.id);
-        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
-          id: 'ember-source.deprecation-without-for',
-          until: '4.0.0',
-          for: 'ember-source',
-          since: {
-            available: '3.24.0'
-          }
-        });
-      }
-
-      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
-        SINCE_MISSING_DEPRECATIONS.add(options.id);
-        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
-          id: 'ember-source.deprecation-without-since',
-          until: '4.0.0',
-          for: 'ember-source',
-          since: {
-            available: '3.24.0'
-          }
-        });
-      }
-
-      (0, handlers.invoke)('deprecate', message, test, options);
-    };
-  }
-
-  var _default = deprecate;
-  exports.default = _default;
-});
-var isTesting_1 = isTesting;
-var setTesting_1 = setTesting;
-let testing = false;
-
-function isTesting() {
-  return testing;
-}
-
-function setTesting(value) {
-  testing = Boolean(value);
-}
-
-var testing_1 = /*#__PURE__*/Object.defineProperty({
-  isTesting: isTesting_1,
-  setTesting: setTesting_1
-}, '__esModule', {
-  value: true
-});
-var warn_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let warn = () => {};
-
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  /**
-  @module @ember/debug
-  */
-
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-
-  if (es5.DEBUG) {
-    /**
-      Allows for runtime registration of handler functions that override the default warning behavior.
-      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
-      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
-      default warning behavior.
-         ```javascript
-      import { registerWarnHandler } from '@ember/debug';
-         // next is not called, so no warnings get the default behavior
-      registerWarnHandler(() => {});
-      ```
-         The handler function takes the following arguments:
-         <ul>
-        <li> <code>message</code> - The message received from the warn call. </li>
-        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
-          <ul>
-            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
-          </ul>
-        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-      </ul>
-         @public
-      @static
-      @method registerWarnHandler
-      @for @ember/debug
-      @param handler {Function} A function to handle warnings.
-      @since 2.1.0
-    */
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('warn', handler);
-    };
-
-    registerHandler(function logWarning(message) {
-      /* eslint-disable no-console */
-      console.warn(`WARNING: ${message}`);
-      /* eslint-enable no-console */
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
-    /**
-      Display a warning with the provided message.
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         ```javascript
-      import { warn } from '@ember/debug';
-      import tomsterCount from './tomster-counter'; // a module in my project
-         // Log a warning if we have more than 3 tomsters
-      warn('Too many tomsters!', tomsterCount <= 3, {
-        id: 'ember-debug.too-many-tomsters'
-      });
-      ```
-         @method warn
-      @for @ember/debug
-      @static
-      @param {String} message A warning to display.
-      @param {Boolean} test An optional boolean. If falsy, the warning
-        will be displayed.
-      @param {Object} options An object that can be used to pass a unique
-        `id` for this warning.  The `id` can be used by Ember debugging tools
-        to change the behavior (raise, log, or silence) for that specific warning.
-        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
-      @public
-      @since 1.0.0
-    */
-
-    warn = function warn(message, test, options) {
-      if (arguments.length === 2 && typeof test === 'object') {
-        options = test;
-        test = false;
-      }
-
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
-      (0, handlers.invoke)('warn', message, test, options);
-    };
-  }
-
-  var _default = warn;
-  exports.default = _default;
-});
 var _default$1 = captureRenderTree;
 /**
   @module @ember/debug
@@ -24059,7 +24382,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
 
   var _error = _interopRequireDefault(error);
 
-  var _deprecate2 = _interopRequireWildcard(deprecate_1$1);
+  var _deprecate2 = _interopRequireWildcard(deprecate_1);
 
   var _warn2 = _interopRequireWildcard(warn_1);
 
@@ -24257,7 +24580,9 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     });
     /**
       Display a debug notice.
-         Calls to this function are not invoked in production builds.
+         Calls to this function are removed from production builds, so they can be
+      freely added for documentation and debugging purposes without worries of
+      incuring any performance penalty.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -24403,6 +24728,241 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     }
   }
 });
+var _default$2 = merge;
+/**
+  Merge the contents of two objects together into the first object.
+
+  ```javascript
+  import { merge } from '@ember/polyfills';
+
+  merge({ first: 'Tom' }, { last: 'Dale' }); // { first: 'Tom', last: 'Dale' }
+  var a = { first: 'Yehuda' };
+  var b = { last: 'Katz' };
+  merge(a, b); // a == { first: 'Yehuda', last: 'Katz' }, b == { last: 'Katz' }
+  ```
+
+  @method merge
+  @static
+  @for @ember/polyfills
+  @param {Object} original The object to merge into
+  @param {Object} updates The object to copy properties from
+  @return {Object}
+  @deprecated
+  @public
+*/
+
+function merge(original, updates) {
+  (0, debug_1.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
+    id: 'ember-polyfills.deprecate-merge',
+    until: '4.0.0',
+    url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
+  });
+
+  if (updates === null || typeof updates !== 'object') {
+    return original;
+  }
+
+  let props = Object.keys(updates);
+  let prop;
+
+  for (let i = 0; i < props.length; i++) {
+    prop = props[i];
+    original[prop] = updates[prop];
+  }
+
+  return original;
+}
+
+var merge_1 = /*#__PURE__*/Object.defineProperty({
+  default: _default$2
+}, '__esModule', {
+  value: true
+});
+var assign_1$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.assign = assign;
+  exports.default = void 0;
+  /**
+   @module @ember/polyfills
+  */
+
+  /**
+    Copy properties from a source object to a target object. Source arguments remain unchanged.
+  
+    ```javascript
+    import { assign } from '@ember/polyfills';
+  
+    var a = { first: 'Yehuda' };
+    var b = { last: 'Katz' };
+    var c = { company: 'Other Company' };
+    var d = { company: 'Tilde Inc.' };
+    assign(a, b, c, d); // a === { first: 'Yehuda', last: 'Katz', company: 'Tilde Inc.' };
+    ```
+  
+    @method assign
+    @for @ember/polyfills
+    @param {Object} target The object to assign into
+    @param {Object} ...args The objects to copy properties from
+    @return {Object}
+    @public
+    @static
+  */
+
+  function assign(target) {
+    for (let i = 1; i < arguments.length; i++) {
+      let arg = arguments[i];
+
+      if (!arg) {
+        continue;
+      }
+
+      let updates = Object.keys(arg);
+
+      for (let i = 0; i < updates.length; i++) {
+        let prop = updates[i];
+        target[prop] = arg[prop];
+      }
+    }
+
+    return target;
+  } // Note: We use the bracket notation so
+  //       that the babel plugin does not
+  //       transform it.
+  // https://www.npmjs.com/package/babel-plugin-transform-object-assign
+
+
+  const {
+    assign: _assign
+  } = Object;
+
+  var _default = _assign || assign;
+
+  exports.default = _default;
+});
+var weak_set = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
+  /* globals WeakSet */
+
+  var _default = typeof WeakSet === 'function' ? WeakSet : class WeakSetPolyFill {
+    constructor() {
+      this._map = new WeakMap();
+    }
+
+    add(val) {
+      this._map.set(val, true);
+
+      return this;
+    }
+
+    delete(val) {
+      return this._map.delete(val);
+    }
+
+    has(val) {
+      return this._map.has(val);
+    }
+
+  };
+
+  exports.default = _default;
+});
+var polyfills = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  Object.defineProperty(exports, "assign", {
+    enumerable: true,
+    get: function () {
+      return _assign.default;
+    }
+  });
+  Object.defineProperty(exports, "assignPolyfill", {
+    enumerable: true,
+    get: function () {
+      return _assign.assign;
+    }
+  });
+  Object.defineProperty(exports, "_WeakSet", {
+    enumerable: true,
+    get: function () {
+      return _weak_set.default;
+    }
+  });
+  exports.merge = void 0;
+
+  var _merge = _interopRequireDefault(merge_1);
+
+  var _assign = _interopRequireWildcard(assign_1$1);
+
+  var _weak_set = _interopRequireDefault(weak_set);
+
+  function _getRequireWildcardCache() {
+    if (typeof WeakMap !== "function") return null;
+    var cache = new WeakMap();
+
+    _getRequireWildcardCache = function () {
+      return cache;
+    };
+
+    return cache;
+  }
+
+  function _interopRequireWildcard(obj) {
+    if (obj && obj.__esModule) {
+      return obj;
+    }
+
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+      return {
+        default: obj
+      };
+    }
+
+    var cache = _getRequireWildcardCache();
+
+    if (cache && cache.has(obj)) {
+      return cache.get(obj);
+    }
+
+    var newObj = {};
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+
+        if (desc && (desc.get || desc.set)) {
+          Object.defineProperty(newObj, key, desc);
+        } else {
+          newObj[key] = obj[key];
+        }
+      }
+    }
+
+    newObj.default = obj;
+
+    if (cache) {
+      cache.set(obj, newObj);
+    }
+
+    return newObj;
+  }
+
+  function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : {
+      default: obj
+    };
+  }
+
+  let merge = deprecatedFeatures.MERGE ? _merge.default : undefined; // Export `assignPolyfill` for testing
+
+  exports.merge = merge;
+});
 var utils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -24429,9 +24989,8 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
-  exports.setEmberArray = setEmberArray;
   exports.isEmberArray = isEmberArray;
-  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
+  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.EMBER_ARRAY = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
   /**
     Strongly hint runtimes to intern the provided string.
   
@@ -24807,7 +25366,7 @@ var utils = createCommonjsModule(function (module, exports) {
     meta.listeners = listeners;
   }
 
-  const IS_WRAPPED_FUNCTION_SET = new es5$1._WeakSet();
+  const IS_WRAPPED_FUNCTION_SET = new polyfills._WeakSet();
   /**
     Wraps the passed function so that `this._super` will point to the superFunc
     when the function is invoked. This is the primitive we use to implement
@@ -24936,7 +25495,7 @@ var utils = createCommonjsModule(function (module, exports) {
     }
 
     if (seen === undefined) {
-      seen = new es5$1._WeakSet();
+      seen = new polyfills._WeakSet();
     } else {
       if (seen.has(value)) return `[Circular]`;
     }
@@ -25059,21 +25618,10 @@ var utils = createCommonjsModule(function (module, exports) {
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
-    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
-    (0, debug_1.deprecate)(`Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.`, false, {
-      id: 'ember-utils.try-invoke',
-      until: '4.0.0',
-      for: 'ember-source',
-      since: {
-        available: '3.24.0'
-      },
-      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
-    });
-
     if (canInvoke(obj, methodName)) {
       let method = obj[methodName];
       return method.apply(obj, args);
@@ -25148,7 +25696,7 @@ var utils = createCommonjsModule(function (module, exports) {
 
   const HAS_NATIVE_PROXY = typeof Proxy === 'function';
   exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
-  const PROXIES = new es5$1._WeakSet();
+  const PROXIES = new polyfills._WeakSet();
 
   function isProxy(value) {
     if (isObject(value)) {
@@ -25204,14 +25752,11 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   exports.Cache = Cache;
-  const EMBER_ARRAYS = new es5$1._WeakSet();
-
-  function setEmberArray(obj) {
-    EMBER_ARRAYS.add(obj);
-  }
+  const EMBER_ARRAY = symbol('EMBER_ARRAY');
+  exports.EMBER_ARRAY = EMBER_ARRAY;
 
   function isEmberArray(obj) {
-    return EMBER_ARRAYS.has(obj);
+    return obj && obj[EMBER_ARRAY];
   }
 
   let setupMandatorySetter;
@@ -25235,7 +25780,7 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   if (es5.DEBUG) {
-    let SEEN_TAGS = new es5$1._WeakSet();
+    let SEEN_TAGS = new polyfills._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
 
     let propertyIsEnumerable = function (obj, key) {
@@ -25446,21 +25991,10 @@ var string$1 = createCommonjsModule(function (module, exports) {
     @param {Array} formats Optional array of parameters to interpolate into string.
     @return {String} formatted string
     @public
-    @deprecated
   */
 
 
   function loc(str, formats) {
-    (0, debug_1.deprecate)('loc is deprecated, please use a dedicated localization solution like ember-intl. More alternatives listed at https://emberobserver.com/categories/internationalization.', false, {
-      id: 'ember-string.loc',
-      until: '4.0.0',
-      for: 'ember-source',
-      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-string-loc',
-      since: {
-        available: '3.24'
-      }
-    });
-
     if (!Array.isArray(formats) || arguments.length > 2) {
       formats = Array.prototype.slice.call(arguments, 1);
     }
@@ -25636,21 +26170,6 @@ var string$1 = createCommonjsModule(function (module, exports) {
   }
 
   if (environment.ENV.EXTEND_PROTOTYPES.String) {
-    let deprecateEmberStringPrototypeExtension = function (name, fn, message = `String prototype extensions are deprecated. Please import ${name} from '@ember/string' instead.`) {
-      return function () {
-        (0, debug_1.deprecate)(message, false, {
-          id: 'ember-string.prototype-extensions',
-          for: 'ember-source',
-          since: {
-            available: '3.24'
-          },
-          until: '4.0.0',
-          url: 'https://deprecations.emberjs.com/v3.x/#toc_ember-string-prototype_extensions'
-        });
-        return fn(this, ...arguments);
-      };
-    };
-
     Object.defineProperties(String.prototype, {
       /**
         See [String.w](/ember/release/classes/String/methods/w?anchor=w).
@@ -25658,13 +26177,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       w: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('w', w)
+
+        value() {
+          return w(this);
+        }
+
       },
 
       /**
@@ -25673,7 +26195,6 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       loc: {
         configurable: true,
@@ -25692,13 +26213,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       camelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('camelize', camelize)
+
+        value() {
+          return camelize(this);
+        }
+
       },
 
       /**
@@ -25707,13 +26231,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       decamelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('decamelize', decamelize)
+
+        value() {
+          return decamelize(this);
+        }
+
       },
 
       /**
@@ -25722,13 +26249,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       dasherize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('dasherize', dasherize)
+
+        value() {
+          return dasherize(this);
+        }
+
       },
 
       /**
@@ -25737,13 +26267,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       underscore: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('underscore', underscore)
+
+        value() {
+          return underscore(this);
+        }
+
       },
 
       /**
@@ -25752,13 +26285,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       classify: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('classify', classify)
+
+        value() {
+          return classify(this);
+        }
+
       },
 
       /**
@@ -25767,13 +26303,16 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
-        @deprecated
       */
       capitalize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-        value: deprecateEmberStringPrototypeExtension('capitalize', capitalize)
+
+        value() {
+          return capitalize(this);
+        }
+
       }
     });
   }
@@ -26477,7 +27016,7 @@ class Memserver {
 
 }
 
-var _default$2 = Memserver;
+var _default$3 = Memserver;
 
 function startPretender(routes, options, Models) {
   window.FakeXMLHttpRequest = fake_xml_http_request_1.default;
@@ -26547,7 +27086,7 @@ function colorStatusCode(statusCode) {
   return ansi_colors_1$1.default.red(statusCode);
 }
 
-module.exports = _default$2;
+module.exports = _default$3;
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./model":14,"_process":16}],16:[function(require,module,exports){
