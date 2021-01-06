@@ -1,6 +1,6 @@
 {
   "name": "mber",
-  "version": "0.14.2",
+  "version": "0.14.3",
   "type": "module",
   "description": "Modern, fast, non-backward compatible ember-cli replacement with Module Unification RFC",
   "author": "Izel Nakri",
