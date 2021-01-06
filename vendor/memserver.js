@@ -633,6 +633,48 @@
           'use strict';
 
           (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g._memserver__model = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";
+
+/**
+ * Array#filter.
+ *
+ * @param {Array} arr
+ * @param {Function} fn
+ * @param {Object=} self
+ * @return {Array}
+ * @throw TypeError
+ */
+module.exports = function (arr, fn, self) {
+  if (arr.filter) return arr.filter(fn, self);
+  if (void 0 === arr || null === arr) throw new TypeError();
+  if ('function' != typeof fn) throw new TypeError();
+  var ret = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (!hasOwn.call(arr, i)) continue;
+    var val = arr[i];
+    if (fn.call(self, val, i, arr)) ret.push(val);
+  }
+
+  return ret;
+};
+
+var hasOwn = Object.prototype.hasOwnProperty;
+
+},{}],2:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+var filter = require('array-filter');
+
+module.exports = function availableTypedArrays() {
+  return filter(['BigInt64Array', 'BigUint64Array', 'Float32Array', 'Float64Array', 'Int16Array', 'Int32Array', 'Int8Array', 'Uint16Array', 'Uint32Array', 'Uint8Array', 'Uint8ClampedArray'], function (typedArray) {
+    return typeof global[typedArray] === 'function';
+  });
+};
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"array-filter":1}],3:[function(require,module,exports){
 'use strict';
 
 exports.byteLength = byteLength;
@@ -753,7 +795,7 @@ function fromByteArray(uint8) {
   return parts.join('');
 }
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
@@ -2534,7 +2576,535 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":1,"buffer":2,"ieee754":3}],3:[function(require,module,exports){
+},{"base64-js":3,"buffer":4,"ieee754":13}],5:[function(require,module,exports){
+'use strict';
+
+var GetIntrinsic = require('get-intrinsic');
+
+var callBind = require('./');
+
+var $indexOf = callBind(GetIntrinsic('String.prototype.indexOf'));
+
+module.exports = function callBoundIntrinsic(name, allowMissing) {
+  var intrinsic = GetIntrinsic(name, !!allowMissing);
+
+  if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.') > -1) {
+    return callBind(intrinsic);
+  }
+
+  return intrinsic;
+};
+
+},{"./":6,"get-intrinsic":9}],6:[function(require,module,exports){
+'use strict';
+
+var bind = require('function-bind');
+
+var GetIntrinsic = require('get-intrinsic');
+
+var $apply = GetIntrinsic('%Function.prototype.apply%');
+var $call = GetIntrinsic('%Function.prototype.call%');
+var $reflectApply = GetIntrinsic('%Reflect.apply%', true) || bind.call($call, $apply);
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+if ($defineProperty) {
+  try {
+    $defineProperty({}, 'a', {
+      value: 1
+    });
+  } catch (e) {
+    // IE 8 has a broken defineProperty
+    $defineProperty = null;
+  }
+}
+
+module.exports = function callBind() {
+  return $reflectApply(bind, $call, arguments);
+};
+
+var applyBind = function applyBind() {
+  return $reflectApply(bind, $apply, arguments);
+};
+
+if ($defineProperty) {
+  $defineProperty(module.exports, 'apply', {
+    value: applyBind
+  });
+} else {
+  module.exports.apply = applyBind;
+}
+
+},{"function-bind":8,"get-intrinsic":9}],7:[function(require,module,exports){
+'use strict';
+/* eslint no-invalid-this: 1 */
+
+var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
+var slice = Array.prototype.slice;
+var toStr = Object.prototype.toString;
+var funcType = '[object Function]';
+
+module.exports = function bind(that) {
+  var target = this;
+
+  if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+    throw new TypeError(ERROR_MESSAGE + target);
+  }
+
+  var args = slice.call(arguments, 1);
+  var bound;
+
+  var binder = function () {
+    if (this instanceof bound) {
+      var result = target.apply(this, args.concat(slice.call(arguments)));
+
+      if (Object(result) === result) {
+        return result;
+      }
+
+      return this;
+    } else {
+      return target.apply(that, args.concat(slice.call(arguments)));
+    }
+  };
+
+  var boundLength = Math.max(0, target.length - args.length);
+  var boundArgs = [];
+
+  for (var i = 0; i < boundLength; i++) {
+    boundArgs.push('$' + i);
+  }
+
+  bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this,arguments); }')(binder);
+
+  if (target.prototype) {
+    var Empty = function Empty() {};
+
+    Empty.prototype = target.prototype;
+    bound.prototype = new Empty();
+    Empty.prototype = null;
+  }
+
+  return bound;
+};
+
+},{}],8:[function(require,module,exports){
+'use strict';
+
+var implementation = require('./implementation');
+
+module.exports = Function.prototype.bind || implementation;
+
+},{"./implementation":7}],9:[function(require,module,exports){
+'use strict';
+/* globals
+	AggregateError,
+	Atomics,
+	FinalizationRegistry,
+	SharedArrayBuffer,
+	WeakRef,
+*/
+
+var undefined;
+var $SyntaxError = SyntaxError;
+var $Function = Function;
+var $TypeError = TypeError; // eslint-disable-next-line consistent-return
+
+var getEvalledConstructor = function (expressionSyntax) {
+  try {
+    // eslint-disable-next-line no-new-func
+    return Function('"use strict"; return (' + expressionSyntax + ').constructor;')();
+  } catch (e) {}
+};
+
+var $gOPD = Object.getOwnPropertyDescriptor;
+
+if ($gOPD) {
+  try {
+    $gOPD({}, '');
+  } catch (e) {
+    $gOPD = null; // this is IE 8, which has a broken gOPD
+  }
+}
+
+var throwTypeError = function () {
+  throw new $TypeError();
+};
+
+var ThrowTypeError = $gOPD ? function () {
+  try {
+    // eslint-disable-next-line no-unused-expressions, no-caller, no-restricted-properties
+    arguments.callee; // IE 8 does not throw here
+
+    return throwTypeError;
+  } catch (calleeThrows) {
+    try {
+      // IE 8 throws on Object.getOwnPropertyDescriptor(arguments, '')
+      return $gOPD(arguments, 'callee').get;
+    } catch (gOPDthrows) {
+      return throwTypeError;
+    }
+  }
+}() : throwTypeError;
+
+var hasSymbols = require('has-symbols')();
+
+var getProto = Object.getPrototypeOf || function (x) {
+  return x.__proto__;
+}; // eslint-disable-line no-proto
+
+
+var asyncGenFunction = getEvalledConstructor('async function* () {}');
+var asyncGenFunctionPrototype = asyncGenFunction ? asyncGenFunction.prototype : undefined;
+var asyncGenPrototype = asyncGenFunctionPrototype ? asyncGenFunctionPrototype.prototype : undefined;
+var TypedArray = typeof Uint8Array === 'undefined' ? undefined : getProto(Uint8Array);
+var INTRINSICS = {
+  '%AggregateError%': typeof AggregateError === 'undefined' ? undefined : AggregateError,
+  '%Array%': Array,
+  '%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined : ArrayBuffer,
+  '%ArrayIteratorPrototype%': hasSymbols ? getProto([][Symbol.iterator]()) : undefined,
+  '%AsyncFromSyncIteratorPrototype%': undefined,
+  '%AsyncFunction%': getEvalledConstructor('async function () {}'),
+  '%AsyncGenerator%': asyncGenFunctionPrototype,
+  '%AsyncGeneratorFunction%': asyncGenFunction,
+  '%AsyncIteratorPrototype%': asyncGenPrototype ? getProto(asyncGenPrototype) : undefined,
+  '%Atomics%': typeof Atomics === 'undefined' ? undefined : Atomics,
+  '%BigInt%': typeof BigInt === 'undefined' ? undefined : BigInt,
+  '%Boolean%': Boolean,
+  '%DataView%': typeof DataView === 'undefined' ? undefined : DataView,
+  '%Date%': Date,
+  '%decodeURI%': decodeURI,
+  '%decodeURIComponent%': decodeURIComponent,
+  '%encodeURI%': encodeURI,
+  '%encodeURIComponent%': encodeURIComponent,
+  '%Error%': Error,
+  '%eval%': eval,
+  // eslint-disable-line no-eval
+  '%EvalError%': EvalError,
+  '%Float32Array%': typeof Float32Array === 'undefined' ? undefined : Float32Array,
+  '%Float64Array%': typeof Float64Array === 'undefined' ? undefined : Float64Array,
+  '%FinalizationRegistry%': typeof FinalizationRegistry === 'undefined' ? undefined : FinalizationRegistry,
+  '%Function%': $Function,
+  '%GeneratorFunction%': getEvalledConstructor('function* () {}'),
+  '%Int8Array%': typeof Int8Array === 'undefined' ? undefined : Int8Array,
+  '%Int16Array%': typeof Int16Array === 'undefined' ? undefined : Int16Array,
+  '%Int32Array%': typeof Int32Array === 'undefined' ? undefined : Int32Array,
+  '%isFinite%': isFinite,
+  '%isNaN%': isNaN,
+  '%IteratorPrototype%': hasSymbols ? getProto(getProto([][Symbol.iterator]())) : undefined,
+  '%JSON%': typeof JSON === 'object' ? JSON : undefined,
+  '%Map%': typeof Map === 'undefined' ? undefined : Map,
+  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols ? undefined : getProto(new Map()[Symbol.iterator]()),
+  '%Math%': Math,
+  '%Number%': Number,
+  '%Object%': Object,
+  '%parseFloat%': parseFloat,
+  '%parseInt%': parseInt,
+  '%Promise%': typeof Promise === 'undefined' ? undefined : Promise,
+  '%Proxy%': typeof Proxy === 'undefined' ? undefined : Proxy,
+  '%RangeError%': RangeError,
+  '%ReferenceError%': ReferenceError,
+  '%Reflect%': typeof Reflect === 'undefined' ? undefined : Reflect,
+  '%RegExp%': RegExp,
+  '%Set%': typeof Set === 'undefined' ? undefined : Set,
+  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols ? undefined : getProto(new Set()[Symbol.iterator]()),
+  '%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined : SharedArrayBuffer,
+  '%String%': String,
+  '%StringIteratorPrototype%': hasSymbols ? getProto(''[Symbol.iterator]()) : undefined,
+  '%Symbol%': hasSymbols ? Symbol : undefined,
+  '%SyntaxError%': $SyntaxError,
+  '%ThrowTypeError%': ThrowTypeError,
+  '%TypedArray%': TypedArray,
+  '%TypeError%': $TypeError,
+  '%Uint8Array%': typeof Uint8Array === 'undefined' ? undefined : Uint8Array,
+  '%Uint8ClampedArray%': typeof Uint8ClampedArray === 'undefined' ? undefined : Uint8ClampedArray,
+  '%Uint16Array%': typeof Uint16Array === 'undefined' ? undefined : Uint16Array,
+  '%Uint32Array%': typeof Uint32Array === 'undefined' ? undefined : Uint32Array,
+  '%URIError%': URIError,
+  '%WeakMap%': typeof WeakMap === 'undefined' ? undefined : WeakMap,
+  '%WeakRef%': typeof WeakRef === 'undefined' ? undefined : WeakRef,
+  '%WeakSet%': typeof WeakSet === 'undefined' ? undefined : WeakSet
+};
+var LEGACY_ALIASES = {
+  '%ArrayBufferPrototype%': ['ArrayBuffer', 'prototype'],
+  '%ArrayPrototype%': ['Array', 'prototype'],
+  '%ArrayProto_entries%': ['Array', 'prototype', 'entries'],
+  '%ArrayProto_forEach%': ['Array', 'prototype', 'forEach'],
+  '%ArrayProto_keys%': ['Array', 'prototype', 'keys'],
+  '%ArrayProto_values%': ['Array', 'prototype', 'values'],
+  '%AsyncFunctionPrototype%': ['AsyncFunction', 'prototype'],
+  '%AsyncGenerator%': ['AsyncGeneratorFunction', 'prototype'],
+  '%AsyncGeneratorPrototype%': ['AsyncGeneratorFunction', 'prototype', 'prototype'],
+  '%BooleanPrototype%': ['Boolean', 'prototype'],
+  '%DataViewPrototype%': ['DataView', 'prototype'],
+  '%DatePrototype%': ['Date', 'prototype'],
+  '%ErrorPrototype%': ['Error', 'prototype'],
+  '%EvalErrorPrototype%': ['EvalError', 'prototype'],
+  '%Float32ArrayPrototype%': ['Float32Array', 'prototype'],
+  '%Float64ArrayPrototype%': ['Float64Array', 'prototype'],
+  '%FunctionPrototype%': ['Function', 'prototype'],
+  '%Generator%': ['GeneratorFunction', 'prototype'],
+  '%GeneratorPrototype%': ['GeneratorFunction', 'prototype', 'prototype'],
+  '%Int8ArrayPrototype%': ['Int8Array', 'prototype'],
+  '%Int16ArrayPrototype%': ['Int16Array', 'prototype'],
+  '%Int32ArrayPrototype%': ['Int32Array', 'prototype'],
+  '%JSONParse%': ['JSON', 'parse'],
+  '%JSONStringify%': ['JSON', 'stringify'],
+  '%MapPrototype%': ['Map', 'prototype'],
+  '%NumberPrototype%': ['Number', 'prototype'],
+  '%ObjectPrototype%': ['Object', 'prototype'],
+  '%ObjProto_toString%': ['Object', 'prototype', 'toString'],
+  '%ObjProto_valueOf%': ['Object', 'prototype', 'valueOf'],
+  '%PromisePrototype%': ['Promise', 'prototype'],
+  '%PromiseProto_then%': ['Promise', 'prototype', 'then'],
+  '%Promise_all%': ['Promise', 'all'],
+  '%Promise_reject%': ['Promise', 'reject'],
+  '%Promise_resolve%': ['Promise', 'resolve'],
+  '%RangeErrorPrototype%': ['RangeError', 'prototype'],
+  '%ReferenceErrorPrototype%': ['ReferenceError', 'prototype'],
+  '%RegExpPrototype%': ['RegExp', 'prototype'],
+  '%SetPrototype%': ['Set', 'prototype'],
+  '%SharedArrayBufferPrototype%': ['SharedArrayBuffer', 'prototype'],
+  '%StringPrototype%': ['String', 'prototype'],
+  '%SymbolPrototype%': ['Symbol', 'prototype'],
+  '%SyntaxErrorPrototype%': ['SyntaxError', 'prototype'],
+  '%TypedArrayPrototype%': ['TypedArray', 'prototype'],
+  '%TypeErrorPrototype%': ['TypeError', 'prototype'],
+  '%Uint8ArrayPrototype%': ['Uint8Array', 'prototype'],
+  '%Uint8ClampedArrayPrototype%': ['Uint8ClampedArray', 'prototype'],
+  '%Uint16ArrayPrototype%': ['Uint16Array', 'prototype'],
+  '%Uint32ArrayPrototype%': ['Uint32Array', 'prototype'],
+  '%URIErrorPrototype%': ['URIError', 'prototype'],
+  '%WeakMapPrototype%': ['WeakMap', 'prototype'],
+  '%WeakSetPrototype%': ['WeakSet', 'prototype']
+};
+
+var bind = require('function-bind');
+
+var hasOwn = require('has');
+
+var $concat = bind.call(Function.call, Array.prototype.concat);
+var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
+var $replace = bind.call(Function.call, String.prototype.replace);
+/* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
+
+var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
+var reEscapeChar = /\\(\\)?/g;
+/** Used to match backslashes in property paths. */
+
+var stringToPath = function stringToPath(string) {
+  var result = [];
+  $replace(string, rePropName, function (match, number, quote, subString) {
+    result[result.length] = quote ? $replace(subString, reEscapeChar, '$1') : number || match;
+  });
+  return result;
+};
+/* end adaptation */
+
+
+var getBaseIntrinsic = function getBaseIntrinsic(name, allowMissing) {
+  var intrinsicName = name;
+  var alias;
+
+  if (hasOwn(LEGACY_ALIASES, intrinsicName)) {
+    alias = LEGACY_ALIASES[intrinsicName];
+    intrinsicName = '%' + alias[0] + '%';
+  }
+
+  if (hasOwn(INTRINSICS, intrinsicName)) {
+    var value = INTRINSICS[intrinsicName];
+
+    if (typeof value === 'undefined' && !allowMissing) {
+      throw new $TypeError('intrinsic ' + name + ' exists, but is not available. Please file an issue!');
+    }
+
+    return {
+      alias: alias,
+      name: intrinsicName,
+      value: value
+    };
+  }
+
+  throw new $SyntaxError('intrinsic ' + name + ' does not exist!');
+};
+
+module.exports = function GetIntrinsic(name, allowMissing) {
+  if (typeof name !== 'string' || name.length === 0) {
+    throw new $TypeError('intrinsic name must be a non-empty string');
+  }
+
+  if (arguments.length > 1 && typeof allowMissing !== 'boolean') {
+    throw new $TypeError('"allowMissing" argument must be a boolean');
+  }
+
+  var parts = stringToPath(name);
+  var intrinsicBaseName = parts.length > 0 ? parts[0] : '';
+  var intrinsic = getBaseIntrinsic('%' + intrinsicBaseName + '%', allowMissing);
+  var intrinsicRealName = intrinsic.name;
+  var value = intrinsic.value;
+  var skipFurtherCaching = false;
+  var alias = intrinsic.alias;
+
+  if (alias) {
+    intrinsicBaseName = alias[0];
+    $spliceApply(parts, $concat([0, 1], alias));
+  }
+
+  for (var i = 1, isOwn = true; i < parts.length; i += 1) {
+    var part = parts[i];
+
+    if (part === 'constructor' || !isOwn) {
+      skipFurtherCaching = true;
+    }
+
+    intrinsicBaseName += '.' + part;
+    intrinsicRealName = '%' + intrinsicBaseName + '%';
+
+    if (hasOwn(INTRINSICS, intrinsicRealName)) {
+      value = INTRINSICS[intrinsicRealName];
+    } else if (value != null) {
+      if ($gOPD && i + 1 >= parts.length) {
+        var desc = $gOPD(value, part);
+        isOwn = !!desc;
+
+        if (!allowMissing && !(part in value)) {
+          throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
+        } // By convention, when a data property is converted to an accessor
+        // property to emulate a data property that does not suffer from
+        // the override mistake, that accessor's getter is marked with
+        // an `originalValue` property. Here, when we detect this, we
+        // uphold the illusion by pretending to see that original data
+        // property, i.e., returning the value rather than the getter
+        // itself.
+
+
+        if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
+          value = desc.get;
+        } else {
+          value = value[part];
+        }
+      } else {
+        isOwn = hasOwn(value, part);
+        value = value[part];
+      }
+
+      if (isOwn && !skipFurtherCaching) {
+        INTRINSICS[intrinsicRealName] = value;
+      }
+    }
+  }
+
+  return value;
+};
+
+},{"function-bind":8,"has":12,"has-symbols":10}],10:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+var origSymbol = global.Symbol;
+
+var hasSymbolSham = require('./shams');
+
+module.exports = function hasNativeSymbols() {
+  if (typeof origSymbol !== 'function') {
+    return false;
+  }
+
+  if (typeof Symbol !== 'function') {
+    return false;
+  }
+
+  if (typeof origSymbol('foo') !== 'symbol') {
+    return false;
+  }
+
+  if (typeof Symbol('bar') !== 'symbol') {
+    return false;
+  }
+
+  return hasSymbolSham();
+};
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./shams":11}],11:[function(require,module,exports){
+'use strict';
+/* eslint complexity: [2, 18], max-statements: [2, 33] */
+
+module.exports = function hasSymbols() {
+  if (typeof Symbol !== 'function' || typeof Object.getOwnPropertySymbols !== 'function') {
+    return false;
+  }
+
+  if (typeof Symbol.iterator === 'symbol') {
+    return true;
+  }
+
+  var obj = {};
+  var sym = Symbol('test');
+  var symObj = Object(sym);
+
+  if (typeof sym === 'string') {
+    return false;
+  }
+
+  if (Object.prototype.toString.call(sym) !== '[object Symbol]') {
+    return false;
+  }
+
+  if (Object.prototype.toString.call(symObj) !== '[object Symbol]') {
+    return false;
+  } // temp disabled per https://github.com/ljharb/object.assign/issues/17
+  // if (sym instanceof Symbol) { return false; }
+  // temp disabled per https://github.com/WebReflection/get-own-property-symbols/issues/4
+  // if (!(symObj instanceof Symbol)) { return false; }
+  // if (typeof Symbol.prototype.toString !== 'function') { return false; }
+  // if (String(sym) !== Symbol.prototype.toString.call(sym)) { return false; }
+
+
+  var symVal = 42;
+  obj[sym] = symVal;
+
+  for (sym in obj) {
+    return false;
+  } // eslint-disable-line no-restricted-syntax
+
+
+  if (typeof Object.keys === 'function' && Object.keys(obj).length !== 0) {
+    return false;
+  }
+
+  if (typeof Object.getOwnPropertyNames === 'function' && Object.getOwnPropertyNames(obj).length !== 0) {
+    return false;
+  }
+
+  var syms = Object.getOwnPropertySymbols(obj);
+
+  if (syms.length !== 1 || syms[0] !== sym) {
+    return false;
+  }
+
+  if (!Object.prototype.propertyIsEnumerable.call(obj, sym)) {
+    return false;
+  }
+
+  if (typeof Object.getOwnPropertyDescriptor === 'function') {
+    var descriptor = Object.getOwnPropertyDescriptor(obj, sym);
+
+    if (descriptor.value !== symVal || descriptor.enumerable !== true) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+},{}],12:[function(require,module,exports){
+'use strict';
+
+var bind = require('function-bind');
+
+module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
+
+},{"function-bind":8}],13:[function(require,module,exports){
 "use strict";
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
@@ -2627,29 +3197,118 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],4:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (process,global,Buffer){(function (){
 'use strict';
 
+var callBound = require('call-bind/callBound');
+
+var availableTypedArrays = require('available-typed-arrays');
+
+function _interopDefaultLegacy(e) {
+  return e && typeof e === 'object' && 'default' in e ? e : {
+    'default': e
+  };
+}
+
+var callBound__default = /*#__PURE__*/_interopDefaultLegacy(callBound);
+
+var availableTypedArrays__default = /*#__PURE__*/_interopDefaultLegacy(availableTypedArrays);
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function getDefaultExportFromCjs(x) {
-  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+function createCommonjsModule(fn) {
+  var module = {
+    exports: {}
+  };
+  return fn(module, module.exports), module.exports;
 }
 
-function createCommonjsModule(fn, basedir, module) {
-  return module = {
-    path: basedir,
-    exports: {},
-    require: function (path, base) {
-      return commonjsRequire(path, base === undefined || base === null ? module.path : base);
+var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
+var $toString = callBound__default['default']('Object.prototype.toString');
+
+var isStandardArguments = function isArguments(value) {
+  if (hasToStringTag && value && typeof value === 'object' && Symbol.toStringTag in value) {
+    return false;
+  }
+
+  return $toString(value) === '[object Arguments]';
+};
+
+var isLegacyArguments = function isArguments(value) {
+  if (isStandardArguments(value)) {
+    return true;
+  }
+
+  return value !== null && typeof value === 'object' && typeof value.length === 'number' && value.length >= 0 && $toString(value) !== '[object Array]' && $toString(value.callee) === '[object Function]';
+};
+
+var supportsStandardArguments = function () {
+  return isStandardArguments(arguments);
+}();
+
+isStandardArguments.isLegacyArguments = isLegacyArguments; // for tests
+
+var isArguments = supportsStandardArguments ? isStandardArguments : isLegacyArguments;
+var toStr = Object.prototype.toString;
+var fnToStr = Function.prototype.toString;
+var isFnRegex = /^\s*(?:function)?\*/;
+var hasToStringTag$1 = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
+var getProto = Object.getPrototypeOf;
+
+var getGeneratorFunc = function () {
+  // eslint-disable-line consistent-return
+  if (!hasToStringTag$1) {
+    return false;
+  }
+
+  try {
+    return Function('return function*() {}')();
+  } catch (e) {}
+};
+
+var generatorFunc = getGeneratorFunc();
+var GeneratorFunction = getProto && generatorFunc ? getProto(generatorFunc) : false;
+
+var isGeneratorFunction = function isGeneratorFunction(fn) {
+  if (typeof fn !== 'function') {
+    return false;
+  }
+
+  if (isFnRegex.test(fnToStr.call(fn))) {
+    return true;
+  }
+
+  if (!hasToStringTag$1) {
+    var str = toStr.call(fn);
+    return str === '[object GeneratorFunction]';
+  }
+
+  return getProto && getProto(fn) === GeneratorFunction;
+};
+
+var hasOwn = Object.prototype.hasOwnProperty;
+var toString = Object.prototype.toString;
+
+var foreach = function forEach(obj, fn, ctx) {
+  if (toString.call(fn) !== '[object Function]') {
+    throw new TypeError('iterator must be a function');
+  }
+
+  var l = obj.length;
+
+  if (l === +l) {
+    for (var i = 0; i < l; i++) {
+      fn.call(ctx, obj[i], i, obj);
     }
-  }, fn(module, module.exports), module.exports;
-}
-
-function commonjsRequire() {
-  throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
-}
+  } else {
+    for (var k in obj) {
+      if (hasOwn.call(obj, k)) {
+        fn.call(ctx, obj[k], k, obj);
+      }
+    }
+  }
+};
 /* eslint complexity: [2, 18], max-statements: [2, 33] */
 
 
@@ -2747,13 +3406,13 @@ var hasSymbols = function hasNativeSymbols() {
 
 var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
 var slice = Array.prototype.slice;
-var toStr = Object.prototype.toString;
+var toStr$1 = Object.prototype.toString;
 var funcType = '[object Function]';
 
 var implementation = function bind(that) {
   var target = this;
 
-  if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+  if (typeof target !== 'function' || toStr$1.call(target) !== funcType) {
     throw new TypeError(ERROR_MESSAGE + target);
   }
 
@@ -2847,7 +3506,7 @@ var ThrowTypeError = $gOPD ? function () {
 }() : throwTypeError;
 var hasSymbols$1 = hasSymbols();
 
-var getProto = Object.getPrototypeOf || function (x) {
+var getProto$1 = Object.getPrototypeOf || function (x) {
   return x.__proto__;
 }; // eslint-disable-line no-proto
 
@@ -2855,17 +3514,17 @@ var getProto = Object.getPrototypeOf || function (x) {
 var asyncGenFunction = getEvalledConstructor('async function* () {}');
 var asyncGenFunctionPrototype = asyncGenFunction ? asyncGenFunction.prototype : undefined$1;
 var asyncGenPrototype = asyncGenFunctionPrototype ? asyncGenFunctionPrototype.prototype : undefined$1;
-var TypedArray = typeof Uint8Array === 'undefined' ? undefined$1 : getProto(Uint8Array);
+var TypedArray = typeof Uint8Array === 'undefined' ? undefined$1 : getProto$1(Uint8Array);
 var INTRINSICS = {
   '%AggregateError%': typeof AggregateError === 'undefined' ? undefined$1 : AggregateError,
   '%Array%': Array,
   '%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined$1 : ArrayBuffer,
-  '%ArrayIteratorPrototype%': hasSymbols$1 ? getProto([][Symbol.iterator]()) : undefined$1,
+  '%ArrayIteratorPrototype%': hasSymbols$1 ? getProto$1([][Symbol.iterator]()) : undefined$1,
   '%AsyncFromSyncIteratorPrototype%': undefined$1,
   '%AsyncFunction%': getEvalledConstructor('async function () {}'),
   '%AsyncGenerator%': asyncGenFunctionPrototype,
   '%AsyncGeneratorFunction%': asyncGenFunction,
-  '%AsyncIteratorPrototype%': asyncGenPrototype ? getProto(asyncGenPrototype) : undefined$1,
+  '%AsyncIteratorPrototype%': asyncGenPrototype ? getProto$1(asyncGenPrototype) : undefined$1,
   '%Atomics%': typeof Atomics === 'undefined' ? undefined$1 : Atomics,
   '%BigInt%': typeof BigInt === 'undefined' ? undefined$1 : BigInt,
   '%Boolean%': Boolean,
@@ -2889,10 +3548,10 @@ var INTRINSICS = {
   '%Int32Array%': typeof Int32Array === 'undefined' ? undefined$1 : Int32Array,
   '%isFinite%': isFinite,
   '%isNaN%': isNaN,
-  '%IteratorPrototype%': hasSymbols$1 ? getProto(getProto([][Symbol.iterator]())) : undefined$1,
+  '%IteratorPrototype%': hasSymbols$1 ? getProto$1(getProto$1([][Symbol.iterator]())) : undefined$1,
   '%JSON%': typeof JSON === 'object' ? JSON : undefined$1,
   '%Map%': typeof Map === 'undefined' ? undefined$1 : Map,
-  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto(new Map()[Symbol.iterator]()),
+  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto$1(new Map()[Symbol.iterator]()),
   '%Math%': Math,
   '%Number%': Number,
   '%Object%': Object,
@@ -2905,10 +3564,10 @@ var INTRINSICS = {
   '%Reflect%': typeof Reflect === 'undefined' ? undefined$1 : Reflect,
   '%RegExp%': RegExp,
   '%Set%': typeof Set === 'undefined' ? undefined$1 : Set,
-  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto(new Set()[Symbol.iterator]()),
+  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto$1(new Set()[Symbol.iterator]()),
   '%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined$1 : SharedArrayBuffer,
   '%String%': String,
-  '%StringIteratorPrototype%': hasSymbols$1 ? getProto(''[Symbol.iterator]()) : undefined$1,
+  '%StringIteratorPrototype%': hasSymbols$1 ? getProto$1(''[Symbol.iterator]()) : undefined$1,
   '%Symbol%': hasSymbols$1 ? Symbol : undefined$1,
   '%SyntaxError%': $SyntaxError,
   '%ThrowTypeError%': ThrowTypeError,
@@ -3021,7 +3680,7 @@ var getBaseIntrinsic = function getBaseIntrinsic(name, allowMissing) {
   throw new $SyntaxError('intrinsic ' + name + ' does not exist!');
 };
 
-var getIntrinsic = function GetIntrinsic(name, allowMissing) {
+var GetIntrinsic = function GetIntrinsic(name, allowMissing) {
   if (typeof name !== 'string' || name.length === 0) {
     throw new $TypeError('intrinsic name must be a non-empty string');
   }
@@ -3090,482 +3749,24 @@ var getIntrinsic = function GetIntrinsic(name, allowMissing) {
   return value;
 };
 
-var callBind = createCommonjsModule(function (module) {
-  var $apply = getIntrinsic('%Function.prototype.apply%');
-  var $call = getIntrinsic('%Function.prototype.call%');
-  var $reflectApply = getIntrinsic('%Reflect.apply%', true) || functionBind.call($call, $apply);
-  var $defineProperty = getIntrinsic('%Object.defineProperty%', true);
-
-  if ($defineProperty) {
-    try {
-      $defineProperty({}, 'a', {
-        value: 1
-      });
-    } catch (e) {
-      // IE 8 has a broken defineProperty
-      $defineProperty = null;
-    }
-  }
-
-  module.exports = function callBind() {
-    return $reflectApply(functionBind, $call, arguments);
-  };
-
-  var applyBind = function applyBind() {
-    return $reflectApply(functionBind, $apply, arguments);
-  };
-
-  if ($defineProperty) {
-    $defineProperty(module.exports, 'apply', {
-      value: applyBind
-    });
-  } else {
-    module.exports.apply = applyBind;
-  }
-});
-var $indexOf = callBind(getIntrinsic('String.prototype.indexOf'));
-
-var callBound = function callBoundIntrinsic(name, allowMissing) {
-  var intrinsic = getIntrinsic(name, !!allowMissing);
-
-  if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.') > -1) {
-    return callBind(intrinsic);
-  }
-
-  return intrinsic;
-};
-
-var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
-var $toString = callBound('Object.prototype.toString');
-
-var isStandardArguments = function isArguments(value) {
-  if (hasToStringTag && value && typeof value === 'object' && Symbol.toStringTag in value) {
-    return false;
-  }
-
-  return $toString(value) === '[object Arguments]';
-};
-
-var isLegacyArguments = function isArguments(value) {
-  if (isStandardArguments(value)) {
-    return true;
-  }
-
-  return value !== null && typeof value === 'object' && typeof value.length === 'number' && value.length >= 0 && $toString(value) !== '[object Array]' && $toString(value.callee) === '[object Function]';
-};
-
-var supportsStandardArguments = function () {
-  return isStandardArguments(arguments);
-}();
-
-isStandardArguments.isLegacyArguments = isLegacyArguments; // for tests
-
-var isArguments = supportsStandardArguments ? isStandardArguments : isLegacyArguments;
-var toStr$1 = Object.prototype.toString;
-var fnToStr = Function.prototype.toString;
-var isFnRegex = /^\s*(?:function)?\*/;
-var hasToStringTag$1 = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
-var getProto$1 = Object.getPrototypeOf;
-
-var getGeneratorFunc = function () {
-  // eslint-disable-line consistent-return
-  if (!hasToStringTag$1) {
-    return false;
-  }
-
-  try {
-    return Function('return function*() {}')();
-  } catch (e) {}
-};
-
-var generatorFunc = getGeneratorFunc();
-var GeneratorFunction = getProto$1 && generatorFunc ? getProto$1(generatorFunc) : false;
-
-var isGeneratorFunction = function isGeneratorFunction(fn) {
-  if (typeof fn !== 'function') {
-    return false;
-  }
-
-  if (isFnRegex.test(fnToStr.call(fn))) {
-    return true;
-  }
-
-  if (!hasToStringTag$1) {
-    var str = toStr$1.call(fn);
-    return str === '[object GeneratorFunction]';
-  }
-
-  return getProto$1 && getProto$1(fn) === GeneratorFunction;
-};
-
-var hasOwn = Object.prototype.hasOwnProperty;
-var toString = Object.prototype.toString;
-
-var foreach = function forEach(obj, fn, ctx) {
-  if (toString.call(fn) !== '[object Function]') {
-    throw new TypeError('iterator must be a function');
-  }
-
-  var l = obj.length;
-
-  if (l === +l) {
-    for (var i = 0; i < l; i++) {
-      fn.call(ctx, obj[i], i, obj);
-    }
-  } else {
-    for (var k in obj) {
-      if (hasOwn.call(obj, k)) {
-        fn.call(ctx, obj[k], k, obj);
-      }
-    }
-  }
-};
-/**
- * Array#filter.
- *
- * @param {Array} arr
- * @param {Function} fn
- * @param {Object=} self
- * @return {Array}
- * @throw TypeError
- */
-
-
-var arrayFilter = function (arr, fn, self) {
-  if (arr.filter) return arr.filter(fn, self);
-  if (void 0 === arr || null === arr) throw new TypeError();
-  if ('function' != typeof fn) throw new TypeError();
-  var ret = [];
-
-  for (var i = 0; i < arr.length; i++) {
-    if (!hasOwn$1.call(arr, i)) continue;
-    var val = arr[i];
-    if (fn.call(self, val, i, arr)) ret.push(val);
-  }
-
-  return ret;
-};
-
-var hasOwn$1 = Object.prototype.hasOwnProperty;
-
-var availableTypedArrays = function availableTypedArrays() {
-  return arrayFilter(['BigInt64Array', 'BigUint64Array', 'Float32Array', 'Float64Array', 'Int16Array', 'Int32Array', 'Int8Array', 'Uint16Array', 'Uint32Array', 'Uint8Array', 'Uint8ClampedArray'], function (typedArray) {
-    return typeof commonjsGlobal[typedArray] === 'function';
-  });
-};
-/* globals
-	AggregateError,
-	Atomics,
-	FinalizationRegistry,
-	SharedArrayBuffer,
-	WeakRef,
-*/
-
-
-var undefined$2;
-var $SyntaxError$1 = SyntaxError;
-var $Function$1 = Function;
-var $TypeError$1 = TypeError; // eslint-disable-next-line consistent-return
-
-var getEvalledConstructor$1 = function (expressionSyntax) {
-  try {
-    // eslint-disable-next-line no-new-func
-    return Function('"use strict"; return (' + expressionSyntax + ').constructor;')();
-  } catch (e) {}
-};
-
-var $gOPD$1 = Object.getOwnPropertyDescriptor;
+var $gOPD$1 = GetIntrinsic('%Object.getOwnPropertyDescriptor%');
 
 if ($gOPD$1) {
   try {
-    $gOPD$1({}, '');
-  } catch (e) {
-    $gOPD$1 = null; // this is IE 8, which has a broken gOPD
-  }
-}
-
-var throwTypeError$1 = function () {
-  throw new $TypeError$1();
-};
-
-var ThrowTypeError$1 = $gOPD$1 ? function () {
-  try {
-    // eslint-disable-next-line no-unused-expressions, no-caller, no-restricted-properties
-    arguments.callee; // IE 8 does not throw here
-
-    return throwTypeError$1;
-  } catch (calleeThrows) {
-    try {
-      // IE 8 throws on Object.getOwnPropertyDescriptor(arguments, '')
-      return $gOPD$1(arguments, 'callee').get;
-    } catch (gOPDthrows) {
-      return throwTypeError$1;
-    }
-  }
-}() : throwTypeError$1;
-var hasSymbols$2 = hasSymbols();
-
-var getProto$2 = Object.getPrototypeOf || function (x) {
-  return x.__proto__;
-}; // eslint-disable-line no-proto
-
-
-var asyncGenFunction$1 = getEvalledConstructor$1('async function* () {}');
-var asyncGenFunctionPrototype$1 = asyncGenFunction$1 ? asyncGenFunction$1.prototype : undefined$2;
-var asyncGenPrototype$1 = asyncGenFunctionPrototype$1 ? asyncGenFunctionPrototype$1.prototype : undefined$2;
-var TypedArray$1 = typeof Uint8Array === 'undefined' ? undefined$2 : getProto$2(Uint8Array);
-var INTRINSICS$1 = {
-  '%AggregateError%': typeof AggregateError === 'undefined' ? undefined$2 : AggregateError,
-  '%Array%': Array,
-  '%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined$2 : ArrayBuffer,
-  '%ArrayIteratorPrototype%': hasSymbols$2 ? getProto$2([][Symbol.iterator]()) : undefined$2,
-  '%AsyncFromSyncIteratorPrototype%': undefined$2,
-  '%AsyncFunction%': getEvalledConstructor$1('async function () {}'),
-  '%AsyncGenerator%': asyncGenFunctionPrototype$1,
-  '%AsyncGeneratorFunction%': asyncGenFunction$1,
-  '%AsyncIteratorPrototype%': asyncGenPrototype$1 ? getProto$2(asyncGenPrototype$1) : undefined$2,
-  '%Atomics%': typeof Atomics === 'undefined' ? undefined$2 : Atomics,
-  '%BigInt%': typeof BigInt === 'undefined' ? undefined$2 : BigInt,
-  '%Boolean%': Boolean,
-  '%DataView%': typeof DataView === 'undefined' ? undefined$2 : DataView,
-  '%Date%': Date,
-  '%decodeURI%': decodeURI,
-  '%decodeURIComponent%': decodeURIComponent,
-  '%encodeURI%': encodeURI,
-  '%encodeURIComponent%': encodeURIComponent,
-  '%Error%': Error,
-  '%eval%': eval,
-  // eslint-disable-line no-eval
-  '%EvalError%': EvalError,
-  '%Float32Array%': typeof Float32Array === 'undefined' ? undefined$2 : Float32Array,
-  '%Float64Array%': typeof Float64Array === 'undefined' ? undefined$2 : Float64Array,
-  '%FinalizationRegistry%': typeof FinalizationRegistry === 'undefined' ? undefined$2 : FinalizationRegistry,
-  '%Function%': $Function$1,
-  '%GeneratorFunction%': getEvalledConstructor$1('function* () {}'),
-  '%Int8Array%': typeof Int8Array === 'undefined' ? undefined$2 : Int8Array,
-  '%Int16Array%': typeof Int16Array === 'undefined' ? undefined$2 : Int16Array,
-  '%Int32Array%': typeof Int32Array === 'undefined' ? undefined$2 : Int32Array,
-  '%isFinite%': isFinite,
-  '%isNaN%': isNaN,
-  '%IteratorPrototype%': hasSymbols$2 ? getProto$2(getProto$2([][Symbol.iterator]())) : undefined$2,
-  '%JSON%': typeof JSON === 'object' ? JSON : undefined$2,
-  '%Map%': typeof Map === 'undefined' ? undefined$2 : Map,
-  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols$2 ? undefined$2 : getProto$2(new Map()[Symbol.iterator]()),
-  '%Math%': Math,
-  '%Number%': Number,
-  '%Object%': Object,
-  '%parseFloat%': parseFloat,
-  '%parseInt%': parseInt,
-  '%Promise%': typeof Promise === 'undefined' ? undefined$2 : Promise,
-  '%Proxy%': typeof Proxy === 'undefined' ? undefined$2 : Proxy,
-  '%RangeError%': RangeError,
-  '%ReferenceError%': ReferenceError,
-  '%Reflect%': typeof Reflect === 'undefined' ? undefined$2 : Reflect,
-  '%RegExp%': RegExp,
-  '%Set%': typeof Set === 'undefined' ? undefined$2 : Set,
-  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols$2 ? undefined$2 : getProto$2(new Set()[Symbol.iterator]()),
-  '%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined$2 : SharedArrayBuffer,
-  '%String%': String,
-  '%StringIteratorPrototype%': hasSymbols$2 ? getProto$2(''[Symbol.iterator]()) : undefined$2,
-  '%Symbol%': hasSymbols$2 ? Symbol : undefined$2,
-  '%SyntaxError%': $SyntaxError$1,
-  '%ThrowTypeError%': ThrowTypeError$1,
-  '%TypedArray%': TypedArray$1,
-  '%TypeError%': $TypeError$1,
-  '%Uint8Array%': typeof Uint8Array === 'undefined' ? undefined$2 : Uint8Array,
-  '%Uint8ClampedArray%': typeof Uint8ClampedArray === 'undefined' ? undefined$2 : Uint8ClampedArray,
-  '%Uint16Array%': typeof Uint16Array === 'undefined' ? undefined$2 : Uint16Array,
-  '%Uint32Array%': typeof Uint32Array === 'undefined' ? undefined$2 : Uint32Array,
-  '%URIError%': URIError,
-  '%WeakMap%': typeof WeakMap === 'undefined' ? undefined$2 : WeakMap,
-  '%WeakRef%': typeof WeakRef === 'undefined' ? undefined$2 : WeakRef,
-  '%WeakSet%': typeof WeakSet === 'undefined' ? undefined$2 : WeakSet
-};
-var LEGACY_ALIASES$1 = {
-  '%ArrayBufferPrototype%': ['ArrayBuffer', 'prototype'],
-  '%ArrayPrototype%': ['Array', 'prototype'],
-  '%ArrayProto_entries%': ['Array', 'prototype', 'entries'],
-  '%ArrayProto_forEach%': ['Array', 'prototype', 'forEach'],
-  '%ArrayProto_keys%': ['Array', 'prototype', 'keys'],
-  '%ArrayProto_values%': ['Array', 'prototype', 'values'],
-  '%AsyncFunctionPrototype%': ['AsyncFunction', 'prototype'],
-  '%AsyncGenerator%': ['AsyncGeneratorFunction', 'prototype'],
-  '%AsyncGeneratorPrototype%': ['AsyncGeneratorFunction', 'prototype', 'prototype'],
-  '%BooleanPrototype%': ['Boolean', 'prototype'],
-  '%DataViewPrototype%': ['DataView', 'prototype'],
-  '%DatePrototype%': ['Date', 'prototype'],
-  '%ErrorPrototype%': ['Error', 'prototype'],
-  '%EvalErrorPrototype%': ['EvalError', 'prototype'],
-  '%Float32ArrayPrototype%': ['Float32Array', 'prototype'],
-  '%Float64ArrayPrototype%': ['Float64Array', 'prototype'],
-  '%FunctionPrototype%': ['Function', 'prototype'],
-  '%Generator%': ['GeneratorFunction', 'prototype'],
-  '%GeneratorPrototype%': ['GeneratorFunction', 'prototype', 'prototype'],
-  '%Int8ArrayPrototype%': ['Int8Array', 'prototype'],
-  '%Int16ArrayPrototype%': ['Int16Array', 'prototype'],
-  '%Int32ArrayPrototype%': ['Int32Array', 'prototype'],
-  '%JSONParse%': ['JSON', 'parse'],
-  '%JSONStringify%': ['JSON', 'stringify'],
-  '%MapPrototype%': ['Map', 'prototype'],
-  '%NumberPrototype%': ['Number', 'prototype'],
-  '%ObjectPrototype%': ['Object', 'prototype'],
-  '%ObjProto_toString%': ['Object', 'prototype', 'toString'],
-  '%ObjProto_valueOf%': ['Object', 'prototype', 'valueOf'],
-  '%PromisePrototype%': ['Promise', 'prototype'],
-  '%PromiseProto_then%': ['Promise', 'prototype', 'then'],
-  '%Promise_all%': ['Promise', 'all'],
-  '%Promise_reject%': ['Promise', 'reject'],
-  '%Promise_resolve%': ['Promise', 'resolve'],
-  '%RangeErrorPrototype%': ['RangeError', 'prototype'],
-  '%ReferenceErrorPrototype%': ['ReferenceError', 'prototype'],
-  '%RegExpPrototype%': ['RegExp', 'prototype'],
-  '%SetPrototype%': ['Set', 'prototype'],
-  '%SharedArrayBufferPrototype%': ['SharedArrayBuffer', 'prototype'],
-  '%StringPrototype%': ['String', 'prototype'],
-  '%SymbolPrototype%': ['Symbol', 'prototype'],
-  '%SyntaxErrorPrototype%': ['SyntaxError', 'prototype'],
-  '%TypedArrayPrototype%': ['TypedArray', 'prototype'],
-  '%TypeErrorPrototype%': ['TypeError', 'prototype'],
-  '%Uint8ArrayPrototype%': ['Uint8Array', 'prototype'],
-  '%Uint8ClampedArrayPrototype%': ['Uint8ClampedArray', 'prototype'],
-  '%Uint16ArrayPrototype%': ['Uint16Array', 'prototype'],
-  '%Uint32ArrayPrototype%': ['Uint32Array', 'prototype'],
-  '%URIErrorPrototype%': ['URIError', 'prototype'],
-  '%WeakMapPrototype%': ['WeakMap', 'prototype'],
-  '%WeakSetPrototype%': ['WeakSet', 'prototype']
-};
-var $concat$1 = functionBind.call(Function.call, Array.prototype.concat);
-var $spliceApply$1 = functionBind.call(Function.apply, Array.prototype.splice);
-var $replace$1 = functionBind.call(Function.call, String.prototype.replace);
-/* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
-
-var rePropName$1 = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
-var reEscapeChar$1 = /\\(\\)?/g;
-/** Used to match backslashes in property paths. */
-
-var stringToPath$1 = function stringToPath(string) {
-  var result = [];
-  $replace$1(string, rePropName$1, function (match, number, quote, subString) {
-    result[result.length] = quote ? $replace$1(subString, reEscapeChar$1, '$1') : number || match;
-  });
-  return result;
-};
-/* end adaptation */
-
-
-var getBaseIntrinsic$1 = function getBaseIntrinsic(name, allowMissing) {
-  var intrinsicName = name;
-  var alias;
-
-  if (src(LEGACY_ALIASES$1, intrinsicName)) {
-    alias = LEGACY_ALIASES$1[intrinsicName];
-    intrinsicName = '%' + alias[0] + '%';
-  }
-
-  if (src(INTRINSICS$1, intrinsicName)) {
-    var value = INTRINSICS$1[intrinsicName];
-
-    if (typeof value === 'undefined' && !allowMissing) {
-      throw new $TypeError$1('intrinsic ' + name + ' exists, but is not available. Please file an issue!');
-    }
-
-    return {
-      alias: alias,
-      name: intrinsicName,
-      value: value
-    };
-  }
-
-  throw new $SyntaxError$1('intrinsic ' + name + ' does not exist!');
-};
-
-var GetIntrinsic = function GetIntrinsic(name, allowMissing) {
-  if (typeof name !== 'string' || name.length === 0) {
-    throw new $TypeError$1('intrinsic name must be a non-empty string');
-  }
-
-  if (arguments.length > 1 && typeof allowMissing !== 'boolean') {
-    throw new $TypeError$1('"allowMissing" argument must be a boolean');
-  }
-
-  var parts = stringToPath$1(name);
-  var intrinsicBaseName = parts.length > 0 ? parts[0] : '';
-  var intrinsic = getBaseIntrinsic$1('%' + intrinsicBaseName + '%', allowMissing);
-  var intrinsicRealName = intrinsic.name;
-  var value = intrinsic.value;
-  var skipFurtherCaching = false;
-  var alias = intrinsic.alias;
-
-  if (alias) {
-    intrinsicBaseName = alias[0];
-    $spliceApply$1(parts, $concat$1([0, 1], alias));
-  }
-
-  for (var i = 1, isOwn = true; i < parts.length; i += 1) {
-    var part = parts[i];
-
-    if (part === 'constructor' || !isOwn) {
-      skipFurtherCaching = true;
-    }
-
-    intrinsicBaseName += '.' + part;
-    intrinsicRealName = '%' + intrinsicBaseName + '%';
-
-    if (src(INTRINSICS$1, intrinsicRealName)) {
-      value = INTRINSICS$1[intrinsicRealName];
-    } else if (value != null) {
-      if ($gOPD$1 && i + 1 >= parts.length) {
-        var desc = $gOPD$1(value, part);
-        isOwn = !!desc;
-
-        if (!allowMissing && !(part in value)) {
-          throw new $TypeError$1('base intrinsic for ' + name + ' exists, but the property is not available.');
-        } // By convention, when a data property is converted to an accessor
-        // property to emulate a data property that does not suffer from
-        // the override mistake, that accessor's getter is marked with
-        // an `originalValue` property. Here, when we detect this, we
-        // uphold the illusion by pretending to see that original data
-        // property, i.e., returning the value rather than the getter
-        // itself.
-
-
-        if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
-          value = desc.get;
-        } else {
-          value = value[part];
-        }
-      } else {
-        isOwn = src(value, part);
-        value = value[part];
-      }
-
-      if (isOwn && !skipFurtherCaching) {
-        INTRINSICS$1[intrinsicRealName] = value;
-      }
-    }
-  }
-
-  return value;
-};
-
-var $gOPD$2 = GetIntrinsic('%Object.getOwnPropertyDescriptor%');
-
-if ($gOPD$2) {
-  try {
-    $gOPD$2([], 'length');
+    $gOPD$1([], 'length');
   } catch (e) {
     // IE 8 has a broken gOPD
-    $gOPD$2 = null;
+    $gOPD$1 = null;
   }
 }
 
-var getOwnPropertyDescriptor = $gOPD$2;
-var $toString$1 = callBound('Object.prototype.toString');
-var hasSymbols$3 = hasSymbols();
-var hasToStringTag$2 = hasSymbols$3 && typeof Symbol.toStringTag === 'symbol';
-var typedArrays = availableTypedArrays();
+var getOwnPropertyDescriptor = $gOPD$1;
+var $toString$1 = callBound__default['default']('Object.prototype.toString');
+var hasSymbols$2 = hasSymbols();
+var hasToStringTag$2 = hasSymbols$2 && typeof Symbol.toStringTag === 'symbol';
+var typedArrays = availableTypedArrays__default['default']();
 
-var $indexOf$1 = callBound('Array.prototype.indexOf', true) || function indexOf(array, value) {
+var $indexOf = callBound__default['default']('Array.prototype.indexOf', true) || function indexOf(array, value) {
   for (var i = 0; i < array.length; i += 1) {
     if (array[i] === value) {
       return i;
@@ -3575,7 +3776,7 @@ var $indexOf$1 = callBound('Array.prototype.indexOf', true) || function indexOf(
   return -1;
 };
 
-var $slice = callBound('String.prototype.slice');
+var $slice = callBound__default['default']('String.prototype.slice');
 var toStrTags = {};
 var getPrototypeOf = Object.getPrototypeOf; // require('getprototypeof');
 
@@ -3620,7 +3821,7 @@ var isTypedArray = function isTypedArray(value) {
 
   if (!hasToStringTag$2) {
     var tag = $slice($toString$1(value), 8, -1);
-    return $indexOf$1(typedArrays, tag) > -1;
+    return $indexOf(typedArrays, tag) > -1;
   }
 
   if (!getOwnPropertyDescriptor) {
@@ -3630,11 +3831,11 @@ var isTypedArray = function isTypedArray(value) {
   return tryTypedArrays(value);
 };
 
-var $toString$2 = callBound('Object.prototype.toString');
-var hasSymbols$4 = hasSymbols();
-var hasToStringTag$3 = hasSymbols$4 && typeof Symbol.toStringTag === 'symbol';
-var typedArrays$1 = availableTypedArrays();
-var $slice$1 = callBound('String.prototype.slice');
+var $toString$2 = callBound__default['default']('Object.prototype.toString');
+var hasSymbols$3 = hasSymbols();
+var hasToStringTag$3 = hasSymbols$3 && typeof Symbol.toStringTag === 'symbol';
+var typedArrays$1 = availableTypedArrays__default['default']();
+var $slice$1 = callBound__default['default']('String.prototype.slice');
 var toStrTags$1 = {};
 var getPrototypeOf$1 = Object.getPrototypeOf; // require('getprototypeof');
 
@@ -5044,29 +5245,32 @@ const create = () => {
 var ansiColors = create();
 var create_1 = create;
 ansiColors.create = create_1;
-var string_registry = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.setStrings = setStrings;
-  exports.getStrings = getStrings;
-  exports.getString = getString; // STATE within a module is frowned upon, this exists
-  // to support Ember.STRINGS but shield ember internals from this legacy global
-  // API.
+var setStrings_1 = setStrings;
+var getStrings_1 = getStrings;
+var getString_1 = getString; // STATE within a module is frowned upon, this exists
+// to support Ember.STRINGS but shield ember internals from this legacy global
+// API.
 
-  let STRINGS = {};
+let STRINGS = {};
 
-  function setStrings(strings) {
-    STRINGS = strings;
-  }
+function setStrings(strings) {
+  STRINGS = strings;
+}
 
-  function getStrings() {
-    return STRINGS;
-  }
+function getStrings() {
+  return STRINGS;
+}
 
-  function getString(name) {
-    return STRINGS[name];
-  }
+function getString(name) {
+  return STRINGS[name];
+}
+
+var string_registry = /*#__PURE__*/Object.defineProperty({
+  setStrings: setStrings_1,
+  getStrings: getStrings_1,
+  getString: getString_1
+}, '__esModule', {
+  value: true
 });
 var deprecatedFeatures = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -5390,424 +5594,59 @@ var environment = createCommonjsModule(function (module, exports) {
     return ENV;
   }
 });
-var browserEnvironment = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
-
-  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
-  exports.hasDOM = hasDom;
-  const window = hasDom ? self : null;
-  exports.window = window;
-  const location$1 = hasDom ? self.location : null;
-  exports.location = location$1;
-  const history$1 = hasDom ? self.history : null;
-  exports.history = history$1;
-  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
-  exports.userAgent = userAgent;
-  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
-  exports.isChrome = isChrome;
-  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
-  exports.isFirefox = isFirefox;
-});
-var error = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /**
-   @module @ember/error
-  */
-
-  /**
-    The JavaScript Error object used by Ember.assert.
-  
-    @class Error
-    @namespace Ember
-    @extends Error
-    @constructor
-    @public
-  */
-
-  var _default = Error;
-  exports.default = _default;
-});
-var handlers = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
-  let HANDLERS = {};
-  exports.HANDLERS = HANDLERS;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let invoke = () => {};
-
-  exports.invoke = invoke;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
-      let nextHandler = HANDLERS[type] || (() => {});
-
-      HANDLERS[type] = (message, options) => {
-        callback(message, options, nextHandler);
-      };
-    };
-
-    exports.invoke = invoke = function invoke(type, message, test, options) {
-      if (test) {
-        return;
-      }
-
-      let handlerForType = HANDLERS[type];
-
-      if (handlerForType) {
-        handlerForType(message, options);
-      }
-    };
-  }
-});
-var deprecate_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
-  /**
-   @module @ember/debug
-   @public
-  */
-
-  /**
-    Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
-    The following example demonstrates its usage by registering a handler that throws an error if the
-    message contains the word "should", otherwise defers to the default handler.
-  
-    ```javascript
-    import { registerDeprecationHandler } from '@ember/debug';
-  
-    registerDeprecationHandler((message, options, next) => {
-      if (message.indexOf('should') !== -1) {
-        throw new Error(`Deprecation message with should: ${message}`);
-      } else {
-        // defer to whatever handler was registered before this one
-        next(message, options);
-      }
-    });
-    ```
-  
-    The handler function takes the following arguments:
-  
-    <ul>
-      <li> <code>message</code> - The message received from the deprecation call.</li>
-      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
-        <ul>
-          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
-          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
-        </ul>
-      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-    </ul>
-  
-    @public
-    @static
-    @method registerDeprecationHandler
-    @for @ember/debug
-    @param handler {Function} A function to handle deprecation calls.
-    @since 2.1.0
-  */
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-  let missingOptionsUntilDeprecation;
-  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
-
-  let deprecate = () => {};
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('deprecate', handler);
-    };
-
-    let formatMessage = function formatMessage(_message, options) {
-      let message = _message;
-
-      if (options && options.id) {
-        message = message + ` [deprecation id: ${options.id}]`;
-      }
-
-      if (options && options.url) {
-        message += ` See ${options.url} for more details.`;
-      }
-
-      return message;
-    };
-
-    registerHandler(function logDeprecationToConsole(message, options) {
-      let updatedMessage = formatMessage(message, options);
-      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
-    });
-    let captureErrorForStack;
-
-    if (new Error().stack) {
-      captureErrorForStack = () => new Error();
-    } else {
-      captureErrorForStack = () => {
-        try {
-          __fail__.fail();
-        } catch (e) {
-          return e;
-        }
-      };
-    }
-
-    registerHandler(function logDeprecationStackTrace(message, options, next) {
-      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
-        let stackStr = '';
-        let error = captureErrorForStack();
-        let stack;
-
-        if (error.stack) {
-          if (error['arguments']) {
-            // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
-            stack.shift();
-          } else {
-            // Firefox
-            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
-          }
-
-          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
-        }
-
-        let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
-      } else {
-        next(message, options);
-      }
-    });
-    registerHandler(function raiseOnDeprecation(message, options, next) {
-      if (environment.ENV.RAISE_ON_DEPRECATION) {
-        let updatedMessage = formatMessage(message);
-        throw new Error(updatedMessage);
-      } else {
-        next(message, options);
-      }
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
-    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
-    /**
-     @module @ember/debug
-     @public
-     */
-
-    /**
-      Display a deprecation warning with the provided message and a stack trace
-      (Chrome and Firefox only).
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         @method deprecate
-      @for @ember/debug
-      @param {String} message A description of the deprecation.
-      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
-      @param {Object} options
-      @param {String} options.id A unique id for this deprecation. The id can be
-        used by Ember debugging tools to change the behavior (raise, log or silence)
-        for that specific deprecation. The id should be namespaced by dots, e.g.
-        "view.helper.select".
-      @param {string} options.until The version of Ember when this deprecation
-        warning will be removed.
-      @param {String} [options.url] An optional url to the transition guide on the
-        emberjs.com website.
-      @static
-      @public
-      @since 1.0.0
-    */
-
-    deprecate = function deprecate(message, test, options) {
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
-      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
-      (0, handlers.invoke)('deprecate', message, test, options);
-    };
-  }
-
-  var _default = deprecate;
-  exports.default = _default;
-});
-var testing_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.isTesting = isTesting;
-  exports.setTesting = setTesting;
-  let testing = false;
-
-  function isTesting() {
-    return testing;
-  }
-
-  function setTesting(value) {
-    testing = Boolean(value);
-  }
-});
-var warn_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let warn = () => {};
-
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  /**
-  @module @ember/debug
-  */
-
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-
-  if (es5.DEBUG) {
-    /**
-      Allows for runtime registration of handler functions that override the default warning behavior.
-      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
-      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
-      default warning behavior.
-         ```javascript
-      import { registerWarnHandler } from '@ember/debug';
-         // next is not called, so no warnings get the default behavior
-      registerWarnHandler(() => {});
-      ```
-         The handler function takes the following arguments:
-         <ul>
-        <li> <code>message</code> - The message received from the warn call. </li>
-        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
-          <ul>
-            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
-          </ul>
-        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-      </ul>
-         @public
-      @static
-      @method registerWarnHandler
-      @for @ember/debug
-      @param handler {Function} A function to handle warnings.
-      @since 2.1.0
-    */
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('warn', handler);
-    };
-
-    registerHandler(function logWarning(message) {
-      /* eslint-disable no-console */
-      console.warn(`WARNING: ${message}`);
-      /* eslint-enable no-console */
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
-    /**
-      Display a warning with the provided message.
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         ```javascript
-      import { warn } from '@ember/debug';
-      import tomsterCount from './tomster-counter'; // a module in my project
-         // Log a warning if we have more than 3 tomsters
-      warn('Too many tomsters!', tomsterCount <= 3, {
-        id: 'ember-debug.too-many-tomsters'
-      });
-      ```
-         @method warn
-      @for @ember/debug
-      @static
-      @param {String} message A warning to display.
-      @param {Boolean} test An optional boolean. If falsy, the warning
-        will be displayed.
-      @param {Object} options An object that can be used to pass a unique
-        `id` for this warning.  The `id` can be used by Ember debugging tools
-        to change the behavior (raise, log, or silence) for that specific warning.
-        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
-      @public
-      @since 1.0.0
-    */
-
-    warn = function warn(message, test, options) {
-      if (arguments.length === 2 && typeof test === 'object') {
-        options = test;
-        test = false;
-      }
-
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
-      (0, handlers.invoke)('warn', message, test, options);
-    };
-  }
-
-  var _default = warn;
-  exports.default = _default;
-});
 var arrayUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
   var EMPTY_ARRAY = exports.EMPTY_ARRAY = Object.freeze([]);
 });
-var assert = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.debugAssert = debugAssert;
-  exports.prodAssert = prodAssert;
-  exports.deprecate = deprecate; // import Logger from './logger';
-  // let alreadyWarned = false;
+var debugAssert_1 = debugAssert;
+var prodAssert_1 = prodAssert;
+var deprecate_1 = deprecate; // import Logger from './logger';
+// let alreadyWarned = false;
 
-  function debugAssert(test, msg) {
-    // if (!alreadyWarned) {
-    //   alreadyWarned = true;
-    //   Logger.warn("Don't leave debug assertions on in public builds");
-    // }
-    if (!test) {
-      throw new Error(msg || 'assertion failure');
-    }
+function debugAssert(test, msg) {
+  // if (!alreadyWarned) {
+  //   alreadyWarned = true;
+  //   Logger.warn("Don't leave debug assertions on in public builds");
+  // }
+  if (!test) {
+    throw new Error(msg || 'assertion failure');
   }
+}
 
-  function prodAssert() {}
+function prodAssert() {}
 
-  function deprecate(desc) {
-    console.warn('DEPRECATION: ' + desc);
-  }
+function deprecate(desc) {
+  console.warn('DEPRECATION: ' + desc);
+}
 
-  exports.default = debugAssert;
+var _default = debugAssert;
+var assert = /*#__PURE__*/Object.defineProperty({
+  debugAssert: debugAssert_1,
+  prodAssert: prodAssert_1,
+  deprecate: deprecate_1,
+  default: _default
+}, '__esModule', {
+  value: true
 });
-var guid = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.initializeGuid = initializeGuid;
-  exports.ensureGuid = ensureGuid;
-  var GUID = 0;
+var initializeGuid_1 = initializeGuid;
+var ensureGuid_1 = ensureGuid;
+var GUID = 0;
 
-  function initializeGuid(object) {
-    return object._guid = ++GUID;
-  }
+function initializeGuid(object) {
+  return object._guid = ++GUID;
+}
 
-  function ensureGuid(object) {
-    return object._guid || initializeGuid(object);
-  }
+function ensureGuid(object) {
+  return object._guid || initializeGuid(object);
+}
+
+var guid = /*#__PURE__*/Object.defineProperty({
+  initializeGuid: initializeGuid_1,
+  ensureGuid: ensureGuid_1
+}, '__esModule', {
+  value: true
 });
 var collections = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -5932,21 +5771,22 @@ var destroy = createCommonjsModule(function (module, exports) {
     return !!(value && typeof value === 'object' && typeof value.destroy === 'function');
   }
 });
-var dom = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.clearElement = clearElement;
+var clearElement_1 = clearElement;
 
-  function clearElement(parent) {
-    var current = parent.firstChild;
+function clearElement(parent) {
+  var current = parent.firstChild;
 
-    while (current) {
-      var next = current.nextSibling;
-      parent.removeChild(current);
-      current = next;
-    }
+  while (current) {
+    var next = current.nextSibling;
+    parent.removeChild(current);
+    current = next;
   }
+}
+
+var dom = /*#__PURE__*/Object.defineProperty({
+  clearElement: clearElement_1
+}, '__esModule', {
+  value: true
 });
 var isSerializationFirstNode_1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -6440,49 +6280,52 @@ var listUtils = createCommonjsModule(function (module, exports) {
 
   var EMPTY_SLICE = exports.EMPTY_SLICE = new ListSlice(null, null);
 });
-var objectUtils = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.assign = assign;
-  exports.fillNulls = fillNulls;
-  exports.values = values;
-  var objKeys = Object.keys;
+var assign_1 = assign;
+var fillNulls_1 = fillNulls;
+var values_1 = values;
+var objKeys = Object.keys;
 
-  function assign(obj) {
-    for (var i = 1; i < arguments.length; i++) {
-      var assignment = arguments[i];
-      if (assignment === null || typeof assignment !== 'object') continue;
-      var keys = objKeys(assignment);
+function assign(obj) {
+  for (var i = 1; i < arguments.length; i++) {
+    var assignment = arguments[i];
+    if (assignment === null || typeof assignment !== 'object') continue;
+    var keys = objKeys(assignment);
 
-      for (var j = 0; j < keys.length; j++) {
-        var key = keys[j];
-        obj[key] = assignment[key];
-      }
+    for (var j = 0; j < keys.length; j++) {
+      var key = keys[j];
+      obj[key] = assignment[key];
     }
-
-    return obj;
   }
 
-  function fillNulls(count) {
-    var arr = new Array(count);
+  return obj;
+}
 
-    for (var i = 0; i < count; i++) {
-      arr[i] = null;
-    }
+function fillNulls(count) {
+  var arr = new Array(count);
 
-    return arr;
+  for (var i = 0; i < count; i++) {
+    arr[i] = null;
   }
 
-  function values(obj) {
-    var vals = [];
+  return arr;
+}
 
-    for (var key in obj) {
-      vals.push(obj[key]);
-    }
+function values(obj) {
+  var vals = [];
 
-    return vals;
+  for (var key in obj) {
+    vals.push(obj[key]);
   }
+
+  return vals;
+}
+
+var objectUtils = /*#__PURE__*/Object.defineProperty({
+  assign: assign_1,
+  fillNulls: fillNulls_1,
+  values: values_1
+}, '__esModule', {
+  value: true
 });
 var platformUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -6525,74 +6368,75 @@ var platformUtils = createCommonjsModule(function (module, exports) {
     return args;
   };
 });
-var string = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.strip = strip;
+var strip_1 = strip;
 
-  function strip(strings) {
-    var out = '';
+function strip(strings) {
+  var out = '';
 
-    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    for (var i = 0; i < strings.length; i++) {
-      var string = strings[i];
-      var dynamic = args[i] !== undefined ? String(args[i]) : '';
-      out += '' + string + dynamic;
-    }
-
-    var lines = out.split('\n');
-
-    while (lines.length && lines[0].match(/^\s*$/)) {
-      lines.shift();
-    }
-
-    while (lines.length && lines[lines.length - 1].match(/^\s*$/)) {
-      lines.pop();
-    }
-
-    var min = Infinity;
-
-    for (var _iterator = lines, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-      var _ref;
-
-      if (_isArray) {
-        if (_i >= _iterator.length) break;
-        _ref = _iterator[_i++];
-      } else {
-        _i = _iterator.next();
-        if (_i.done) break;
-        _ref = _i.value;
-      }
-
-      var line = _ref;
-      var leading = line.match(/^\s*/)[0].length;
-      min = Math.min(min, leading);
-    }
-
-    var stripped = [];
-
-    for (var _iterator2 = lines, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-      var _ref2;
-
-      if (_isArray2) {
-        if (_i2 >= _iterator2.length) break;
-        _ref2 = _iterator2[_i2++];
-      } else {
-        _i2 = _iterator2.next();
-        if (_i2.done) break;
-        _ref2 = _i2.value;
-      }
-
-      var _line = _ref2;
-      stripped.push(_line.slice(min));
-    }
-
-    return stripped.join('\n');
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
   }
+
+  for (var i = 0; i < strings.length; i++) {
+    var string = strings[i];
+    var dynamic = args[i] !== undefined ? String(args[i]) : '';
+    out += '' + string + dynamic;
+  }
+
+  var lines = out.split('\n');
+
+  while (lines.length && lines[0].match(/^\s*$/)) {
+    lines.shift();
+  }
+
+  while (lines.length && lines[lines.length - 1].match(/^\s*$/)) {
+    lines.pop();
+  }
+
+  var min = Infinity;
+
+  for (var _iterator = lines, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+    var _ref;
+
+    if (_isArray) {
+      if (_i >= _iterator.length) break;
+      _ref = _iterator[_i++];
+    } else {
+      _i = _iterator.next();
+      if (_i.done) break;
+      _ref = _i.value;
+    }
+
+    var line = _ref;
+    var leading = line.match(/^\s*/)[0].length;
+    min = Math.min(min, leading);
+  }
+
+  var stripped = [];
+
+  for (var _iterator2 = lines, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+    var _ref2;
+
+    if (_isArray2) {
+      if (_i2 >= _iterator2.length) break;
+      _ref2 = _iterator2[_i2++];
+    } else {
+      _i2 = _iterator2.next();
+      if (_i2.done) break;
+      _ref2 = _i2.value;
+    }
+
+    var _line = _ref2;
+    stripped.push(_line.slice(min));
+  }
+
+  return stripped.join('\n');
+}
+
+var string = /*#__PURE__*/Object.defineProperty({
+  strip: strip_1
+}, '__esModule', {
+  value: true
 });
 var es5$1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -6771,35 +6615,457 @@ var es5$1 = createCommonjsModule(function (module, exports) {
     console.trace(desc + ' :: ' + JSON.stringify(value) + ' (' + value + ')');
   }
 });
-var captureRenderTree_1 = createCommonjsModule(function (module, exports) {
+var browserEnvironment = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = captureRenderTree;
+  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
+
+  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
+  exports.hasDOM = hasDom;
+  const window = hasDom ? self : null;
+  exports.window = window;
+  const location$1 = hasDom ? self.location : null;
+  exports.location = location$1;
+  const history$1 = hasDom ? self.history : null;
+  exports.history = history$1;
+  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
+  exports.userAgent = userAgent;
+  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
+  exports.isChrome = isChrome;
+  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
+  exports.isFirefox = isFirefox;
+});
+var error = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
   /**
-    @module @ember/debug
+   @module @ember/error
   */
 
   /**
-    Ember Inspector calls this function to capture the current render tree.
+    The JavaScript Error object used by Ember.assert.
   
-    In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
-    before loading Ember.
-  
-    @private
-    @static
-    @method captureRenderTree
-    @for @ember/debug
-    @param app {ApplicationInstance} An `ApplicationInstance`.
-    @since 3.14.0
+    @class Error
+    @namespace Ember
+    @extends Error
+    @constructor
+    @public
   */
 
-  function captureRenderTree(app) {
-    let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
-    let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
-    let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
-    return renderer.debugRenderTree.capture();
+  var _default = Error;
+  exports.default = _default;
+});
+var handlers = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
+  let HANDLERS = {};
+  exports.HANDLERS = HANDLERS;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let invoke = () => {};
+
+  exports.invoke = invoke;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+      let nextHandler = HANDLERS[type] || (() => {});
+
+      HANDLERS[type] = (message, options) => {
+        callback(message, options, nextHandler);
+      };
+    };
+
+    exports.invoke = invoke = function invoke(type, message, test, options) {
+      if (test) {
+        return;
+      }
+
+      let handlerForType = HANDLERS[type];
+
+      if (handlerForType) {
+        handlerForType(message, options);
+      }
+    };
   }
+});
+var deprecate_1$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.SINCE_MISSING_DEPRECATIONS = exports.FOR_MISSING_DEPRECATIONS = exports.missingOptionsSinceDeprecation = exports.missingOptionsForDeprecation = exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
+  /**
+   @module @ember/debug
+   @public
+  */
+
+  /**
+    Allows for runtime registration of handler functions that override the default deprecation behavior.
+    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
+    The following example demonstrates its usage by registering a handler that throws an error if the
+    message contains the word "should", otherwise defers to the default handler.
+  
+    ```javascript
+    import { registerDeprecationHandler } from '@ember/debug';
+  
+    registerDeprecationHandler((message, options, next) => {
+      if (message.indexOf('should') !== -1) {
+        throw new Error(`Deprecation message with should: ${message}`);
+      } else {
+        // defer to whatever handler was registered before this one
+        next(message, options);
+      }
+    });
+    ```
+  
+    The handler function takes the following arguments:
+  
+    <ul>
+      <li> <code>message</code> - The message received from the deprecation call.</li>
+      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
+        <ul>
+          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
+          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
+        </ul>
+      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+    </ul>
+  
+    @public
+    @static
+    @method registerDeprecationHandler
+    @for @ember/debug
+    @param handler {Function} A function to handle deprecation calls.
+    @since 2.1.0
+  */
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  let missingOptionsUntilDeprecation;
+  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
+
+  let missingOptionsForDeprecation = () => '';
+
+  exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
+
+  let missingOptionsSinceDeprecation = () => '';
+
+  exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
+
+  let deprecate = () => {};
+
+  let FOR_MISSING_DEPRECATIONS = new Set();
+  exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
+  let SINCE_MISSING_DEPRECATIONS = new Set();
+  exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('deprecate', handler);
+    };
+
+    let formatMessage = function formatMessage(_message, options) {
+      let message = _message;
+
+      if (options && options.id) {
+        message = message + ` [deprecation id: ${options.id}]`;
+      }
+
+      if (options && options.url) {
+        message += ` See ${options.url} for more details.`;
+      }
+
+      return message;
+    };
+
+    registerHandler(function logDeprecationToConsole(message, options) {
+      let updatedMessage = formatMessage(message, options);
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+    });
+    let captureErrorForStack;
+
+    if (new Error().stack) {
+      captureErrorForStack = () => new Error();
+    } else {
+      captureErrorForStack = () => {
+        try {
+          __fail__.fail();
+        } catch (e) {
+          return e;
+        }
+      };
+    }
+
+    registerHandler(function logDeprecationStackTrace(message, options, next) {
+      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+        let stackStr = '';
+        let error = captureErrorForStack();
+        let stack;
+
+        if (error.stack) {
+          if (error['arguments']) {
+            // Chrome
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack.shift();
+          } else {
+            // Firefox
+            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+          }
+
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+        }
+
+        let updatedMessage = formatMessage(message, options);
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+      } else {
+        next(message, options);
+      }
+    });
+    registerHandler(function raiseOnDeprecation(message, options, next) {
+      if (environment.ENV.RAISE_ON_DEPRECATION) {
+        let updatedMessage = formatMessage(message);
+        throw new Error(updatedMessage);
+      } else {
+        next(message, options);
+      }
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+
+    exports.missingOptionsForDeprecation = missingOptionsForDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`for\` in options. Missing options.for in "${id}" deprecation`;
+    };
+
+    exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`since\` in options. Missing options.since in "${id}" deprecation`;
+    };
+    /**
+     @module @ember/debug
+     @public
+     */
+
+    /**
+      Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only).
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         @method deprecate
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+      @param {Object} options
+      @param {String} options.id A unique id for this deprecation. The id can be
+        used by Ember debugging tools to change the behavior (raise, log or silence)
+        for that specific deprecation. The id should be namespaced by dots, e.g.
+        "view.helper.select".
+      @param {string} options.until The version of Ember when this deprecation
+        warning will be removed.
+      @param {String} options.for A namespace for the deprecation, usually the package name
+      @param {Object} options.since Describes when the deprecation became available and enabled.
+      @param {String} [options.url] An optional url to the transition guide on the
+            emberjs.com website.
+      @static
+      @public
+      @since 1.0.0
+    */
+
+
+    deprecate = function deprecate(message, test, options) {
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
+      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+
+      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
+        FOR_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
+          id: 'ember-source.deprecation-without-for',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
+        SINCE_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
+          id: 'ember-source.deprecation-without-since',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      (0, handlers.invoke)('deprecate', message, test, options);
+    };
+  }
+
+  var _default = deprecate;
+  exports.default = _default;
+});
+var isTesting_1 = isTesting;
+var setTesting_1 = setTesting;
+let testing = false;
+
+function isTesting() {
+  return testing;
+}
+
+function setTesting(value) {
+  testing = Boolean(value);
+}
+
+var testing_1 = /*#__PURE__*/Object.defineProperty({
+  isTesting: isTesting_1,
+  setTesting: setTesting_1
+}, '__esModule', {
+  value: true
+});
+var warn_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let warn = () => {};
+
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+
+  if (es5.DEBUG) {
+    /**
+      Allows for runtime registration of handler functions that override the default warning behavior.
+      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+      default warning behavior.
+         ```javascript
+      import { registerWarnHandler } from '@ember/debug';
+         // next is not called, so no warnings get the default behavior
+      registerWarnHandler(() => {});
+      ```
+         The handler function takes the following arguments:
+         <ul>
+        <li> <code>message</code> - The message received from the warn call. </li>
+        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+          <ul>
+            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+          </ul>
+        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+      </ul>
+         @public
+      @static
+      @method registerWarnHandler
+      @for @ember/debug
+      @param handler {Function} A function to handle warnings.
+      @since 2.1.0
+    */
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('warn', handler);
+    };
+
+    registerHandler(function logWarning(message) {
+      /* eslint-disable no-console */
+      console.warn(`WARNING: ${message}`);
+      /* eslint-enable no-console */
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+    /**
+      Display a warning with the provided message.
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         ```javascript
+      import { warn } from '@ember/debug';
+      import tomsterCount from './tomster-counter'; // a module in my project
+         // Log a warning if we have more than 3 tomsters
+      warn('Too many tomsters!', tomsterCount <= 3, {
+        id: 'ember-debug.too-many-tomsters'
+      });
+      ```
+         @method warn
+      @for @ember/debug
+      @static
+      @param {String} message A warning to display.
+      @param {Boolean} test An optional boolean. If falsy, the warning
+        will be displayed.
+      @param {Object} options An object that can be used to pass a unique
+        `id` for this warning.  The `id` can be used by Ember debugging tools
+        to change the behavior (raise, log, or silence) for that specific warning.
+        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+      @public
+      @since 1.0.0
+    */
+
+    warn = function warn(message, test, options) {
+      if (arguments.length === 2 && typeof test === 'object') {
+        options = test;
+        test = false;
+      }
+
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
+      (0, handlers.invoke)('warn', message, test, options);
+    };
+  }
+
+  var _default = warn;
+  exports.default = _default;
+});
+var _default$1 = captureRenderTree;
+/**
+  @module @ember/debug
+*/
+
+/**
+  Ember Inspector calls this function to capture the current render tree.
+
+  In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
+  before loading Ember.
+
+  @private
+  @static
+  @method captureRenderTree
+  @for @ember/debug
+  @param app {ApplicationInstance} An `ApplicationInstance`.
+  @since 3.14.0
+*/
+
+function captureRenderTree(app) {
+  let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+  let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+  let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+  return renderer.debugRenderTree.capture();
+}
+
+var captureRenderTree_1 = /*#__PURE__*/Object.defineProperty({
+  default: _default$1
+}, '__esModule', {
+  value: true
 });
 var debug_1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -6839,7 +7105,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
 
   var _error = _interopRequireDefault(error);
 
-  var _deprecate2 = _interopRequireWildcard(deprecate_1);
+  var _deprecate2 = _interopRequireWildcard(deprecate_1$1);
 
   var _warn2 = _interopRequireWildcard(warn_1);
 
@@ -7037,9 +7303,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     });
     /**
       Display a debug notice.
-         Calls to this function are removed from production builds, so they can be
-      freely added for documentation and debugging purposes without worries of
-      incuring any performance penalty.
+         Calls to this function are not invoked in production builds.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -7185,240 +7449,6 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     }
   }
 });
-var merge_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = merge;
-  /**
-    Merge the contents of two objects together into the first object.
-  
-    ```javascript
-    import { merge } from '@ember/polyfills';
-  
-    merge({ first: 'Tom' }, { last: 'Dale' }); // { first: 'Tom', last: 'Dale' }
-    var a = { first: 'Yehuda' };
-    var b = { last: 'Katz' };
-    merge(a, b); // a == { first: 'Yehuda', last: 'Katz' }, b == { last: 'Katz' }
-    ```
-  
-    @method merge
-    @static
-    @for @ember/polyfills
-    @param {Object} original The object to merge into
-    @param {Object} updates The object to copy properties from
-    @return {Object}
-    @deprecated
-    @public
-  */
-
-  function merge(original, updates) {
-    (0, debug_1.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
-      id: 'ember-polyfills.deprecate-merge',
-      until: '4.0.0',
-      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
-    });
-
-    if (updates === null || typeof updates !== 'object') {
-      return original;
-    }
-
-    let props = Object.keys(updates);
-    let prop;
-
-    for (let i = 0; i < props.length; i++) {
-      prop = props[i];
-      original[prop] = updates[prop];
-    }
-
-    return original;
-  }
-});
-var assign_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.assign = assign;
-  exports.default = void 0;
-  /**
-   @module @ember/polyfills
-  */
-
-  /**
-    Copy properties from a source object to a target object. Source arguments remain unchanged.
-  
-    ```javascript
-    import { assign } from '@ember/polyfills';
-  
-    var a = { first: 'Yehuda' };
-    var b = { last: 'Katz' };
-    var c = { company: 'Other Company' };
-    var d = { company: 'Tilde Inc.' };
-    assign(a, b, c, d); // a === { first: 'Yehuda', last: 'Katz', company: 'Tilde Inc.' };
-    ```
-  
-    @method assign
-    @for @ember/polyfills
-    @param {Object} target The object to assign into
-    @param {Object} ...args The objects to copy properties from
-    @return {Object}
-    @public
-    @static
-  */
-
-  function assign(target) {
-    for (let i = 1; i < arguments.length; i++) {
-      let arg = arguments[i];
-
-      if (!arg) {
-        continue;
-      }
-
-      let updates = Object.keys(arg);
-
-      for (let i = 0; i < updates.length; i++) {
-        let prop = updates[i];
-        target[prop] = arg[prop];
-      }
-    }
-
-    return target;
-  } // Note: We use the bracket notation so
-  //       that the babel plugin does not
-  //       transform it.
-  // https://www.npmjs.com/package/babel-plugin-transform-object-assign
-
-
-  const {
-    assign: _assign
-  } = Object;
-
-  var _default = _assign || assign;
-
-  exports.default = _default;
-});
-var weak_set = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /* globals WeakSet */
-
-  var _default = typeof WeakSet === 'function' ? WeakSet : class WeakSetPolyFill {
-    constructor() {
-      this._map = new WeakMap();
-    }
-
-    add(val) {
-      this._map.set(val, true);
-
-      return this;
-    }
-
-    delete(val) {
-      return this._map.delete(val);
-    }
-
-    has(val) {
-      return this._map.has(val);
-    }
-
-  };
-
-  exports.default = _default;
-});
-var polyfills = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  Object.defineProperty(exports, "assign", {
-    enumerable: true,
-    get: function () {
-      return _assign.default;
-    }
-  });
-  Object.defineProperty(exports, "assignPolyfill", {
-    enumerable: true,
-    get: function () {
-      return _assign.assign;
-    }
-  });
-  Object.defineProperty(exports, "_WeakSet", {
-    enumerable: true,
-    get: function () {
-      return _weak_set.default;
-    }
-  });
-  exports.merge = void 0;
-
-  var _merge = _interopRequireDefault(merge_1);
-
-  var _assign = _interopRequireWildcard(assign_1);
-
-  var _weak_set = _interopRequireDefault(weak_set);
-
-  function _getRequireWildcardCache() {
-    if (typeof WeakMap !== "function") return null;
-    var cache = new WeakMap();
-
-    _getRequireWildcardCache = function () {
-      return cache;
-    };
-
-    return cache;
-  }
-
-  function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-      return obj;
-    }
-
-    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
-      return {
-        default: obj
-      };
-    }
-
-    var cache = _getRequireWildcardCache();
-
-    if (cache && cache.has(obj)) {
-      return cache.get(obj);
-    }
-
-    var newObj = {};
-    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
-
-    for (var key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
-
-        if (desc && (desc.get || desc.set)) {
-          Object.defineProperty(newObj, key, desc);
-        } else {
-          newObj[key] = obj[key];
-        }
-      }
-    }
-
-    newObj.default = obj;
-
-    if (cache) {
-      cache.set(obj, newObj);
-    }
-
-    return newObj;
-  }
-
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
-
-  let merge = deprecatedFeatures.MERGE ? _merge.default : undefined; // Export `assignPolyfill` for testing
-
-  exports.merge = merge;
-});
 var utils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -7445,8 +7475,9 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
+  exports.setEmberArray = setEmberArray;
   exports.isEmberArray = isEmberArray;
-  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.EMBER_ARRAY = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
+  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
   /**
     Strongly hint runtimes to intern the provided string.
   
@@ -7822,7 +7853,7 @@ var utils = createCommonjsModule(function (module, exports) {
     meta.listeners = listeners;
   }
 
-  const IS_WRAPPED_FUNCTION_SET = new polyfills._WeakSet();
+  const IS_WRAPPED_FUNCTION_SET = new es5$1._WeakSet();
   /**
     Wraps the passed function so that `this._super` will point to the superFunc
     when the function is invoked. This is the primitive we use to implement
@@ -7951,7 +7982,7 @@ var utils = createCommonjsModule(function (module, exports) {
     }
 
     if (seen === undefined) {
-      seen = new polyfills._WeakSet();
+      seen = new es5$1._WeakSet();
     } else {
       if (seen.has(value)) return `[Circular]`;
     }
@@ -8074,10 +8105,21 @@ var utils = createCommonjsModule(function (module, exports) {
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
+    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
+    (0, debug_1.deprecate)(`Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.`, false, {
+      id: 'ember-utils.try-invoke',
+      until: '4.0.0',
+      for: 'ember-source',
+      since: {
+        available: '3.24.0'
+      },
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
+    });
+
     if (canInvoke(obj, methodName)) {
       let method = obj[methodName];
       return method.apply(obj, args);
@@ -8152,7 +8194,7 @@ var utils = createCommonjsModule(function (module, exports) {
 
   const HAS_NATIVE_PROXY = typeof Proxy === 'function';
   exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
-  const PROXIES = new polyfills._WeakSet();
+  const PROXIES = new es5$1._WeakSet();
 
   function isProxy(value) {
     if (isObject(value)) {
@@ -8208,11 +8250,14 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   exports.Cache = Cache;
-  const EMBER_ARRAY = symbol('EMBER_ARRAY');
-  exports.EMBER_ARRAY = EMBER_ARRAY;
+  const EMBER_ARRAYS = new es5$1._WeakSet();
+
+  function setEmberArray(obj) {
+    EMBER_ARRAYS.add(obj);
+  }
 
   function isEmberArray(obj) {
-    return obj && obj[EMBER_ARRAY];
+    return EMBER_ARRAYS.has(obj);
   }
 
   let setupMandatorySetter;
@@ -8236,7 +8281,7 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   if (es5.DEBUG) {
-    let SEEN_TAGS = new polyfills._WeakSet();
+    let SEEN_TAGS = new es5$1._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
 
     let propertyIsEnumerable = function (obj, key) {
@@ -8447,10 +8492,21 @@ var string$1 = createCommonjsModule(function (module, exports) {
     @param {Array} formats Optional array of parameters to interpolate into string.
     @return {String} formatted string
     @public
+    @deprecated
   */
 
 
   function loc(str, formats) {
+    (0, debug_1.deprecate)('loc is deprecated, please use a dedicated localization solution like ember-intl. More alternatives listed at https://emberobserver.com/categories/internationalization.', false, {
+      id: 'ember-string.loc',
+      until: '4.0.0',
+      for: 'ember-source',
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-string-loc',
+      since: {
+        available: '3.24'
+      }
+    });
+
     if (!Array.isArray(formats) || arguments.length > 2) {
       formats = Array.prototype.slice.call(arguments, 1);
     }
@@ -8626,6 +8682,21 @@ var string$1 = createCommonjsModule(function (module, exports) {
   }
 
   if (environment.ENV.EXTEND_PROTOTYPES.String) {
+    let deprecateEmberStringPrototypeExtension = function (name, fn, message = `String prototype extensions are deprecated. Please import ${name} from '@ember/string' instead.`) {
+      return function () {
+        (0, debug_1.deprecate)(message, false, {
+          id: 'ember-string.prototype-extensions',
+          for: 'ember-source',
+          since: {
+            available: '3.24'
+          },
+          until: '4.0.0',
+          url: 'https://deprecations.emberjs.com/v3.x/#toc_ember-string-prototype_extensions'
+        });
+        return fn(this, ...arguments);
+      };
+    };
+
     Object.defineProperties(String.prototype, {
       /**
         See [String.w](/ember/release/classes/String/methods/w?anchor=w).
@@ -8633,16 +8704,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       w: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return w(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('w', w)
       },
 
       /**
@@ -8651,6 +8719,7 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       loc: {
         configurable: true,
@@ -8669,16 +8738,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       camelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return camelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('camelize', camelize)
       },
 
       /**
@@ -8687,16 +8753,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       decamelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return decamelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('decamelize', decamelize)
       },
 
       /**
@@ -8705,16 +8768,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       dasherize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return dasherize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('dasherize', dasherize)
       },
 
       /**
@@ -8723,16 +8783,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       underscore: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return underscore(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('underscore', underscore)
       },
 
       /**
@@ -8741,16 +8798,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       classify: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return classify(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('classify', classify)
       },
 
       /**
@@ -8759,16 +8813,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       capitalize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return capitalize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('capitalize', capitalize)
       }
     });
   }
@@ -9112,28 +9163,30 @@ var inflector = createCommonjsModule(function (module, exports) {
   var _default = Inflector;
   exports.default = _default;
 });
-var string$2 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.pluralize = pluralize;
-  exports.singularize = singularize;
+var pluralize_1 = pluralize;
+var singularize_1 = singularize;
 
-  var _inflector = _interopRequireDefault(inflector);
+var _inflector = _interopRequireDefault(inflector);
 
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    default: obj
+  };
+}
 
-  function pluralize() {
-    return _inflector.default.inflector.pluralize(...arguments);
-  }
+function pluralize() {
+  return _inflector.default.inflector.pluralize(...arguments);
+}
 
-  function singularize(word) {
-    return _inflector.default.inflector.singularize(word);
-  }
+function singularize(word) {
+  return _inflector.default.inflector.singularize(word);
+}
+
+var string$2 = /*#__PURE__*/Object.defineProperty({
+  pluralize: pluralize_1,
+  singularize: singularize_1
+}, '__esModule', {
+  value: true
 });
 var system = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -9231,7 +9284,7 @@ var utils$1 = createCommonjsModule(function (module, exports) {
   exports.primaryKeyTypeSafetyCheck = primaryKeyTypeSafetyCheck;
 
   function insertFixturesWithTypechecks(modelDefinition, fixtures) {
-    const modelPrimaryKey = fixtures.reduce((primaryKeys, fixture) => {
+    fixtures.reduce((primaryKeys, fixture) => {
       const modelName = modelDefinition.name;
       const primaryKey = (fixture.uuid ? "uuid" : null) || (fixture.id ? "id" : null);
 
@@ -9242,342 +9295,338 @@ var utils$1 = createCommonjsModule(function (module, exports) {
       }
 
       modelDefinition.insert(fixture);
-      return primaryKeys.concat([fixture[primaryKey]]);
-    }, [])[0];
+      primaryKeys.push(fixture[primaryKey]);
+      return primaryKeys;
+    }, []);
     return fixtures;
   }
 
   exports.insertFixturesWithTypechecks = insertFixturesWithTypechecks;
 });
-var model = createCommonjsModule(function (module, exports) {
-  var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
-    return mod && mod.__esModule ? mod : {
-      "default": mod
-    };
+
+var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
   };
+};
 
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
+const util_1 = __importDefault(util);
 
-  const util_1 = __importDefault(util);
+const ansi_colors_1 = __importDefault(ansiColors);
 
-  const ansi_colors_1 = __importDefault(ansiColors);
-
-  class MemServerModel {
-    static get DB() {
-      if (!this._DB[this.name]) {
-        this._DB[this.name] = [];
-        return this._DB[this.name];
-      }
-
+class MemServerModel {
+  static get DB() {
+    if (!this._DB[this.name]) {
+      this._DB[this.name] = [];
       return this._DB[this.name];
     }
 
-    static get attributes() {
-      if (!this._attributes[this.name]) {
-        this._attributes[this.name] = [];
-        this._modelDefinitions[this.name] = this;
-        return this._attributes[this.name];
-      }
+    return this._DB[this.name];
+  }
 
+  static get attributes() {
+    if (!this._attributes[this.name]) {
+      this._attributes[this.name] = [];
+      this._modelDefinitions[this.name] = this;
       return this._attributes[this.name];
     }
 
-    static set defaultAttributes(value) {
-      Object.keys(value).forEach(key => {
-        if (!this.attributes.includes(key)) {
-          this.attributes.push(key);
-        }
-      });
-      this._defaultAttributes = value;
-    }
+    return this._attributes[this.name];
+  }
 
-    static get defaultAttributes() {
-      return this._defaultAttributes;
-    }
-
-    static set embedReferences(references) {
-      this._embedReferences[this.name] = references;
-    }
-
-    static get embedReferences() {
-      // NOTE: serializer concern
-      if (!this._embedReferences[this.name]) {
-        this._embedReferences[this.name] = {};
-        return this._embedReferences[this.name];
+  static set defaultAttributes(value) {
+    Object.keys(value).forEach(key => {
+      if (!this.attributes.includes(key)) {
+        this.attributes.push(key);
       }
+    });
+    this._defaultAttributes = value;
+  }
 
+  static get defaultAttributes() {
+    return this._defaultAttributes;
+  }
+
+  static set embedReferences(references) {
+    this._embedReferences[this.name] = references;
+  }
+
+  static get embedReferences() {
+    // NOTE: serializer concern
+    if (!this._embedReferences[this.name]) {
+      this._embedReferences[this.name] = {};
       return this._embedReferences[this.name];
     }
 
-    static resetDatabase(fixtures) {
-      this.DB.length = 0;
-      this.attributes.length = 0;
-      this.defaultAttributes = this.defaultAttributes;
+    return this._embedReferences[this.name];
+  }
 
-      if (fixtures) {
-        utils$1.insertFixturesWithTypechecks(this, fixtures);
-      }
+  static resetDatabase(fixtures) {
+    this.DB.length = 0;
+    this.attributes.length = 0;
+    this.defaultAttributes = this.defaultAttributes;
 
-      return this.DB;
+    if (fixtures) {
+      utils$1.insertFixturesWithTypechecks(this, fixtures);
     }
 
-    static count() {
-      return this.DB.length;
+    return this.DB;
+  }
+
+  static count() {
+    return this.DB.length;
+  }
+
+  static find(param) {
+    // NOTE: turn param into an interface with id or uuid
+    if (!param) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
+    } else if (Array.isArray(param)) {
+      return Array.from(this.DB).reduce((result, model) => {
+        const foundModel = param.includes(model.id) ? model : null;
+        return foundModel ? result.concat([foundModel]) : result;
+      }, []);
+    } else if (typeof param !== "number") {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
     }
 
-    static find(param) {
-      // NOTE: turn param into an interface with id or uuid
-      if (!param) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
-      } else if (Array.isArray(param)) {
-        return Array.from(this.DB).reduce((result, model) => {
-          const foundModel = param.includes(model.id) ? model : null;
-          return foundModel ? result.concat([foundModel]) : result;
-        }, []);
-      } else if (typeof param !== "number") {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
-      }
+    return Array.from(this.DB).find(model => model.id === param);
+  }
 
-      return Array.from(this.DB).find(model => model.id === param);
+  static findBy(options) {
+    if (!options) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.findBy(id) cannot be called without a parameter`));
     }
 
-    static findBy(options) {
-      if (!options) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.findBy(id) cannot be called without a parameter`));
-      }
+    const keys = Object.keys(options);
+    return this.DB.find(model => comparison(model, options, keys, 0));
+  }
 
-      const keys = Object.keys(options);
-      return this.DB.find(model => comparison(model, options, keys, 0));
+  static findAll(options = {}) {
+    const keys = Object.keys(options);
+
+    if (keys.length === 0) {
+      return Array.from(this.DB);
     }
 
-    static findAll(options = {}) {
-      const keys = Object.keys(options);
+    return Array.from(this.DB).filter(model => comparison(model, options, keys, 0));
+  }
 
-      if (keys.length === 0) {
-        return Array.from(this.DB);
-      }
+  static insert(options) {
+    options = options || {};
 
-      return Array.from(this.DB).filter(model => comparison(model, options, keys, 0));
+    if (this.DB.length === 0) {
+      this.primaryKey = this.primaryKey || (options.uuid ? "uuid" : "id");
+      this.attributes.push(this.primaryKey);
     }
 
-    static insert(options) {
-      options = options || {};
+    if (!options.hasOwnProperty(this.primaryKey)) {
+      options[this.primaryKey] = this.primaryKey === "id" ? incrementId(this.DB) : utils$1.generateUUID();
+    }
 
-      if (this.DB.length === 0) {
-        this.primaryKey = this.primaryKey || (options.uuid ? "uuid" : "id");
-        this.attributes.push(this.primaryKey);
+    utils$1.primaryKeyTypeSafetyCheck(this.primaryKey, options[this.primaryKey], this.name);
+    const target = this.attributes.reduce((result, attribute) => {
+      if (typeof result[attribute] === "function") {
+        result[attribute] = result[attribute].apply(result);
+      } else if (!result.hasOwnProperty(attribute)) {
+        result[attribute] = undefined;
       }
 
-      if (!options.hasOwnProperty(this.primaryKey)) {
-        options[this.primaryKey] = this.primaryKey === "id" ? incrementId(this.DB) : utils$1.generateUUID();
-      }
+      return result;
+    }, Object.assign({}, this.defaultAttributes, options));
+    const existingRecord = target.id ? this.find(target.id) : this.findBy({
+      uuid: target.uuid
+    });
 
-      utils$1.primaryKeyTypeSafetyCheck(this.primaryKey, options[this.primaryKey], this.name);
-      const target = this.attributes.reduce((result, attribute) => {
-        if (typeof result[attribute] === "function") {
-          result[attribute] = result[attribute].apply(result);
-        } else if (!result.hasOwnProperty(attribute)) {
-          result[attribute] = undefined;
-        }
+    if (existingRecord) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} ${this.primaryKey} ${target[this.primaryKey]} already exists in the database! ${this.name}.insert(${util_1.default.inspect(options)}) fails`));
+    }
 
-        return result;
-      }, Object.assign({}, this.defaultAttributes, options));
-      const existingRecord = target.id ? this.find(target.id) : this.findBy({
-        uuid: target.uuid
+    Object.keys(target).filter(attribute => !this.attributes.includes(attribute)).forEach(attribute => this.attributes.push(attribute));
+    this.DB.push(target);
+    return target;
+  }
+
+  static update(record) {
+    if (!record || !record.id && !record.uuid) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) requires id or uuid primary key to update a record`));
+    }
+
+    const targetRecord = record.id ? this.find(record.id) : this.findBy({
+      uuid: record.uuid
+    });
+
+    if (!targetRecord) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) failed because ${this.name} with ${this.primaryKey}: ${record[this.primaryKey]} does not exist`));
+    }
+
+    const recordsUnknownAttribute = Object.keys(record).find(attribute => !this.attributes.includes(attribute));
+
+    if (recordsUnknownAttribute) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update ${this.primaryKey}: ${record[this.primaryKey]} fails, ${this.name} model does not have ${recordsUnknownAttribute} attribute to update`));
+    }
+
+    return Object.assign(targetRecord, record);
+  }
+
+  static delete(record) {
+    if (this.DB.length === 0) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} has no records in the database to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
+    } else if (!record) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.delete(model) model object parameter required to delete a model`));
+    }
+
+    const targetRecord = record.id ? this.find(record.id) : this.findBy({
+      uuid: record.uuid
+    });
+
+    if (!targetRecord) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] Could not find ${this.name} with ${this.primaryKey} ${record[this.primaryKey]} to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
+    }
+
+    if (Array.isArray(targetRecord)) {
+      targetRecord.forEach(record => {
+        const targetIndex = this.DB.indexOf(record);
+        this.DB.splice(targetIndex, 1);
       });
-
-      if (existingRecord) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} ${this.primaryKey} ${target[this.primaryKey]} already exists in the database! ${this.name}.insert(${util_1.default.inspect(options)}) fails`));
-      }
-
-      Object.keys(target).filter(attribute => !this.attributes.includes(attribute)).forEach(attribute => this.attributes.push(attribute));
-      this.DB.push(target);
-      return target;
-    }
-
-    static update(record) {
-      if (!record || !record.id && !record.uuid) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) requires id or uuid primary key to update a record`));
-      }
-
-      const targetRecord = record.id ? this.find(record.id) : this.findBy({
-        uuid: record.uuid
-      });
-
-      if (!targetRecord) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) failed because ${this.name} with ${this.primaryKey}: ${record[this.primaryKey]} does not exist`));
-      }
-
-      const recordsUnknownAttribute = Object.keys(record).find(attribute => !this.attributes.includes(attribute));
-
-      if (recordsUnknownAttribute) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update ${this.primaryKey}: ${record[this.primaryKey]} fails, ${this.name} model does not have ${recordsUnknownAttribute} attribute to update`));
-      }
-
-      return Object.assign(targetRecord, record);
-    }
-
-    static delete(record) {
-      if (this.DB.length === 0) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} has no records in the database to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
-      } else if (!record) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.delete(model) model object parameter required to delete a model`));
-      }
-
-      const targetRecord = record.id ? this.find(record.id) : this.findBy({
-        uuid: record.uuid
-      });
-
-      if (!targetRecord) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] Could not find ${this.name} with ${this.primaryKey} ${record[this.primaryKey]} to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
-      }
-
-      if (Array.isArray(targetRecord)) {
-        targetRecord.forEach(record => {
-          const targetIndex = this.DB.indexOf(record);
-          this.DB.splice(targetIndex, 1);
-        });
-        return targetRecord;
-      }
-
-      const targetIndex = this.DB.indexOf(targetRecord);
-      this.DB.splice(targetIndex, 1);
       return targetRecord;
     }
 
-    static embed(relationship) {
-      // EXAMPLE: { comments: Comment }
-      if (typeof relationship !== "object" || relationship.name) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed(relationshipObject) requires an object as a parameter: { relationshipKey: $RelationshipModel }`));
-      }
+    const targetIndex = this.DB.indexOf(targetRecord);
+    this.DB.splice(targetIndex, 1);
+    return targetRecord;
+  }
 
-      const key = Object.keys(relationship)[0];
-
-      if (!relationship[key]) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed() fails: ${key} Model reference is not a valid. Please put a valid $ModelName to ${this.name}.embed()`));
-      }
-
-      return Object.assign(this.embedReferences, relationship);
+  static embed(relationship) {
+    // EXAMPLE: { comments: Comment }
+    if (typeof relationship !== "object" || relationship.name) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed(relationshipObject) requires an object as a parameter: { relationshipKey: $RelationshipModel }`));
     }
 
-    static serializer(objectOrArray) {
-      if (!objectOrArray) {
-        return;
-      } else if (Array.isArray(objectOrArray)) {
-        return objectOrArray.map(object => this.serialize(object));
-      }
+    const key = Object.keys(relationship)[0];
 
-      return this.serialize(objectOrArray);
+    if (!relationship[key]) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed() fails: ${key} Model reference is not a valid. Please put a valid $ModelName to ${this.name}.embed()`));
     }
 
-    static serialize(object) {
-      // NOTE: add links object ?
-      if (Array.isArray(object)) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.serialize(object) expects an object not an array. Use ${this.name}.serializer(data) for serializing array of records`));
-      }
+    return Object.assign(this.embedReferences, relationship);
+  }
 
-      const objectWithAllAttributes = this.attributes.reduce((result, attribute) => {
-        if (result[attribute] === undefined) {
-          result[attribute] = null;
-        }
-
-        return result;
-      }, Object.assign({}, object));
-      return Object.keys(this.embedReferences).reduce((result, embedKey) => {
-        const embedModel = this.embedReferences[embedKey];
-        const embeddedRecords = this.getRelationship(object, embedKey, embedModel);
-        return Object.assign({}, result, {
-          [embedKey]: embedModel.serializer(embeddedRecords)
-        });
-      }, objectWithAllAttributes);
+  static serializer(objectOrArray) {
+    if (!objectOrArray) {
+      return;
+    } else if (Array.isArray(objectOrArray)) {
+      return objectOrArray.map(object => this.serialize(object));
     }
 
-    static getRelationship(parentObject, relationshipName, relationshipModel) {
-      if (Array.isArray(parentObject)) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.getRelationship expects model input to be an object not an array`));
+    return this.serialize(objectOrArray);
+  }
+
+  static serialize(object) {
+    // NOTE: add links object ?
+    if (Array.isArray(object)) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.serialize(object) expects an object not an array. Use ${this.name}.serializer(data) for serializing array of records`));
+    }
+
+    const objectWithAllAttributes = this.attributes.reduce((result, attribute) => {
+      if (result[attribute] === undefined) {
+        result[attribute] = null;
       }
 
-      const targetRelationshipModel = relationshipModel || this.embedReferences[relationshipName];
-      const hasManyRelationship = emberInflector.pluralize(relationshipName) === relationshipName;
+      return result;
+    }, Object.assign({}, object));
+    return Object.keys(this.embedReferences).reduce((result, embedKey) => {
+      const embedModel = this.embedReferences[embedKey];
+      const embeddedRecords = this.getRelationship(object, embedKey, embedModel);
+      return Object.assign({}, result, {
+        [embedKey]: embedModel.serializer(embeddedRecords)
+      });
+    }, objectWithAllAttributes);
+  }
 
-      if (!targetRelationshipModel) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${relationshipName} relationship could not be found on ${this.name} model. Please put the ${relationshipName} Model object as the third parameter to ${this.name}.getRelationship function`));
-      } else if (hasManyRelationship) {
-        if (parentObject.id) {
-          const hasManyIDRecords = targetRelationshipModel.findAll({
-            [`${string$1.underscore(this.name)}_id`]: parentObject.id
-          });
-          return hasManyIDRecords.length > 0 ? hasManyIDRecords : [];
-        } else if (parentObject.uuid) {
-          const hasManyUUIDRecords = targetRelationshipModel.findAll({
-            [`${string$1.underscore(this.name)}_uuid`]: parentObject.uuid
-          });
-          return hasManyUUIDRecords.length > 0 ? hasManyUUIDRecords : [];
-        }
-      }
+  static getRelationship(parentObject, relationshipName, relationshipModel) {
+    if (Array.isArray(parentObject)) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.getRelationship expects model input to be an object not an array`));
+    }
 
-      const objectRef = parentObject[`${string$1.underscore(relationshipName)}_id`] || parentObject[`${string$1.underscore(relationshipName)}_uuid`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_id`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_uuid`];
+    const targetRelationshipModel = relationshipModel || this.embedReferences[relationshipName];
+    const hasManyRelationship = emberInflector.pluralize(relationshipName) === relationshipName;
 
-      if (objectRef && typeof objectRef === "number") {
-        return targetRelationshipModel.find(objectRef);
-      } else if (objectRef) {
-        return targetRelationshipModel.findBy({
-          uuid: objectRef
-        });
-      }
-
+    if (!targetRelationshipModel) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${relationshipName} relationship could not be found on ${this.name} model. Please put the ${relationshipName} Model object as the third parameter to ${this.name}.getRelationship function`));
+    } else if (hasManyRelationship) {
       if (parentObject.id) {
-        return targetRelationshipModel.findBy({
+        const hasManyIDRecords = targetRelationshipModel.findAll({
           [`${string$1.underscore(this.name)}_id`]: parentObject.id
         });
+        return hasManyIDRecords.length > 0 ? hasManyIDRecords : [];
       } else if (parentObject.uuid) {
-        return targetRelationshipModel.findBy({
+        const hasManyUUIDRecords = targetRelationshipModel.findAll({
           [`${string$1.underscore(this.name)}_uuid`]: parentObject.uuid
         });
+        return hasManyUUIDRecords.length > 0 ? hasManyUUIDRecords : [];
       }
     }
 
-  }
+    const objectRef = parentObject[`${string$1.underscore(relationshipName)}_id`] || parentObject[`${string$1.underscore(relationshipName)}_uuid`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_id`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_uuid`];
 
-  exports.default = MemServerModel;
-  MemServerModel._DB = {};
-  MemServerModel._modelDefinitions = {};
-  MemServerModel._attributes = {};
-  MemServerModel._defaultAttributes = {}; // NOTE: probably a decorator here in future
-
-  MemServerModel._embedReferences = {}; // NOTE: serializer concern
-
-  MemServerModel.primaryKey = null;
-
-  function incrementId(DB, Model) {
-    if (!DB || DB.length === 0) {
-      return 1;
+    if (objectRef && typeof objectRef === "number") {
+      return targetRelationshipModel.find(objectRef);
+    } else if (objectRef) {
+      return targetRelationshipModel.findBy({
+        uuid: objectRef
+      });
     }
 
-    const lastIdInSequence = DB.map(model => model.id).sort((a, b) => a - b).find((id, index, array) => index === array.length - 1 ? true : id + 1 !== array[index + 1]);
-    return lastIdInSequence + 1;
-  } // NOTE: if records were ordered by ID, then there could be performance benefit
-
-
-  function comparison(model, options, keys, index = 0) {
-    const key = keys[index];
-
-    if (keys.length === index) {
-      return model[key] === options[key];
-    } else if (model[key] === options[key]) {
-      return comparison(model, options, keys, index + 1);
+    if (parentObject.id) {
+      return targetRelationshipModel.findBy({
+        [`${string$1.underscore(this.name)}_id`]: parentObject.id
+      });
+    } else if (parentObject.uuid) {
+      return targetRelationshipModel.findBy({
+        [`${string$1.underscore(this.name)}_uuid`]: parentObject.uuid
+      });
     }
-
-    return false;
   }
-});
-var model$1 = /*@__PURE__*/getDefaultExportFromCjs(model);
-module.exports = model$1;
+
+}
+
+var _default$2 = MemServerModel;
+MemServerModel._DB = {};
+MemServerModel._modelDefinitions = {};
+MemServerModel._attributes = {};
+MemServerModel._defaultAttributes = {}; // NOTE: probably a decorator here in future
+
+MemServerModel._embedReferences = {}; // NOTE: serializer concern
+
+MemServerModel.primaryKey = null;
+
+function incrementId(DB, Model) {
+  if (!DB || DB.length === 0) {
+    return 1;
+  }
+
+  const lastIdInSequence = DB.map(model => model.id).sort((a, b) => a - b).find((id, index, array) => index === array.length - 1 ? true : id + 1 !== array[index + 1]);
+  return lastIdInSequence + 1;
+} // NOTE: if records were ordered by ID, then there could be performance benefit
+
+
+function comparison(model, options, keys, index = 0) {
+  const key = keys[index];
+
+  if (keys.length === index) {
+    return model[key] === options[key];
+  } else if (model[key] === options[key]) {
+    return comparison(model, options, keys, index + 1);
+  }
+
+  return false;
+}
+
+module.exports = _default$2;
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":5,"buffer":2}],5:[function(require,module,exports){
+},{"_process":15,"available-typed-arrays":2,"buffer":4,"call-bind/callBound":5}],15:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -9763,7 +9812,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[4])(4)
+},{}]},{},[14])(14)
 });
 
 
@@ -9797,6 +9846,48 @@ process.umask = function() { return 0; };
           'use strict';
 
           (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g._memserver__server = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";
+
+/**
+ * Array#filter.
+ *
+ * @param {Array} arr
+ * @param {Function} fn
+ * @param {Object=} self
+ * @return {Array}
+ * @throw TypeError
+ */
+module.exports = function (arr, fn, self) {
+  if (arr.filter) return arr.filter(fn, self);
+  if (void 0 === arr || null === arr) throw new TypeError();
+  if ('function' != typeof fn) throw new TypeError();
+  var ret = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (!hasOwn.call(arr, i)) continue;
+    var val = arr[i];
+    if (fn.call(self, val, i, arr)) ret.push(val);
+  }
+
+  return ret;
+};
+
+var hasOwn = Object.prototype.hasOwnProperty;
+
+},{}],2:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+var filter = require('array-filter');
+
+module.exports = function availableTypedArrays() {
+  return filter(['BigInt64Array', 'BigUint64Array', 'Float32Array', 'Float64Array', 'Int16Array', 'Int32Array', 'Int8Array', 'Uint16Array', 'Uint32Array', 'Uint8Array', 'Uint8ClampedArray'], function (typedArray) {
+    return typeof global[typedArray] === 'function';
+  });
+};
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"array-filter":1}],3:[function(require,module,exports){
 'use strict';
 
 exports.byteLength = byteLength;
@@ -9917,7 +10008,7 @@ function fromByteArray(uint8) {
   return parts.join('');
 }
 
-},{}],2:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 (function (Buffer){(function (){
 /*!
  * The buffer module from node.js, for the browser.
@@ -11698,7 +11789,535 @@ function numberIsNaN (obj) {
 }
 
 }).call(this)}).call(this,require("buffer").Buffer)
-},{"base64-js":1,"buffer":2,"ieee754":3}],3:[function(require,module,exports){
+},{"base64-js":3,"buffer":4,"ieee754":13}],5:[function(require,module,exports){
+'use strict';
+
+var GetIntrinsic = require('get-intrinsic');
+
+var callBind = require('./');
+
+var $indexOf = callBind(GetIntrinsic('String.prototype.indexOf'));
+
+module.exports = function callBoundIntrinsic(name, allowMissing) {
+  var intrinsic = GetIntrinsic(name, !!allowMissing);
+
+  if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.') > -1) {
+    return callBind(intrinsic);
+  }
+
+  return intrinsic;
+};
+
+},{"./":6,"get-intrinsic":9}],6:[function(require,module,exports){
+'use strict';
+
+var bind = require('function-bind');
+
+var GetIntrinsic = require('get-intrinsic');
+
+var $apply = GetIntrinsic('%Function.prototype.apply%');
+var $call = GetIntrinsic('%Function.prototype.call%');
+var $reflectApply = GetIntrinsic('%Reflect.apply%', true) || bind.call($call, $apply);
+var $defineProperty = GetIntrinsic('%Object.defineProperty%', true);
+
+if ($defineProperty) {
+  try {
+    $defineProperty({}, 'a', {
+      value: 1
+    });
+  } catch (e) {
+    // IE 8 has a broken defineProperty
+    $defineProperty = null;
+  }
+}
+
+module.exports = function callBind() {
+  return $reflectApply(bind, $call, arguments);
+};
+
+var applyBind = function applyBind() {
+  return $reflectApply(bind, $apply, arguments);
+};
+
+if ($defineProperty) {
+  $defineProperty(module.exports, 'apply', {
+    value: applyBind
+  });
+} else {
+  module.exports.apply = applyBind;
+}
+
+},{"function-bind":8,"get-intrinsic":9}],7:[function(require,module,exports){
+'use strict';
+/* eslint no-invalid-this: 1 */
+
+var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
+var slice = Array.prototype.slice;
+var toStr = Object.prototype.toString;
+var funcType = '[object Function]';
+
+module.exports = function bind(that) {
+  var target = this;
+
+  if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+    throw new TypeError(ERROR_MESSAGE + target);
+  }
+
+  var args = slice.call(arguments, 1);
+  var bound;
+
+  var binder = function () {
+    if (this instanceof bound) {
+      var result = target.apply(this, args.concat(slice.call(arguments)));
+
+      if (Object(result) === result) {
+        return result;
+      }
+
+      return this;
+    } else {
+      return target.apply(that, args.concat(slice.call(arguments)));
+    }
+  };
+
+  var boundLength = Math.max(0, target.length - args.length);
+  var boundArgs = [];
+
+  for (var i = 0; i < boundLength; i++) {
+    boundArgs.push('$' + i);
+  }
+
+  bound = Function('binder', 'return function (' + boundArgs.join(',') + '){ return binder.apply(this,arguments); }')(binder);
+
+  if (target.prototype) {
+    var Empty = function Empty() {};
+
+    Empty.prototype = target.prototype;
+    bound.prototype = new Empty();
+    Empty.prototype = null;
+  }
+
+  return bound;
+};
+
+},{}],8:[function(require,module,exports){
+'use strict';
+
+var implementation = require('./implementation');
+
+module.exports = Function.prototype.bind || implementation;
+
+},{"./implementation":7}],9:[function(require,module,exports){
+'use strict';
+/* globals
+	AggregateError,
+	Atomics,
+	FinalizationRegistry,
+	SharedArrayBuffer,
+	WeakRef,
+*/
+
+var undefined;
+var $SyntaxError = SyntaxError;
+var $Function = Function;
+var $TypeError = TypeError; // eslint-disable-next-line consistent-return
+
+var getEvalledConstructor = function (expressionSyntax) {
+  try {
+    // eslint-disable-next-line no-new-func
+    return Function('"use strict"; return (' + expressionSyntax + ').constructor;')();
+  } catch (e) {}
+};
+
+var $gOPD = Object.getOwnPropertyDescriptor;
+
+if ($gOPD) {
+  try {
+    $gOPD({}, '');
+  } catch (e) {
+    $gOPD = null; // this is IE 8, which has a broken gOPD
+  }
+}
+
+var throwTypeError = function () {
+  throw new $TypeError();
+};
+
+var ThrowTypeError = $gOPD ? function () {
+  try {
+    // eslint-disable-next-line no-unused-expressions, no-caller, no-restricted-properties
+    arguments.callee; // IE 8 does not throw here
+
+    return throwTypeError;
+  } catch (calleeThrows) {
+    try {
+      // IE 8 throws on Object.getOwnPropertyDescriptor(arguments, '')
+      return $gOPD(arguments, 'callee').get;
+    } catch (gOPDthrows) {
+      return throwTypeError;
+    }
+  }
+}() : throwTypeError;
+
+var hasSymbols = require('has-symbols')();
+
+var getProto = Object.getPrototypeOf || function (x) {
+  return x.__proto__;
+}; // eslint-disable-line no-proto
+
+
+var asyncGenFunction = getEvalledConstructor('async function* () {}');
+var asyncGenFunctionPrototype = asyncGenFunction ? asyncGenFunction.prototype : undefined;
+var asyncGenPrototype = asyncGenFunctionPrototype ? asyncGenFunctionPrototype.prototype : undefined;
+var TypedArray = typeof Uint8Array === 'undefined' ? undefined : getProto(Uint8Array);
+var INTRINSICS = {
+  '%AggregateError%': typeof AggregateError === 'undefined' ? undefined : AggregateError,
+  '%Array%': Array,
+  '%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined : ArrayBuffer,
+  '%ArrayIteratorPrototype%': hasSymbols ? getProto([][Symbol.iterator]()) : undefined,
+  '%AsyncFromSyncIteratorPrototype%': undefined,
+  '%AsyncFunction%': getEvalledConstructor('async function () {}'),
+  '%AsyncGenerator%': asyncGenFunctionPrototype,
+  '%AsyncGeneratorFunction%': asyncGenFunction,
+  '%AsyncIteratorPrototype%': asyncGenPrototype ? getProto(asyncGenPrototype) : undefined,
+  '%Atomics%': typeof Atomics === 'undefined' ? undefined : Atomics,
+  '%BigInt%': typeof BigInt === 'undefined' ? undefined : BigInt,
+  '%Boolean%': Boolean,
+  '%DataView%': typeof DataView === 'undefined' ? undefined : DataView,
+  '%Date%': Date,
+  '%decodeURI%': decodeURI,
+  '%decodeURIComponent%': decodeURIComponent,
+  '%encodeURI%': encodeURI,
+  '%encodeURIComponent%': encodeURIComponent,
+  '%Error%': Error,
+  '%eval%': eval,
+  // eslint-disable-line no-eval
+  '%EvalError%': EvalError,
+  '%Float32Array%': typeof Float32Array === 'undefined' ? undefined : Float32Array,
+  '%Float64Array%': typeof Float64Array === 'undefined' ? undefined : Float64Array,
+  '%FinalizationRegistry%': typeof FinalizationRegistry === 'undefined' ? undefined : FinalizationRegistry,
+  '%Function%': $Function,
+  '%GeneratorFunction%': getEvalledConstructor('function* () {}'),
+  '%Int8Array%': typeof Int8Array === 'undefined' ? undefined : Int8Array,
+  '%Int16Array%': typeof Int16Array === 'undefined' ? undefined : Int16Array,
+  '%Int32Array%': typeof Int32Array === 'undefined' ? undefined : Int32Array,
+  '%isFinite%': isFinite,
+  '%isNaN%': isNaN,
+  '%IteratorPrototype%': hasSymbols ? getProto(getProto([][Symbol.iterator]())) : undefined,
+  '%JSON%': typeof JSON === 'object' ? JSON : undefined,
+  '%Map%': typeof Map === 'undefined' ? undefined : Map,
+  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols ? undefined : getProto(new Map()[Symbol.iterator]()),
+  '%Math%': Math,
+  '%Number%': Number,
+  '%Object%': Object,
+  '%parseFloat%': parseFloat,
+  '%parseInt%': parseInt,
+  '%Promise%': typeof Promise === 'undefined' ? undefined : Promise,
+  '%Proxy%': typeof Proxy === 'undefined' ? undefined : Proxy,
+  '%RangeError%': RangeError,
+  '%ReferenceError%': ReferenceError,
+  '%Reflect%': typeof Reflect === 'undefined' ? undefined : Reflect,
+  '%RegExp%': RegExp,
+  '%Set%': typeof Set === 'undefined' ? undefined : Set,
+  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols ? undefined : getProto(new Set()[Symbol.iterator]()),
+  '%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined : SharedArrayBuffer,
+  '%String%': String,
+  '%StringIteratorPrototype%': hasSymbols ? getProto(''[Symbol.iterator]()) : undefined,
+  '%Symbol%': hasSymbols ? Symbol : undefined,
+  '%SyntaxError%': $SyntaxError,
+  '%ThrowTypeError%': ThrowTypeError,
+  '%TypedArray%': TypedArray,
+  '%TypeError%': $TypeError,
+  '%Uint8Array%': typeof Uint8Array === 'undefined' ? undefined : Uint8Array,
+  '%Uint8ClampedArray%': typeof Uint8ClampedArray === 'undefined' ? undefined : Uint8ClampedArray,
+  '%Uint16Array%': typeof Uint16Array === 'undefined' ? undefined : Uint16Array,
+  '%Uint32Array%': typeof Uint32Array === 'undefined' ? undefined : Uint32Array,
+  '%URIError%': URIError,
+  '%WeakMap%': typeof WeakMap === 'undefined' ? undefined : WeakMap,
+  '%WeakRef%': typeof WeakRef === 'undefined' ? undefined : WeakRef,
+  '%WeakSet%': typeof WeakSet === 'undefined' ? undefined : WeakSet
+};
+var LEGACY_ALIASES = {
+  '%ArrayBufferPrototype%': ['ArrayBuffer', 'prototype'],
+  '%ArrayPrototype%': ['Array', 'prototype'],
+  '%ArrayProto_entries%': ['Array', 'prototype', 'entries'],
+  '%ArrayProto_forEach%': ['Array', 'prototype', 'forEach'],
+  '%ArrayProto_keys%': ['Array', 'prototype', 'keys'],
+  '%ArrayProto_values%': ['Array', 'prototype', 'values'],
+  '%AsyncFunctionPrototype%': ['AsyncFunction', 'prototype'],
+  '%AsyncGenerator%': ['AsyncGeneratorFunction', 'prototype'],
+  '%AsyncGeneratorPrototype%': ['AsyncGeneratorFunction', 'prototype', 'prototype'],
+  '%BooleanPrototype%': ['Boolean', 'prototype'],
+  '%DataViewPrototype%': ['DataView', 'prototype'],
+  '%DatePrototype%': ['Date', 'prototype'],
+  '%ErrorPrototype%': ['Error', 'prototype'],
+  '%EvalErrorPrototype%': ['EvalError', 'prototype'],
+  '%Float32ArrayPrototype%': ['Float32Array', 'prototype'],
+  '%Float64ArrayPrototype%': ['Float64Array', 'prototype'],
+  '%FunctionPrototype%': ['Function', 'prototype'],
+  '%Generator%': ['GeneratorFunction', 'prototype'],
+  '%GeneratorPrototype%': ['GeneratorFunction', 'prototype', 'prototype'],
+  '%Int8ArrayPrototype%': ['Int8Array', 'prototype'],
+  '%Int16ArrayPrototype%': ['Int16Array', 'prototype'],
+  '%Int32ArrayPrototype%': ['Int32Array', 'prototype'],
+  '%JSONParse%': ['JSON', 'parse'],
+  '%JSONStringify%': ['JSON', 'stringify'],
+  '%MapPrototype%': ['Map', 'prototype'],
+  '%NumberPrototype%': ['Number', 'prototype'],
+  '%ObjectPrototype%': ['Object', 'prototype'],
+  '%ObjProto_toString%': ['Object', 'prototype', 'toString'],
+  '%ObjProto_valueOf%': ['Object', 'prototype', 'valueOf'],
+  '%PromisePrototype%': ['Promise', 'prototype'],
+  '%PromiseProto_then%': ['Promise', 'prototype', 'then'],
+  '%Promise_all%': ['Promise', 'all'],
+  '%Promise_reject%': ['Promise', 'reject'],
+  '%Promise_resolve%': ['Promise', 'resolve'],
+  '%RangeErrorPrototype%': ['RangeError', 'prototype'],
+  '%ReferenceErrorPrototype%': ['ReferenceError', 'prototype'],
+  '%RegExpPrototype%': ['RegExp', 'prototype'],
+  '%SetPrototype%': ['Set', 'prototype'],
+  '%SharedArrayBufferPrototype%': ['SharedArrayBuffer', 'prototype'],
+  '%StringPrototype%': ['String', 'prototype'],
+  '%SymbolPrototype%': ['Symbol', 'prototype'],
+  '%SyntaxErrorPrototype%': ['SyntaxError', 'prototype'],
+  '%TypedArrayPrototype%': ['TypedArray', 'prototype'],
+  '%TypeErrorPrototype%': ['TypeError', 'prototype'],
+  '%Uint8ArrayPrototype%': ['Uint8Array', 'prototype'],
+  '%Uint8ClampedArrayPrototype%': ['Uint8ClampedArray', 'prototype'],
+  '%Uint16ArrayPrototype%': ['Uint16Array', 'prototype'],
+  '%Uint32ArrayPrototype%': ['Uint32Array', 'prototype'],
+  '%URIErrorPrototype%': ['URIError', 'prototype'],
+  '%WeakMapPrototype%': ['WeakMap', 'prototype'],
+  '%WeakSetPrototype%': ['WeakSet', 'prototype']
+};
+
+var bind = require('function-bind');
+
+var hasOwn = require('has');
+
+var $concat = bind.call(Function.call, Array.prototype.concat);
+var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
+var $replace = bind.call(Function.call, String.prototype.replace);
+/* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
+
+var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
+var reEscapeChar = /\\(\\)?/g;
+/** Used to match backslashes in property paths. */
+
+var stringToPath = function stringToPath(string) {
+  var result = [];
+  $replace(string, rePropName, function (match, number, quote, subString) {
+    result[result.length] = quote ? $replace(subString, reEscapeChar, '$1') : number || match;
+  });
+  return result;
+};
+/* end adaptation */
+
+
+var getBaseIntrinsic = function getBaseIntrinsic(name, allowMissing) {
+  var intrinsicName = name;
+  var alias;
+
+  if (hasOwn(LEGACY_ALIASES, intrinsicName)) {
+    alias = LEGACY_ALIASES[intrinsicName];
+    intrinsicName = '%' + alias[0] + '%';
+  }
+
+  if (hasOwn(INTRINSICS, intrinsicName)) {
+    var value = INTRINSICS[intrinsicName];
+
+    if (typeof value === 'undefined' && !allowMissing) {
+      throw new $TypeError('intrinsic ' + name + ' exists, but is not available. Please file an issue!');
+    }
+
+    return {
+      alias: alias,
+      name: intrinsicName,
+      value: value
+    };
+  }
+
+  throw new $SyntaxError('intrinsic ' + name + ' does not exist!');
+};
+
+module.exports = function GetIntrinsic(name, allowMissing) {
+  if (typeof name !== 'string' || name.length === 0) {
+    throw new $TypeError('intrinsic name must be a non-empty string');
+  }
+
+  if (arguments.length > 1 && typeof allowMissing !== 'boolean') {
+    throw new $TypeError('"allowMissing" argument must be a boolean');
+  }
+
+  var parts = stringToPath(name);
+  var intrinsicBaseName = parts.length > 0 ? parts[0] : '';
+  var intrinsic = getBaseIntrinsic('%' + intrinsicBaseName + '%', allowMissing);
+  var intrinsicRealName = intrinsic.name;
+  var value = intrinsic.value;
+  var skipFurtherCaching = false;
+  var alias = intrinsic.alias;
+
+  if (alias) {
+    intrinsicBaseName = alias[0];
+    $spliceApply(parts, $concat([0, 1], alias));
+  }
+
+  for (var i = 1, isOwn = true; i < parts.length; i += 1) {
+    var part = parts[i];
+
+    if (part === 'constructor' || !isOwn) {
+      skipFurtherCaching = true;
+    }
+
+    intrinsicBaseName += '.' + part;
+    intrinsicRealName = '%' + intrinsicBaseName + '%';
+
+    if (hasOwn(INTRINSICS, intrinsicRealName)) {
+      value = INTRINSICS[intrinsicRealName];
+    } else if (value != null) {
+      if ($gOPD && i + 1 >= parts.length) {
+        var desc = $gOPD(value, part);
+        isOwn = !!desc;
+
+        if (!allowMissing && !(part in value)) {
+          throw new $TypeError('base intrinsic for ' + name + ' exists, but the property is not available.');
+        } // By convention, when a data property is converted to an accessor
+        // property to emulate a data property that does not suffer from
+        // the override mistake, that accessor's getter is marked with
+        // an `originalValue` property. Here, when we detect this, we
+        // uphold the illusion by pretending to see that original data
+        // property, i.e., returning the value rather than the getter
+        // itself.
+
+
+        if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
+          value = desc.get;
+        } else {
+          value = value[part];
+        }
+      } else {
+        isOwn = hasOwn(value, part);
+        value = value[part];
+      }
+
+      if (isOwn && !skipFurtherCaching) {
+        INTRINSICS[intrinsicRealName] = value;
+      }
+    }
+  }
+
+  return value;
+};
+
+},{"function-bind":8,"has":12,"has-symbols":10}],10:[function(require,module,exports){
+(function (global){(function (){
+'use strict';
+
+var origSymbol = global.Symbol;
+
+var hasSymbolSham = require('./shams');
+
+module.exports = function hasNativeSymbols() {
+  if (typeof origSymbol !== 'function') {
+    return false;
+  }
+
+  if (typeof Symbol !== 'function') {
+    return false;
+  }
+
+  if (typeof origSymbol('foo') !== 'symbol') {
+    return false;
+  }
+
+  if (typeof Symbol('bar') !== 'symbol') {
+    return false;
+  }
+
+  return hasSymbolSham();
+};
+
+}).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./shams":11}],11:[function(require,module,exports){
+'use strict';
+/* eslint complexity: [2, 18], max-statements: [2, 33] */
+
+module.exports = function hasSymbols() {
+  if (typeof Symbol !== 'function' || typeof Object.getOwnPropertySymbols !== 'function') {
+    return false;
+  }
+
+  if (typeof Symbol.iterator === 'symbol') {
+    return true;
+  }
+
+  var obj = {};
+  var sym = Symbol('test');
+  var symObj = Object(sym);
+
+  if (typeof sym === 'string') {
+    return false;
+  }
+
+  if (Object.prototype.toString.call(sym) !== '[object Symbol]') {
+    return false;
+  }
+
+  if (Object.prototype.toString.call(symObj) !== '[object Symbol]') {
+    return false;
+  } // temp disabled per https://github.com/ljharb/object.assign/issues/17
+  // if (sym instanceof Symbol) { return false; }
+  // temp disabled per https://github.com/WebReflection/get-own-property-symbols/issues/4
+  // if (!(symObj instanceof Symbol)) { return false; }
+  // if (typeof Symbol.prototype.toString !== 'function') { return false; }
+  // if (String(sym) !== Symbol.prototype.toString.call(sym)) { return false; }
+
+
+  var symVal = 42;
+  obj[sym] = symVal;
+
+  for (sym in obj) {
+    return false;
+  } // eslint-disable-line no-restricted-syntax
+
+
+  if (typeof Object.keys === 'function' && Object.keys(obj).length !== 0) {
+    return false;
+  }
+
+  if (typeof Object.getOwnPropertyNames === 'function' && Object.getOwnPropertyNames(obj).length !== 0) {
+    return false;
+  }
+
+  var syms = Object.getOwnPropertySymbols(obj);
+
+  if (syms.length !== 1 || syms[0] !== sym) {
+    return false;
+  }
+
+  if (!Object.prototype.propertyIsEnumerable.call(obj, sym)) {
+    return false;
+  }
+
+  if (typeof Object.getOwnPropertyDescriptor === 'function') {
+    var descriptor = Object.getOwnPropertyDescriptor(obj, sym);
+
+    if (descriptor.value !== symVal || descriptor.enumerable !== true) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+},{}],12:[function(require,module,exports){
+'use strict';
+
+var bind = require('function-bind');
+
+module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
+
+},{"function-bind":8}],13:[function(require,module,exports){
 "use strict";
 
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
@@ -11791,29 +12410,118 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],4:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 (function (process,global,Buffer){(function (){
 'use strict';
 
+var callBound = require('call-bind/callBound');
+
+var availableTypedArrays = require('available-typed-arrays');
+
+function _interopDefaultLegacy(e) {
+  return e && typeof e === 'object' && 'default' in e ? e : {
+    'default': e
+  };
+}
+
+var callBound__default = /*#__PURE__*/_interopDefaultLegacy(callBound);
+
+var availableTypedArrays__default = /*#__PURE__*/_interopDefaultLegacy(availableTypedArrays);
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function getDefaultExportFromCjs(x) {
-  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+function createCommonjsModule(fn) {
+  var module = {
+    exports: {}
+  };
+  return fn(module, module.exports), module.exports;
 }
 
-function createCommonjsModule(fn, basedir, module) {
-  return module = {
-    path: basedir,
-    exports: {},
-    require: function (path, base) {
-      return commonjsRequire(path, base === undefined || base === null ? module.path : base);
+var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
+var $toString = callBound__default['default']('Object.prototype.toString');
+
+var isStandardArguments = function isArguments(value) {
+  if (hasToStringTag && value && typeof value === 'object' && Symbol.toStringTag in value) {
+    return false;
+  }
+
+  return $toString(value) === '[object Arguments]';
+};
+
+var isLegacyArguments = function isArguments(value) {
+  if (isStandardArguments(value)) {
+    return true;
+  }
+
+  return value !== null && typeof value === 'object' && typeof value.length === 'number' && value.length >= 0 && $toString(value) !== '[object Array]' && $toString(value.callee) === '[object Function]';
+};
+
+var supportsStandardArguments = function () {
+  return isStandardArguments(arguments);
+}();
+
+isStandardArguments.isLegacyArguments = isLegacyArguments; // for tests
+
+var isArguments = supportsStandardArguments ? isStandardArguments : isLegacyArguments;
+var toStr = Object.prototype.toString;
+var fnToStr = Function.prototype.toString;
+var isFnRegex = /^\s*(?:function)?\*/;
+var hasToStringTag$1 = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
+var getProto = Object.getPrototypeOf;
+
+var getGeneratorFunc = function () {
+  // eslint-disable-line consistent-return
+  if (!hasToStringTag$1) {
+    return false;
+  }
+
+  try {
+    return Function('return function*() {}')();
+  } catch (e) {}
+};
+
+var generatorFunc = getGeneratorFunc();
+var GeneratorFunction = getProto && generatorFunc ? getProto(generatorFunc) : false;
+
+var isGeneratorFunction = function isGeneratorFunction(fn) {
+  if (typeof fn !== 'function') {
+    return false;
+  }
+
+  if (isFnRegex.test(fnToStr.call(fn))) {
+    return true;
+  }
+
+  if (!hasToStringTag$1) {
+    var str = toStr.call(fn);
+    return str === '[object GeneratorFunction]';
+  }
+
+  return getProto && getProto(fn) === GeneratorFunction;
+};
+
+var hasOwn = Object.prototype.hasOwnProperty;
+var toString = Object.prototype.toString;
+
+var foreach = function forEach(obj, fn, ctx) {
+  if (toString.call(fn) !== '[object Function]') {
+    throw new TypeError('iterator must be a function');
+  }
+
+  var l = obj.length;
+
+  if (l === +l) {
+    for (var i = 0; i < l; i++) {
+      fn.call(ctx, obj[i], i, obj);
     }
-  }, fn(module, module.exports), module.exports;
-}
-
-function commonjsRequire() {
-  throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
-}
+  } else {
+    for (var k in obj) {
+      if (hasOwn.call(obj, k)) {
+        fn.call(ctx, obj[k], k, obj);
+      }
+    }
+  }
+};
 /* eslint complexity: [2, 18], max-statements: [2, 33] */
 
 
@@ -11911,13 +12619,13 @@ var hasSymbols = function hasNativeSymbols() {
 
 var ERROR_MESSAGE = 'Function.prototype.bind called on incompatible ';
 var slice = Array.prototype.slice;
-var toStr = Object.prototype.toString;
+var toStr$1 = Object.prototype.toString;
 var funcType = '[object Function]';
 
 var implementation = function bind(that) {
   var target = this;
 
-  if (typeof target !== 'function' || toStr.call(target) !== funcType) {
+  if (typeof target !== 'function' || toStr$1.call(target) !== funcType) {
     throw new TypeError(ERROR_MESSAGE + target);
   }
 
@@ -12011,7 +12719,7 @@ var ThrowTypeError = $gOPD ? function () {
 }() : throwTypeError;
 var hasSymbols$1 = hasSymbols();
 
-var getProto = Object.getPrototypeOf || function (x) {
+var getProto$1 = Object.getPrototypeOf || function (x) {
   return x.__proto__;
 }; // eslint-disable-line no-proto
 
@@ -12019,17 +12727,17 @@ var getProto = Object.getPrototypeOf || function (x) {
 var asyncGenFunction = getEvalledConstructor('async function* () {}');
 var asyncGenFunctionPrototype = asyncGenFunction ? asyncGenFunction.prototype : undefined$1;
 var asyncGenPrototype = asyncGenFunctionPrototype ? asyncGenFunctionPrototype.prototype : undefined$1;
-var TypedArray = typeof Uint8Array === 'undefined' ? undefined$1 : getProto(Uint8Array);
+var TypedArray = typeof Uint8Array === 'undefined' ? undefined$1 : getProto$1(Uint8Array);
 var INTRINSICS = {
   '%AggregateError%': typeof AggregateError === 'undefined' ? undefined$1 : AggregateError,
   '%Array%': Array,
   '%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined$1 : ArrayBuffer,
-  '%ArrayIteratorPrototype%': hasSymbols$1 ? getProto([][Symbol.iterator]()) : undefined$1,
+  '%ArrayIteratorPrototype%': hasSymbols$1 ? getProto$1([][Symbol.iterator]()) : undefined$1,
   '%AsyncFromSyncIteratorPrototype%': undefined$1,
   '%AsyncFunction%': getEvalledConstructor('async function () {}'),
   '%AsyncGenerator%': asyncGenFunctionPrototype,
   '%AsyncGeneratorFunction%': asyncGenFunction,
-  '%AsyncIteratorPrototype%': asyncGenPrototype ? getProto(asyncGenPrototype) : undefined$1,
+  '%AsyncIteratorPrototype%': asyncGenPrototype ? getProto$1(asyncGenPrototype) : undefined$1,
   '%Atomics%': typeof Atomics === 'undefined' ? undefined$1 : Atomics,
   '%BigInt%': typeof BigInt === 'undefined' ? undefined$1 : BigInt,
   '%Boolean%': Boolean,
@@ -12053,10 +12761,10 @@ var INTRINSICS = {
   '%Int32Array%': typeof Int32Array === 'undefined' ? undefined$1 : Int32Array,
   '%isFinite%': isFinite,
   '%isNaN%': isNaN,
-  '%IteratorPrototype%': hasSymbols$1 ? getProto(getProto([][Symbol.iterator]())) : undefined$1,
+  '%IteratorPrototype%': hasSymbols$1 ? getProto$1(getProto$1([][Symbol.iterator]())) : undefined$1,
   '%JSON%': typeof JSON === 'object' ? JSON : undefined$1,
   '%Map%': typeof Map === 'undefined' ? undefined$1 : Map,
-  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto(new Map()[Symbol.iterator]()),
+  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto$1(new Map()[Symbol.iterator]()),
   '%Math%': Math,
   '%Number%': Number,
   '%Object%': Object,
@@ -12069,10 +12777,10 @@ var INTRINSICS = {
   '%Reflect%': typeof Reflect === 'undefined' ? undefined$1 : Reflect,
   '%RegExp%': RegExp,
   '%Set%': typeof Set === 'undefined' ? undefined$1 : Set,
-  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto(new Set()[Symbol.iterator]()),
+  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols$1 ? undefined$1 : getProto$1(new Set()[Symbol.iterator]()),
   '%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined$1 : SharedArrayBuffer,
   '%String%': String,
-  '%StringIteratorPrototype%': hasSymbols$1 ? getProto(''[Symbol.iterator]()) : undefined$1,
+  '%StringIteratorPrototype%': hasSymbols$1 ? getProto$1(''[Symbol.iterator]()) : undefined$1,
   '%Symbol%': hasSymbols$1 ? Symbol : undefined$1,
   '%SyntaxError%': $SyntaxError,
   '%ThrowTypeError%': ThrowTypeError,
@@ -12185,7 +12893,7 @@ var getBaseIntrinsic = function getBaseIntrinsic(name, allowMissing) {
   throw new $SyntaxError('intrinsic ' + name + ' does not exist!');
 };
 
-var getIntrinsic = function GetIntrinsic(name, allowMissing) {
+var GetIntrinsic = function GetIntrinsic(name, allowMissing) {
   if (typeof name !== 'string' || name.length === 0) {
     throw new $TypeError('intrinsic name must be a non-empty string');
   }
@@ -12254,482 +12962,24 @@ var getIntrinsic = function GetIntrinsic(name, allowMissing) {
   return value;
 };
 
-var callBind = createCommonjsModule(function (module) {
-  var $apply = getIntrinsic('%Function.prototype.apply%');
-  var $call = getIntrinsic('%Function.prototype.call%');
-  var $reflectApply = getIntrinsic('%Reflect.apply%', true) || functionBind.call($call, $apply);
-  var $defineProperty = getIntrinsic('%Object.defineProperty%', true);
-
-  if ($defineProperty) {
-    try {
-      $defineProperty({}, 'a', {
-        value: 1
-      });
-    } catch (e) {
-      // IE 8 has a broken defineProperty
-      $defineProperty = null;
-    }
-  }
-
-  module.exports = function callBind() {
-    return $reflectApply(functionBind, $call, arguments);
-  };
-
-  var applyBind = function applyBind() {
-    return $reflectApply(functionBind, $apply, arguments);
-  };
-
-  if ($defineProperty) {
-    $defineProperty(module.exports, 'apply', {
-      value: applyBind
-    });
-  } else {
-    module.exports.apply = applyBind;
-  }
-});
-var $indexOf = callBind(getIntrinsic('String.prototype.indexOf'));
-
-var callBound = function callBoundIntrinsic(name, allowMissing) {
-  var intrinsic = getIntrinsic(name, !!allowMissing);
-
-  if (typeof intrinsic === 'function' && $indexOf(name, '.prototype.') > -1) {
-    return callBind(intrinsic);
-  }
-
-  return intrinsic;
-};
-
-var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
-var $toString = callBound('Object.prototype.toString');
-
-var isStandardArguments = function isArguments(value) {
-  if (hasToStringTag && value && typeof value === 'object' && Symbol.toStringTag in value) {
-    return false;
-  }
-
-  return $toString(value) === '[object Arguments]';
-};
-
-var isLegacyArguments = function isArguments(value) {
-  if (isStandardArguments(value)) {
-    return true;
-  }
-
-  return value !== null && typeof value === 'object' && typeof value.length === 'number' && value.length >= 0 && $toString(value) !== '[object Array]' && $toString(value.callee) === '[object Function]';
-};
-
-var supportsStandardArguments = function () {
-  return isStandardArguments(arguments);
-}();
-
-isStandardArguments.isLegacyArguments = isLegacyArguments; // for tests
-
-var isArguments = supportsStandardArguments ? isStandardArguments : isLegacyArguments;
-var toStr$1 = Object.prototype.toString;
-var fnToStr = Function.prototype.toString;
-var isFnRegex = /^\s*(?:function)?\*/;
-var hasToStringTag$1 = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
-var getProto$1 = Object.getPrototypeOf;
-
-var getGeneratorFunc = function () {
-  // eslint-disable-line consistent-return
-  if (!hasToStringTag$1) {
-    return false;
-  }
-
-  try {
-    return Function('return function*() {}')();
-  } catch (e) {}
-};
-
-var generatorFunc = getGeneratorFunc();
-var GeneratorFunction = getProto$1 && generatorFunc ? getProto$1(generatorFunc) : false;
-
-var isGeneratorFunction = function isGeneratorFunction(fn) {
-  if (typeof fn !== 'function') {
-    return false;
-  }
-
-  if (isFnRegex.test(fnToStr.call(fn))) {
-    return true;
-  }
-
-  if (!hasToStringTag$1) {
-    var str = toStr$1.call(fn);
-    return str === '[object GeneratorFunction]';
-  }
-
-  return getProto$1 && getProto$1(fn) === GeneratorFunction;
-};
-
-var hasOwn = Object.prototype.hasOwnProperty;
-var toString = Object.prototype.toString;
-
-var foreach = function forEach(obj, fn, ctx) {
-  if (toString.call(fn) !== '[object Function]') {
-    throw new TypeError('iterator must be a function');
-  }
-
-  var l = obj.length;
-
-  if (l === +l) {
-    for (var i = 0; i < l; i++) {
-      fn.call(ctx, obj[i], i, obj);
-    }
-  } else {
-    for (var k in obj) {
-      if (hasOwn.call(obj, k)) {
-        fn.call(ctx, obj[k], k, obj);
-      }
-    }
-  }
-};
-/**
- * Array#filter.
- *
- * @param {Array} arr
- * @param {Function} fn
- * @param {Object=} self
- * @return {Array}
- * @throw TypeError
- */
-
-
-var arrayFilter = function (arr, fn, self) {
-  if (arr.filter) return arr.filter(fn, self);
-  if (void 0 === arr || null === arr) throw new TypeError();
-  if ('function' != typeof fn) throw new TypeError();
-  var ret = [];
-
-  for (var i = 0; i < arr.length; i++) {
-    if (!hasOwn$1.call(arr, i)) continue;
-    var val = arr[i];
-    if (fn.call(self, val, i, arr)) ret.push(val);
-  }
-
-  return ret;
-};
-
-var hasOwn$1 = Object.prototype.hasOwnProperty;
-
-var availableTypedArrays = function availableTypedArrays() {
-  return arrayFilter(['BigInt64Array', 'BigUint64Array', 'Float32Array', 'Float64Array', 'Int16Array', 'Int32Array', 'Int8Array', 'Uint16Array', 'Uint32Array', 'Uint8Array', 'Uint8ClampedArray'], function (typedArray) {
-    return typeof commonjsGlobal[typedArray] === 'function';
-  });
-};
-/* globals
-	AggregateError,
-	Atomics,
-	FinalizationRegistry,
-	SharedArrayBuffer,
-	WeakRef,
-*/
-
-
-var undefined$2;
-var $SyntaxError$1 = SyntaxError;
-var $Function$1 = Function;
-var $TypeError$1 = TypeError; // eslint-disable-next-line consistent-return
-
-var getEvalledConstructor$1 = function (expressionSyntax) {
-  try {
-    // eslint-disable-next-line no-new-func
-    return Function('"use strict"; return (' + expressionSyntax + ').constructor;')();
-  } catch (e) {}
-};
-
-var $gOPD$1 = Object.getOwnPropertyDescriptor;
+var $gOPD$1 = GetIntrinsic('%Object.getOwnPropertyDescriptor%');
 
 if ($gOPD$1) {
   try {
-    $gOPD$1({}, '');
-  } catch (e) {
-    $gOPD$1 = null; // this is IE 8, which has a broken gOPD
-  }
-}
-
-var throwTypeError$1 = function () {
-  throw new $TypeError$1();
-};
-
-var ThrowTypeError$1 = $gOPD$1 ? function () {
-  try {
-    // eslint-disable-next-line no-unused-expressions, no-caller, no-restricted-properties
-    arguments.callee; // IE 8 does not throw here
-
-    return throwTypeError$1;
-  } catch (calleeThrows) {
-    try {
-      // IE 8 throws on Object.getOwnPropertyDescriptor(arguments, '')
-      return $gOPD$1(arguments, 'callee').get;
-    } catch (gOPDthrows) {
-      return throwTypeError$1;
-    }
-  }
-}() : throwTypeError$1;
-var hasSymbols$2 = hasSymbols();
-
-var getProto$2 = Object.getPrototypeOf || function (x) {
-  return x.__proto__;
-}; // eslint-disable-line no-proto
-
-
-var asyncGenFunction$1 = getEvalledConstructor$1('async function* () {}');
-var asyncGenFunctionPrototype$1 = asyncGenFunction$1 ? asyncGenFunction$1.prototype : undefined$2;
-var asyncGenPrototype$1 = asyncGenFunctionPrototype$1 ? asyncGenFunctionPrototype$1.prototype : undefined$2;
-var TypedArray$1 = typeof Uint8Array === 'undefined' ? undefined$2 : getProto$2(Uint8Array);
-var INTRINSICS$1 = {
-  '%AggregateError%': typeof AggregateError === 'undefined' ? undefined$2 : AggregateError,
-  '%Array%': Array,
-  '%ArrayBuffer%': typeof ArrayBuffer === 'undefined' ? undefined$2 : ArrayBuffer,
-  '%ArrayIteratorPrototype%': hasSymbols$2 ? getProto$2([][Symbol.iterator]()) : undefined$2,
-  '%AsyncFromSyncIteratorPrototype%': undefined$2,
-  '%AsyncFunction%': getEvalledConstructor$1('async function () {}'),
-  '%AsyncGenerator%': asyncGenFunctionPrototype$1,
-  '%AsyncGeneratorFunction%': asyncGenFunction$1,
-  '%AsyncIteratorPrototype%': asyncGenPrototype$1 ? getProto$2(asyncGenPrototype$1) : undefined$2,
-  '%Atomics%': typeof Atomics === 'undefined' ? undefined$2 : Atomics,
-  '%BigInt%': typeof BigInt === 'undefined' ? undefined$2 : BigInt,
-  '%Boolean%': Boolean,
-  '%DataView%': typeof DataView === 'undefined' ? undefined$2 : DataView,
-  '%Date%': Date,
-  '%decodeURI%': decodeURI,
-  '%decodeURIComponent%': decodeURIComponent,
-  '%encodeURI%': encodeURI,
-  '%encodeURIComponent%': encodeURIComponent,
-  '%Error%': Error,
-  '%eval%': eval,
-  // eslint-disable-line no-eval
-  '%EvalError%': EvalError,
-  '%Float32Array%': typeof Float32Array === 'undefined' ? undefined$2 : Float32Array,
-  '%Float64Array%': typeof Float64Array === 'undefined' ? undefined$2 : Float64Array,
-  '%FinalizationRegistry%': typeof FinalizationRegistry === 'undefined' ? undefined$2 : FinalizationRegistry,
-  '%Function%': $Function$1,
-  '%GeneratorFunction%': getEvalledConstructor$1('function* () {}'),
-  '%Int8Array%': typeof Int8Array === 'undefined' ? undefined$2 : Int8Array,
-  '%Int16Array%': typeof Int16Array === 'undefined' ? undefined$2 : Int16Array,
-  '%Int32Array%': typeof Int32Array === 'undefined' ? undefined$2 : Int32Array,
-  '%isFinite%': isFinite,
-  '%isNaN%': isNaN,
-  '%IteratorPrototype%': hasSymbols$2 ? getProto$2(getProto$2([][Symbol.iterator]())) : undefined$2,
-  '%JSON%': typeof JSON === 'object' ? JSON : undefined$2,
-  '%Map%': typeof Map === 'undefined' ? undefined$2 : Map,
-  '%MapIteratorPrototype%': typeof Map === 'undefined' || !hasSymbols$2 ? undefined$2 : getProto$2(new Map()[Symbol.iterator]()),
-  '%Math%': Math,
-  '%Number%': Number,
-  '%Object%': Object,
-  '%parseFloat%': parseFloat,
-  '%parseInt%': parseInt,
-  '%Promise%': typeof Promise === 'undefined' ? undefined$2 : Promise,
-  '%Proxy%': typeof Proxy === 'undefined' ? undefined$2 : Proxy,
-  '%RangeError%': RangeError,
-  '%ReferenceError%': ReferenceError,
-  '%Reflect%': typeof Reflect === 'undefined' ? undefined$2 : Reflect,
-  '%RegExp%': RegExp,
-  '%Set%': typeof Set === 'undefined' ? undefined$2 : Set,
-  '%SetIteratorPrototype%': typeof Set === 'undefined' || !hasSymbols$2 ? undefined$2 : getProto$2(new Set()[Symbol.iterator]()),
-  '%SharedArrayBuffer%': typeof SharedArrayBuffer === 'undefined' ? undefined$2 : SharedArrayBuffer,
-  '%String%': String,
-  '%StringIteratorPrototype%': hasSymbols$2 ? getProto$2(''[Symbol.iterator]()) : undefined$2,
-  '%Symbol%': hasSymbols$2 ? Symbol : undefined$2,
-  '%SyntaxError%': $SyntaxError$1,
-  '%ThrowTypeError%': ThrowTypeError$1,
-  '%TypedArray%': TypedArray$1,
-  '%TypeError%': $TypeError$1,
-  '%Uint8Array%': typeof Uint8Array === 'undefined' ? undefined$2 : Uint8Array,
-  '%Uint8ClampedArray%': typeof Uint8ClampedArray === 'undefined' ? undefined$2 : Uint8ClampedArray,
-  '%Uint16Array%': typeof Uint16Array === 'undefined' ? undefined$2 : Uint16Array,
-  '%Uint32Array%': typeof Uint32Array === 'undefined' ? undefined$2 : Uint32Array,
-  '%URIError%': URIError,
-  '%WeakMap%': typeof WeakMap === 'undefined' ? undefined$2 : WeakMap,
-  '%WeakRef%': typeof WeakRef === 'undefined' ? undefined$2 : WeakRef,
-  '%WeakSet%': typeof WeakSet === 'undefined' ? undefined$2 : WeakSet
-};
-var LEGACY_ALIASES$1 = {
-  '%ArrayBufferPrototype%': ['ArrayBuffer', 'prototype'],
-  '%ArrayPrototype%': ['Array', 'prototype'],
-  '%ArrayProto_entries%': ['Array', 'prototype', 'entries'],
-  '%ArrayProto_forEach%': ['Array', 'prototype', 'forEach'],
-  '%ArrayProto_keys%': ['Array', 'prototype', 'keys'],
-  '%ArrayProto_values%': ['Array', 'prototype', 'values'],
-  '%AsyncFunctionPrototype%': ['AsyncFunction', 'prototype'],
-  '%AsyncGenerator%': ['AsyncGeneratorFunction', 'prototype'],
-  '%AsyncGeneratorPrototype%': ['AsyncGeneratorFunction', 'prototype', 'prototype'],
-  '%BooleanPrototype%': ['Boolean', 'prototype'],
-  '%DataViewPrototype%': ['DataView', 'prototype'],
-  '%DatePrototype%': ['Date', 'prototype'],
-  '%ErrorPrototype%': ['Error', 'prototype'],
-  '%EvalErrorPrototype%': ['EvalError', 'prototype'],
-  '%Float32ArrayPrototype%': ['Float32Array', 'prototype'],
-  '%Float64ArrayPrototype%': ['Float64Array', 'prototype'],
-  '%FunctionPrototype%': ['Function', 'prototype'],
-  '%Generator%': ['GeneratorFunction', 'prototype'],
-  '%GeneratorPrototype%': ['GeneratorFunction', 'prototype', 'prototype'],
-  '%Int8ArrayPrototype%': ['Int8Array', 'prototype'],
-  '%Int16ArrayPrototype%': ['Int16Array', 'prototype'],
-  '%Int32ArrayPrototype%': ['Int32Array', 'prototype'],
-  '%JSONParse%': ['JSON', 'parse'],
-  '%JSONStringify%': ['JSON', 'stringify'],
-  '%MapPrototype%': ['Map', 'prototype'],
-  '%NumberPrototype%': ['Number', 'prototype'],
-  '%ObjectPrototype%': ['Object', 'prototype'],
-  '%ObjProto_toString%': ['Object', 'prototype', 'toString'],
-  '%ObjProto_valueOf%': ['Object', 'prototype', 'valueOf'],
-  '%PromisePrototype%': ['Promise', 'prototype'],
-  '%PromiseProto_then%': ['Promise', 'prototype', 'then'],
-  '%Promise_all%': ['Promise', 'all'],
-  '%Promise_reject%': ['Promise', 'reject'],
-  '%Promise_resolve%': ['Promise', 'resolve'],
-  '%RangeErrorPrototype%': ['RangeError', 'prototype'],
-  '%ReferenceErrorPrototype%': ['ReferenceError', 'prototype'],
-  '%RegExpPrototype%': ['RegExp', 'prototype'],
-  '%SetPrototype%': ['Set', 'prototype'],
-  '%SharedArrayBufferPrototype%': ['SharedArrayBuffer', 'prototype'],
-  '%StringPrototype%': ['String', 'prototype'],
-  '%SymbolPrototype%': ['Symbol', 'prototype'],
-  '%SyntaxErrorPrototype%': ['SyntaxError', 'prototype'],
-  '%TypedArrayPrototype%': ['TypedArray', 'prototype'],
-  '%TypeErrorPrototype%': ['TypeError', 'prototype'],
-  '%Uint8ArrayPrototype%': ['Uint8Array', 'prototype'],
-  '%Uint8ClampedArrayPrototype%': ['Uint8ClampedArray', 'prototype'],
-  '%Uint16ArrayPrototype%': ['Uint16Array', 'prototype'],
-  '%Uint32ArrayPrototype%': ['Uint32Array', 'prototype'],
-  '%URIErrorPrototype%': ['URIError', 'prototype'],
-  '%WeakMapPrototype%': ['WeakMap', 'prototype'],
-  '%WeakSetPrototype%': ['WeakSet', 'prototype']
-};
-var $concat$1 = functionBind.call(Function.call, Array.prototype.concat);
-var $spliceApply$1 = functionBind.call(Function.apply, Array.prototype.splice);
-var $replace$1 = functionBind.call(Function.call, String.prototype.replace);
-/* adapted from https://github.com/lodash/lodash/blob/4.17.15/dist/lodash.js#L6735-L6744 */
-
-var rePropName$1 = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
-var reEscapeChar$1 = /\\(\\)?/g;
-/** Used to match backslashes in property paths. */
-
-var stringToPath$1 = function stringToPath(string) {
-  var result = [];
-  $replace$1(string, rePropName$1, function (match, number, quote, subString) {
-    result[result.length] = quote ? $replace$1(subString, reEscapeChar$1, '$1') : number || match;
-  });
-  return result;
-};
-/* end adaptation */
-
-
-var getBaseIntrinsic$1 = function getBaseIntrinsic(name, allowMissing) {
-  var intrinsicName = name;
-  var alias;
-
-  if (src(LEGACY_ALIASES$1, intrinsicName)) {
-    alias = LEGACY_ALIASES$1[intrinsicName];
-    intrinsicName = '%' + alias[0] + '%';
-  }
-
-  if (src(INTRINSICS$1, intrinsicName)) {
-    var value = INTRINSICS$1[intrinsicName];
-
-    if (typeof value === 'undefined' && !allowMissing) {
-      throw new $TypeError$1('intrinsic ' + name + ' exists, but is not available. Please file an issue!');
-    }
-
-    return {
-      alias: alias,
-      name: intrinsicName,
-      value: value
-    };
-  }
-
-  throw new $SyntaxError$1('intrinsic ' + name + ' does not exist!');
-};
-
-var GetIntrinsic = function GetIntrinsic(name, allowMissing) {
-  if (typeof name !== 'string' || name.length === 0) {
-    throw new $TypeError$1('intrinsic name must be a non-empty string');
-  }
-
-  if (arguments.length > 1 && typeof allowMissing !== 'boolean') {
-    throw new $TypeError$1('"allowMissing" argument must be a boolean');
-  }
-
-  var parts = stringToPath$1(name);
-  var intrinsicBaseName = parts.length > 0 ? parts[0] : '';
-  var intrinsic = getBaseIntrinsic$1('%' + intrinsicBaseName + '%', allowMissing);
-  var intrinsicRealName = intrinsic.name;
-  var value = intrinsic.value;
-  var skipFurtherCaching = false;
-  var alias = intrinsic.alias;
-
-  if (alias) {
-    intrinsicBaseName = alias[0];
-    $spliceApply$1(parts, $concat$1([0, 1], alias));
-  }
-
-  for (var i = 1, isOwn = true; i < parts.length; i += 1) {
-    var part = parts[i];
-
-    if (part === 'constructor' || !isOwn) {
-      skipFurtherCaching = true;
-    }
-
-    intrinsicBaseName += '.' + part;
-    intrinsicRealName = '%' + intrinsicBaseName + '%';
-
-    if (src(INTRINSICS$1, intrinsicRealName)) {
-      value = INTRINSICS$1[intrinsicRealName];
-    } else if (value != null) {
-      if ($gOPD$1 && i + 1 >= parts.length) {
-        var desc = $gOPD$1(value, part);
-        isOwn = !!desc;
-
-        if (!allowMissing && !(part in value)) {
-          throw new $TypeError$1('base intrinsic for ' + name + ' exists, but the property is not available.');
-        } // By convention, when a data property is converted to an accessor
-        // property to emulate a data property that does not suffer from
-        // the override mistake, that accessor's getter is marked with
-        // an `originalValue` property. Here, when we detect this, we
-        // uphold the illusion by pretending to see that original data
-        // property, i.e., returning the value rather than the getter
-        // itself.
-
-
-        if (isOwn && 'get' in desc && !('originalValue' in desc.get)) {
-          value = desc.get;
-        } else {
-          value = value[part];
-        }
-      } else {
-        isOwn = src(value, part);
-        value = value[part];
-      }
-
-      if (isOwn && !skipFurtherCaching) {
-        INTRINSICS$1[intrinsicRealName] = value;
-      }
-    }
-  }
-
-  return value;
-};
-
-var $gOPD$2 = GetIntrinsic('%Object.getOwnPropertyDescriptor%');
-
-if ($gOPD$2) {
-  try {
-    $gOPD$2([], 'length');
+    $gOPD$1([], 'length');
   } catch (e) {
     // IE 8 has a broken gOPD
-    $gOPD$2 = null;
+    $gOPD$1 = null;
   }
 }
 
-var getOwnPropertyDescriptor = $gOPD$2;
-var $toString$1 = callBound('Object.prototype.toString');
-var hasSymbols$3 = hasSymbols();
-var hasToStringTag$2 = hasSymbols$3 && typeof Symbol.toStringTag === 'symbol';
-var typedArrays = availableTypedArrays();
+var getOwnPropertyDescriptor = $gOPD$1;
+var $toString$1 = callBound__default['default']('Object.prototype.toString');
+var hasSymbols$2 = hasSymbols();
+var hasToStringTag$2 = hasSymbols$2 && typeof Symbol.toStringTag === 'symbol';
+var typedArrays = availableTypedArrays__default['default']();
 
-var $indexOf$1 = callBound('Array.prototype.indexOf', true) || function indexOf(array, value) {
+var $indexOf = callBound__default['default']('Array.prototype.indexOf', true) || function indexOf(array, value) {
   for (var i = 0; i < array.length; i += 1) {
     if (array[i] === value) {
       return i;
@@ -12739,7 +12989,7 @@ var $indexOf$1 = callBound('Array.prototype.indexOf', true) || function indexOf(
   return -1;
 };
 
-var $slice = callBound('String.prototype.slice');
+var $slice = callBound__default['default']('String.prototype.slice');
 var toStrTags = {};
 var getPrototypeOf = Object.getPrototypeOf; // require('getprototypeof');
 
@@ -12784,7 +13034,7 @@ var isTypedArray = function isTypedArray(value) {
 
   if (!hasToStringTag$2) {
     var tag = $slice($toString$1(value), 8, -1);
-    return $indexOf$1(typedArrays, tag) > -1;
+    return $indexOf(typedArrays, tag) > -1;
   }
 
   if (!getOwnPropertyDescriptor) {
@@ -12794,11 +13044,11 @@ var isTypedArray = function isTypedArray(value) {
   return tryTypedArrays(value);
 };
 
-var $toString$2 = callBound('Object.prototype.toString');
-var hasSymbols$4 = hasSymbols();
-var hasToStringTag$3 = hasSymbols$4 && typeof Symbol.toStringTag === 'symbol';
-var typedArrays$1 = availableTypedArrays();
-var $slice$1 = callBound('String.prototype.slice');
+var $toString$2 = callBound__default['default']('Object.prototype.toString');
+var hasSymbols$3 = hasSymbols();
+var hasToStringTag$3 = hasSymbols$3 && typeof Symbol.toStringTag === 'symbol';
+var typedArrays$1 = availableTypedArrays__default['default']();
+var $slice$1 = callBound__default['default']('String.prototype.slice');
 var toStrTags$1 = {};
 var getPrototypeOf$1 = Object.getPrototypeOf; // require('getprototypeof');
 
@@ -14208,29 +14458,32 @@ const create = () => {
 var ansiColors = create();
 var create_1 = create;
 ansiColors.create = create_1;
-var string_registry = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.setStrings = setStrings;
-  exports.getStrings = getStrings;
-  exports.getString = getString; // STATE within a module is frowned upon, this exists
-  // to support Ember.STRINGS but shield ember internals from this legacy global
-  // API.
+var setStrings_1 = setStrings;
+var getStrings_1 = getStrings;
+var getString_1 = getString; // STATE within a module is frowned upon, this exists
+// to support Ember.STRINGS but shield ember internals from this legacy global
+// API.
 
-  let STRINGS = {};
+let STRINGS = {};
 
-  function setStrings(strings) {
-    STRINGS = strings;
-  }
+function setStrings(strings) {
+  STRINGS = strings;
+}
 
-  function getStrings() {
-    return STRINGS;
-  }
+function getStrings() {
+  return STRINGS;
+}
 
-  function getString(name) {
-    return STRINGS[name];
-  }
+function getString(name) {
+  return STRINGS[name];
+}
+
+var string_registry = /*#__PURE__*/Object.defineProperty({
+  setStrings: setStrings_1,
+  getStrings: getStrings_1,
+  getString: getString_1
+}, '__esModule', {
+  value: true
 });
 var deprecatedFeatures = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -14554,424 +14807,59 @@ var environment = createCommonjsModule(function (module, exports) {
     return ENV;
   }
 });
-var browserEnvironment = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
-
-  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
-  exports.hasDOM = hasDom;
-  const window = hasDom ? self : null;
-  exports.window = window;
-  const location$1 = hasDom ? self.location : null;
-  exports.location = location$1;
-  const history$1 = hasDom ? self.history : null;
-  exports.history = history$1;
-  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
-  exports.userAgent = userAgent;
-  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
-  exports.isChrome = isChrome;
-  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
-  exports.isFirefox = isFirefox;
-});
-var error = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /**
-   @module @ember/error
-  */
-
-  /**
-    The JavaScript Error object used by Ember.assert.
-  
-    @class Error
-    @namespace Ember
-    @extends Error
-    @constructor
-    @public
-  */
-
-  var _default = Error;
-  exports.default = _default;
-});
-var handlers = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
-  let HANDLERS = {};
-  exports.HANDLERS = HANDLERS;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let invoke = () => {};
-
-  exports.invoke = invoke;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
-      let nextHandler = HANDLERS[type] || (() => {});
-
-      HANDLERS[type] = (message, options) => {
-        callback(message, options, nextHandler);
-      };
-    };
-
-    exports.invoke = invoke = function invoke(type, message, test, options) {
-      if (test) {
-        return;
-      }
-
-      let handlerForType = HANDLERS[type];
-
-      if (handlerForType) {
-        handlerForType(message, options);
-      }
-    };
-  }
-});
-var deprecate_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
-  /**
-   @module @ember/debug
-   @public
-  */
-
-  /**
-    Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
-    The following example demonstrates its usage by registering a handler that throws an error if the
-    message contains the word "should", otherwise defers to the default handler.
-  
-    ```javascript
-    import { registerDeprecationHandler } from '@ember/debug';
-  
-    registerDeprecationHandler((message, options, next) => {
-      if (message.indexOf('should') !== -1) {
-        throw new Error(`Deprecation message with should: ${message}`);
-      } else {
-        // defer to whatever handler was registered before this one
-        next(message, options);
-      }
-    });
-    ```
-  
-    The handler function takes the following arguments:
-  
-    <ul>
-      <li> <code>message</code> - The message received from the deprecation call.</li>
-      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
-        <ul>
-          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
-          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
-        </ul>
-      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-    </ul>
-  
-    @public
-    @static
-    @method registerDeprecationHandler
-    @for @ember/debug
-    @param handler {Function} A function to handle deprecation calls.
-    @since 2.1.0
-  */
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-  let missingOptionsUntilDeprecation;
-  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
-
-  let deprecate = () => {};
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('deprecate', handler);
-    };
-
-    let formatMessage = function formatMessage(_message, options) {
-      let message = _message;
-
-      if (options && options.id) {
-        message = message + ` [deprecation id: ${options.id}]`;
-      }
-
-      if (options && options.url) {
-        message += ` See ${options.url} for more details.`;
-      }
-
-      return message;
-    };
-
-    registerHandler(function logDeprecationToConsole(message, options) {
-      let updatedMessage = formatMessage(message, options);
-      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
-    });
-    let captureErrorForStack;
-
-    if (new Error().stack) {
-      captureErrorForStack = () => new Error();
-    } else {
-      captureErrorForStack = () => {
-        try {
-          __fail__.fail();
-        } catch (e) {
-          return e;
-        }
-      };
-    }
-
-    registerHandler(function logDeprecationStackTrace(message, options, next) {
-      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
-        let stackStr = '';
-        let error = captureErrorForStack();
-        let stack;
-
-        if (error.stack) {
-          if (error['arguments']) {
-            // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
-            stack.shift();
-          } else {
-            // Firefox
-            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
-          }
-
-          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
-        }
-
-        let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
-      } else {
-        next(message, options);
-      }
-    });
-    registerHandler(function raiseOnDeprecation(message, options, next) {
-      if (environment.ENV.RAISE_ON_DEPRECATION) {
-        let updatedMessage = formatMessage(message);
-        throw new Error(updatedMessage);
-      } else {
-        next(message, options);
-      }
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
-    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
-    /**
-     @module @ember/debug
-     @public
-     */
-
-    /**
-      Display a deprecation warning with the provided message and a stack trace
-      (Chrome and Firefox only).
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         @method deprecate
-      @for @ember/debug
-      @param {String} message A description of the deprecation.
-      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
-      @param {Object} options
-      @param {String} options.id A unique id for this deprecation. The id can be
-        used by Ember debugging tools to change the behavior (raise, log or silence)
-        for that specific deprecation. The id should be namespaced by dots, e.g.
-        "view.helper.select".
-      @param {string} options.until The version of Ember when this deprecation
-        warning will be removed.
-      @param {String} [options.url] An optional url to the transition guide on the
-        emberjs.com website.
-      @static
-      @public
-      @since 1.0.0
-    */
-
-    deprecate = function deprecate(message, test, options) {
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
-      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
-      (0, handlers.invoke)('deprecate', message, test, options);
-    };
-  }
-
-  var _default = deprecate;
-  exports.default = _default;
-});
-var testing_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.isTesting = isTesting;
-  exports.setTesting = setTesting;
-  let testing = false;
-
-  function isTesting() {
-    return testing;
-  }
-
-  function setTesting(value) {
-    testing = Boolean(value);
-  }
-});
-var warn_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let warn = () => {};
-
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  /**
-  @module @ember/debug
-  */
-
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-
-  if (es5.DEBUG) {
-    /**
-      Allows for runtime registration of handler functions that override the default warning behavior.
-      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
-      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
-      default warning behavior.
-         ```javascript
-      import { registerWarnHandler } from '@ember/debug';
-         // next is not called, so no warnings get the default behavior
-      registerWarnHandler(() => {});
-      ```
-         The handler function takes the following arguments:
-         <ul>
-        <li> <code>message</code> - The message received from the warn call. </li>
-        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
-          <ul>
-            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
-          </ul>
-        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-      </ul>
-         @public
-      @static
-      @method registerWarnHandler
-      @for @ember/debug
-      @param handler {Function} A function to handle warnings.
-      @since 2.1.0
-    */
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('warn', handler);
-    };
-
-    registerHandler(function logWarning(message) {
-      /* eslint-disable no-console */
-      console.warn(`WARNING: ${message}`);
-      /* eslint-enable no-console */
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
-    /**
-      Display a warning with the provided message.
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         ```javascript
-      import { warn } from '@ember/debug';
-      import tomsterCount from './tomster-counter'; // a module in my project
-         // Log a warning if we have more than 3 tomsters
-      warn('Too many tomsters!', tomsterCount <= 3, {
-        id: 'ember-debug.too-many-tomsters'
-      });
-      ```
-         @method warn
-      @for @ember/debug
-      @static
-      @param {String} message A warning to display.
-      @param {Boolean} test An optional boolean. If falsy, the warning
-        will be displayed.
-      @param {Object} options An object that can be used to pass a unique
-        `id` for this warning.  The `id` can be used by Ember debugging tools
-        to change the behavior (raise, log, or silence) for that specific warning.
-        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
-      @public
-      @since 1.0.0
-    */
-
-    warn = function warn(message, test, options) {
-      if (arguments.length === 2 && typeof test === 'object') {
-        options = test;
-        test = false;
-      }
-
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
-      (0, handlers.invoke)('warn', message, test, options);
-    };
-  }
-
-  var _default = warn;
-  exports.default = _default;
-});
 var arrayUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
   var EMPTY_ARRAY = exports.EMPTY_ARRAY = Object.freeze([]);
 });
-var assert = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.debugAssert = debugAssert;
-  exports.prodAssert = prodAssert;
-  exports.deprecate = deprecate; // import Logger from './logger';
-  // let alreadyWarned = false;
+var debugAssert_1 = debugAssert;
+var prodAssert_1 = prodAssert;
+var deprecate_1 = deprecate; // import Logger from './logger';
+// let alreadyWarned = false;
 
-  function debugAssert(test, msg) {
-    // if (!alreadyWarned) {
-    //   alreadyWarned = true;
-    //   Logger.warn("Don't leave debug assertions on in public builds");
-    // }
-    if (!test) {
-      throw new Error(msg || 'assertion failure');
-    }
+function debugAssert(test, msg) {
+  // if (!alreadyWarned) {
+  //   alreadyWarned = true;
+  //   Logger.warn("Don't leave debug assertions on in public builds");
+  // }
+  if (!test) {
+    throw new Error(msg || 'assertion failure');
   }
+}
 
-  function prodAssert() {}
+function prodAssert() {}
 
-  function deprecate(desc) {
-    console.warn('DEPRECATION: ' + desc);
-  }
+function deprecate(desc) {
+  console.warn('DEPRECATION: ' + desc);
+}
 
-  exports.default = debugAssert;
+var _default = debugAssert;
+var assert = /*#__PURE__*/Object.defineProperty({
+  debugAssert: debugAssert_1,
+  prodAssert: prodAssert_1,
+  deprecate: deprecate_1,
+  default: _default
+}, '__esModule', {
+  value: true
 });
-var guid = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.initializeGuid = initializeGuid;
-  exports.ensureGuid = ensureGuid;
-  var GUID = 0;
+var initializeGuid_1 = initializeGuid;
+var ensureGuid_1 = ensureGuid;
+var GUID = 0;
 
-  function initializeGuid(object) {
-    return object._guid = ++GUID;
-  }
+function initializeGuid(object) {
+  return object._guid = ++GUID;
+}
 
-  function ensureGuid(object) {
-    return object._guid || initializeGuid(object);
-  }
+function ensureGuid(object) {
+  return object._guid || initializeGuid(object);
+}
+
+var guid = /*#__PURE__*/Object.defineProperty({
+  initializeGuid: initializeGuid_1,
+  ensureGuid: ensureGuid_1
+}, '__esModule', {
+  value: true
 });
 var collections = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -15096,21 +14984,22 @@ var destroy = createCommonjsModule(function (module, exports) {
     return !!(value && typeof value === 'object' && typeof value.destroy === 'function');
   }
 });
-var dom = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.clearElement = clearElement;
+var clearElement_1 = clearElement;
 
-  function clearElement(parent) {
-    var current = parent.firstChild;
+function clearElement(parent) {
+  var current = parent.firstChild;
 
-    while (current) {
-      var next = current.nextSibling;
-      parent.removeChild(current);
-      current = next;
-    }
+  while (current) {
+    var next = current.nextSibling;
+    parent.removeChild(current);
+    current = next;
   }
+}
+
+var dom = /*#__PURE__*/Object.defineProperty({
+  clearElement: clearElement_1
+}, '__esModule', {
+  value: true
 });
 var isSerializationFirstNode_1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -15604,49 +15493,52 @@ var listUtils = createCommonjsModule(function (module, exports) {
 
   var EMPTY_SLICE = exports.EMPTY_SLICE = new ListSlice(null, null);
 });
-var objectUtils = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.assign = assign;
-  exports.fillNulls = fillNulls;
-  exports.values = values;
-  var objKeys = Object.keys;
+var assign_1 = assign;
+var fillNulls_1 = fillNulls;
+var values_1 = values;
+var objKeys = Object.keys;
 
-  function assign(obj) {
-    for (var i = 1; i < arguments.length; i++) {
-      var assignment = arguments[i];
-      if (assignment === null || typeof assignment !== 'object') continue;
-      var keys = objKeys(assignment);
+function assign(obj) {
+  for (var i = 1; i < arguments.length; i++) {
+    var assignment = arguments[i];
+    if (assignment === null || typeof assignment !== 'object') continue;
+    var keys = objKeys(assignment);
 
-      for (var j = 0; j < keys.length; j++) {
-        var key = keys[j];
-        obj[key] = assignment[key];
-      }
+    for (var j = 0; j < keys.length; j++) {
+      var key = keys[j];
+      obj[key] = assignment[key];
     }
-
-    return obj;
   }
 
-  function fillNulls(count) {
-    var arr = new Array(count);
+  return obj;
+}
 
-    for (var i = 0; i < count; i++) {
-      arr[i] = null;
-    }
+function fillNulls(count) {
+  var arr = new Array(count);
 
-    return arr;
+  for (var i = 0; i < count; i++) {
+    arr[i] = null;
   }
 
-  function values(obj) {
-    var vals = [];
+  return arr;
+}
 
-    for (var key in obj) {
-      vals.push(obj[key]);
-    }
+function values(obj) {
+  var vals = [];
 
-    return vals;
+  for (var key in obj) {
+    vals.push(obj[key]);
   }
+
+  return vals;
+}
+
+var objectUtils = /*#__PURE__*/Object.defineProperty({
+  assign: assign_1,
+  fillNulls: fillNulls_1,
+  values: values_1
+}, '__esModule', {
+  value: true
 });
 var platformUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -15689,74 +15581,75 @@ var platformUtils = createCommonjsModule(function (module, exports) {
     return args;
   };
 });
-var string = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.strip = strip;
+var strip_1 = strip;
 
-  function strip(strings) {
-    var out = '';
+function strip(strings) {
+  var out = '';
 
-    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    for (var i = 0; i < strings.length; i++) {
-      var string = strings[i];
-      var dynamic = args[i] !== undefined ? String(args[i]) : '';
-      out += '' + string + dynamic;
-    }
-
-    var lines = out.split('\n');
-
-    while (lines.length && lines[0].match(/^\s*$/)) {
-      lines.shift();
-    }
-
-    while (lines.length && lines[lines.length - 1].match(/^\s*$/)) {
-      lines.pop();
-    }
-
-    var min = Infinity;
-
-    for (var _iterator = lines, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-      var _ref;
-
-      if (_isArray) {
-        if (_i >= _iterator.length) break;
-        _ref = _iterator[_i++];
-      } else {
-        _i = _iterator.next();
-        if (_i.done) break;
-        _ref = _i.value;
-      }
-
-      var line = _ref;
-      var leading = line.match(/^\s*/)[0].length;
-      min = Math.min(min, leading);
-    }
-
-    var stripped = [];
-
-    for (var _iterator2 = lines, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-      var _ref2;
-
-      if (_isArray2) {
-        if (_i2 >= _iterator2.length) break;
-        _ref2 = _iterator2[_i2++];
-      } else {
-        _i2 = _iterator2.next();
-        if (_i2.done) break;
-        _ref2 = _i2.value;
-      }
-
-      var _line = _ref2;
-      stripped.push(_line.slice(min));
-    }
-
-    return stripped.join('\n');
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
   }
+
+  for (var i = 0; i < strings.length; i++) {
+    var string = strings[i];
+    var dynamic = args[i] !== undefined ? String(args[i]) : '';
+    out += '' + string + dynamic;
+  }
+
+  var lines = out.split('\n');
+
+  while (lines.length && lines[0].match(/^\s*$/)) {
+    lines.shift();
+  }
+
+  while (lines.length && lines[lines.length - 1].match(/^\s*$/)) {
+    lines.pop();
+  }
+
+  var min = Infinity;
+
+  for (var _iterator = lines, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+    var _ref;
+
+    if (_isArray) {
+      if (_i >= _iterator.length) break;
+      _ref = _iterator[_i++];
+    } else {
+      _i = _iterator.next();
+      if (_i.done) break;
+      _ref = _i.value;
+    }
+
+    var line = _ref;
+    var leading = line.match(/^\s*/)[0].length;
+    min = Math.min(min, leading);
+  }
+
+  var stripped = [];
+
+  for (var _iterator2 = lines, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+    var _ref2;
+
+    if (_isArray2) {
+      if (_i2 >= _iterator2.length) break;
+      _ref2 = _iterator2[_i2++];
+    } else {
+      _i2 = _iterator2.next();
+      if (_i2.done) break;
+      _ref2 = _i2.value;
+    }
+
+    var _line = _ref2;
+    stripped.push(_line.slice(min));
+  }
+
+  return stripped.join('\n');
+}
+
+var string = /*#__PURE__*/Object.defineProperty({
+  strip: strip_1
+}, '__esModule', {
+  value: true
 });
 var es5$1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -15935,35 +15828,457 @@ var es5$1 = createCommonjsModule(function (module, exports) {
     console.trace(desc + ' :: ' + JSON.stringify(value) + ' (' + value + ')');
   }
 });
-var captureRenderTree_1 = createCommonjsModule(function (module, exports) {
+var browserEnvironment = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = captureRenderTree;
+  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
+
+  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
+  exports.hasDOM = hasDom;
+  const window = hasDom ? self : null;
+  exports.window = window;
+  const location$1 = hasDom ? self.location : null;
+  exports.location = location$1;
+  const history$1 = hasDom ? self.history : null;
+  exports.history = history$1;
+  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
+  exports.userAgent = userAgent;
+  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
+  exports.isChrome = isChrome;
+  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
+  exports.isFirefox = isFirefox;
+});
+var error = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
   /**
-    @module @ember/debug
+   @module @ember/error
   */
 
   /**
-    Ember Inspector calls this function to capture the current render tree.
+    The JavaScript Error object used by Ember.assert.
   
-    In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
-    before loading Ember.
-  
-    @private
-    @static
-    @method captureRenderTree
-    @for @ember/debug
-    @param app {ApplicationInstance} An `ApplicationInstance`.
-    @since 3.14.0
+    @class Error
+    @namespace Ember
+    @extends Error
+    @constructor
+    @public
   */
 
-  function captureRenderTree(app) {
-    let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
-    let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
-    let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
-    return renderer.debugRenderTree.capture();
+  var _default = Error;
+  exports.default = _default;
+});
+var handlers = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
+  let HANDLERS = {};
+  exports.HANDLERS = HANDLERS;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let invoke = () => {};
+
+  exports.invoke = invoke;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+      let nextHandler = HANDLERS[type] || (() => {});
+
+      HANDLERS[type] = (message, options) => {
+        callback(message, options, nextHandler);
+      };
+    };
+
+    exports.invoke = invoke = function invoke(type, message, test, options) {
+      if (test) {
+        return;
+      }
+
+      let handlerForType = HANDLERS[type];
+
+      if (handlerForType) {
+        handlerForType(message, options);
+      }
+    };
   }
+});
+var deprecate_1$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.SINCE_MISSING_DEPRECATIONS = exports.FOR_MISSING_DEPRECATIONS = exports.missingOptionsSinceDeprecation = exports.missingOptionsForDeprecation = exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
+  /**
+   @module @ember/debug
+   @public
+  */
+
+  /**
+    Allows for runtime registration of handler functions that override the default deprecation behavior.
+    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
+    The following example demonstrates its usage by registering a handler that throws an error if the
+    message contains the word "should", otherwise defers to the default handler.
+  
+    ```javascript
+    import { registerDeprecationHandler } from '@ember/debug';
+  
+    registerDeprecationHandler((message, options, next) => {
+      if (message.indexOf('should') !== -1) {
+        throw new Error(`Deprecation message with should: ${message}`);
+      } else {
+        // defer to whatever handler was registered before this one
+        next(message, options);
+      }
+    });
+    ```
+  
+    The handler function takes the following arguments:
+  
+    <ul>
+      <li> <code>message</code> - The message received from the deprecation call.</li>
+      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
+        <ul>
+          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
+          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
+        </ul>
+      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+    </ul>
+  
+    @public
+    @static
+    @method registerDeprecationHandler
+    @for @ember/debug
+    @param handler {Function} A function to handle deprecation calls.
+    @since 2.1.0
+  */
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  let missingOptionsUntilDeprecation;
+  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
+
+  let missingOptionsForDeprecation = () => '';
+
+  exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
+
+  let missingOptionsSinceDeprecation = () => '';
+
+  exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
+
+  let deprecate = () => {};
+
+  let FOR_MISSING_DEPRECATIONS = new Set();
+  exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
+  let SINCE_MISSING_DEPRECATIONS = new Set();
+  exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('deprecate', handler);
+    };
+
+    let formatMessage = function formatMessage(_message, options) {
+      let message = _message;
+
+      if (options && options.id) {
+        message = message + ` [deprecation id: ${options.id}]`;
+      }
+
+      if (options && options.url) {
+        message += ` See ${options.url} for more details.`;
+      }
+
+      return message;
+    };
+
+    registerHandler(function logDeprecationToConsole(message, options) {
+      let updatedMessage = formatMessage(message, options);
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+    });
+    let captureErrorForStack;
+
+    if (new Error().stack) {
+      captureErrorForStack = () => new Error();
+    } else {
+      captureErrorForStack = () => {
+        try {
+          __fail__.fail();
+        } catch (e) {
+          return e;
+        }
+      };
+    }
+
+    registerHandler(function logDeprecationStackTrace(message, options, next) {
+      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+        let stackStr = '';
+        let error = captureErrorForStack();
+        let stack;
+
+        if (error.stack) {
+          if (error['arguments']) {
+            // Chrome
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack.shift();
+          } else {
+            // Firefox
+            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+          }
+
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+        }
+
+        let updatedMessage = formatMessage(message, options);
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+      } else {
+        next(message, options);
+      }
+    });
+    registerHandler(function raiseOnDeprecation(message, options, next) {
+      if (environment.ENV.RAISE_ON_DEPRECATION) {
+        let updatedMessage = formatMessage(message);
+        throw new Error(updatedMessage);
+      } else {
+        next(message, options);
+      }
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+
+    exports.missingOptionsForDeprecation = missingOptionsForDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`for\` in options. Missing options.for in "${id}" deprecation`;
+    };
+
+    exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`since\` in options. Missing options.since in "${id}" deprecation`;
+    };
+    /**
+     @module @ember/debug
+     @public
+     */
+
+    /**
+      Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only).
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         @method deprecate
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+      @param {Object} options
+      @param {String} options.id A unique id for this deprecation. The id can be
+        used by Ember debugging tools to change the behavior (raise, log or silence)
+        for that specific deprecation. The id should be namespaced by dots, e.g.
+        "view.helper.select".
+      @param {string} options.until The version of Ember when this deprecation
+        warning will be removed.
+      @param {String} options.for A namespace for the deprecation, usually the package name
+      @param {Object} options.since Describes when the deprecation became available and enabled.
+      @param {String} [options.url] An optional url to the transition guide on the
+            emberjs.com website.
+      @static
+      @public
+      @since 1.0.0
+    */
+
+
+    deprecate = function deprecate(message, test, options) {
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
+      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+
+      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
+        FOR_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
+          id: 'ember-source.deprecation-without-for',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
+        SINCE_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
+          id: 'ember-source.deprecation-without-since',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      (0, handlers.invoke)('deprecate', message, test, options);
+    };
+  }
+
+  var _default = deprecate;
+  exports.default = _default;
+});
+var isTesting_1 = isTesting;
+var setTesting_1 = setTesting;
+let testing = false;
+
+function isTesting() {
+  return testing;
+}
+
+function setTesting(value) {
+  testing = Boolean(value);
+}
+
+var testing_1 = /*#__PURE__*/Object.defineProperty({
+  isTesting: isTesting_1,
+  setTesting: setTesting_1
+}, '__esModule', {
+  value: true
+});
+var warn_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let warn = () => {};
+
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+
+  if (es5.DEBUG) {
+    /**
+      Allows for runtime registration of handler functions that override the default warning behavior.
+      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+      default warning behavior.
+         ```javascript
+      import { registerWarnHandler } from '@ember/debug';
+         // next is not called, so no warnings get the default behavior
+      registerWarnHandler(() => {});
+      ```
+         The handler function takes the following arguments:
+         <ul>
+        <li> <code>message</code> - The message received from the warn call. </li>
+        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+          <ul>
+            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+          </ul>
+        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+      </ul>
+         @public
+      @static
+      @method registerWarnHandler
+      @for @ember/debug
+      @param handler {Function} A function to handle warnings.
+      @since 2.1.0
+    */
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('warn', handler);
+    };
+
+    registerHandler(function logWarning(message) {
+      /* eslint-disable no-console */
+      console.warn(`WARNING: ${message}`);
+      /* eslint-enable no-console */
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+    /**
+      Display a warning with the provided message.
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         ```javascript
+      import { warn } from '@ember/debug';
+      import tomsterCount from './tomster-counter'; // a module in my project
+         // Log a warning if we have more than 3 tomsters
+      warn('Too many tomsters!', tomsterCount <= 3, {
+        id: 'ember-debug.too-many-tomsters'
+      });
+      ```
+         @method warn
+      @for @ember/debug
+      @static
+      @param {String} message A warning to display.
+      @param {Boolean} test An optional boolean. If falsy, the warning
+        will be displayed.
+      @param {Object} options An object that can be used to pass a unique
+        `id` for this warning.  The `id` can be used by Ember debugging tools
+        to change the behavior (raise, log, or silence) for that specific warning.
+        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+      @public
+      @since 1.0.0
+    */
+
+    warn = function warn(message, test, options) {
+      if (arguments.length === 2 && typeof test === 'object') {
+        options = test;
+        test = false;
+      }
+
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
+      (0, handlers.invoke)('warn', message, test, options);
+    };
+  }
+
+  var _default = warn;
+  exports.default = _default;
+});
+var _default$1 = captureRenderTree;
+/**
+  @module @ember/debug
+*/
+
+/**
+  Ember Inspector calls this function to capture the current render tree.
+
+  In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
+  before loading Ember.
+
+  @private
+  @static
+  @method captureRenderTree
+  @for @ember/debug
+  @param app {ApplicationInstance} An `ApplicationInstance`.
+  @since 3.14.0
+*/
+
+function captureRenderTree(app) {
+  let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+  let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+  let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+  return renderer.debugRenderTree.capture();
+}
+
+var captureRenderTree_1 = /*#__PURE__*/Object.defineProperty({
+  default: _default$1
+}, '__esModule', {
+  value: true
 });
 var debug_1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -16003,7 +16318,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
 
   var _error = _interopRequireDefault(error);
 
-  var _deprecate2 = _interopRequireWildcard(deprecate_1);
+  var _deprecate2 = _interopRequireWildcard(deprecate_1$1);
 
   var _warn2 = _interopRequireWildcard(warn_1);
 
@@ -16201,9 +16516,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     });
     /**
       Display a debug notice.
-         Calls to this function are removed from production builds, so they can be
-      freely added for documentation and debugging purposes without worries of
-      incuring any performance penalty.
+         Calls to this function are not invoked in production builds.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -16349,240 +16662,6 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     }
   }
 });
-var merge_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = merge;
-  /**
-    Merge the contents of two objects together into the first object.
-  
-    ```javascript
-    import { merge } from '@ember/polyfills';
-  
-    merge({ first: 'Tom' }, { last: 'Dale' }); // { first: 'Tom', last: 'Dale' }
-    var a = { first: 'Yehuda' };
-    var b = { last: 'Katz' };
-    merge(a, b); // a == { first: 'Yehuda', last: 'Katz' }, b == { last: 'Katz' }
-    ```
-  
-    @method merge
-    @static
-    @for @ember/polyfills
-    @param {Object} original The object to merge into
-    @param {Object} updates The object to copy properties from
-    @return {Object}
-    @deprecated
-    @public
-  */
-
-  function merge(original, updates) {
-    (0, debug_1.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
-      id: 'ember-polyfills.deprecate-merge',
-      until: '4.0.0',
-      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
-    });
-
-    if (updates === null || typeof updates !== 'object') {
-      return original;
-    }
-
-    let props = Object.keys(updates);
-    let prop;
-
-    for (let i = 0; i < props.length; i++) {
-      prop = props[i];
-      original[prop] = updates[prop];
-    }
-
-    return original;
-  }
-});
-var assign_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.assign = assign;
-  exports.default = void 0;
-  /**
-   @module @ember/polyfills
-  */
-
-  /**
-    Copy properties from a source object to a target object. Source arguments remain unchanged.
-  
-    ```javascript
-    import { assign } from '@ember/polyfills';
-  
-    var a = { first: 'Yehuda' };
-    var b = { last: 'Katz' };
-    var c = { company: 'Other Company' };
-    var d = { company: 'Tilde Inc.' };
-    assign(a, b, c, d); // a === { first: 'Yehuda', last: 'Katz', company: 'Tilde Inc.' };
-    ```
-  
-    @method assign
-    @for @ember/polyfills
-    @param {Object} target The object to assign into
-    @param {Object} ...args The objects to copy properties from
-    @return {Object}
-    @public
-    @static
-  */
-
-  function assign(target) {
-    for (let i = 1; i < arguments.length; i++) {
-      let arg = arguments[i];
-
-      if (!arg) {
-        continue;
-      }
-
-      let updates = Object.keys(arg);
-
-      for (let i = 0; i < updates.length; i++) {
-        let prop = updates[i];
-        target[prop] = arg[prop];
-      }
-    }
-
-    return target;
-  } // Note: We use the bracket notation so
-  //       that the babel plugin does not
-  //       transform it.
-  // https://www.npmjs.com/package/babel-plugin-transform-object-assign
-
-
-  const {
-    assign: _assign
-  } = Object;
-
-  var _default = _assign || assign;
-
-  exports.default = _default;
-});
-var weak_set = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /* globals WeakSet */
-
-  var _default = typeof WeakSet === 'function' ? WeakSet : class WeakSetPolyFill {
-    constructor() {
-      this._map = new WeakMap();
-    }
-
-    add(val) {
-      this._map.set(val, true);
-
-      return this;
-    }
-
-    delete(val) {
-      return this._map.delete(val);
-    }
-
-    has(val) {
-      return this._map.has(val);
-    }
-
-  };
-
-  exports.default = _default;
-});
-var polyfills = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  Object.defineProperty(exports, "assign", {
-    enumerable: true,
-    get: function () {
-      return _assign.default;
-    }
-  });
-  Object.defineProperty(exports, "assignPolyfill", {
-    enumerable: true,
-    get: function () {
-      return _assign.assign;
-    }
-  });
-  Object.defineProperty(exports, "_WeakSet", {
-    enumerable: true,
-    get: function () {
-      return _weak_set.default;
-    }
-  });
-  exports.merge = void 0;
-
-  var _merge = _interopRequireDefault(merge_1);
-
-  var _assign = _interopRequireWildcard(assign_1);
-
-  var _weak_set = _interopRequireDefault(weak_set);
-
-  function _getRequireWildcardCache() {
-    if (typeof WeakMap !== "function") return null;
-    var cache = new WeakMap();
-
-    _getRequireWildcardCache = function () {
-      return cache;
-    };
-
-    return cache;
-  }
-
-  function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-      return obj;
-    }
-
-    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
-      return {
-        default: obj
-      };
-    }
-
-    var cache = _getRequireWildcardCache();
-
-    if (cache && cache.has(obj)) {
-      return cache.get(obj);
-    }
-
-    var newObj = {};
-    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
-
-    for (var key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
-
-        if (desc && (desc.get || desc.set)) {
-          Object.defineProperty(newObj, key, desc);
-        } else {
-          newObj[key] = obj[key];
-        }
-      }
-    }
-
-    newObj.default = obj;
-
-    if (cache) {
-      cache.set(obj, newObj);
-    }
-
-    return newObj;
-  }
-
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
-
-  let merge = deprecatedFeatures.MERGE ? _merge.default : undefined; // Export `assignPolyfill` for testing
-
-  exports.merge = merge;
-});
 var utils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -16609,8 +16688,9 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
+  exports.setEmberArray = setEmberArray;
   exports.isEmberArray = isEmberArray;
-  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.EMBER_ARRAY = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
+  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
   /**
     Strongly hint runtimes to intern the provided string.
   
@@ -16986,7 +17066,7 @@ var utils = createCommonjsModule(function (module, exports) {
     meta.listeners = listeners;
   }
 
-  const IS_WRAPPED_FUNCTION_SET = new polyfills._WeakSet();
+  const IS_WRAPPED_FUNCTION_SET = new es5$1._WeakSet();
   /**
     Wraps the passed function so that `this._super` will point to the superFunc
     when the function is invoked. This is the primitive we use to implement
@@ -17115,7 +17195,7 @@ var utils = createCommonjsModule(function (module, exports) {
     }
 
     if (seen === undefined) {
-      seen = new polyfills._WeakSet();
+      seen = new es5$1._WeakSet();
     } else {
       if (seen.has(value)) return `[Circular]`;
     }
@@ -17238,10 +17318,21 @@ var utils = createCommonjsModule(function (module, exports) {
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
+    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
+    (0, debug_1.deprecate)(`Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.`, false, {
+      id: 'ember-utils.try-invoke',
+      until: '4.0.0',
+      for: 'ember-source',
+      since: {
+        available: '3.24.0'
+      },
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
+    });
+
     if (canInvoke(obj, methodName)) {
       let method = obj[methodName];
       return method.apply(obj, args);
@@ -17316,7 +17407,7 @@ var utils = createCommonjsModule(function (module, exports) {
 
   const HAS_NATIVE_PROXY = typeof Proxy === 'function';
   exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
-  const PROXIES = new polyfills._WeakSet();
+  const PROXIES = new es5$1._WeakSet();
 
   function isProxy(value) {
     if (isObject(value)) {
@@ -17372,11 +17463,14 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   exports.Cache = Cache;
-  const EMBER_ARRAY = symbol('EMBER_ARRAY');
-  exports.EMBER_ARRAY = EMBER_ARRAY;
+  const EMBER_ARRAYS = new es5$1._WeakSet();
+
+  function setEmberArray(obj) {
+    EMBER_ARRAYS.add(obj);
+  }
 
   function isEmberArray(obj) {
-    return obj && obj[EMBER_ARRAY];
+    return EMBER_ARRAYS.has(obj);
   }
 
   let setupMandatorySetter;
@@ -17400,7 +17494,7 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   if (es5.DEBUG) {
-    let SEEN_TAGS = new polyfills._WeakSet();
+    let SEEN_TAGS = new es5$1._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
 
     let propertyIsEnumerable = function (obj, key) {
@@ -17611,10 +17705,21 @@ var string$1 = createCommonjsModule(function (module, exports) {
     @param {Array} formats Optional array of parameters to interpolate into string.
     @return {String} formatted string
     @public
+    @deprecated
   */
 
 
   function loc(str, formats) {
+    (0, debug_1.deprecate)('loc is deprecated, please use a dedicated localization solution like ember-intl. More alternatives listed at https://emberobserver.com/categories/internationalization.', false, {
+      id: 'ember-string.loc',
+      until: '4.0.0',
+      for: 'ember-source',
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-string-loc',
+      since: {
+        available: '3.24'
+      }
+    });
+
     if (!Array.isArray(formats) || arguments.length > 2) {
       formats = Array.prototype.slice.call(arguments, 1);
     }
@@ -17790,6 +17895,21 @@ var string$1 = createCommonjsModule(function (module, exports) {
   }
 
   if (environment.ENV.EXTEND_PROTOTYPES.String) {
+    let deprecateEmberStringPrototypeExtension = function (name, fn, message = `String prototype extensions are deprecated. Please import ${name} from '@ember/string' instead.`) {
+      return function () {
+        (0, debug_1.deprecate)(message, false, {
+          id: 'ember-string.prototype-extensions',
+          for: 'ember-source',
+          since: {
+            available: '3.24'
+          },
+          until: '4.0.0',
+          url: 'https://deprecations.emberjs.com/v3.x/#toc_ember-string-prototype_extensions'
+        });
+        return fn(this, ...arguments);
+      };
+    };
+
     Object.defineProperties(String.prototype, {
       /**
         See [String.w](/ember/release/classes/String/methods/w?anchor=w).
@@ -17797,16 +17917,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       w: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return w(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('w', w)
       },
 
       /**
@@ -17815,6 +17932,7 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       loc: {
         configurable: true,
@@ -17833,16 +17951,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       camelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return camelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('camelize', camelize)
       },
 
       /**
@@ -17851,16 +17966,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       decamelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return decamelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('decamelize', decamelize)
       },
 
       /**
@@ -17869,16 +17981,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       dasherize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return dasherize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('dasherize', dasherize)
       },
 
       /**
@@ -17887,16 +17996,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       underscore: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return underscore(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('underscore', underscore)
       },
 
       /**
@@ -17905,16 +18011,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       classify: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return classify(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('classify', classify)
       },
 
       /**
@@ -17923,16 +18026,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       capitalize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return capitalize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('capitalize', capitalize)
       }
     });
   }
@@ -18276,28 +18376,30 @@ var inflector = createCommonjsModule(function (module, exports) {
   var _default = Inflector;
   exports.default = _default;
 });
-var string$2 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.pluralize = pluralize;
-  exports.singularize = singularize;
+var pluralize_1 = pluralize;
+var singularize_1 = singularize;
 
-  var _inflector = _interopRequireDefault(inflector);
+var _inflector = _interopRequireDefault(inflector);
 
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    default: obj
+  };
+}
 
-  function pluralize() {
-    return _inflector.default.inflector.pluralize(...arguments);
-  }
+function pluralize() {
+  return _inflector.default.inflector.pluralize(...arguments);
+}
 
-  function singularize(word) {
-    return _inflector.default.inflector.singularize(word);
-  }
+function singularize(word) {
+  return _inflector.default.inflector.singularize(word);
+}
+
+var string$2 = /*#__PURE__*/Object.defineProperty({
+  pluralize: pluralize_1,
+  singularize: singularize_1
+}, '__esModule', {
+  value: true
 });
 var system = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -18395,7 +18497,7 @@ var utils$1 = createCommonjsModule(function (module, exports) {
   exports.primaryKeyTypeSafetyCheck = primaryKeyTypeSafetyCheck;
 
   function insertFixturesWithTypechecks(modelDefinition, fixtures) {
-    const modelPrimaryKey = fixtures.reduce((primaryKeys, fixture) => {
+    fixtures.reduce((primaryKeys, fixture) => {
       const modelName = modelDefinition.name;
       const primaryKey = (fixture.uuid ? "uuid" : null) || (fixture.id ? "id" : null);
 
@@ -18406,363 +18508,348 @@ var utils$1 = createCommonjsModule(function (module, exports) {
       }
 
       modelDefinition.insert(fixture);
-      return primaryKeys.concat([fixture[primaryKey]]);
-    }, [])[0];
+      primaryKeys.push(fixture[primaryKey]);
+      return primaryKeys;
+    }, []);
     return fixtures;
   }
 
   exports.insertFixturesWithTypechecks = insertFixturesWithTypechecks;
 });
-var model = createCommonjsModule(function (module, exports) {
-  var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
-    return mod && mod.__esModule ? mod : {
-      "default": mod
-    };
+
+var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
   };
+};
 
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
+const util_1 = __importDefault(util);
 
-  const util_1 = __importDefault(util);
+const ansi_colors_1 = __importDefault(ansiColors);
 
-  const ansi_colors_1 = __importDefault(ansiColors);
-
-  class MemServerModel {
-    static get DB() {
-      if (!this._DB[this.name]) {
-        this._DB[this.name] = [];
-        return this._DB[this.name];
-      }
-
+class MemServerModel {
+  static get DB() {
+    if (!this._DB[this.name]) {
+      this._DB[this.name] = [];
       return this._DB[this.name];
     }
 
-    static get attributes() {
-      if (!this._attributes[this.name]) {
-        this._attributes[this.name] = [];
-        this._modelDefinitions[this.name] = this;
-        return this._attributes[this.name];
-      }
+    return this._DB[this.name];
+  }
 
+  static get attributes() {
+    if (!this._attributes[this.name]) {
+      this._attributes[this.name] = [];
+      this._modelDefinitions[this.name] = this;
       return this._attributes[this.name];
     }
 
-    static set defaultAttributes(value) {
-      Object.keys(value).forEach(key => {
-        if (!this.attributes.includes(key)) {
-          this.attributes.push(key);
-        }
-      });
-      this._defaultAttributes = value;
-    }
+    return this._attributes[this.name];
+  }
 
-    static get defaultAttributes() {
-      return this._defaultAttributes;
-    }
-
-    static set embedReferences(references) {
-      this._embedReferences[this.name] = references;
-    }
-
-    static get embedReferences() {
-      // NOTE: serializer concern
-      if (!this._embedReferences[this.name]) {
-        this._embedReferences[this.name] = {};
-        return this._embedReferences[this.name];
+  static set defaultAttributes(value) {
+    Object.keys(value).forEach(key => {
+      if (!this.attributes.includes(key)) {
+        this.attributes.push(key);
       }
+    });
+    this._defaultAttributes = value;
+  }
 
+  static get defaultAttributes() {
+    return this._defaultAttributes;
+  }
+
+  static set embedReferences(references) {
+    this._embedReferences[this.name] = references;
+  }
+
+  static get embedReferences() {
+    // NOTE: serializer concern
+    if (!this._embedReferences[this.name]) {
+      this._embedReferences[this.name] = {};
       return this._embedReferences[this.name];
     }
 
-    static resetDatabase(fixtures) {
-      this.DB.length = 0;
-      this.attributes.length = 0;
-      this.defaultAttributes = this.defaultAttributes;
+    return this._embedReferences[this.name];
+  }
 
-      if (fixtures) {
-        utils$1.insertFixturesWithTypechecks(this, fixtures);
-      }
+  static resetDatabase(fixtures) {
+    this.DB.length = 0;
+    this.attributes.length = 0;
+    this.defaultAttributes = this.defaultAttributes;
 
-      return this.DB;
+    if (fixtures) {
+      utils$1.insertFixturesWithTypechecks(this, fixtures);
     }
 
-    static count() {
-      return this.DB.length;
+    return this.DB;
+  }
+
+  static count() {
+    return this.DB.length;
+  }
+
+  static find(param) {
+    // NOTE: turn param into an interface with id or uuid
+    if (!param) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
+    } else if (Array.isArray(param)) {
+      return Array.from(this.DB).reduce((result, model) => {
+        const foundModel = param.includes(model.id) ? model : null;
+        return foundModel ? result.concat([foundModel]) : result;
+      }, []);
+    } else if (typeof param !== "number") {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
     }
 
-    static find(param) {
-      // NOTE: turn param into an interface with id or uuid
-      if (!param) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
-      } else if (Array.isArray(param)) {
-        return Array.from(this.DB).reduce((result, model) => {
-          const foundModel = param.includes(model.id) ? model : null;
-          return foundModel ? result.concat([foundModel]) : result;
-        }, []);
-      } else if (typeof param !== "number") {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.find(id) cannot be called without a valid id`));
-      }
+    return Array.from(this.DB).find(model => model.id === param);
+  }
 
-      return Array.from(this.DB).find(model => model.id === param);
+  static findBy(options) {
+    if (!options) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.findBy(id) cannot be called without a parameter`));
     }
 
-    static findBy(options) {
-      if (!options) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.findBy(id) cannot be called without a parameter`));
-      }
+    const keys = Object.keys(options);
+    return this.DB.find(model => comparison(model, options, keys, 0));
+  }
 
-      const keys = Object.keys(options);
-      return this.DB.find(model => comparison(model, options, keys, 0));
+  static findAll(options = {}) {
+    const keys = Object.keys(options);
+
+    if (keys.length === 0) {
+      return Array.from(this.DB);
     }
 
-    static findAll(options = {}) {
-      const keys = Object.keys(options);
+    return Array.from(this.DB).filter(model => comparison(model, options, keys, 0));
+  }
 
-      if (keys.length === 0) {
-        return Array.from(this.DB);
-      }
+  static insert(options) {
+    options = options || {};
 
-      return Array.from(this.DB).filter(model => comparison(model, options, keys, 0));
+    if (this.DB.length === 0) {
+      this.primaryKey = this.primaryKey || (options.uuid ? "uuid" : "id");
+      this.attributes.push(this.primaryKey);
     }
 
-    static insert(options) {
-      options = options || {};
+    if (!options.hasOwnProperty(this.primaryKey)) {
+      options[this.primaryKey] = this.primaryKey === "id" ? incrementId(this.DB) : utils$1.generateUUID();
+    }
 
-      if (this.DB.length === 0) {
-        this.primaryKey = this.primaryKey || (options.uuid ? "uuid" : "id");
-        this.attributes.push(this.primaryKey);
+    utils$1.primaryKeyTypeSafetyCheck(this.primaryKey, options[this.primaryKey], this.name);
+    const target = this.attributes.reduce((result, attribute) => {
+      if (typeof result[attribute] === "function") {
+        result[attribute] = result[attribute].apply(result);
+      } else if (!result.hasOwnProperty(attribute)) {
+        result[attribute] = undefined;
       }
 
-      if (!options.hasOwnProperty(this.primaryKey)) {
-        options[this.primaryKey] = this.primaryKey === "id" ? incrementId(this.DB) : utils$1.generateUUID();
-      }
+      return result;
+    }, Object.assign({}, this.defaultAttributes, options));
+    const existingRecord = target.id ? this.find(target.id) : this.findBy({
+      uuid: target.uuid
+    });
 
-      utils$1.primaryKeyTypeSafetyCheck(this.primaryKey, options[this.primaryKey], this.name);
-      const target = this.attributes.reduce((result, attribute) => {
-        if (typeof result[attribute] === "function") {
-          result[attribute] = result[attribute].apply(result);
-        } else if (!result.hasOwnProperty(attribute)) {
-          result[attribute] = undefined;
-        }
+    if (existingRecord) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} ${this.primaryKey} ${target[this.primaryKey]} already exists in the database! ${this.name}.insert(${util_1.default.inspect(options)}) fails`));
+    }
 
-        return result;
-      }, Object.assign({}, this.defaultAttributes, options));
-      const existingRecord = target.id ? this.find(target.id) : this.findBy({
-        uuid: target.uuid
+    Object.keys(target).filter(attribute => !this.attributes.includes(attribute)).forEach(attribute => this.attributes.push(attribute));
+    this.DB.push(target);
+    return target;
+  }
+
+  static update(record) {
+    if (!record || !record.id && !record.uuid) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) requires id or uuid primary key to update a record`));
+    }
+
+    const targetRecord = record.id ? this.find(record.id) : this.findBy({
+      uuid: record.uuid
+    });
+
+    if (!targetRecord) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) failed because ${this.name} with ${this.primaryKey}: ${record[this.primaryKey]} does not exist`));
+    }
+
+    const recordsUnknownAttribute = Object.keys(record).find(attribute => !this.attributes.includes(attribute));
+
+    if (recordsUnknownAttribute) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update ${this.primaryKey}: ${record[this.primaryKey]} fails, ${this.name} model does not have ${recordsUnknownAttribute} attribute to update`));
+    }
+
+    return Object.assign(targetRecord, record);
+  }
+
+  static delete(record) {
+    if (this.DB.length === 0) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} has no records in the database to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
+    } else if (!record) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.delete(model) model object parameter required to delete a model`));
+    }
+
+    const targetRecord = record.id ? this.find(record.id) : this.findBy({
+      uuid: record.uuid
+    });
+
+    if (!targetRecord) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] Could not find ${this.name} with ${this.primaryKey} ${record[this.primaryKey]} to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
+    }
+
+    if (Array.isArray(targetRecord)) {
+      targetRecord.forEach(record => {
+        const targetIndex = this.DB.indexOf(record);
+        this.DB.splice(targetIndex, 1);
       });
-
-      if (existingRecord) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} ${this.primaryKey} ${target[this.primaryKey]} already exists in the database! ${this.name}.insert(${util_1.default.inspect(options)}) fails`));
-      }
-
-      Object.keys(target).filter(attribute => !this.attributes.includes(attribute)).forEach(attribute => this.attributes.push(attribute));
-      this.DB.push(target);
-      return target;
-    }
-
-    static update(record) {
-      if (!record || !record.id && !record.uuid) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) requires id or uuid primary key to update a record`));
-      }
-
-      const targetRecord = record.id ? this.find(record.id) : this.findBy({
-        uuid: record.uuid
-      });
-
-      if (!targetRecord) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update(record) failed because ${this.name} with ${this.primaryKey}: ${record[this.primaryKey]} does not exist`));
-      }
-
-      const recordsUnknownAttribute = Object.keys(record).find(attribute => !this.attributes.includes(attribute));
-
-      if (recordsUnknownAttribute) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.update ${this.primaryKey}: ${record[this.primaryKey]} fails, ${this.name} model does not have ${recordsUnknownAttribute} attribute to update`));
-      }
-
-      return Object.assign(targetRecord, record);
-    }
-
-    static delete(record) {
-      if (this.DB.length === 0) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name} has no records in the database to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
-      } else if (!record) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.delete(model) model object parameter required to delete a model`));
-      }
-
-      const targetRecord = record.id ? this.find(record.id) : this.findBy({
-        uuid: record.uuid
-      });
-
-      if (!targetRecord) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] Could not find ${this.name} with ${this.primaryKey} ${record[this.primaryKey]} to delete. ${this.name}.delete(${util_1.default.inspect(record)}) failed`));
-      }
-
-      if (Array.isArray(targetRecord)) {
-        targetRecord.forEach(record => {
-          const targetIndex = this.DB.indexOf(record);
-          this.DB.splice(targetIndex, 1);
-        });
-        return targetRecord;
-      }
-
-      const targetIndex = this.DB.indexOf(targetRecord);
-      this.DB.splice(targetIndex, 1);
       return targetRecord;
     }
 
-    static embed(relationship) {
-      // EXAMPLE: { comments: Comment }
-      if (typeof relationship !== "object" || relationship.name) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed(relationshipObject) requires an object as a parameter: { relationshipKey: $RelationshipModel }`));
-      }
+    const targetIndex = this.DB.indexOf(targetRecord);
+    this.DB.splice(targetIndex, 1);
+    return targetRecord;
+  }
 
-      const key = Object.keys(relationship)[0];
-
-      if (!relationship[key]) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed() fails: ${key} Model reference is not a valid. Please put a valid $ModelName to ${this.name}.embed()`));
-      }
-
-      return Object.assign(this.embedReferences, relationship);
+  static embed(relationship) {
+    // EXAMPLE: { comments: Comment }
+    if (typeof relationship !== "object" || relationship.name) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed(relationshipObject) requires an object as a parameter: { relationshipKey: $RelationshipModel }`));
     }
 
-    static serializer(objectOrArray) {
-      if (!objectOrArray) {
-        return;
-      } else if (Array.isArray(objectOrArray)) {
-        return objectOrArray.map(object => this.serialize(object));
-      }
+    const key = Object.keys(relationship)[0];
 
-      return this.serialize(objectOrArray);
+    if (!relationship[key]) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.embed() fails: ${key} Model reference is not a valid. Please put a valid $ModelName to ${this.name}.embed()`));
     }
 
-    static serialize(object) {
-      // NOTE: add links object ?
-      if (Array.isArray(object)) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.serialize(object) expects an object not an array. Use ${this.name}.serializer(data) for serializing array of records`));
-      }
+    return Object.assign(this.embedReferences, relationship);
+  }
 
-      const objectWithAllAttributes = this.attributes.reduce((result, attribute) => {
-        if (result[attribute] === undefined) {
-          result[attribute] = null;
-        }
-
-        return result;
-      }, Object.assign({}, object));
-      return Object.keys(this.embedReferences).reduce((result, embedKey) => {
-        const embedModel = this.embedReferences[embedKey];
-        const embeddedRecords = this.getRelationship(object, embedKey, embedModel);
-        return Object.assign({}, result, {
-          [embedKey]: embedModel.serializer(embeddedRecords)
-        });
-      }, objectWithAllAttributes);
+  static serializer(objectOrArray) {
+    if (!objectOrArray) {
+      return;
+    } else if (Array.isArray(objectOrArray)) {
+      return objectOrArray.map(object => this.serialize(object));
     }
 
-    static getRelationship(parentObject, relationshipName, relationshipModel) {
-      if (Array.isArray(parentObject)) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.getRelationship expects model input to be an object not an array`));
+    return this.serialize(objectOrArray);
+  }
+
+  static serialize(object) {
+    // NOTE: add links object ?
+    if (Array.isArray(object)) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.serialize(object) expects an object not an array. Use ${this.name}.serializer(data) for serializing array of records`));
+    }
+
+    const objectWithAllAttributes = this.attributes.reduce((result, attribute) => {
+      if (result[attribute] === undefined) {
+        result[attribute] = null;
       }
 
-      const targetRelationshipModel = relationshipModel || this.embedReferences[relationshipName];
-      const hasManyRelationship = emberInflector.pluralize(relationshipName) === relationshipName;
+      return result;
+    }, Object.assign({}, object));
+    return Object.keys(this.embedReferences).reduce((result, embedKey) => {
+      const embedModel = this.embedReferences[embedKey];
+      const embeddedRecords = this.getRelationship(object, embedKey, embedModel);
+      return Object.assign({}, result, {
+        [embedKey]: embedModel.serializer(embeddedRecords)
+      });
+    }, objectWithAllAttributes);
+  }
 
-      if (!targetRelationshipModel) {
-        throw new Error(ansi_colors_1.default.red(`[Memserver] ${relationshipName} relationship could not be found on ${this.name} model. Please put the ${relationshipName} Model object as the third parameter to ${this.name}.getRelationship function`));
-      } else if (hasManyRelationship) {
-        if (parentObject.id) {
-          const hasManyIDRecords = targetRelationshipModel.findAll({
-            [`${string$1.underscore(this.name)}_id`]: parentObject.id
-          });
-          return hasManyIDRecords.length > 0 ? hasManyIDRecords : [];
-        } else if (parentObject.uuid) {
-          const hasManyUUIDRecords = targetRelationshipModel.findAll({
-            [`${string$1.underscore(this.name)}_uuid`]: parentObject.uuid
-          });
-          return hasManyUUIDRecords.length > 0 ? hasManyUUIDRecords : [];
-        }
-      }
+  static getRelationship(parentObject, relationshipName, relationshipModel) {
+    if (Array.isArray(parentObject)) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${this.name}.getRelationship expects model input to be an object not an array`));
+    }
 
-      const objectRef = parentObject[`${string$1.underscore(relationshipName)}_id`] || parentObject[`${string$1.underscore(relationshipName)}_uuid`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_id`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_uuid`];
+    const targetRelationshipModel = relationshipModel || this.embedReferences[relationshipName];
+    const hasManyRelationship = emberInflector.pluralize(relationshipName) === relationshipName;
 
-      if (objectRef && typeof objectRef === "number") {
-        return targetRelationshipModel.find(objectRef);
-      } else if (objectRef) {
-        return targetRelationshipModel.findBy({
-          uuid: objectRef
-        });
-      }
-
+    if (!targetRelationshipModel) {
+      throw new Error(ansi_colors_1.default.red(`[Memserver] ${relationshipName} relationship could not be found on ${this.name} model. Please put the ${relationshipName} Model object as the third parameter to ${this.name}.getRelationship function`));
+    } else if (hasManyRelationship) {
       if (parentObject.id) {
-        return targetRelationshipModel.findBy({
+        const hasManyIDRecords = targetRelationshipModel.findAll({
           [`${string$1.underscore(this.name)}_id`]: parentObject.id
         });
+        return hasManyIDRecords.length > 0 ? hasManyIDRecords : [];
       } else if (parentObject.uuid) {
-        return targetRelationshipModel.findBy({
+        const hasManyUUIDRecords = targetRelationshipModel.findAll({
           [`${string$1.underscore(this.name)}_uuid`]: parentObject.uuid
         });
+        return hasManyUUIDRecords.length > 0 ? hasManyUUIDRecords : [];
       }
     }
 
-  }
+    const objectRef = parentObject[`${string$1.underscore(relationshipName)}_id`] || parentObject[`${string$1.underscore(relationshipName)}_uuid`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_id`] || parentObject[`${string$1.underscore(targetRelationshipModel.name)}_uuid`];
 
-  exports.default = MemServerModel;
-  MemServerModel._DB = {};
-  MemServerModel._modelDefinitions = {};
-  MemServerModel._attributes = {};
-  MemServerModel._defaultAttributes = {}; // NOTE: probably a decorator here in future
-
-  MemServerModel._embedReferences = {}; // NOTE: serializer concern
-
-  MemServerModel.primaryKey = null;
-
-  function incrementId(DB, Model) {
-    if (!DB || DB.length === 0) {
-      return 1;
+    if (objectRef && typeof objectRef === "number") {
+      return targetRelationshipModel.find(objectRef);
+    } else if (objectRef) {
+      return targetRelationshipModel.findBy({
+        uuid: objectRef
+      });
     }
 
-    const lastIdInSequence = DB.map(model => model.id).sort((a, b) => a - b).find((id, index, array) => index === array.length - 1 ? true : id + 1 !== array[index + 1]);
-    return lastIdInSequence + 1;
-  } // NOTE: if records were ordered by ID, then there could be performance benefit
-
-
-  function comparison(model, options, keys, index = 0) {
-    const key = keys[index];
-
-    if (keys.length === index) {
-      return model[key] === options[key];
-    } else if (model[key] === options[key]) {
-      return comparison(model, options, keys, index + 1);
+    if (parentObject.id) {
+      return targetRelationshipModel.findBy({
+        [`${string$1.underscore(this.name)}_id`]: parentObject.id
+      });
+    } else if (parentObject.uuid) {
+      return targetRelationshipModel.findBy({
+        [`${string$1.underscore(this.name)}_uuid`]: parentObject.uuid
+      });
     }
-
-    return false;
   }
-});
-var model$1 = /*@__PURE__*/getDefaultExportFromCjs(model);
-module.exports = model$1;
+
+}
+
+var _default$2 = MemServerModel;
+MemServerModel._DB = {};
+MemServerModel._modelDefinitions = {};
+MemServerModel._attributes = {};
+MemServerModel._defaultAttributes = {}; // NOTE: probably a decorator here in future
+
+MemServerModel._embedReferences = {}; // NOTE: serializer concern
+
+MemServerModel.primaryKey = null;
+
+function incrementId(DB, Model) {
+  if (!DB || DB.length === 0) {
+    return 1;
+  }
+
+  const lastIdInSequence = DB.map(model => model.id).sort((a, b) => a - b).find((id, index, array) => index === array.length - 1 ? true : id + 1 !== array[index + 1]);
+  return lastIdInSequence + 1;
+} // NOTE: if records were ordered by ID, then there could be performance benefit
+
+
+function comparison(model, options, keys, index = 0) {
+  const key = keys[index];
+
+  if (keys.length === index) {
+    return model[key] === options[key];
+  } else if (model[key] === options[key]) {
+    return comparison(model, options, keys, index + 1);
+  }
+
+  return false;
+}
+
+module.exports = _default$2;
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":6,"buffer":2}],5:[function(require,module,exports){
+},{"_process":16,"available-typed-arrays":2,"buffer":4,"call-bind/callBound":5}],15:[function(require,module,exports){
 (function (process,global){(function (){
 'use strict';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function getDefaultExportFromCjs(x) {
-  return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
-}
-
-function createCommonjsModule(fn, basedir, module) {
-  return module = {
-    path: basedir,
-    exports: {},
-    require: function (path, base) {
-      return commonjsRequire(path, base === undefined || base === null ? module.path : base);
-    }
-  }, fn(module, module.exports), module.exports;
-}
-
-function commonjsRequire() {
-  throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
+function createCommonjsModule(fn) {
+  var module = {
+    exports: {}
+  };
+  return fn(module, module.exports), module.exports;
 }
 
 var symbols = createCommonjsModule(function (module) {
@@ -22112,29 +22199,32 @@ var pretender = createCommonjsModule(function (module) {
     return Pretender;
   }(self);
 });
-var string_registry = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.setStrings = setStrings;
-  exports.getStrings = getStrings;
-  exports.getString = getString; // STATE within a module is frowned upon, this exists
-  // to support Ember.STRINGS but shield ember internals from this legacy global
-  // API.
+var setStrings_1 = setStrings;
+var getStrings_1 = getStrings;
+var getString_1 = getString; // STATE within a module is frowned upon, this exists
+// to support Ember.STRINGS but shield ember internals from this legacy global
+// API.
 
-  let STRINGS = {};
+let STRINGS = {};
 
-  function setStrings(strings) {
-    STRINGS = strings;
-  }
+function setStrings(strings) {
+  STRINGS = strings;
+}
 
-  function getStrings() {
-    return STRINGS;
-  }
+function getStrings() {
+  return STRINGS;
+}
 
-  function getString(name) {
-    return STRINGS[name];
-  }
+function getString(name) {
+  return STRINGS[name];
+}
+
+var string_registry = /*#__PURE__*/Object.defineProperty({
+  setStrings: setStrings_1,
+  getStrings: getStrings_1,
+  getString: getString_1
+}, '__esModule', {
+  value: true
 });
 var deprecatedFeatures = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -22458,424 +22548,59 @@ var environment = createCommonjsModule(function (module, exports) {
     return ENV;
   }
 });
-var browserEnvironment = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
-
-  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
-  exports.hasDOM = hasDom;
-  const window = hasDom ? self : null;
-  exports.window = window;
-  const location$1 = hasDom ? self.location : null;
-  exports.location = location$1;
-  const history$1 = hasDom ? self.history : null;
-  exports.history = history$1;
-  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
-  exports.userAgent = userAgent;
-  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
-  exports.isChrome = isChrome;
-  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
-  exports.isFirefox = isFirefox;
-});
-var error = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /**
-   @module @ember/error
-  */
-
-  /**
-    The JavaScript Error object used by Ember.assert.
-  
-    @class Error
-    @namespace Ember
-    @extends Error
-    @constructor
-    @public
-  */
-
-  var _default = Error;
-  exports.default = _default;
-});
-var handlers = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
-  let HANDLERS = {};
-  exports.HANDLERS = HANDLERS;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let invoke = () => {};
-
-  exports.invoke = invoke;
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
-      let nextHandler = HANDLERS[type] || (() => {});
-
-      HANDLERS[type] = (message, options) => {
-        callback(message, options, nextHandler);
-      };
-    };
-
-    exports.invoke = invoke = function invoke(type, message, test, options) {
-      if (test) {
-        return;
-      }
-
-      let handlerForType = HANDLERS[type];
-
-      if (handlerForType) {
-        handlerForType(message, options);
-      }
-    };
-  }
-});
-var deprecate_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
-  /**
-   @module @ember/debug
-   @public
-  */
-
-  /**
-    Allows for runtime registration of handler functions that override the default deprecation behavior.
-    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
-    The following example demonstrates its usage by registering a handler that throws an error if the
-    message contains the word "should", otherwise defers to the default handler.
-  
-    ```javascript
-    import { registerDeprecationHandler } from '@ember/debug';
-  
-    registerDeprecationHandler((message, options, next) => {
-      if (message.indexOf('should') !== -1) {
-        throw new Error(`Deprecation message with should: ${message}`);
-      } else {
-        // defer to whatever handler was registered before this one
-        next(message, options);
-      }
-    });
-    ```
-  
-    The handler function takes the following arguments:
-  
-    <ul>
-      <li> <code>message</code> - The message received from the deprecation call.</li>
-      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
-        <ul>
-          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
-          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
-        </ul>
-      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-    </ul>
-  
-    @public
-    @static
-    @method registerDeprecationHandler
-    @for @ember/debug
-    @param handler {Function} A function to handle deprecation calls.
-    @since 2.1.0
-  */
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-  let missingOptionsUntilDeprecation;
-  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
-
-  let deprecate = () => {};
-
-  if (es5.DEBUG) {
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('deprecate', handler);
-    };
-
-    let formatMessage = function formatMessage(_message, options) {
-      let message = _message;
-
-      if (options && options.id) {
-        message = message + ` [deprecation id: ${options.id}]`;
-      }
-
-      if (options && options.url) {
-        message += ` See ${options.url} for more details.`;
-      }
-
-      return message;
-    };
-
-    registerHandler(function logDeprecationToConsole(message, options) {
-      let updatedMessage = formatMessage(message, options);
-      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
-    });
-    let captureErrorForStack;
-
-    if (new Error().stack) {
-      captureErrorForStack = () => new Error();
-    } else {
-      captureErrorForStack = () => {
-        try {
-          __fail__.fail();
-        } catch (e) {
-          return e;
-        }
-      };
-    }
-
-    registerHandler(function logDeprecationStackTrace(message, options, next) {
-      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
-        let stackStr = '';
-        let error = captureErrorForStack();
-        let stack;
-
-        if (error.stack) {
-          if (error['arguments']) {
-            // Chrome
-            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
-            stack.shift();
-          } else {
-            // Firefox
-            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
-          }
-
-          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
-        }
-
-        let updatedMessage = formatMessage(message, options);
-        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
-      } else {
-        next(message, options);
-      }
-    });
-    registerHandler(function raiseOnDeprecation(message, options, next) {
-      if (environment.ENV.RAISE_ON_DEPRECATION) {
-        let updatedMessage = formatMessage(message);
-        throw new Error(updatedMessage);
-      } else {
-        next(message, options);
-      }
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
-    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
-    /**
-     @module @ember/debug
-     @public
-     */
-
-    /**
-      Display a deprecation warning with the provided message and a stack trace
-      (Chrome and Firefox only).
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         @method deprecate
-      @for @ember/debug
-      @param {String} message A description of the deprecation.
-      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
-      @param {Object} options
-      @param {String} options.id A unique id for this deprecation. The id can be
-        used by Ember debugging tools to change the behavior (raise, log or silence)
-        for that specific deprecation. The id should be namespaced by dots, e.g.
-        "view.helper.select".
-      @param {string} options.until The version of Ember when this deprecation
-        warning will be removed.
-      @param {String} [options.url] An optional url to the transition guide on the
-        emberjs.com website.
-      @static
-      @public
-      @since 1.0.0
-    */
-
-    deprecate = function deprecate(message, test, options) {
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
-      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
-      (0, handlers.invoke)('deprecate', message, test, options);
-    };
-  }
-
-  var _default = deprecate;
-  exports.default = _default;
-});
-var testing_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.isTesting = isTesting;
-  exports.setTesting = setTesting;
-  let testing = false;
-
-  function isTesting() {
-    return testing;
-  }
-
-  function setTesting(value) {
-    testing = Boolean(value);
-  }
-});
-var warn_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
-
-  let registerHandler = () => {};
-
-  exports.registerHandler = registerHandler;
-
-  let warn = () => {};
-
-  let missingOptionsDeprecation;
-  exports.missingOptionsDeprecation = missingOptionsDeprecation;
-  let missingOptionsIdDeprecation;
-  /**
-  @module @ember/debug
-  */
-
-  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
-
-  if (es5.DEBUG) {
-    /**
-      Allows for runtime registration of handler functions that override the default warning behavior.
-      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
-      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
-      default warning behavior.
-         ```javascript
-      import { registerWarnHandler } from '@ember/debug';
-         // next is not called, so no warnings get the default behavior
-      registerWarnHandler(() => {});
-      ```
-         The handler function takes the following arguments:
-         <ul>
-        <li> <code>message</code> - The message received from the warn call. </li>
-        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
-          <ul>
-            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
-          </ul>
-        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
-      </ul>
-         @public
-      @static
-      @method registerWarnHandler
-      @for @ember/debug
-      @param handler {Function} A function to handle warnings.
-      @since 2.1.0
-    */
-    exports.registerHandler = registerHandler = function registerHandler(handler) {
-      (0, handlers.registerHandler)('warn', handler);
-    };
-
-    registerHandler(function logWarning(message) {
-      /* eslint-disable no-console */
-      console.warn(`WARNING: ${message}`);
-      /* eslint-enable no-console */
-    });
-    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
-    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
-    /**
-      Display a warning with the provided message.
-         * In a production build, this method is defined as an empty function (NOP).
-      Uses of this method in Ember itself are stripped from the ember.prod.js build.
-         ```javascript
-      import { warn } from '@ember/debug';
-      import tomsterCount from './tomster-counter'; // a module in my project
-         // Log a warning if we have more than 3 tomsters
-      warn('Too many tomsters!', tomsterCount <= 3, {
-        id: 'ember-debug.too-many-tomsters'
-      });
-      ```
-         @method warn
-      @for @ember/debug
-      @static
-      @param {String} message A warning to display.
-      @param {Boolean} test An optional boolean. If falsy, the warning
-        will be displayed.
-      @param {Object} options An object that can be used to pass a unique
-        `id` for this warning.  The `id` can be used by Ember debugging tools
-        to change the behavior (raise, log, or silence) for that specific warning.
-        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
-      @public
-      @since 1.0.0
-    */
-
-    warn = function warn(message, test, options) {
-      if (arguments.length === 2 && typeof test === 'object') {
-        options = test;
-        test = false;
-      }
-
-      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
-      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
-      (0, handlers.invoke)('warn', message, test, options);
-    };
-  }
-
-  var _default = warn;
-  exports.default = _default;
-});
 var arrayUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
   var EMPTY_ARRAY = exports.EMPTY_ARRAY = Object.freeze([]);
 });
-var assert = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.debugAssert = debugAssert;
-  exports.prodAssert = prodAssert;
-  exports.deprecate = deprecate; // import Logger from './logger';
-  // let alreadyWarned = false;
+var debugAssert_1 = debugAssert;
+var prodAssert_1 = prodAssert;
+var deprecate_1 = deprecate; // import Logger from './logger';
+// let alreadyWarned = false;
 
-  function debugAssert(test, msg) {
-    // if (!alreadyWarned) {
-    //   alreadyWarned = true;
-    //   Logger.warn("Don't leave debug assertions on in public builds");
-    // }
-    if (!test) {
-      throw new Error(msg || 'assertion failure');
-    }
+function debugAssert(test, msg) {
+  // if (!alreadyWarned) {
+  //   alreadyWarned = true;
+  //   Logger.warn("Don't leave debug assertions on in public builds");
+  // }
+  if (!test) {
+    throw new Error(msg || 'assertion failure');
   }
+}
 
-  function prodAssert() {}
+function prodAssert() {}
 
-  function deprecate(desc) {
-    console.warn('DEPRECATION: ' + desc);
-  }
+function deprecate(desc) {
+  console.warn('DEPRECATION: ' + desc);
+}
 
-  exports.default = debugAssert;
+var _default = debugAssert;
+var assert = /*#__PURE__*/Object.defineProperty({
+  debugAssert: debugAssert_1,
+  prodAssert: prodAssert_1,
+  deprecate: deprecate_1,
+  default: _default
+}, '__esModule', {
+  value: true
 });
-var guid = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.initializeGuid = initializeGuid;
-  exports.ensureGuid = ensureGuid;
-  var GUID = 0;
+var initializeGuid_1 = initializeGuid;
+var ensureGuid_1 = ensureGuid;
+var GUID = 0;
 
-  function initializeGuid(object) {
-    return object._guid = ++GUID;
-  }
+function initializeGuid(object) {
+  return object._guid = ++GUID;
+}
 
-  function ensureGuid(object) {
-    return object._guid || initializeGuid(object);
-  }
+function ensureGuid(object) {
+  return object._guid || initializeGuid(object);
+}
+
+var guid = /*#__PURE__*/Object.defineProperty({
+  initializeGuid: initializeGuid_1,
+  ensureGuid: ensureGuid_1
+}, '__esModule', {
+  value: true
 });
 var collections = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -23000,21 +22725,22 @@ var destroy = createCommonjsModule(function (module, exports) {
     return !!(value && typeof value === 'object' && typeof value.destroy === 'function');
   }
 });
-var dom = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.clearElement = clearElement;
+var clearElement_1 = clearElement;
 
-  function clearElement(parent) {
-    var current = parent.firstChild;
+function clearElement(parent) {
+  var current = parent.firstChild;
 
-    while (current) {
-      var next = current.nextSibling;
-      parent.removeChild(current);
-      current = next;
-    }
+  while (current) {
+    var next = current.nextSibling;
+    parent.removeChild(current);
+    current = next;
   }
+}
+
+var dom = /*#__PURE__*/Object.defineProperty({
+  clearElement: clearElement_1
+}, '__esModule', {
+  value: true
 });
 var isSerializationFirstNode_1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -23508,49 +23234,52 @@ var listUtils = createCommonjsModule(function (module, exports) {
 
   var EMPTY_SLICE = exports.EMPTY_SLICE = new ListSlice(null, null);
 });
-var objectUtils = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.assign = assign;
-  exports.fillNulls = fillNulls;
-  exports.values = values;
-  var objKeys = Object.keys;
+var assign_1 = assign;
+var fillNulls_1 = fillNulls;
+var values_1 = values;
+var objKeys = Object.keys;
 
-  function assign(obj) {
-    for (var i = 1; i < arguments.length; i++) {
-      var assignment = arguments[i];
-      if (assignment === null || typeof assignment !== 'object') continue;
-      var keys = objKeys(assignment);
+function assign(obj) {
+  for (var i = 1; i < arguments.length; i++) {
+    var assignment = arguments[i];
+    if (assignment === null || typeof assignment !== 'object') continue;
+    var keys = objKeys(assignment);
 
-      for (var j = 0; j < keys.length; j++) {
-        var key = keys[j];
-        obj[key] = assignment[key];
-      }
+    for (var j = 0; j < keys.length; j++) {
+      var key = keys[j];
+      obj[key] = assignment[key];
     }
-
-    return obj;
   }
 
-  function fillNulls(count) {
-    var arr = new Array(count);
+  return obj;
+}
 
-    for (var i = 0; i < count; i++) {
-      arr[i] = null;
-    }
+function fillNulls(count) {
+  var arr = new Array(count);
 
-    return arr;
+  for (var i = 0; i < count; i++) {
+    arr[i] = null;
   }
 
-  function values(obj) {
-    var vals = [];
+  return arr;
+}
 
-    for (var key in obj) {
-      vals.push(obj[key]);
-    }
+function values(obj) {
+  var vals = [];
 
-    return vals;
+  for (var key in obj) {
+    vals.push(obj[key]);
   }
+
+  return vals;
+}
+
+var objectUtils = /*#__PURE__*/Object.defineProperty({
+  assign: assign_1,
+  fillNulls: fillNulls_1,
+  values: values_1
+}, '__esModule', {
+  value: true
 });
 var platformUtils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -23593,74 +23322,75 @@ var platformUtils = createCommonjsModule(function (module, exports) {
     return args;
   };
 });
-var string = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.strip = strip;
+var strip_1 = strip;
 
-  function strip(strings) {
-    var out = '';
+function strip(strings) {
+  var out = '';
 
-    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    for (var i = 0; i < strings.length; i++) {
-      var string = strings[i];
-      var dynamic = args[i] !== undefined ? String(args[i]) : '';
-      out += '' + string + dynamic;
-    }
-
-    var lines = out.split('\n');
-
-    while (lines.length && lines[0].match(/^\s*$/)) {
-      lines.shift();
-    }
-
-    while (lines.length && lines[lines.length - 1].match(/^\s*$/)) {
-      lines.pop();
-    }
-
-    var min = Infinity;
-
-    for (var _iterator = lines, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-      var _ref;
-
-      if (_isArray) {
-        if (_i >= _iterator.length) break;
-        _ref = _iterator[_i++];
-      } else {
-        _i = _iterator.next();
-        if (_i.done) break;
-        _ref = _i.value;
-      }
-
-      var line = _ref;
-      var leading = line.match(/^\s*/)[0].length;
-      min = Math.min(min, leading);
-    }
-
-    var stripped = [];
-
-    for (var _iterator2 = lines, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-      var _ref2;
-
-      if (_isArray2) {
-        if (_i2 >= _iterator2.length) break;
-        _ref2 = _iterator2[_i2++];
-      } else {
-        _i2 = _iterator2.next();
-        if (_i2.done) break;
-        _ref2 = _i2.value;
-      }
-
-      var _line = _ref2;
-      stripped.push(_line.slice(min));
-    }
-
-    return stripped.join('\n');
+  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    args[_key - 1] = arguments[_key];
   }
+
+  for (var i = 0; i < strings.length; i++) {
+    var string = strings[i];
+    var dynamic = args[i] !== undefined ? String(args[i]) : '';
+    out += '' + string + dynamic;
+  }
+
+  var lines = out.split('\n');
+
+  while (lines.length && lines[0].match(/^\s*$/)) {
+    lines.shift();
+  }
+
+  while (lines.length && lines[lines.length - 1].match(/^\s*$/)) {
+    lines.pop();
+  }
+
+  var min = Infinity;
+
+  for (var _iterator = lines, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+    var _ref;
+
+    if (_isArray) {
+      if (_i >= _iterator.length) break;
+      _ref = _iterator[_i++];
+    } else {
+      _i = _iterator.next();
+      if (_i.done) break;
+      _ref = _i.value;
+    }
+
+    var line = _ref;
+    var leading = line.match(/^\s*/)[0].length;
+    min = Math.min(min, leading);
+  }
+
+  var stripped = [];
+
+  for (var _iterator2 = lines, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+    var _ref2;
+
+    if (_isArray2) {
+      if (_i2 >= _iterator2.length) break;
+      _ref2 = _iterator2[_i2++];
+    } else {
+      _i2 = _iterator2.next();
+      if (_i2.done) break;
+      _ref2 = _i2.value;
+    }
+
+    var _line = _ref2;
+    stripped.push(_line.slice(min));
+  }
+
+  return stripped.join('\n');
+}
+
+var string = /*#__PURE__*/Object.defineProperty({
+  strip: strip_1
+}, '__esModule', {
+  value: true
 });
 var es5$1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -23839,35 +23569,457 @@ var es5$1 = createCommonjsModule(function (module, exports) {
     console.trace(desc + ' :: ' + JSON.stringify(value) + ' (' + value + ')');
   }
 });
-var captureRenderTree_1 = createCommonjsModule(function (module, exports) {
+var browserEnvironment = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
   });
-  exports.default = captureRenderTree;
+  exports.hasDOM = exports.isFirefox = exports.isChrome = exports.userAgent = exports.history = exports.location = exports.window = void 0; // check if window exists and actually is the global
+
+  var hasDom = typeof self === 'object' && self !== null && self.Object === Object && typeof Window !== 'undefined' && self.constructor === Window && typeof document === 'object' && document !== null && self.document === document && typeof location === 'object' && location !== null && self.location === location && typeof history === 'object' && history !== null && self.history === history && typeof navigator === 'object' && navigator !== null && self.navigator === navigator && typeof navigator.userAgent === 'string';
+  exports.hasDOM = hasDom;
+  const window = hasDom ? self : null;
+  exports.window = window;
+  const location$1 = hasDom ? self.location : null;
+  exports.location = location$1;
+  const history$1 = hasDom ? self.history : null;
+  exports.history = history$1;
+  const userAgent = hasDom ? self.navigator.userAgent : 'Lynx (textmode)';
+  exports.userAgent = userAgent;
+  const isChrome = hasDom ? Boolean(window.chrome) && !window.opera : false;
+  exports.isChrome = isChrome;
+  const isFirefox = hasDom ? typeof InstallTrigger !== 'undefined' : false;
+  exports.isFirefox = isFirefox;
+});
+var error = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.default = void 0;
   /**
-    @module @ember/debug
+   @module @ember/error
   */
 
   /**
-    Ember Inspector calls this function to capture the current render tree.
+    The JavaScript Error object used by Ember.assert.
   
-    In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
-    before loading Ember.
-  
-    @private
-    @static
-    @method captureRenderTree
-    @for @ember/debug
-    @param app {ApplicationInstance} An `ApplicationInstance`.
-    @since 3.14.0
+    @class Error
+    @namespace Ember
+    @extends Error
+    @constructor
+    @public
   */
 
-  function captureRenderTree(app) {
-    let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
-    let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
-    let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
-    return renderer.debugRenderTree.capture();
+  var _default = Error;
+  exports.default = _default;
+});
+var handlers = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.invoke = exports.registerHandler = exports.HANDLERS = void 0;
+  let HANDLERS = {};
+  exports.HANDLERS = HANDLERS;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let invoke = () => {};
+
+  exports.invoke = invoke;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(type, callback) {
+      let nextHandler = HANDLERS[type] || (() => {});
+
+      HANDLERS[type] = (message, options) => {
+        callback(message, options, nextHandler);
+      };
+    };
+
+    exports.invoke = invoke = function invoke(type, message, test, options) {
+      if (test) {
+        return;
+      }
+
+      let handlerForType = HANDLERS[type];
+
+      if (handlerForType) {
+        handlerForType(message, options);
+      }
+    };
   }
+});
+var deprecate_1$1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.SINCE_MISSING_DEPRECATIONS = exports.FOR_MISSING_DEPRECATIONS = exports.missingOptionsSinceDeprecation = exports.missingOptionsForDeprecation = exports.missingOptionsUntilDeprecation = exports.missingOptionsIdDeprecation = exports.missingOptionsDeprecation = exports.registerHandler = exports.default = void 0;
+  /**
+   @module @ember/debug
+   @public
+  */
+
+  /**
+    Allows for runtime registration of handler functions that override the default deprecation behavior.
+    Deprecations are invoked by calls to [@ember/debug/deprecate](/ember/release/classes/@ember%2Fdebug/methods/deprecate?anchor=deprecate).
+    The following example demonstrates its usage by registering a handler that throws an error if the
+    message contains the word "should", otherwise defers to the default handler.
+  
+    ```javascript
+    import { registerDeprecationHandler } from '@ember/debug';
+  
+    registerDeprecationHandler((message, options, next) => {
+      if (message.indexOf('should') !== -1) {
+        throw new Error(`Deprecation message with should: ${message}`);
+      } else {
+        // defer to whatever handler was registered before this one
+        next(message, options);
+      }
+    });
+    ```
+  
+    The handler function takes the following arguments:
+  
+    <ul>
+      <li> <code>message</code> - The message received from the deprecation call.</li>
+      <li> <code>options</code> - An object passed in with the deprecation call containing additional information including:</li>
+        <ul>
+          <li> <code>id</code> - An id of the deprecation in the form of <code>package-name.specific-deprecation</code>.</li>
+          <li> <code>until</code> - The Ember version number the feature and deprecation will be removed in.</li>
+        </ul>
+      <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+    </ul>
+  
+    @public
+    @static
+    @method registerDeprecationHandler
+    @for @ember/debug
+    @param handler {Function} A function to handle deprecation calls.
+    @since 2.1.0
+  */
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+  let missingOptionsUntilDeprecation;
+  exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation;
+
+  let missingOptionsForDeprecation = () => '';
+
+  exports.missingOptionsForDeprecation = missingOptionsForDeprecation;
+
+  let missingOptionsSinceDeprecation = () => '';
+
+  exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation;
+
+  let deprecate = () => {};
+
+  let FOR_MISSING_DEPRECATIONS = new Set();
+  exports.FOR_MISSING_DEPRECATIONS = FOR_MISSING_DEPRECATIONS;
+  let SINCE_MISSING_DEPRECATIONS = new Set();
+  exports.SINCE_MISSING_DEPRECATIONS = SINCE_MISSING_DEPRECATIONS;
+
+  if (es5.DEBUG) {
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('deprecate', handler);
+    };
+
+    let formatMessage = function formatMessage(_message, options) {
+      let message = _message;
+
+      if (options && options.id) {
+        message = message + ` [deprecation id: ${options.id}]`;
+      }
+
+      if (options && options.url) {
+        message += ` See ${options.url} for more details.`;
+      }
+
+      return message;
+    };
+
+    registerHandler(function logDeprecationToConsole(message, options) {
+      let updatedMessage = formatMessage(message, options);
+      console.warn(`DEPRECATION: ${updatedMessage}`); // eslint-disable-line no-console
+    });
+    let captureErrorForStack;
+
+    if (new Error().stack) {
+      captureErrorForStack = () => new Error();
+    } else {
+      captureErrorForStack = () => {
+        try {
+          __fail__.fail();
+        } catch (e) {
+          return e;
+        }
+      };
+    }
+
+    registerHandler(function logDeprecationStackTrace(message, options, next) {
+      if (environment.ENV.LOG_STACKTRACE_ON_DEPRECATION) {
+        let stackStr = '';
+        let error = captureErrorForStack();
+        let stack;
+
+        if (error.stack) {
+          if (error['arguments']) {
+            // Chrome
+            stack = error.stack.replace(/^\s+at\s+/gm, '').replace(/^([^(]+?)([\n$])/gm, '{anonymous}($1)$2').replace(/^Object.<anonymous>\s*\(([^)]+)\)/gm, '{anonymous}($1)').split('\n');
+            stack.shift();
+          } else {
+            // Firefox
+            stack = error.stack.replace(/(?:\n@:0)?\s+$/m, '').replace(/^\(/gm, '{anonymous}(').split('\n');
+          }
+
+          stackStr = `\n    ${stack.slice(2).join('\n    ')}`;
+        }
+
+        let updatedMessage = formatMessage(message, options);
+        console.warn(`DEPRECATION: ${updatedMessage}${stackStr}`); // eslint-disable-line no-console
+      } else {
+        next(message, options);
+      }
+    });
+    registerHandler(function raiseOnDeprecation(message, options, next) {
+      if (environment.ENV.RAISE_ON_DEPRECATION) {
+        let updatedMessage = formatMessage(message);
+        throw new Error(updatedMessage);
+      } else {
+        next(message, options);
+      }
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `deprecate` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include `id` and `until` properties.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `deprecate` you must provide `id` in options.';
+    exports.missingOptionsUntilDeprecation = missingOptionsUntilDeprecation = 'When calling `deprecate` you must provide `until` in options.';
+
+    exports.missingOptionsForDeprecation = missingOptionsForDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`for\` in options. Missing options.for in "${id}" deprecation`;
+    };
+
+    exports.missingOptionsSinceDeprecation = missingOptionsSinceDeprecation = id => {
+      return `When calling \`deprecate\` you must provide \`since\` in options. Missing options.since in "${id}" deprecation`;
+    };
+    /**
+     @module @ember/debug
+     @public
+     */
+
+    /**
+      Display a deprecation warning with the provided message and a stack trace
+      (Chrome and Firefox only).
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         @method deprecate
+      @for @ember/debug
+      @param {String} message A description of the deprecation.
+      @param {Boolean} test A boolean. If falsy, the deprecation will be displayed.
+      @param {Object} options
+      @param {String} options.id A unique id for this deprecation. The id can be
+        used by Ember debugging tools to change the behavior (raise, log or silence)
+        for that specific deprecation. The id should be namespaced by dots, e.g.
+        "view.helper.select".
+      @param {string} options.until The version of Ember when this deprecation
+        warning will be removed.
+      @param {String} options.for A namespace for the deprecation, usually the package name
+      @param {Object} options.since Describes when the deprecation became available and enabled.
+      @param {String} [options.url] An optional url to the transition guide on the
+            emberjs.com website.
+      @static
+      @public
+      @since 1.0.0
+    */
+
+
+    deprecate = function deprecate(message, test, options) {
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options && (options.id || options.until)));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options.id));
+      (0, debug_1.assert)(missingOptionsUntilDeprecation, Boolean(options.until));
+
+      if (!options.for && !FOR_MISSING_DEPRECATIONS.has(options.id)) {
+        FOR_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsForDeprecation(options.id), Boolean(options.for), {
+          id: 'ember-source.deprecation-without-for',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      if (!options.since && !SINCE_MISSING_DEPRECATIONS.has(options.id)) {
+        SINCE_MISSING_DEPRECATIONS.add(options.id);
+        deprecate(missingOptionsSinceDeprecation(options.id), Boolean(options.since), {
+          id: 'ember-source.deprecation-without-since',
+          until: '4.0.0',
+          for: 'ember-source',
+          since: {
+            available: '3.24.0'
+          }
+        });
+      }
+
+      (0, handlers.invoke)('deprecate', message, test, options);
+    };
+  }
+
+  var _default = deprecate;
+  exports.default = _default;
+});
+var isTesting_1 = isTesting;
+var setTesting_1 = setTesting;
+let testing = false;
+
+function isTesting() {
+  return testing;
+}
+
+function setTesting(value) {
+  testing = Boolean(value);
+}
+
+var testing_1 = /*#__PURE__*/Object.defineProperty({
+  isTesting: isTesting_1,
+  setTesting: setTesting_1
+}, '__esModule', {
+  value: true
+});
+var warn_1 = createCommonjsModule(function (module, exports) {
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+  exports.missingOptionsDeprecation = exports.missingOptionsIdDeprecation = exports.registerHandler = exports.default = void 0;
+
+  let registerHandler = () => {};
+
+  exports.registerHandler = registerHandler;
+
+  let warn = () => {};
+
+  let missingOptionsDeprecation;
+  exports.missingOptionsDeprecation = missingOptionsDeprecation;
+  let missingOptionsIdDeprecation;
+  /**
+  @module @ember/debug
+  */
+
+  exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation;
+
+  if (es5.DEBUG) {
+    /**
+      Allows for runtime registration of handler functions that override the default warning behavior.
+      Warnings are invoked by calls made to [@ember/debug/warn](/ember/release/classes/@ember%2Fdebug/methods/warn?anchor=warn).
+      The following example demonstrates its usage by registering a handler that does nothing overriding Ember's
+      default warning behavior.
+         ```javascript
+      import { registerWarnHandler } from '@ember/debug';
+         // next is not called, so no warnings get the default behavior
+      registerWarnHandler(() => {});
+      ```
+         The handler function takes the following arguments:
+         <ul>
+        <li> <code>message</code> - The message received from the warn call. </li>
+        <li> <code>options</code> - An object passed in with the warn call containing additional information including:</li>
+          <ul>
+            <li> <code>id</code> - An id of the warning in the form of <code>package-name.specific-warning</code>.</li>
+          </ul>
+        <li> <code>next</code> - A function that calls into the previously registered handler.</li>
+      </ul>
+         @public
+      @static
+      @method registerWarnHandler
+      @for @ember/debug
+      @param handler {Function} A function to handle warnings.
+      @since 2.1.0
+    */
+    exports.registerHandler = registerHandler = function registerHandler(handler) {
+      (0, handlers.registerHandler)('warn', handler);
+    };
+
+    registerHandler(function logWarning(message) {
+      /* eslint-disable no-console */
+      console.warn(`WARNING: ${message}`);
+      /* eslint-enable no-console */
+    });
+    exports.missingOptionsDeprecation = missingOptionsDeprecation = 'When calling `warn` you ' + 'must provide an `options` hash as the third parameter.  ' + '`options` should include an `id` property.';
+    exports.missingOptionsIdDeprecation = missingOptionsIdDeprecation = 'When calling `warn` you must provide `id` in options.';
+    /**
+      Display a warning with the provided message.
+         * In a production build, this method is defined as an empty function (NOP).
+      Uses of this method in Ember itself are stripped from the ember.prod.js build.
+         ```javascript
+      import { warn } from '@ember/debug';
+      import tomsterCount from './tomster-counter'; // a module in my project
+         // Log a warning if we have more than 3 tomsters
+      warn('Too many tomsters!', tomsterCount <= 3, {
+        id: 'ember-debug.too-many-tomsters'
+      });
+      ```
+         @method warn
+      @for @ember/debug
+      @static
+      @param {String} message A warning to display.
+      @param {Boolean} test An optional boolean. If falsy, the warning
+        will be displayed.
+      @param {Object} options An object that can be used to pass a unique
+        `id` for this warning.  The `id` can be used by Ember debugging tools
+        to change the behavior (raise, log, or silence) for that specific warning.
+        The `id` should be namespaced by dots, e.g. "ember-debug.feature-flag-with-features-stripped"
+      @public
+      @since 1.0.0
+    */
+
+    warn = function warn(message, test, options) {
+      if (arguments.length === 2 && typeof test === 'object') {
+        options = test;
+        test = false;
+      }
+
+      (0, debug_1.assert)(missingOptionsDeprecation, Boolean(options));
+      (0, debug_1.assert)(missingOptionsIdDeprecation, Boolean(options && options.id));
+      (0, handlers.invoke)('warn', message, test, options);
+    };
+  }
+
+  var _default = warn;
+  exports.default = _default;
+});
+var _default$1 = captureRenderTree;
+/**
+  @module @ember/debug
+*/
+
+/**
+  Ember Inspector calls this function to capture the current render tree.
+
+  In production mode, this requires turning on `ENV._DEBUG_RENDER_TREE`
+  before loading Ember.
+
+  @private
+  @static
+  @method captureRenderTree
+  @for @ember/debug
+  @param app {ApplicationInstance} An `ApplicationInstance`.
+  @since 3.14.0
+*/
+
+function captureRenderTree(app) {
+  let env = (0, es5$1.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
+  let rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
+  let renderer = (0, es5$1.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+  return renderer.debugRenderTree.capture();
+}
+
+var captureRenderTree_1 = /*#__PURE__*/Object.defineProperty({
+  default: _default$1
+}, '__esModule', {
+  value: true
 });
 var debug_1 = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -23907,7 +24059,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
 
   var _error = _interopRequireDefault(error);
 
-  var _deprecate2 = _interopRequireWildcard(deprecate_1);
+  var _deprecate2 = _interopRequireWildcard(deprecate_1$1);
 
   var _warn2 = _interopRequireWildcard(warn_1);
 
@@ -24105,9 +24257,7 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     });
     /**
       Display a debug notice.
-         Calls to this function are removed from production builds, so they can be
-      freely added for documentation and debugging purposes without worries of
-      incuring any performance penalty.
+         Calls to this function are not invoked in production builds.
          ```javascript
       import { debug } from '@ember/debug';
          debug('I\'m a debug notice!');
@@ -24253,240 +24403,6 @@ var debug_1 = createCommonjsModule(function (module, exports) {
     }
   }
 });
-var merge_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = merge;
-  /**
-    Merge the contents of two objects together into the first object.
-  
-    ```javascript
-    import { merge } from '@ember/polyfills';
-  
-    merge({ first: 'Tom' }, { last: 'Dale' }); // { first: 'Tom', last: 'Dale' }
-    var a = { first: 'Yehuda' };
-    var b = { last: 'Katz' };
-    merge(a, b); // a == { first: 'Yehuda', last: 'Katz' }, b == { last: 'Katz' }
-    ```
-  
-    @method merge
-    @static
-    @for @ember/polyfills
-    @param {Object} original The object to merge into
-    @param {Object} updates The object to copy properties from
-    @return {Object}
-    @deprecated
-    @public
-  */
-
-  function merge(original, updates) {
-    (0, debug_1.deprecate)('Use of `merge` has been deprecated. Please use `assign` instead.', false, {
-      id: 'ember-polyfills.deprecate-merge',
-      until: '4.0.0',
-      url: 'https://emberjs.com/deprecations/v3.x/#toc_ember-polyfills-deprecate-merge'
-    });
-
-    if (updates === null || typeof updates !== 'object') {
-      return original;
-    }
-
-    let props = Object.keys(updates);
-    let prop;
-
-    for (let i = 0; i < props.length; i++) {
-      prop = props[i];
-      original[prop] = updates[prop];
-    }
-
-    return original;
-  }
-});
-var assign_1 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.assign = assign;
-  exports.default = void 0;
-  /**
-   @module @ember/polyfills
-  */
-
-  /**
-    Copy properties from a source object to a target object. Source arguments remain unchanged.
-  
-    ```javascript
-    import { assign } from '@ember/polyfills';
-  
-    var a = { first: 'Yehuda' };
-    var b = { last: 'Katz' };
-    var c = { company: 'Other Company' };
-    var d = { company: 'Tilde Inc.' };
-    assign(a, b, c, d); // a === { first: 'Yehuda', last: 'Katz', company: 'Tilde Inc.' };
-    ```
-  
-    @method assign
-    @for @ember/polyfills
-    @param {Object} target The object to assign into
-    @param {Object} ...args The objects to copy properties from
-    @return {Object}
-    @public
-    @static
-  */
-
-  function assign(target) {
-    for (let i = 1; i < arguments.length; i++) {
-      let arg = arguments[i];
-
-      if (!arg) {
-        continue;
-      }
-
-      let updates = Object.keys(arg);
-
-      for (let i = 0; i < updates.length; i++) {
-        let prop = updates[i];
-        target[prop] = arg[prop];
-      }
-    }
-
-    return target;
-  } // Note: We use the bracket notation so
-  //       that the babel plugin does not
-  //       transform it.
-  // https://www.npmjs.com/package/babel-plugin-transform-object-assign
-
-
-  const {
-    assign: _assign
-  } = Object;
-
-  var _default = _assign || assign;
-
-  exports.default = _default;
-});
-var weak_set = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.default = void 0;
-  /* globals WeakSet */
-
-  var _default = typeof WeakSet === 'function' ? WeakSet : class WeakSetPolyFill {
-    constructor() {
-      this._map = new WeakMap();
-    }
-
-    add(val) {
-      this._map.set(val, true);
-
-      return this;
-    }
-
-    delete(val) {
-      return this._map.delete(val);
-    }
-
-    has(val) {
-      return this._map.has(val);
-    }
-
-  };
-
-  exports.default = _default;
-});
-var polyfills = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  Object.defineProperty(exports, "assign", {
-    enumerable: true,
-    get: function () {
-      return _assign.default;
-    }
-  });
-  Object.defineProperty(exports, "assignPolyfill", {
-    enumerable: true,
-    get: function () {
-      return _assign.assign;
-    }
-  });
-  Object.defineProperty(exports, "_WeakSet", {
-    enumerable: true,
-    get: function () {
-      return _weak_set.default;
-    }
-  });
-  exports.merge = void 0;
-
-  var _merge = _interopRequireDefault(merge_1);
-
-  var _assign = _interopRequireWildcard(assign_1);
-
-  var _weak_set = _interopRequireDefault(weak_set);
-
-  function _getRequireWildcardCache() {
-    if (typeof WeakMap !== "function") return null;
-    var cache = new WeakMap();
-
-    _getRequireWildcardCache = function () {
-      return cache;
-    };
-
-    return cache;
-  }
-
-  function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-      return obj;
-    }
-
-    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
-      return {
-        default: obj
-      };
-    }
-
-    var cache = _getRequireWildcardCache();
-
-    if (cache && cache.has(obj)) {
-      return cache.get(obj);
-    }
-
-    var newObj = {};
-    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
-
-    for (var key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
-
-        if (desc && (desc.get || desc.set)) {
-          Object.defineProperty(newObj, key, desc);
-        } else {
-          newObj[key] = obj[key];
-        }
-      }
-    }
-
-    newObj.default = obj;
-
-    if (cache) {
-      cache.set(obj, newObj);
-    }
-
-    return newObj;
-  }
-
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
-
-  let merge = deprecatedFeatures.MERGE ? _merge.default : undefined; // Export `assignPolyfill` for testing
-
-  exports.merge = merge;
-});
 var utils = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
     value: true
@@ -24513,8 +24429,9 @@ var utils = createCommonjsModule(function (module, exports) {
   exports.isObject = isObject;
   exports.isProxy = isProxy;
   exports.setProxy = setProxy;
+  exports.setEmberArray = setEmberArray;
   exports.isEmberArray = isEmberArray;
-  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.EMBER_ARRAY = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
+  exports.setWithMandatorySetter = exports.teardownMandatorySetter = exports.setupMandatorySetter = exports.Cache = exports.HAS_NATIVE_PROXY = exports.HAS_NATIVE_SYMBOL = exports.ROOT = exports.checkHasSuper = exports.GUID_KEY = exports.getDebugName = exports.symbol = void 0;
   /**
     Strongly hint runtimes to intern the provided string.
   
@@ -24890,7 +24807,7 @@ var utils = createCommonjsModule(function (module, exports) {
     meta.listeners = listeners;
   }
 
-  const IS_WRAPPED_FUNCTION_SET = new polyfills._WeakSet();
+  const IS_WRAPPED_FUNCTION_SET = new es5$1._WeakSet();
   /**
     Wraps the passed function so that `this._super` will point to the superFunc
     when the function is invoked. This is the primitive we use to implement
@@ -25019,7 +24936,7 @@ var utils = createCommonjsModule(function (module, exports) {
     }
 
     if (seen === undefined) {
-      seen = new polyfills._WeakSet();
+      seen = new es5$1._WeakSet();
     } else {
       if (seen.has(value)) return `[Circular]`;
     }
@@ -25142,10 +25059,21 @@ var utils = createCommonjsModule(function (module, exports) {
     @param {Array} [args] The arguments to pass to the method
     @return {*} the return value of the invoked method or undefined if it cannot be invoked
     @public
+    @deprecated Use Javascript's optional chaining instead.
   */
 
 
   function tryInvoke(obj, methodName, args) {
+    (0, debug_1.deprecate)(`Use of tryInvoke is deprecated. Instead, consider using JavaScript's optional chaining.`, false, {
+      id: 'ember-utils.try-invoke',
+      until: '4.0.0',
+      for: 'ember-source',
+      since: {
+        available: '3.24.0'
+      },
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-utils-try-invoke'
+    });
+
     if (canInvoke(obj, methodName)) {
       let method = obj[methodName];
       return method.apply(obj, args);
@@ -25220,7 +25148,7 @@ var utils = createCommonjsModule(function (module, exports) {
 
   const HAS_NATIVE_PROXY = typeof Proxy === 'function';
   exports.HAS_NATIVE_PROXY = HAS_NATIVE_PROXY;
-  const PROXIES = new polyfills._WeakSet();
+  const PROXIES = new es5$1._WeakSet();
 
   function isProxy(value) {
     if (isObject(value)) {
@@ -25276,11 +25204,14 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   exports.Cache = Cache;
-  const EMBER_ARRAY = symbol('EMBER_ARRAY');
-  exports.EMBER_ARRAY = EMBER_ARRAY;
+  const EMBER_ARRAYS = new es5$1._WeakSet();
+
+  function setEmberArray(obj) {
+    EMBER_ARRAYS.add(obj);
+  }
 
   function isEmberArray(obj) {
-    return obj && obj[EMBER_ARRAY];
+    return EMBER_ARRAYS.has(obj);
   }
 
   let setupMandatorySetter;
@@ -25304,7 +25235,7 @@ var utils = createCommonjsModule(function (module, exports) {
   }
 
   if (es5.DEBUG) {
-    let SEEN_TAGS = new polyfills._WeakSet();
+    let SEEN_TAGS = new es5$1._WeakSet();
     let MANDATORY_SETTERS = new WeakMap();
 
     let propertyIsEnumerable = function (obj, key) {
@@ -25515,10 +25446,21 @@ var string$1 = createCommonjsModule(function (module, exports) {
     @param {Array} formats Optional array of parameters to interpolate into string.
     @return {String} formatted string
     @public
+    @deprecated
   */
 
 
   function loc(str, formats) {
+    (0, debug_1.deprecate)('loc is deprecated, please use a dedicated localization solution like ember-intl. More alternatives listed at https://emberobserver.com/categories/internationalization.', false, {
+      id: 'ember-string.loc',
+      until: '4.0.0',
+      for: 'ember-source',
+      url: 'https://deprecations.emberjs.com/v3.x#toc_ember-string-loc',
+      since: {
+        available: '3.24'
+      }
+    });
+
     if (!Array.isArray(formats) || arguments.length > 2) {
       formats = Array.prototype.slice.call(arguments, 1);
     }
@@ -25694,6 +25636,21 @@ var string$1 = createCommonjsModule(function (module, exports) {
   }
 
   if (environment.ENV.EXTEND_PROTOTYPES.String) {
+    let deprecateEmberStringPrototypeExtension = function (name, fn, message = `String prototype extensions are deprecated. Please import ${name} from '@ember/string' instead.`) {
+      return function () {
+        (0, debug_1.deprecate)(message, false, {
+          id: 'ember-string.prototype-extensions',
+          for: 'ember-source',
+          since: {
+            available: '3.24'
+          },
+          until: '4.0.0',
+          url: 'https://deprecations.emberjs.com/v3.x/#toc_ember-string-prototype_extensions'
+        });
+        return fn(this, ...arguments);
+      };
+    };
+
     Object.defineProperties(String.prototype, {
       /**
         See [String.w](/ember/release/classes/String/methods/w?anchor=w).
@@ -25701,16 +25658,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       w: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return w(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('w', w)
       },
 
       /**
@@ -25719,6 +25673,7 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       loc: {
         configurable: true,
@@ -25737,16 +25692,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       camelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return camelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('camelize', camelize)
       },
 
       /**
@@ -25755,16 +25707,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       decamelize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return decamelize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('decamelize', decamelize)
       },
 
       /**
@@ -25773,16 +25722,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       dasherize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return dasherize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('dasherize', dasherize)
       },
 
       /**
@@ -25791,16 +25737,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       underscore: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return underscore(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('underscore', underscore)
       },
 
       /**
@@ -25809,16 +25752,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       classify: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return classify(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('classify', classify)
       },
 
       /**
@@ -25827,16 +25767,13 @@ var string$1 = createCommonjsModule(function (module, exports) {
         @for @ember/string
         @static
         @private
+        @deprecated
       */
       capitalize: {
         configurable: true,
         enumerable: false,
         writeable: true,
-
-        value() {
-          return capitalize(this);
-        }
-
+        value: deprecateEmberStringPrototypeExtension('capitalize', capitalize)
       }
     });
   }
@@ -26180,28 +26117,30 @@ var inflector = createCommonjsModule(function (module, exports) {
   var _default = Inflector;
   exports.default = _default;
 });
-var string$2 = createCommonjsModule(function (module, exports) {
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-  exports.pluralize = pluralize;
-  exports.singularize = singularize;
+var pluralize_1 = pluralize;
+var singularize_1 = singularize;
 
-  var _inflector = _interopRequireDefault(inflector);
+var _inflector = _interopRequireDefault(inflector);
 
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : {
+    default: obj
+  };
+}
 
-  function pluralize() {
-    return _inflector.default.inflector.pluralize(...arguments);
-  }
+function pluralize() {
+  return _inflector.default.inflector.pluralize(...arguments);
+}
 
-  function singularize(word) {
-    return _inflector.default.inflector.singularize(word);
-  }
+function singularize(word) {
+  return _inflector.default.inflector.singularize(word);
+}
+
+var string$2 = /*#__PURE__*/Object.defineProperty({
+  pluralize: pluralize_1,
+  singularize: singularize_1
+}, '__esModule', {
+  value: true
 });
 var system = createCommonjsModule(function (module, exports) {
   Object.defineProperty(exports, "__esModule", {
@@ -26260,368 +26199,358 @@ var emberInflector = createCommonjsModule(function (module, exports) {
   var _default = system.Inflector;
   exports.default = _default;
 });
-var pretenderHacks = createCommonjsModule(function (module, exports) {
-  var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
-    return mod && mod.__esModule ? mod : {
-      "default": mod
-    };
+
+var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
   };
+};
 
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
+const ansi_colors_1 = __importDefault(ansiColors);
 
-  const ansi_colors_1 = __importDefault(ansiColors);
-
-  const model_1 = __importDefault(require("./model")); // HACK START: Pretender Request Parameter Type Casting Hack: Because types are important.
+const model_1 = __importDefault(require("./model")); // HACK START: Pretender Request Parameter Type Casting Hack: Because types are important.
 
 
-  window.Pretender.prototype._handlerFor = function (verb, url, request) {
-    var registry = this.hosts.forURL(url)[verb];
-    var matches = registry.recognize(window.Pretender.parseURL(url).fullpath);
-    var match = matches ? matches[0] : null;
-    var headers = request.requestHeaders || {};
+window.Pretender.prototype._handlerFor = function (verb, url, request) {
+  var registry = this.hosts.forURL(url)[verb];
+  var matches = registry.recognize(window.Pretender.parseURL(url).fullpath);
+  var match = matches ? matches[0] : null;
+  var headers = request.requestHeaders || {};
 
-    if (match) {
-      request.headers = headers;
-      request.params = Object.keys(match.params).reduce((result, key) => {
-        var value = castCorrectType(match.params[key]);
-        return Object.assign(result, {
-          [key]: value
-        });
-      }, {});
-      request.queryParams = Object.keys(matches.queryParams).reduce((result, key) => {
-        var targetValue = castCorrectType(matches.queryParams[key]);
-        return Object.assign(result, {
-          [key]: targetValue
-        });
-      }, {});
-      let newParamsFromBody = tryConvertingJSONStringToObject(request.requestBody) || tryConvertingQueryStringToObject(request.requestBody);
-
-      if (newParamsFromBody) {
-        request.params = nilifyStrings(Object.assign(request.params, newParamsFromBody));
-      }
-    }
-
-    return match;
-  };
-
-  function castCorrectType(value) {
-    if (Array.isArray(value)) {
-      return value.map(element => castCorrectType(element));
-    } else if (Number(value) && parseInt(value, 10)) {
-      return Number(value);
-    } else if (value === "false") {
-      return false;
-    } else if (value === "true") {
-      return true;
-    }
-
-    return nilifyStrings(value);
-  }
-
-  function tryConvertingJSONStringToObject(string) {
-    try {
-      let object = JSON.parse(string);
-
-      if (typeof object === "object" && object !== null) {
-        return object;
-      }
-    } catch (error) {}
-  }
-
-  function tryConvertingQueryStringToObject(queryString) {
-    let entries = Array.from(new URLSearchParams(queryString));
-
-    if (entries.length > 0) {
-      return entries.reduce((result, entry) => {
-        result[entry[0]] = entry[1];
-        return result;
-      }, {});
-    }
-  }
-
-  function nilifyStrings(value) {
-    if (value !== null && typeof value === "object") {
-      return Object.keys(value).reduce((object, key) => {
-        return Object.assign(object, {
-          [key]: nilifyStrings(value[key])
-        });
-      }, {});
-    } else if (value === "") {
-      return null;
-    }
-
-    return value;
-  } // END: Pretender Request Parameter Type Casting Hack
-  // HACK START: Pretender Response Defaults UX Hack: Because Pretender Response types suck UX-wise.
-
-
-  window.Pretender.prototype.handleRequest = function (request) {
-    var pretender = this;
-    var verb = request.method.toUpperCase();
-    var path = request.url;
-
-    var handler = pretender._handlerFor(verb, path, request);
-
-    var _handleRequest = function (result) {
-      var statusCode, headers, body;
-
-      if (Array.isArray(result) && result.length === 3) {
-        statusCode = result[0];
-        headers = pretender.prepareHeaders(result[1]);
-        body = pretender.prepareBody(result[2], headers);
-        return pretender.handleResponse(request, async, function () {
-          request.respond(statusCode, headers, body);
-          pretender.handledRequest(verb, path, request);
-        });
-      } else if (!result) {
-        headers = pretender.prepareHeaders({
-          "Content-Type": "application/json"
-        });
-
-        if (verb === "DELETE") {
-          return pretender.handleResponse(request, async, function () {
-            request.respond(204, headers, pretender.prepareBody("{}", headers));
-            pretender.handledRequest(verb, path, request);
-          });
-        }
-
-        return pretender.handleResponse(request, async, function () {
-          request.respond(500, headers, pretender.prepareBody(JSON.stringify({
-            error: `[Memserver] ${verb} ${path} route handler did not return anything to respond to the request!`
-          }), headers));
-          pretender.handledRequest(verb, path, request);
-        });
-      }
-
-      statusCode = getDefaultStatusCode(verb);
-      headers = pretender.prepareHeaders({
-        "Content-Type": "application/json"
+  if (match) {
+    request.headers = headers;
+    request.params = Object.keys(match.params).reduce((result, key) => {
+      var value = castCorrectType(match.params[key]);
+      return Object.assign(result, {
+        [key]: value
       });
-      var targetResult = typeof result === "string" ? result : JSON.stringify(result);
-      body = pretender.prepareBody(targetResult, headers);
+    }, {});
+    request.queryParams = Object.keys(matches.queryParams).reduce((result, key) => {
+      var targetValue = castCorrectType(matches.queryParams[key]);
+      return Object.assign(result, {
+        [key]: targetValue
+      });
+    }, {});
+    let newParamsFromBody = tryConvertingJSONStringToObject(request.requestBody) || tryConvertingQueryStringToObject(request.requestBody);
+
+    if (newParamsFromBody) {
+      request.params = nilifyStrings(Object.assign(request.params, newParamsFromBody));
+    }
+  }
+
+  return match;
+};
+
+function castCorrectType(value) {
+  if (Array.isArray(value)) {
+    return value.map(element => castCorrectType(element));
+  } else if (Number(value) && parseInt(value, 10)) {
+    return Number(value);
+  } else if (value === "false") {
+    return false;
+  } else if (value === "true") {
+    return true;
+  }
+
+  return nilifyStrings(value);
+}
+
+function tryConvertingJSONStringToObject(string) {
+  try {
+    let object = JSON.parse(string);
+
+    if (typeof object === "object" && object !== null) {
+      return object;
+    }
+  } catch (error) {}
+}
+
+function tryConvertingQueryStringToObject(queryString) {
+  let entries = Array.from(new URLSearchParams(queryString));
+
+  if (entries.length > 0) {
+    return entries.reduce((result, entry) => {
+      result[entry[0]] = entry[1];
+      return result;
+    }, {});
+  }
+}
+
+function nilifyStrings(value) {
+  if (value !== null && typeof value === "object") {
+    return Object.keys(value).reduce((object, key) => {
+      return Object.assign(object, {
+        [key]: nilifyStrings(value[key])
+      });
+    }, {});
+  } else if (value === "") {
+    return null;
+  }
+
+  return value;
+} // END: Pretender Request Parameter Type Casting Hack
+// HACK START: Pretender Response Defaults UX Hack: Because Pretender Response types suck UX-wise.
+
+
+window.Pretender.prototype.handleRequest = function (request) {
+  var pretender = this;
+  var verb = request.method.toUpperCase();
+  var path = request.url;
+
+  var handler = pretender._handlerFor(verb, path, request);
+
+  var _handleRequest = function (result) {
+    var statusCode, headers, body;
+
+    if (Array.isArray(result) && result.length === 3) {
+      statusCode = result[0];
+      headers = pretender.prepareHeaders(result[1]);
+      body = pretender.prepareBody(result[2], headers);
       return pretender.handleResponse(request, async, function () {
         request.respond(statusCode, headers, body);
         pretender.handledRequest(verb, path, request);
       });
-    };
+    } else if (!result) {
+      headers = pretender.prepareHeaders({
+        "Content-Type": "application/json"
+      });
 
-    if (handler) {
-      var async = handler.handler.async;
-      handler.handler.numberOfCalls++;
-      this.handledRequests.push(request);
-      var result = handler.handler(request);
-
-      if (result && typeof result.then === "function") {
-        // `result` is a promise, resolve it
-        result.then(function (resolvedResult) {
-          _handleRequest(resolvedResult);
+      if (verb === "DELETE") {
+        return pretender.handleResponse(request, async, function () {
+          request.respond(204, headers, pretender.prepareBody("{}", headers));
+          pretender.handledRequest(verb, path, request);
         });
-      } else {
-        _handleRequest(result);
       }
+
+      return pretender.handleResponse(request, async, function () {
+        request.respond(500, headers, pretender.prepareBody(JSON.stringify({
+          error: `[Memserver] ${verb} ${path} route handler did not return anything to respond to the request!`
+        }), headers));
+        pretender.handledRequest(verb, path, request);
+      });
+    }
+
+    statusCode = getDefaultStatusCode(verb);
+    headers = pretender.prepareHeaders({
+      "Content-Type": "application/json"
+    });
+    var targetResult = typeof result === "string" ? result : JSON.stringify(result);
+    body = pretender.prepareBody(targetResult, headers);
+    return pretender.handleResponse(request, async, function () {
+      request.respond(statusCode, headers, body);
+      pretender.handledRequest(verb, path, request);
+    });
+  };
+
+  if (handler) {
+    var async = handler.handler.async;
+    handler.handler.numberOfCalls++;
+    this.handledRequests.push(request);
+    var result = handler.handler(request);
+
+    if (result && typeof result.then === "function") {
+      // `result` is a promise, resolve it
+      result.then(function (resolvedResult) {
+        _handleRequest(resolvedResult);
+      });
     } else {
-      if (!this.disableUnhandled) {
-        this.unhandledRequests.push(request);
-        this.unhandledRequest(verb, path, request);
-      }
+      _handleRequest(result);
     }
+  } else {
+    if (!this.disableUnhandled) {
+      this.unhandledRequests.push(request);
+      this.unhandledRequest(verb, path, request);
+    }
+  }
+};
+
+function getDefaultStatusCode(verb) {
+  if (["GET", "PUT", "PATCH"].includes(verb)) {
+    return 200;
+  } else if (verb === "POST") {
+    return 201;
+  } else if (verb === "DELETE") {
+    return 204;
+  }
+
+  return 500;
+} // END: Pretender Response Defaults UX Hack
+// HACK: Pretender REST defaults hack: For better UX
+
+
+["get", "put", "post", "delete"].forEach(verb => {
+  window.Pretender.prototype[verb] = function (path, handler, async) {
+    const fullPath = (this.urlPrefix || "") + (this.namespace ? "/" + this.namespace : "") + path;
+    const MemServerModel = window.MemserverModel || model_1.default;
+    const defaultResourceDefinition = MemServerModel.isPrototypeOf(handler) ? handler : null;
+    const targetHandler = handler || getDefaultRouteHandler(verb.toUpperCase(), fullPath, this, defaultResourceDefinition);
+    const timing = async ? async.timing || this.timing : this.timing;
+    return this.register(verb.toUpperCase(), fullPath, targetHandler, timing);
+  };
+}); // END: Pretender REST default hack: For better UX
+
+function getDefaultRouteHandler(verb, path, serverContext, defaultResourceDefinition) {
+  const paths = path.split(/\//g);
+  const lastPath = paths[paths.length - 1];
+  const pluralResourceName = lastPath.includes(":") ? paths[paths.length - 2] : lastPath;
+  const resourceName = emberInflector.singularize(pluralResourceName);
+  const resourceClassName = string$1.classify(resourceName);
+  const ResourceModel = defaultResourceDefinition || model_1.default._modelDefinitions[resourceClassName] || serverContext.Models[resourceClassName];
+
+  if (!ResourceModel) {
+    throw new Error(ansi_colors_1.default.red(`[Memserver] ${verb} ${path} route handler cannot be generated automatically: ${string$1.classify(resourceName)} is not on your window.${string$1.classify(resourceName)}, also please check that your route name matches the model reference or create a custom handler function`));
+  } else if (verb === "GET") {
+    if (lastPath.includes(":")) {
+      return request => {
+        return {
+          [resourceName]: ResourceModel.serializer(ResourceModel.find(request.params.id))
+        };
+      };
+    }
+
+    return () => {
+      return {
+        [pluralResourceName]: ResourceModel.serializer(ResourceModel.findAll())
+      };
+    };
+  } else if (verb === "POST") {
+    return request => {
+      const resourceParams = request.params[resourceName];
+      return {
+        [resourceName]: ResourceModel.serializer(ResourceModel.insert(resourceParams))
+      };
+    };
+  } else if (verb === "PUT") {
+    return request => {
+      const resourceParams = request.params[resourceName];
+      return {
+        [resourceName]: ResourceModel.serializer(ResourceModel.update(resourceParams))
+      };
+    };
+  } else if (verb === "DELETE") {
+    return request => {
+      ResourceModel.delete({
+        id: request.params.id
+      });
+    };
+  }
+}
+
+var __importDefault$1 = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+const ansi_colors_1$1 = __importDefault$1(ansiColors);
+
+const fake_xml_http_request_1 = __importDefault$1(fake_xml_http_request);
+
+const model_1$1 = __importDefault$1(require("./model"));
+
+const route_recognizer_1 = __importDefault$1(routeRecognizer); // NOTE: check this
+// NOTE: check this
+
+
+const DEFAULT_PASSTHROUGHS = ["http://localhost:0/chromecheckurl", "http://localhost:30820/socket.io"];
+
+class Memserver {
+  constructor(options = {
+    logging: true
+  }) {
+    this.Models = {};
+
+    const initializer = options.initializer || async function () {};
+
+    const routes = options.routes || function () {};
+
+    const logging = options.hasOwnProperty("logging") ? options.logging : true;
+    window.MemserverModel = window.MemserverModel || model_1$1.default;
+    const initializerReturn = initializer();
+    this.Models = window.MemserverModel._modelDefinitions;
+    window.MemServer = startPretender(routes, Object.assign(options, {
+      logging
+    }), this.Models);
+    window.MemServer.Models = this.Models;
+    return window.MemServer;
+  }
+
+}
+
+var _default$2 = Memserver;
+
+function startPretender(routes, options, Models) {
+  window.FakeXMLHttpRequest = fake_xml_http_request_1.default;
+  window.RouteRecognizer = route_recognizer_1.default;
+  window.Pretender.prototype.namespace = options.namespace;
+  window.Pretender.prototype.urlPrefix = options.urlPrefix;
+  window.Pretender.prototype.timing = options.timing;
+  let pretender = new window.Pretender(function () {
+    const Memserver = ansi_colors_1$1.default.cyan("[Memserver]");
+    this.Models = Models;
+
+    if (options.logging) {
+      this.handledRequest = function (verb, path, request) {
+        const method = verb.toUpperCase();
+        console.log(Memserver, colorStatusCode(request.status), method, request.url);
+
+        if (["POST", "PUT"].includes(method)) {
+          console.log(`${method} REQUEST BODY IS:`, request.params);
+        }
+
+        console.log(JSON.parse(request.responseText));
+      };
+
+      this.passthroughRequest = function (verb, path, request) {
+        console.log(Memserver, ansi_colors_1$1.default.yellow("[PASSTHROUGH]"), verb, request.url);
+      };
+    }
+
+    this.unhandledRequest = function (verb, path, request) {
+      console.log(Memserver, ansi_colors_1$1.default.red("[UNHANDLED REQUEST]"), verb, path);
+      console.log(ansi_colors_1$1.default.red("UNHANDLED REQUEST WAS:\n"), request);
+      console.log(request);
+    };
+  }, {
+    trackRequests: false
+  }); // HACK: Pretender this.passthrough for better UX
+  // TODO: this doesnt passthrough full http:// https://
+
+  pretender.passthrough = function (url) {
+    const parent = window.Pretender.prototype;
+    const verbs = ["get", "post", "put", "delete"];
+
+    if (!url) {
+      ["/**", "/", "/*"].forEach(path => {
+        verbs.forEach(verb => pretender[verb](path, parent.passthrough));
+      });
+      return;
+    }
+
+    const fullUrl = (this.urlPrefix || "") + (this.namespace ? "/" + this.namespace : "") + url;
+    verbs.forEach(verb => pretender[verb](fullUrl, parent.passthrough));
   };
 
-  function getDefaultStatusCode(verb) {
-    if (["GET", "PUT", "PATCH"].includes(verb)) {
-      return 200;
-    } else if (verb === "POST") {
-      return 201;
-    } else if (verb === "DELETE") {
-      return 204;
-    }
+  DEFAULT_PASSTHROUGHS.forEach(url => pretender.passthrough(url)); // END: Pretender this.passthrough for better UX
 
-    return 500;
-  } // END: Pretender Response Defaults UX Hack
-  // HACK: Pretender REST defaults hack: For better UX
+  routes.apply(pretender, []);
+  return pretender;
+}
 
-
-  ["get", "put", "post", "delete"].forEach(verb => {
-    window.Pretender.prototype[verb] = function (path, handler, async) {
-      const fullPath = (this.urlPrefix || "") + (this.namespace ? "/" + this.namespace : "") + path;
-      const MemServerModel = window.MemserverModel || model_1.default;
-      const defaultResourceDefinition = MemServerModel.isPrototypeOf(handler) ? handler : null;
-      const targetHandler = handler || getDefaultRouteHandler(verb.toUpperCase(), fullPath, this, defaultResourceDefinition);
-      const timing = async ? async.timing || this.timing : this.timing;
-      return this.register(verb.toUpperCase(), fullPath, targetHandler, timing);
-    };
-  }); // END: Pretender REST default hack: For better UX
-
-  function getDefaultRouteHandler(verb, path, serverContext, defaultResourceDefinition) {
-    const paths = path.split(/\//g);
-    const lastPath = paths[paths.length - 1];
-    const pluralResourceName = lastPath.includes(":") ? paths[paths.length - 2] : lastPath;
-    const resourceName = emberInflector.singularize(pluralResourceName);
-    const resourceClassName = string$1.classify(resourceName);
-    const ResourceModel = defaultResourceDefinition || model_1.default._modelDefinitions[resourceClassName] || serverContext.Models[resourceClassName];
-
-    if (!ResourceModel) {
-      throw new Error(ansi_colors_1.default.red(`[Memserver] ${verb} ${path} route handler cannot be generated automatically: ${string$1.classify(resourceName)} is not on your window.${string$1.classify(resourceName)}, also please check that your route name matches the model reference or create a custom handler function`));
-    } else if (verb === "GET") {
-      if (lastPath.includes(":")) {
-        return request => {
-          return {
-            [resourceName]: ResourceModel.serializer(ResourceModel.find(request.params.id))
-          };
-        };
-      }
-
-      return () => {
-        return {
-          [pluralResourceName]: ResourceModel.serializer(ResourceModel.findAll())
-        };
-      };
-    } else if (verb === "POST") {
-      return request => {
-        const resourceParams = request.params[resourceName];
-        return {
-          [resourceName]: ResourceModel.serializer(ResourceModel.insert(resourceParams))
-        };
-      };
-    } else if (verb === "PUT") {
-      return request => {
-        const resourceParams = request.params[resourceName];
-        return {
-          [resourceName]: ResourceModel.serializer(ResourceModel.update(resourceParams))
-        };
-      };
-    } else if (verb === "DELETE") {
-      return request => {
-        ResourceModel.delete({
-          id: request.params.id
-        });
-      };
-    }
-  }
-});
-var server = createCommonjsModule(function (module, exports) {
-  var __importDefault = commonjsGlobal && commonjsGlobal.__importDefault || function (mod) {
-    return mod && mod.__esModule ? mod : {
-      "default": mod
-    };
-  };
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  const ansi_colors_1 = __importDefault(ansiColors);
-
-  const fake_xml_http_request_1 = __importDefault(fake_xml_http_request);
-
-  const model_1 = __importDefault(require("./model"));
-
-  const route_recognizer_1 = __importDefault(routeRecognizer); // NOTE: check this
-  // NOTE: check this
-
-
-  const DEFAULT_PASSTHROUGHS = ["http://localhost:0/chromecheckurl", "http://localhost:30820/socket.io"];
-
-  class Memserver {
-    constructor(options = {
-      logging: true
-    }) {
-      this.Models = {};
-
-      const initializer = options.initializer || async function () {};
-
-      const routes = options.routes || function () {};
-
-      const logging = options.hasOwnProperty("logging") ? options.logging : true;
-      window.MemserverModel = window.MemserverModel || model_1.default;
-      const initializerReturn = initializer();
-      this.Models = window.MemserverModel._modelDefinitions;
-      window.MemServer = startPretender(routes, Object.assign(options, {
-        logging
-      }), this.Models);
-      window.MemServer.Models = this.Models;
-      return window.MemServer;
-    }
-
+function colorStatusCode(statusCode) {
+  if (statusCode === 200 || statusCode === 201) {
+    return ansi_colors_1$1.default.green(statusCode);
+  } else if (statusCode === 404 || statusCode === 204) {
+    return ansi_colors_1$1.default.cyan(statusCode);
   }
 
-  exports.default = Memserver;
+  return ansi_colors_1$1.default.red(statusCode);
+}
 
-  function startPretender(routes, options, Models) {
-    window.FakeXMLHttpRequest = fake_xml_http_request_1.default;
-    window.RouteRecognizer = route_recognizer_1.default;
-    window.Pretender.prototype.namespace = options.namespace;
-    window.Pretender.prototype.urlPrefix = options.urlPrefix;
-    window.Pretender.prototype.timing = options.timing;
-    let pretender = new window.Pretender(function () {
-      const Memserver = ansi_colors_1.default.cyan("[Memserver]");
-      this.Models = Models;
-
-      if (options.logging) {
-        this.handledRequest = function (verb, path, request) {
-          const method = verb.toUpperCase();
-          console.log(Memserver, colorStatusCode(request.status), method, request.url);
-
-          if (["POST", "PUT"].includes(method)) {
-            console.log(`${method} REQUEST BODY IS:`, request.params);
-          }
-
-          console.log(JSON.parse(request.responseText));
-        };
-
-        this.passthroughRequest = function (verb, path, request) {
-          console.log(Memserver, ansi_colors_1.default.yellow("[PASSTHROUGH]"), verb, request.url);
-        };
-      }
-
-      this.unhandledRequest = function (verb, path, request) {
-        console.log(Memserver, ansi_colors_1.default.red("[UNHANDLED REQUEST]"), verb, path);
-        console.log(ansi_colors_1.default.red("UNHANDLED REQUEST WAS:\n"), request);
-        console.log(request);
-      };
-    }, {
-      trackRequests: false
-    }); // HACK: Pretender this.passthrough for better UX
-    // TODO: this doesnt passthrough full http:// https://
-
-    pretender.passthrough = function (url) {
-      const parent = window.Pretender.prototype;
-      const verbs = ["get", "post", "put", "delete"];
-
-      if (!url) {
-        ["/**", "/", "/*"].forEach(path => {
-          verbs.forEach(verb => pretender[verb](path, parent.passthrough));
-        });
-        return;
-      }
-
-      const fullUrl = (this.urlPrefix || "") + (this.namespace ? "/" + this.namespace : "") + url;
-      verbs.forEach(verb => pretender[verb](fullUrl, parent.passthrough));
-    };
-
-    DEFAULT_PASSTHROUGHS.forEach(url => pretender.passthrough(url)); // END: Pretender this.passthrough for better UX
-
-    routes.apply(pretender, []);
-    return pretender;
-  }
-
-  function colorStatusCode(statusCode) {
-    if (statusCode === 200 || statusCode === 201) {
-      return ansi_colors_1.default.green(statusCode);
-    } else if (statusCode === 404 || statusCode === 204) {
-      return ansi_colors_1.default.cyan(statusCode);
-    }
-
-    return ansi_colors_1.default.red(statusCode);
-  }
-});
-var server$1 = /*@__PURE__*/getDefaultExportFromCjs(server);
-module.exports = server$1;
+module.exports = _default$2;
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./model":4,"_process":6}],6:[function(require,module,exports){
+},{"./model":14,"_process":16}],16:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -26807,7 +26736,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}]},{},[5])(5)
+},{}]},{},[15])(15)
 });
 
 
