@@ -1232,13 +1232,17 @@ define("@glimmer/component/-private/destroyables", ["exports"], function (_expor
     return DESTROYED.has(component);
   }
 });
-define("@glimmer/component/-private/ember-component-manager", ["exports", "ember-compatibility-helpers", "@glimmer/component/-private/base-component-manager", "@glimmer/component/-private/destroyables"], function (_exports, _emberCompatibilityHelpers, _baseComponentManager, _destroyables) {
+define("@glimmer/component/-private/ember-component-manager", ["exports", "ember-compatibility-helpers", "@glimmer/component/-private/base-component-manager", "@glimmer/component/-private/destroyables"], function (_exports, _emberCompatibilityHelpers, _baseComponentManager, destroyables) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
   _exports.default = void 0;
+  const {
+    setDestroyed,
+    setDestroying
+  } = destroyables;
   const CAPABILITIES = (0, _emberCompatibilityHelpers.gte)('3.13.0-beta.1') ? Ember._componentManagerCapabilities('3.13', {
     destructor: true,
     asyncLifecycleCallbacks: false,
@@ -1254,7 +1258,7 @@ define("@glimmer/component/-private/ember-component-manager", ["exports", "ember
 
     Ember.destroy(component);
     meta.setSourceDestroyed();
-    (0, _destroyables.setDestroyed)(component);
+    setDestroyed(component);
   };
   const destroy = (0, _emberCompatibilityHelpers.gte)('3.20.0-beta.4') ? Ember.destroy : component => {
     if (component.isDestroying) {
@@ -1263,7 +1267,7 @@ define("@glimmer/component/-private/ember-component-manager", ["exports", "ember
 
     let meta = Ember.meta(component);
     meta.setSourceDestroying();
-    (0, _destroyables.setDestroying)(component);
+    setDestroying(component);
     Ember.run.schedule('actions', component, component.willDestroy);
     Ember.run.schedule('destroy', void 0, scheduledDestroyComponent, component, meta);
   };

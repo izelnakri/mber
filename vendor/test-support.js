@@ -7251,19 +7251,19 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 })();
 
 /*!
- * QUnit 2.13.0
+ * QUnit 2.14.0
  * https://qunitjs.com/
  *
  * Copyright OpenJS Foundation and other contributors
  * Released under the MIT license
  * https://jquery.org/license
  *
- * Date: 2020-11-29T20:34Z
+ * Date: 2021-01-12
  */
 (function (global$1) {
 	'use strict';
 
-	// Support IE 9-10, PhantomJS: Fallback for fuzzysort.js used by /reporter/html.js
+	// Support IE 9-10, PhantomJS: Fallback for fuzzysort.js used by ./html.js
 	// eslint-disable-next-line no-unused-vars
 	var Map = typeof Map === "function" ? Map : function StringMap() {
 		var store = Object.create( null );
@@ -7285,10 +7285,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	var window$1 = global__default['default'].window;
 	var self$1 = global__default['default'].self;
-	var console = global__default['default'].console;
+	var console$1 = global__default['default'].console;
 	var setTimeout$1 = global__default['default'].setTimeout;
 	var clearTimeout = global__default['default'].clearTimeout;
-	var document$1 = window$1 && window$1.document;
+	var document = window$1 && window$1.document;
 	var navigator = window$1 && window$1.navigator;
 	var localSessionStorage = function () {
 	  var x = "qunit-test-string";
@@ -7430,11 +7430,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  };
 	}
 
+	// Detect if the console object exists and no-op otherwise.
 	// This allows support for IE 9, which doesn't have a console
 	// object if the developer tools are not open.
+	// Support: SpiderMonkey (mozjs 68+)
+	// The console object has a log method, but no warn method.
 
 	var Logger = {
-	  warn: console ? console.warn.bind(console) : function () {}
+	  warn: console$1 ? (console$1.warn || console$1.log).bind(console$1) : function () {}
 	};
 
 	var toString = Object.prototype.toString;
@@ -7467,12 +7470,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	}; // Returns a new Array with the elements that are in a but not in b
 
 	function diff(a, b) {
-	  var i,
-	      j,
-	      result = a.slice();
+	  var result = a.slice();
 
-	  for (i = 0; i < result.length; i++) {
-	    for (j = 0; j < b.length; j++) {
+	  for (var i = 0; i < result.length; i++) {
+	    for (var j = 0; j < b.length; j++) {
 	      if (result[i] === b[j]) {
 	        result.splice(i, 1);
 	        i--;
@@ -7489,7 +7490,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	 * @method inArray
 	 * @param {Any} elem
 	 * @param {Array} array
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 
 	function inArray(elem, array) {
@@ -7504,13 +7505,11 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	 */
 
 	function objectValues(obj) {
-	  var key,
-	      val,
-	      vals = is("array", obj) ? [] : {};
+	  var vals = is("array", obj) ? [] : {};
 
-	  for (key in obj) {
+	  for (var key in obj) {
 	    if (hasOwn.call(obj, key)) {
-	      val = obj[key];
+	      var val = obj[key];
 	      vals[key] = val === Object(val) ? objectValues(val) : val;
 	    }
 	  }
@@ -7540,8 +7539,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    return "null";
 	  }
 
-	  var match = toString.call(obj).match(/^\[object\s(.*)\]$/),
-	      type = match && match[1];
+	  var match = toString.call(obj).match(/^\[object\s(.*)\]$/);
+	  var type = match && match[1];
 
 	  switch (type) {
 	    case "Number":
@@ -7702,15 +7701,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      return false;
 	    },
 	    "array": function array(a, b) {
-	      var i, len;
-	      len = a.length;
+	      var len = a.length;
 
 	      if (len !== b.length) {
 	        // Safe and faster
 	        return false;
 	      }
 
-	      for (i = 0; i < len; i++) {
+	      for (var i = 0; i < len; i++) {
 	        // Compare non-containers; queue non-reference-equal containers
 	        if (!breadthFirstCompareChild(a[i], b[i])) {
 	          return false;
@@ -7725,9 +7723,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    // a = new Set( [ {}, [], [] ] );
 	    // b = new Set( [ {}, {}, [] ] );
 	    "set": function set(a, b) {
-	      var innerEq,
-	          outerEq = true;
-
 	      if (a.size !== b.size) {
 	        // This optimization has certain quirks because of the lack of
 	        // repetition counting. For instance, adding the same
@@ -7736,6 +7731,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	        return false;
 	      }
 
+	      var outerEq = true;
 	      a.forEach(function (aVal) {
 	        // Short-circuit if the result is already known. (Using for...of
 	        // with a break clause would be cleaner here, but it would cause
@@ -7745,17 +7741,16 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	          return;
 	        }
 
-	        innerEq = false;
+	        var innerEq = false;
 	        b.forEach(function (bVal) {
-	          var parentPairs; // Likewise, short-circuit if the result is already known
-
+	          // Likewise, short-circuit if the result is already known
 	          if (innerEq) {
 	            return;
 	          } // Swap out the global pairs list, as the nested call to
 	          // innerEquiv will clobber its contents
 
 
-	          parentPairs = pairs;
+	          var parentPairs = pairs;
 
 	          if (innerEquiv(bVal, aVal)) {
 	            innerEq = true;
@@ -7778,9 +7773,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    // a = new Map( [ [ {}, 1 ], [ {}, 1 ], [ [], 1 ] ] );
 	    // b = new Map( [ [ {}, 1 ], [ [], 1 ], [ [], 1 ] ] );
 	    "map": function map(a, b) {
-	      var innerEq,
-	          outerEq = true;
-
 	      if (a.size !== b.size) {
 	        // This optimization has certain quirks because of the lack of
 	        // repetition counting. For instance, adding the same
@@ -7789,6 +7781,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	        return false;
 	      }
 
+	      var outerEq = true;
 	      a.forEach(function (aVal, aKey) {
 	        // Short-circuit if the result is already known. (Using for...of
 	        // with a break clause would be cleaner here, but it would cause
@@ -7798,17 +7791,16 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	          return;
 	        }
 
-	        innerEq = false;
+	        var innerEq = false;
 	        b.forEach(function (bVal, bKey) {
-	          var parentPairs; // Likewise, short-circuit if the result is already known
-
+	          // Likewise, short-circuit if the result is already known
 	          if (innerEq) {
 	            return;
 	          } // Swap out the global pairs list, as the nested call to
 	          // innerEquiv will clobber its contents
 
 
-	          parentPairs = pairs;
+	          var parentPairs = pairs;
 
 	          if (innerEquiv([bVal, bKey], [aVal, aKey])) {
 	            innerEq = true;
@@ -7825,16 +7817,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      return outerEq;
 	    },
 	    "object": function object(a, b) {
-	      var i,
-	          aProperties = [],
-	          bProperties = [];
-
 	      if (compareConstructors(a, b) === false) {
 	        return false;
-	      } // Be strict: don't ensure hasOwnProperty and go deep
+	      }
 
+	      var aProperties = [];
+	      var bProperties = []; // Be strict: don't ensure hasOwnProperty and go deep
 
-	      for (i in a) {
+	      for (var i in a) {
 	        // Collect a's properties
 	        aProperties.push(i); // Skip OOP methods that look the same
 
@@ -7848,9 +7838,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	        }
 	      }
 
-	      for (i in b) {
+	      for (var _i in b) {
 	        // Collect b's properties
-	        bProperties.push(i);
+	        bProperties.push(_i);
 	      } // Ensures identical properties name
 
 
@@ -7872,8 +7862,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 
 	  function innerEquiv(a, b) {
-	    var i, pair; // We're done when there's nothing more to compare
-
+	    // We're done when there's nothing more to compare
 	    if (arguments.length < 2) {
 	      return true;
 	    } // Clear the global pair queue and add the top-level values being compared
@@ -7884,8 +7873,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      b: b
 	    }];
 
-	    for (i = 0; i < pairs.length; i++) {
-	      pair = pairs[i]; // Perform type-specific comparison on any pairs that are not strictly
+	    for (var i = 0; i < pairs.length; i++) {
+	      var pair = pairs[i]; // Perform type-specific comparison on any pairs that are not strictly
 	      // equal. For container types, that comparison will postpone comparison
 	      // of any sub-container pair to the end of the pair queue. This gives
 	      // breadth-first search order. It also avoids the reprocessing of
@@ -7977,9 +7966,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 
 	  function join(pre, arr, post) {
-	    var s = dump.separator(),
-	        base = dump.indent(),
-	        inner = dump.indent(1);
+	    var s = dump.separator();
+	    var inner = dump.indent(1);
 
 	    if (arr.join) {
 	      arr = arr.join("," + s + inner);
@@ -7989,18 +7977,18 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      return pre + post;
 	    }
 
+	    var base = dump.indent();
 	    return [pre, inner + arr, base + post].join(s);
 	  }
 
 	  function array(arr, stack) {
-	    var i = arr.length,
-	        ret = new Array(i);
-
 	    if (dump.maxDepth && dump.depth > dump.maxDepth) {
 	      return "[object Array]";
 	    }
 
 	    this.up();
+	    var i = arr.length;
+	    var ret = new Array(i);
 
 	    while (i--) {
 	      ret[i] = this.parse(arr[i], undefined, stack);
@@ -8017,27 +8005,25 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    );
 	  }
 
-	  var reName = /^function (\w+)/,
-	      dump = {
+	  var reName = /^function (\w+)/;
+	  var dump = {
 	    // The objType is used mostly internally, you can fix a (custom) type in advance
 	    parse: function parse(obj, objType, stack) {
 	      stack = stack || [];
-	      var res,
-	          parser,
-	          parserType,
-	          objIndex = stack.indexOf(obj);
+	      var objIndex = stack.indexOf(obj);
 
 	      if (objIndex !== -1) {
 	        return "recursion(".concat(objIndex - stack.length, ")");
 	      }
 
 	      objType = objType || this.typeOf(obj);
-	      parser = this.parsers[objType];
-	      parserType = _typeof(parser);
+	      var parser = this.parsers[objType];
+
+	      var parserType = _typeof(parser);
 
 	      if (parserType === "function") {
 	        stack.push(obj);
-	        res = parser.call(this, obj, stack);
+	        var res = parser.call(this, obj, stack);
 	        stack.pop();
 	        return res;
 	      }
@@ -8120,9 +8106,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      "null": "null",
 	      "undefined": "undefined",
 	      "function": function _function(fn) {
-	        var ret = "function",
-	            // Functions never have name in IE
-	        name = "name" in fn ? fn.name : (reName.exec(fn) || [])[1];
+	        var ret = "function"; // Functions never have name in IE
+
+	        var name = "name" in fn ? fn.name : (reName.exec(fn) || [])[1];
 
 	        if (name) {
 	          ret += " " + name;
@@ -8136,59 +8122,53 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      nodelist: array,
 	      "arguments": array,
 	      object: function object(map, stack) {
-	        var keys,
-	            key,
-	            val,
-	            i,
-	            nonEnumerableProperties,
-	            ret = [];
+	        var ret = [];
 
 	        if (dump.maxDepth && dump.depth > dump.maxDepth) {
 	          return "[object Object]";
 	        }
 
 	        dump.up();
-	        keys = [];
+	        var keys = [];
 
-	        for (key in map) {
+	        for (var key in map) {
 	          keys.push(key);
 	        } // Some properties are not always enumerable on Error objects.
 
 
-	        nonEnumerableProperties = ["message", "name"];
+	        var nonEnumerableProperties = ["message", "name"];
 
-	        for (i in nonEnumerableProperties) {
-	          key = nonEnumerableProperties[i];
+	        for (var i in nonEnumerableProperties) {
+	          var _key = nonEnumerableProperties[i];
 
-	          if (key in map && !inArray(key, keys)) {
-	            keys.push(key);
+	          if (_key in map && !inArray(_key, keys)) {
+	            keys.push(_key);
 	          }
 	        }
 
 	        keys.sort();
 
-	        for (i = 0; i < keys.length; i++) {
-	          key = keys[i];
-	          val = map[key];
-	          ret.push(dump.parse(key, "key") + ": " + dump.parse(val, undefined, stack));
+	        for (var _i = 0; _i < keys.length; _i++) {
+	          var _key2 = keys[_i];
+	          var val = map[_key2];
+	          ret.push(dump.parse(_key2, "key") + ": " + dump.parse(val, undefined, stack));
 	        }
 
 	        dump.down();
 	        return join("{", ret, "}");
 	      },
 	      node: function node(_node) {
-	        var len,
-	            i,
-	            val,
-	            open = dump.HTML ? "&lt;" : "<",
-	            close = dump.HTML ? "&gt;" : ">",
-	            tag = _node.nodeName.toLowerCase(),
-	            ret = open + tag,
-	            attrs = _node.attributes;
+	        var open = dump.HTML ? "&lt;" : "<";
+	        var close = dump.HTML ? "&gt;" : ">";
+
+	        var tag = _node.nodeName.toLowerCase();
+
+	        var ret = open + tag;
+	        var attrs = _node.attributes;
 
 	        if (attrs) {
-	          for (i = 0, len = attrs.length; i < len; i++) {
-	            val = attrs[i].nodeValue; // IE6 includes all attributes in .attributes, even ones not explicitly
+	          for (var i = 0, len = attrs.length; i < len; i++) {
+	            var val = attrs[i].nodeValue; // IE6 includes all attributes in .attributes, even ones not explicitly
 	            // set. Those have values like undefined, null, 0, false, "" or
 	            // "inherit".
 
@@ -8208,14 +8188,13 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      },
 	      // Function calls it internally, it's the arguments part of the function
 	      functionArgs: function functionArgs(fn) {
-	        var args,
-	            l = fn.length;
+	        var l = fn.length;
 
 	        if (!l) {
 	          return "";
 	        }
 
-	        args = new Array(l);
+	        var args = new Array(l);
 
 	        while (l--) {
 	          // 97 is 'a'
@@ -8374,7 +8353,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  return SuiteReport;
 	}();
 
-	var focused = false;
 	var moduleStack = [];
 
 	function isParentModuleInQueue() {
@@ -8406,7 +8384,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    // This property will be used to mark own tests and tests of child suites
 	    // as either `skipped` or `todo`.
 	    skip: skip,
-	    todo: skip ? false : todo
+	    todo: skip ? false : todo,
+	    ignored: modifiers.ignored || false
 	  };
 	  var env = {};
 
@@ -8468,12 +8447,13 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 	}
 
-	function module$1(name, options, executeNow) {
-	  if (focused && !isParentModuleInQueue()) {
-	    return;
-	  }
+	var focused = false; // indicates that the "only" filter was used
 
-	  processModule(name, options, executeNow);
+	function module$1(name, options, executeNow) {
+	  var ignored = focused && !isParentModuleInQueue();
+	  processModule(name, options, executeNow, {
+	    ignored: ignored
+	  });
 	}
 
 	module$1.only = function () {
@@ -8516,9 +8496,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	 *
 	 * @private
 	 * @method emit
-	 * @param {String} eventName
+	 * @param {string} eventName
 	 * @param {Object} data
-	 * @return {Void}
+	 * @return {void}
 	 */
 
 	function emit(eventName, data) {
@@ -8539,9 +8519,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	 *
 	 * @public
 	 * @method on
-	 * @param {String} eventName
+	 * @param {string} eventName
 	 * @param {Function} callback
-	 * @return {Void}
+	 * @return {void}
 	 */
 
 	function on(eventName, callback) {
@@ -8580,1182 +8560,412 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 		throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
 	}
 
-	var es6Promise = createCommonjsModule(function (module, exports) {
-	  /*!
-	   * @overview es6-promise - a tiny implementation of Promises/A+.
-	   * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
-	   * @license   Licensed under MIT license
-	   *            See https://raw.githubusercontent.com/stefanpenner/es6-promise/master/LICENSE
-	   * @version   v4.2.8+1e68dce6
-	   */
-	  (function (global, factory) {
-	     module.exports = factory() ;
-	  })(commonjsGlobal, function () {
+	var promisePolyfill = createCommonjsModule(function (module) {
+	  /*
+	  https://github.com/taylorhakes/promise-polyfill/tree/8.2.0
+	  
+	  Copyright 2014 Taylor Hakes
+	  Copyright 2014 Forbes Lindesay
+	  
+	  Permission is hereby granted, free of charge, to any person obtaining a copy
+	  of this software and associated documentation files (the "Software"), to deal
+	  in the Software without restriction, including without limitation the rights
+	  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	  copies of the Software, and to permit persons to whom the Software is
+	  furnished to do so, subject to the following conditions:
+	  
+	  The above copyright notice and this permission notice shall be included in
+	  all copies or substantial portions of the Software.
+	  
+	  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	  THE SOFTWARE.
+	  
+	  -------
+	  
+	  Patches for use in QUnit:
+	  
+	  - 2021-01-09: Export as module only, don't change global scope as QUnit must not
+	    affect the host context (e.g. people may test their application intentionally
+	    with different or no polyfills and we must not affect that).
+	  
+	  - 2021-01-10: Avoid unconditional reference to setTimeout, which isn't supported
+	    on SpiderMonkey (mozjs 68). Done by re-arranging the code so that we return early
+	    (it has native support for Promise), instead of building an unused polyfill.
+	  
+	  - 2021-01-10: Add 'globalThis' to globalNS implementation to support SpiderMonkey.
+	  
+	  */
+	  (function () {
+	    /** @suppress {undefinedVars} */
 
-	    function objectOrFunction(x) {
-	      var type = typeof x;
-	      return x !== null && (type === 'object' || type === 'function');
+	    var globalNS = function () {
+	      // the only reliable means to get the global object is
+	      // `Function('return this')()`
+	      // However, this causes CSP violations in Chrome apps.
+	      if (typeof globalThis !== 'undefined') {
+	        return globalThis;
+	      }
+
+	      if (typeof self !== 'undefined') {
+	        return self;
+	      }
+
+	      if (typeof window !== 'undefined') {
+	        return window;
+	      }
+
+	      if (typeof commonjsGlobal !== 'undefined') {
+	        return commonjsGlobal;
+	      }
+
+	      throw new Error('unable to locate global object');
+	    }(); // Expose the polyfill if Promise is undefined or set to a
+	    // non-function value. The latter can be due to a named HTMLElement
+	    // being exposed by browsers for legacy reasons.
+	    // https://github.com/taylorhakes/promise-polyfill/issues/114
+
+
+	    if (typeof globalNS['Promise'] === 'function') {
+	      module.exports = globalNS['Promise'];
+	      return;
+	    }
+	    /**
+	     * @this {Promise}
+	     */
+
+
+	    function finallyConstructor(callback) {
+	      var constructor = this.constructor;
+	      return this.then(function (value) {
+	        // @ts-ignore
+	        return constructor.resolve(callback()).then(function () {
+	          return value;
+	        });
+	      }, function (reason) {
+	        // @ts-ignore
+	        return constructor.resolve(callback()).then(function () {
+	          // @ts-ignore
+	          return constructor.reject(reason);
+	        });
+	      });
 	    }
 
-	    function isFunction(x) {
-	      return typeof x === 'function';
+	    function allSettled(arr) {
+	      var P = this;
+	      return new P(function (resolve, reject) {
+	        if (!(arr && typeof arr.length !== 'undefined')) {
+	          return reject(new TypeError(_typeof(arr) + ' ' + arr + ' is not iterable(cannot read property Symbol(Symbol.iterator))'));
+	        }
+
+	        var args = Array.prototype.slice.call(arr);
+	        if (args.length === 0) return resolve([]);
+	        var remaining = args.length;
+
+	        function res(i, val) {
+	          if (val && (_typeof(val) === 'object' || typeof val === 'function')) {
+	            var then = val.then;
+
+	            if (typeof then === 'function') {
+	              then.call(val, function (val) {
+	                res(i, val);
+	              }, function (e) {
+	                args[i] = {
+	                  status: 'rejected',
+	                  reason: e
+	                };
+
+	                if (--remaining === 0) {
+	                  resolve(args);
+	                }
+	              });
+	              return;
+	            }
+	          }
+
+	          args[i] = {
+	            status: 'fulfilled',
+	            value: val
+	          };
+
+	          if (--remaining === 0) {
+	            resolve(args);
+	          }
+	        }
+
+	        for (var i = 0; i < args.length; i++) {
+	          res(i, args[i]);
+	        }
+	      });
+	    } // Store setTimeout reference so promise-polyfill will be unaffected by
+	    // other code modifying setTimeout (like sinon.useFakeTimers())
+
+
+	    var setTimeoutFunc = setTimeout;
+
+	    function isArray(x) {
+	      return Boolean(x && typeof x.length !== 'undefined');
 	    }
 
-	    var _isArray = void 0;
+	    function noop() {} // Polyfill for Function.prototype.bind
 
-	    if (Array.isArray) {
-	      _isArray = Array.isArray;
-	    } else {
-	      _isArray = function (x) {
-	        return Object.prototype.toString.call(x) === '[object Array]';
+
+	    function bind(fn, thisArg) {
+	      return function () {
+	        fn.apply(thisArg, arguments);
 	      };
 	    }
+	    /**
+	     * @constructor
+	     * @param {Function} fn
+	     */
 
-	    var isArray = _isArray;
-	    var len = 0;
-	    var vertxNext = void 0;
-	    var customSchedulerFn = void 0;
 
-	    var asap = function asap(callback, arg) {
-	      queue[len] = callback;
-	      queue[len + 1] = arg;
-	      len += 2;
+	    function Promise(fn) {
+	      if (!(this instanceof Promise)) throw new TypeError('Promises must be constructed via new');
+	      if (typeof fn !== 'function') throw new TypeError('not a function');
+	      /** @type {!number} */
 
-	      if (len === 2) {
-	        // If len is 2, that means that we need to schedule an async flush.
-	        // If additional callbacks are queued before the queue is flushed, they
-	        // will be processed by this flush that we are scheduling.
-	        if (customSchedulerFn) {
-	          customSchedulerFn(flush);
-	        } else {
-	          scheduleFlush();
+	      this._state = 0;
+	      /** @type {!boolean} */
+
+	      this._handled = false;
+	      /** @type {Promise|undefined} */
+
+	      this._value = undefined;
+	      /** @type {!Array<!Function>} */
+
+	      this._deferreds = [];
+	      doResolve(fn, this);
+	    }
+
+	    function handle(self, deferred) {
+	      while (self._state === 3) {
+	        self = self._value;
+	      }
+
+	      if (self._state === 0) {
+	        self._deferreds.push(deferred);
+
+	        return;
+	      }
+
+	      self._handled = true;
+
+	      Promise._immediateFn(function () {
+	        var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
+
+	        if (cb === null) {
+	          (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
+	          return;
 	        }
+
+	        var ret;
+
+	        try {
+	          ret = cb(self._value);
+	        } catch (e) {
+	          reject(deferred.promise, e);
+	          return;
+	        }
+
+	        resolve(deferred.promise, ret);
+	      });
+	    }
+
+	    function resolve(self, newValue) {
+	      try {
+	        // Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+	        if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.');
+
+	        if (newValue && (_typeof(newValue) === 'object' || typeof newValue === 'function')) {
+	          var then = newValue.then;
+
+	          if (newValue instanceof Promise) {
+	            self._state = 3;
+	            self._value = newValue;
+	            finale(self);
+	            return;
+	          } else if (typeof then === 'function') {
+	            doResolve(bind(then, newValue), self);
+	            return;
+	          }
+	        }
+
+	        self._state = 1;
+	        self._value = newValue;
+	        finale(self);
+	      } catch (e) {
+	        reject(self, e);
+	      }
+	    }
+
+	    function reject(self, newValue) {
+	      self._state = 2;
+	      self._value = newValue;
+	      finale(self);
+	    }
+
+	    function finale(self) {
+	      if (self._state === 2 && self._deferreds.length === 0) {
+	        Promise._immediateFn(function () {
+	          if (!self._handled) {
+	            Promise._unhandledRejectionFn(self._value);
+	          }
+	        });
+	      }
+
+	      for (var i = 0, len = self._deferreds.length; i < len; i++) {
+	        handle(self, self._deferreds[i]);
+	      }
+
+	      self._deferreds = null;
+	    }
+	    /**
+	     * @constructor
+	     */
+
+
+	    function Handler(onFulfilled, onRejected, promise) {
+	      this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null;
+	      this.onRejected = typeof onRejected === 'function' ? onRejected : null;
+	      this.promise = promise;
+	    }
+	    /**
+	     * Take a potentially misbehaving resolver function and make sure
+	     * onFulfilled and onRejected are only called once.
+	     *
+	     * Makes no guarantees about asynchrony.
+	     */
+
+
+	    function doResolve(fn, self) {
+	      var done = false;
+
+	      try {
+	        fn(function (value) {
+	          if (done) return;
+	          done = true;
+	          resolve(self, value);
+	        }, function (reason) {
+	          if (done) return;
+	          done = true;
+	          reject(self, reason);
+	        });
+	      } catch (ex) {
+	        if (done) return;
+	        done = true;
+	        reject(self, ex);
+	      }
+	    }
+
+	    Promise.prototype['catch'] = function (onRejected) {
+	      return this.then(null, onRejected);
+	    };
+
+	    Promise.prototype.then = function (onFulfilled, onRejected) {
+	      // @ts-ignore
+	      var prom = new this.constructor(noop);
+	      handle(this, new Handler(onFulfilled, onRejected, prom));
+	      return prom;
+	    };
+
+	    Promise.prototype['finally'] = finallyConstructor;
+
+	    Promise.all = function (arr) {
+	      return new Promise(function (resolve, reject) {
+	        if (!isArray(arr)) {
+	          return reject(new TypeError('Promise.all accepts an array'));
+	        }
+
+	        var args = Array.prototype.slice.call(arr);
+	        if (args.length === 0) return resolve([]);
+	        var remaining = args.length;
+
+	        function res(i, val) {
+	          try {
+	            if (val && (_typeof(val) === 'object' || typeof val === 'function')) {
+	              var then = val.then;
+
+	              if (typeof then === 'function') {
+	                then.call(val, function (val) {
+	                  res(i, val);
+	                }, reject);
+	                return;
+	              }
+	            }
+
+	            args[i] = val;
+
+	            if (--remaining === 0) {
+	              resolve(args);
+	            }
+	          } catch (ex) {
+	            reject(ex);
+	          }
+	        }
+
+	        for (var i = 0; i < args.length; i++) {
+	          res(i, args[i]);
+	        }
+	      });
+	    };
+
+	    Promise.allSettled = allSettled;
+
+	    Promise.resolve = function (value) {
+	      if (value && _typeof(value) === 'object' && value.constructor === Promise) {
+	        return value;
+	      }
+
+	      return new Promise(function (resolve) {
+	        resolve(value);
+	      });
+	    };
+
+	    Promise.reject = function (value) {
+	      return new Promise(function (resolve, reject) {
+	        reject(value);
+	      });
+	    };
+
+	    Promise.race = function (arr) {
+	      return new Promise(function (resolve, reject) {
+	        if (!isArray(arr)) {
+	          return reject(new TypeError('Promise.race accepts an array'));
+	        }
+
+	        for (var i = 0, len = arr.length; i < len; i++) {
+	          Promise.resolve(arr[i]).then(resolve, reject);
+	        }
+	      });
+	    }; // Use polyfill for setImmediate for performance gains
+
+
+	    Promise._immediateFn = // @ts-ignore
+	    typeof setImmediate === 'function' && function (fn) {
+	      // @ts-ignore
+	      setImmediate(fn);
+	    } || function (fn) {
+	      setTimeoutFunc(fn, 0);
+	    };
+
+	    Promise._unhandledRejectionFn = function _unhandledRejectionFn(err) {
+	      if (typeof console !== 'undefined' && console) {
+	        console.warn('Possible Unhandled Promise Rejection:', err); // eslint-disable-line no-console
 	      }
 	    };
 
-	    function setScheduler(scheduleFn) {
-	      customSchedulerFn = scheduleFn;
-	    }
-
-	    function setAsap(asapFn) {
-	      asap = asapFn;
-	    }
-
-	    var browserWindow = typeof window !== 'undefined' ? window : undefined;
-	    var browserGlobal = browserWindow || {};
-	    var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
-	    var isNode = typeof self === 'undefined' && typeof process !== 'undefined' && {}.toString.call(process) === '[object process]'; // test for web worker but not in IE10
-
-	    var isWorker = typeof Uint8ClampedArray !== 'undefined' && typeof importScripts !== 'undefined' && typeof MessageChannel !== 'undefined'; // node
-
-	    function useNextTick() {
-	      // node version 0.10.x displays a deprecation warning when nextTick is used recursively
-	      // see https://github.com/cujojs/when/issues/410 for details
-	      return function () {
-	        return process.nextTick(flush);
-	      };
-	    } // vertx
-
-
-	    function useVertxTimer() {
-	      if (typeof vertxNext !== 'undefined') {
-	        return function () {
-	          vertxNext(flush);
-	        };
-	      }
-
-	      return useSetTimeout();
-	    }
-
-	    function useMutationObserver() {
-	      var iterations = 0;
-	      var observer = new BrowserMutationObserver(flush);
-	      var node = document.createTextNode('');
-	      observer.observe(node, {
-	        characterData: true
-	      });
-	      return function () {
-	        node.data = iterations = ++iterations % 2;
-	      };
-	    } // web worker
-
-
-	    function useMessageChannel() {
-	      var channel = new MessageChannel();
-	      channel.port1.onmessage = flush;
-	      return function () {
-	        return channel.port2.postMessage(0);
-	      };
-	    }
-
-	    function useSetTimeout() {
-	      // Store setTimeout reference so es6-promise will be unaffected by
-	      // other code modifying setTimeout (like sinon.useFakeTimers())
-	      var globalSetTimeout = setTimeout;
-	      return function () {
-	        return globalSetTimeout(flush, 1);
-	      };
-	    }
-
-	    var queue = new Array(1000);
-
-	    function flush() {
-	      for (var i = 0; i < len; i += 2) {
-	        var callback = queue[i];
-	        var arg = queue[i + 1];
-	        callback(arg);
-	        queue[i] = undefined;
-	        queue[i + 1] = undefined;
-	      }
-
-	      len = 0;
-	    }
-
-	    function attemptVertx() {
-	      try {
-	        var vertx = Function('return this')().require('vertx');
-
-	        vertxNext = vertx.runOnLoop || vertx.runOnContext;
-	        return useVertxTimer();
-	      } catch (e) {
-	        return useSetTimeout();
-	      }
-	    }
-
-	    var scheduleFlush = void 0; // Decide what async method to use to triggering processing of queued callbacks:
-
-	    if (isNode) {
-	      scheduleFlush = useNextTick();
-	    } else if (BrowserMutationObserver) {
-	      scheduleFlush = useMutationObserver();
-	    } else if (isWorker) {
-	      scheduleFlush = useMessageChannel();
-	    } else if (browserWindow === undefined && typeof commonjsRequire === 'function') {
-	      scheduleFlush = attemptVertx();
-	    } else {
-	      scheduleFlush = useSetTimeout();
-	    }
-
-	    function then(onFulfillment, onRejection) {
-	      var parent = this;
-	      var child = new this.constructor(noop);
-
-	      if (child[PROMISE_ID] === undefined) {
-	        makePromise(child);
-	      }
-
-	      var _state = parent._state;
-
-	      if (_state) {
-	        var callback = arguments[_state - 1];
-	        asap(function () {
-	          return invokeCallback(_state, child, callback, parent._result);
-	        });
-	      } else {
-	        subscribe(parent, child, onFulfillment, onRejection);
-	      }
-
-	      return child;
-	    }
-	    /**
-	      `Promise.resolve` returns a promise that will become resolved with the
-	      passed `value`. It is shorthand for the following:
-	    
-	      ```javascript
-	      let promise = new Promise(function(resolve, reject){
-	        resolve(1);
-	      });
-	    
-	      promise.then(function(value){
-	        // value === 1
-	      });
-	      ```
-	    
-	      Instead of writing the above, your code now simply becomes the following:
-	    
-	      ```javascript
-	      let promise = Promise.resolve(1);
-	    
-	      promise.then(function(value){
-	        // value === 1
-	      });
-	      ```
-	    
-	      @method resolve
-	      @static
-	      @param {Any} value value that the returned promise will be resolved with
-	      Useful for tooling.
-	      @return {Promise} a promise that will become fulfilled with the given
-	      `value`
-	    */
-
-
-	    function resolve$1(object) {
-	      /*jshint validthis:true */
-	      var Constructor = this;
-
-	      if (object && typeof object === 'object' && object.constructor === Constructor) {
-	        return object;
-	      }
-
-	      var promise = new Constructor(noop);
-	      resolve(promise, object);
-	      return promise;
-	    }
-
-	    var PROMISE_ID = Math.random().toString(36).substring(2);
-
-	    function noop() {}
-
-	    var PENDING = void 0;
-	    var FULFILLED = 1;
-	    var REJECTED = 2;
-
-	    function selfFulfillment() {
-	      return new TypeError("You cannot resolve a promise with itself");
-	    }
-
-	    function cannotReturnOwn() {
-	      return new TypeError('A promises callback cannot return that same promise.');
-	    }
-
-	    function tryThen(then$$1, value, fulfillmentHandler, rejectionHandler) {
-	      try {
-	        then$$1.call(value, fulfillmentHandler, rejectionHandler);
-	      } catch (e) {
-	        return e;
-	      }
-	    }
-
-	    function handleForeignThenable(promise, thenable, then$$1) {
-	      asap(function (promise) {
-	        var sealed = false;
-	        var error = tryThen(then$$1, thenable, function (value) {
-	          if (sealed) {
-	            return;
-	          }
-
-	          sealed = true;
-
-	          if (thenable !== value) {
-	            resolve(promise, value);
-	          } else {
-	            fulfill(promise, value);
-	          }
-	        }, function (reason) {
-	          if (sealed) {
-	            return;
-	          }
-
-	          sealed = true;
-	          reject(promise, reason);
-	        }, 'Settle: ' + (promise._label || ' unknown promise'));
-
-	        if (!sealed && error) {
-	          sealed = true;
-	          reject(promise, error);
-	        }
-	      }, promise);
-	    }
-
-	    function handleOwnThenable(promise, thenable) {
-	      if (thenable._state === FULFILLED) {
-	        fulfill(promise, thenable._result);
-	      } else if (thenable._state === REJECTED) {
-	        reject(promise, thenable._result);
-	      } else {
-	        subscribe(thenable, undefined, function (value) {
-	          return resolve(promise, value);
-	        }, function (reason) {
-	          return reject(promise, reason);
-	        });
-	      }
-	    }
-
-	    function handleMaybeThenable(promise, maybeThenable, then$$1) {
-	      if (maybeThenable.constructor === promise.constructor && then$$1 === then && maybeThenable.constructor.resolve === resolve$1) {
-	        handleOwnThenable(promise, maybeThenable);
-	      } else {
-	        if (then$$1 === undefined) {
-	          fulfill(promise, maybeThenable);
-	        } else if (isFunction(then$$1)) {
-	          handleForeignThenable(promise, maybeThenable, then$$1);
-	        } else {
-	          fulfill(promise, maybeThenable);
-	        }
-	      }
-	    }
-
-	    function resolve(promise, value) {
-	      if (promise === value) {
-	        reject(promise, selfFulfillment());
-	      } else if (objectOrFunction(value)) {
-	        var then$$1 = void 0;
-
-	        try {
-	          then$$1 = value.then;
-	        } catch (error) {
-	          reject(promise, error);
-	          return;
-	        }
-
-	        handleMaybeThenable(promise, value, then$$1);
-	      } else {
-	        fulfill(promise, value);
-	      }
-	    }
-
-	    function publishRejection(promise) {
-	      if (promise._onerror) {
-	        promise._onerror(promise._result);
-	      }
-
-	      publish(promise);
-	    }
-
-	    function fulfill(promise, value) {
-	      if (promise._state !== PENDING) {
-	        return;
-	      }
-
-	      promise._result = value;
-	      promise._state = FULFILLED;
-
-	      if (promise._subscribers.length !== 0) {
-	        asap(publish, promise);
-	      }
-	    }
-
-	    function reject(promise, reason) {
-	      if (promise._state !== PENDING) {
-	        return;
-	      }
-
-	      promise._state = REJECTED;
-	      promise._result = reason;
-	      asap(publishRejection, promise);
-	    }
-
-	    function subscribe(parent, child, onFulfillment, onRejection) {
-	      var _subscribers = parent._subscribers;
-	      var length = _subscribers.length;
-	      parent._onerror = null;
-	      _subscribers[length] = child;
-	      _subscribers[length + FULFILLED] = onFulfillment;
-	      _subscribers[length + REJECTED] = onRejection;
-
-	      if (length === 0 && parent._state) {
-	        asap(publish, parent);
-	      }
-	    }
-
-	    function publish(promise) {
-	      var subscribers = promise._subscribers;
-	      var settled = promise._state;
-
-	      if (subscribers.length === 0) {
-	        return;
-	      }
-
-	      var child = void 0,
-	          callback = void 0,
-	          detail = promise._result;
-
-	      for (var i = 0; i < subscribers.length; i += 3) {
-	        child = subscribers[i];
-	        callback = subscribers[i + settled];
-
-	        if (child) {
-	          invokeCallback(settled, child, callback, detail);
-	        } else {
-	          callback(detail);
-	        }
-	      }
-
-	      promise._subscribers.length = 0;
-	    }
-
-	    function invokeCallback(settled, promise, callback, detail) {
-	      var hasCallback = isFunction(callback),
-	          value = void 0,
-	          error = void 0,
-	          succeeded = true;
-
-	      if (hasCallback) {
-	        try {
-	          value = callback(detail);
-	        } catch (e) {
-	          succeeded = false;
-	          error = e;
-	        }
-
-	        if (promise === value) {
-	          reject(promise, cannotReturnOwn());
-	          return;
-	        }
-	      } else {
-	        value = detail;
-	      }
-
-	      if (promise._state !== PENDING) ; else if (hasCallback && succeeded) {
-	        resolve(promise, value);
-	      } else if (succeeded === false) {
-	        reject(promise, error);
-	      } else if (settled === FULFILLED) {
-	        fulfill(promise, value);
-	      } else if (settled === REJECTED) {
-	        reject(promise, value);
-	      }
-	    }
-
-	    function initializePromise(promise, resolver) {
-	      try {
-	        resolver(function resolvePromise(value) {
-	          resolve(promise, value);
-	        }, function rejectPromise(reason) {
-	          reject(promise, reason);
-	        });
-	      } catch (e) {
-	        reject(promise, e);
-	      }
-	    }
-
-	    var id = 0;
-
-	    function nextId() {
-	      return id++;
-	    }
-
-	    function makePromise(promise) {
-	      promise[PROMISE_ID] = id++;
-	      promise._state = undefined;
-	      promise._result = undefined;
-	      promise._subscribers = [];
-	    }
-
-	    function validationError() {
-	      return new Error('Array Methods must be provided an Array');
-	    }
-
-	    var Enumerator = function () {
-	      function Enumerator(Constructor, input) {
-	        this._instanceConstructor = Constructor;
-	        this.promise = new Constructor(noop);
-
-	        if (!this.promise[PROMISE_ID]) {
-	          makePromise(this.promise);
-	        }
-
-	        if (isArray(input)) {
-	          this.length = input.length;
-	          this._remaining = input.length;
-	          this._result = new Array(this.length);
-
-	          if (this.length === 0) {
-	            fulfill(this.promise, this._result);
-	          } else {
-	            this.length = this.length || 0;
-
-	            this._enumerate(input);
-
-	            if (this._remaining === 0) {
-	              fulfill(this.promise, this._result);
-	            }
-	          }
-	        } else {
-	          reject(this.promise, validationError());
-	        }
-	      }
-
-	      Enumerator.prototype._enumerate = function _enumerate(input) {
-	        for (var i = 0; this._state === PENDING && i < input.length; i++) {
-	          this._eachEntry(input[i], i);
-	        }
-	      };
-
-	      Enumerator.prototype._eachEntry = function _eachEntry(entry, i) {
-	        var c = this._instanceConstructor;
-	        var resolve$$1 = c.resolve;
-
-	        if (resolve$$1 === resolve$1) {
-	          var _then = void 0;
-
-	          var error = void 0;
-	          var didError = false;
-
-	          try {
-	            _then = entry.then;
-	          } catch (e) {
-	            didError = true;
-	            error = e;
-	          }
-
-	          if (_then === then && entry._state !== PENDING) {
-	            this._settledAt(entry._state, i, entry._result);
-	          } else if (typeof _then !== 'function') {
-	            this._remaining--;
-	            this._result[i] = entry;
-	          } else if (c === Promise$1) {
-	            var promise = new c(noop);
-
-	            if (didError) {
-	              reject(promise, error);
-	            } else {
-	              handleMaybeThenable(promise, entry, _then);
-	            }
-
-	            this._willSettleAt(promise, i);
-	          } else {
-	            this._willSettleAt(new c(function (resolve$$1) {
-	              return resolve$$1(entry);
-	            }), i);
-	          }
-	        } else {
-	          this._willSettleAt(resolve$$1(entry), i);
-	        }
-	      };
-
-	      Enumerator.prototype._settledAt = function _settledAt(state, i, value) {
-	        var promise = this.promise;
-
-	        if (promise._state === PENDING) {
-	          this._remaining--;
-
-	          if (state === REJECTED) {
-	            reject(promise, value);
-	          } else {
-	            this._result[i] = value;
-	          }
-	        }
-
-	        if (this._remaining === 0) {
-	          fulfill(promise, this._result);
-	        }
-	      };
-
-	      Enumerator.prototype._willSettleAt = function _willSettleAt(promise, i) {
-	        var enumerator = this;
-	        subscribe(promise, undefined, function (value) {
-	          return enumerator._settledAt(FULFILLED, i, value);
-	        }, function (reason) {
-	          return enumerator._settledAt(REJECTED, i, reason);
-	        });
-	      };
-
-	      return Enumerator;
-	    }();
-	    /**
-	      `Promise.all` accepts an array of promises, and returns a new promise which
-	      is fulfilled with an array of fulfillment values for the passed promises, or
-	      rejected with the reason of the first passed promise to be rejected. It casts all
-	      elements of the passed iterable to promises as it runs this algorithm.
-	    
-	      Example:
-	    
-	      ```javascript
-	      let promise1 = resolve(1);
-	      let promise2 = resolve(2);
-	      let promise3 = resolve(3);
-	      let promises = [ promise1, promise2, promise3 ];
-	    
-	      Promise.all(promises).then(function(array){
-	        // The array here would be [ 1, 2, 3 ];
-	      });
-	      ```
-	    
-	      If any of the `promises` given to `all` are rejected, the first promise
-	      that is rejected will be given as an argument to the returned promises's
-	      rejection handler. For example:
-	    
-	      Example:
-	    
-	      ```javascript
-	      let promise1 = resolve(1);
-	      let promise2 = reject(new Error("2"));
-	      let promise3 = reject(new Error("3"));
-	      let promises = [ promise1, promise2, promise3 ];
-	    
-	      Promise.all(promises).then(function(array){
-	        // Code here never runs because there are rejected promises!
-	      }, function(error) {
-	        // error.message === "2"
-	      });
-	      ```
-	    
-	      @method all
-	      @static
-	      @param {Array} entries array of promises
-	      @param {String} label optional string for labeling the promise.
-	      Useful for tooling.
-	      @return {Promise} promise that is fulfilled when all `promises` have been
-	      fulfilled, or rejected if any of them become rejected.
-	      @static
-	    */
-
-
-	    function all(entries) {
-	      return new Enumerator(this, entries).promise;
-	    }
-	    /**
-	      `Promise.race` returns a new promise which is settled in the same way as the
-	      first passed promise to settle.
-	    
-	      Example:
-	    
-	      ```javascript
-	      let promise1 = new Promise(function(resolve, reject){
-	        setTimeout(function(){
-	          resolve('promise 1');
-	        }, 200);
-	      });
-	    
-	      let promise2 = new Promise(function(resolve, reject){
-	        setTimeout(function(){
-	          resolve('promise 2');
-	        }, 100);
-	      });
-	    
-	      Promise.race([promise1, promise2]).then(function(result){
-	        // result === 'promise 2' because it was resolved before promise1
-	        // was resolved.
-	      });
-	      ```
-	    
-	      `Promise.race` is deterministic in that only the state of the first
-	      settled promise matters. For example, even if other promises given to the
-	      `promises` array argument are resolved, but the first settled promise has
-	      become rejected before the other promises became fulfilled, the returned
-	      promise will become rejected:
-	    
-	      ```javascript
-	      let promise1 = new Promise(function(resolve, reject){
-	        setTimeout(function(){
-	          resolve('promise 1');
-	        }, 200);
-	      });
-	    
-	      let promise2 = new Promise(function(resolve, reject){
-	        setTimeout(function(){
-	          reject(new Error('promise 2'));
-	        }, 100);
-	      });
-	    
-	      Promise.race([promise1, promise2]).then(function(result){
-	        // Code here never runs
-	      }, function(reason){
-	        // reason.message === 'promise 2' because promise 2 became rejected before
-	        // promise 1 became fulfilled
-	      });
-	      ```
-	    
-	      An example real-world use case is implementing timeouts:
-	    
-	      ```javascript
-	      Promise.race([ajax('foo.json'), timeout(5000)])
-	      ```
-	    
-	      @method race
-	      @static
-	      @param {Array} promises array of promises to observe
-	      Useful for tooling.
-	      @return {Promise} a promise which settles in the same way as the first passed
-	      promise to settle.
-	    */
-
-
-	    function race(entries) {
-	      /*jshint validthis:true */
-	      var Constructor = this;
-
-	      if (!isArray(entries)) {
-	        return new Constructor(function (_, reject) {
-	          return reject(new TypeError('You must pass an array to race.'));
-	        });
-	      } else {
-	        return new Constructor(function (resolve, reject) {
-	          var length = entries.length;
-
-	          for (var i = 0; i < length; i++) {
-	            Constructor.resolve(entries[i]).then(resolve, reject);
-	          }
-	        });
-	      }
-	    }
-	    /**
-	      `Promise.reject` returns a promise rejected with the passed `reason`.
-	      It is shorthand for the following:
-	    
-	      ```javascript
-	      let promise = new Promise(function(resolve, reject){
-	        reject(new Error('WHOOPS'));
-	      });
-	    
-	      promise.then(function(value){
-	        // Code here doesn't run because the promise is rejected!
-	      }, function(reason){
-	        // reason.message === 'WHOOPS'
-	      });
-	      ```
-	    
-	      Instead of writing the above, your code now simply becomes the following:
-	    
-	      ```javascript
-	      let promise = Promise.reject(new Error('WHOOPS'));
-	    
-	      promise.then(function(value){
-	        // Code here doesn't run because the promise is rejected!
-	      }, function(reason){
-	        // reason.message === 'WHOOPS'
-	      });
-	      ```
-	    
-	      @method reject
-	      @static
-	      @param {Any} reason value that the returned promise will be rejected with.
-	      Useful for tooling.
-	      @return {Promise} a promise rejected with the given `reason`.
-	    */
-
-
-	    function reject$1(reason) {
-	      /*jshint validthis:true */
-	      var Constructor = this;
-	      var promise = new Constructor(noop);
-	      reject(promise, reason);
-	      return promise;
-	    }
-
-	    function needsResolver() {
-	      throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
-	    }
-
-	    function needsNew() {
-	      throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
-	    }
-	    /**
-	      Promise objects represent the eventual result of an asynchronous operation. The
-	      primary way of interacting with a promise is through its `then` method, which
-	      registers callbacks to receive either a promise's eventual value or the reason
-	      why the promise cannot be fulfilled.
-	    
-	      Terminology
-	      -----------
-	    
-	      - `promise` is an object or function with a `then` method whose behavior conforms to this specification.
-	      - `thenable` is an object or function that defines a `then` method.
-	      - `value` is any legal JavaScript value (including undefined, a thenable, or a promise).
-	      - `exception` is a value that is thrown using the throw statement.
-	      - `reason` is a value that indicates why a promise was rejected.
-	      - `settled` the final resting state of a promise, fulfilled or rejected.
-	    
-	      A promise can be in one of three states: pending, fulfilled, or rejected.
-	    
-	      Promises that are fulfilled have a fulfillment value and are in the fulfilled
-	      state.  Promises that are rejected have a rejection reason and are in the
-	      rejected state.  A fulfillment value is never a thenable.
-	    
-	      Promises can also be said to *resolve* a value.  If this value is also a
-	      promise, then the original promise's settled state will match the value's
-	      settled state.  So a promise that *resolves* a promise that rejects will
-	      itself reject, and a promise that *resolves* a promise that fulfills will
-	      itself fulfill.
-	    
-	    
-	      Basic Usage:
-	      ------------
-	    
-	      ```js
-	      let promise = new Promise(function(resolve, reject) {
-	        // on success
-	        resolve(value);
-	    
-	        // on failure
-	        reject(reason);
-	      });
-	    
-	      promise.then(function(value) {
-	        // on fulfillment
-	      }, function(reason) {
-	        // on rejection
-	      });
-	      ```
-	    
-	      Advanced Usage:
-	      ---------------
-	    
-	      Promises shine when abstracting away asynchronous interactions such as
-	      `XMLHttpRequest`s.
-	    
-	      ```js
-	      function getJSON(url) {
-	        return new Promise(function(resolve, reject){
-	          let xhr = new XMLHttpRequest();
-	    
-	          xhr.open('GET', url);
-	          xhr.onreadystatechange = handler;
-	          xhr.responseType = 'json';
-	          xhr.setRequestHeader('Accept', 'application/json');
-	          xhr.send();
-	    
-	          function handler() {
-	            if (this.readyState === this.DONE) {
-	              if (this.status === 200) {
-	                resolve(this.response);
-	              } else {
-	                reject(new Error('getJSON: `' + url + '` failed with status: [' + this.status + ']'));
-	              }
-	            }
-	          };
-	        });
-	      }
-	    
-	      getJSON('/posts.json').then(function(json) {
-	        // on fulfillment
-	      }, function(reason) {
-	        // on rejection
-	      });
-	      ```
-	    
-	      Unlike callbacks, promises are great composable primitives.
-	    
-	      ```js
-	      Promise.all([
-	        getJSON('/posts'),
-	        getJSON('/comments')
-	      ]).then(function(values){
-	        values[0] // => postsJSON
-	        values[1] // => commentsJSON
-	    
-	        return values;
-	      });
-	      ```
-	    
-	      @class Promise
-	      @param {Function} resolver
-	      Useful for tooling.
-	      @constructor
-	    */
-
-
-	    var Promise$1 = function () {
-	      function Promise(resolver) {
-	        this[PROMISE_ID] = nextId();
-	        this._result = this._state = undefined;
-	        this._subscribers = [];
-
-	        if (noop !== resolver) {
-	          typeof resolver !== 'function' && needsResolver();
-	          this instanceof Promise ? initializePromise(this, resolver) : needsNew();
-	        }
-	      }
-	      /**
-	      The primary way of interacting with a promise is through its `then` method,
-	      which registers callbacks to receive either a promise's eventual value or the
-	      reason why the promise cannot be fulfilled.
-	       ```js
-	      findUser().then(function(user){
-	        // user is available
-	      }, function(reason){
-	        // user is unavailable, and you are given the reason why
-	      });
-	      ```
-	       Chaining
-	      --------
-	       The return value of `then` is itself a promise.  This second, 'downstream'
-	      promise is resolved with the return value of the first promise's fulfillment
-	      or rejection handler, or rejected if the handler throws an exception.
-	       ```js
-	      findUser().then(function (user) {
-	        return user.name;
-	      }, function (reason) {
-	        return 'default name';
-	      }).then(function (userName) {
-	        // If `findUser` fulfilled, `userName` will be the user's name, otherwise it
-	        // will be `'default name'`
-	      });
-	       findUser().then(function (user) {
-	        throw new Error('Found user, but still unhappy');
-	      }, function (reason) {
-	        throw new Error('`findUser` rejected and we're unhappy');
-	      }).then(function (value) {
-	        // never reached
-	      }, function (reason) {
-	        // if `findUser` fulfilled, `reason` will be 'Found user, but still unhappy'.
-	        // If `findUser` rejected, `reason` will be '`findUser` rejected and we're unhappy'.
-	      });
-	      ```
-	      If the downstream promise does not specify a rejection handler, rejection reasons will be propagated further downstream.
-	       ```js
-	      findUser().then(function (user) {
-	        throw new PedagogicalException('Upstream error');
-	      }).then(function (value) {
-	        // never reached
-	      }).then(function (value) {
-	        // never reached
-	      }, function (reason) {
-	        // The `PedgagocialException` is propagated all the way down to here
-	      });
-	      ```
-	       Assimilation
-	      ------------
-	       Sometimes the value you want to propagate to a downstream promise can only be
-	      retrieved asynchronously. This can be achieved by returning a promise in the
-	      fulfillment or rejection handler. The downstream promise will then be pending
-	      until the returned promise is settled. This is called *assimilation*.
-	       ```js
-	      findUser().then(function (user) {
-	        return findCommentsByAuthor(user);
-	      }).then(function (comments) {
-	        // The user's comments are now available
-	      });
-	      ```
-	       If the assimliated promise rejects, then the downstream promise will also reject.
-	       ```js
-	      findUser().then(function (user) {
-	        return findCommentsByAuthor(user);
-	      }).then(function (comments) {
-	        // If `findCommentsByAuthor` fulfills, we'll have the value here
-	      }, function (reason) {
-	        // If `findCommentsByAuthor` rejects, we'll have the reason here
-	      });
-	      ```
-	       Simple Example
-	      --------------
-	       Synchronous Example
-	       ```javascript
-	      let result;
-	       try {
-	        result = findResult();
-	        // success
-	      } catch(reason) {
-	        // failure
-	      }
-	      ```
-	       Errback Example
-	       ```js
-	      findResult(function(result, err){
-	        if (err) {
-	          // failure
-	        } else {
-	          // success
-	        }
-	      });
-	      ```
-	       Promise Example;
-	       ```javascript
-	      findResult().then(function(result){
-	        // success
-	      }, function(reason){
-	        // failure
-	      });
-	      ```
-	       Advanced Example
-	      --------------
-	       Synchronous Example
-	       ```javascript
-	      let author, books;
-	       try {
-	        author = findAuthor();
-	        books  = findBooksByAuthor(author);
-	        // success
-	      } catch(reason) {
-	        // failure
-	      }
-	      ```
-	       Errback Example
-	       ```js
-	       function foundBooks(books) {
-	       }
-	       function failure(reason) {
-	       }
-	       findAuthor(function(author, err){
-	        if (err) {
-	          failure(err);
-	          // failure
-	        } else {
-	          try {
-	            findBoooksByAuthor(author, function(books, err) {
-	              if (err) {
-	                failure(err);
-	              } else {
-	                try {
-	                  foundBooks(books);
-	                } catch(reason) {
-	                  failure(reason);
-	                }
-	              }
-	            });
-	          } catch(error) {
-	            failure(err);
-	          }
-	          // success
-	        }
-	      });
-	      ```
-	       Promise Example;
-	       ```javascript
-	      findAuthor().
-	        then(findBooksByAuthor).
-	        then(function(books){
-	          // found books
-	      }).catch(function(reason){
-	        // something went wrong
-	      });
-	      ```
-	       @method then
-	      @param {Function} onFulfilled
-	      @param {Function} onRejected
-	      Useful for tooling.
-	      @return {Promise}
-	      */
-
-	      /**
-	      `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
-	      as the catch block of a try/catch statement.
-	      ```js
-	      function findAuthor(){
-	      throw new Error('couldn't find that author');
-	      }
-	      // synchronous
-	      try {
-	      findAuthor();
-	      } catch(reason) {
-	      // something went wrong
-	      }
-	      // async with promises
-	      findAuthor().catch(function(reason){
-	      // something went wrong
-	      });
-	      ```
-	      @method catch
-	      @param {Function} onRejection
-	      Useful for tooling.
-	      @return {Promise}
-	      */
-
-
-	      Promise.prototype.catch = function _catch(onRejection) {
-	        return this.then(null, onRejection);
-	      };
-	      /**
-	        `finally` will be invoked regardless of the promise's fate just as native
-	        try/catch/finally behaves
-	      
-	        Synchronous example:
-	      
-	        ```js
-	        findAuthor() {
-	          if (Math.random() > 0.5) {
-	            throw new Error();
-	          }
-	          return new Author();
-	        }
-	      
-	        try {
-	          return findAuthor(); // succeed or fail
-	        } catch(error) {
-	          return findOtherAuther();
-	        } finally {
-	          // always runs
-	          // doesn't affect the return value
-	        }
-	        ```
-	      
-	        Asynchronous example:
-	      
-	        ```js
-	        findAuthor().catch(function(reason){
-	          return findOtherAuther();
-	        }).finally(function(){
-	          // author was either found, or not
-	        });
-	        ```
-	      
-	        @method finally
-	        @param {Function} callback
-	        @return {Promise}
-	      */
-
-
-	      Promise.prototype.finally = function _finally(callback) {
-	        var promise = this;
-	        var constructor = promise.constructor;
-
-	        if (isFunction(callback)) {
-	          return promise.then(function (value) {
-	            return constructor.resolve(callback()).then(function () {
-	              return value;
-	            });
-	          }, function (reason) {
-	            return constructor.resolve(callback()).then(function () {
-	              throw reason;
-	            });
-	          });
-	        }
-
-	        return promise.then(callback, callback);
-	      };
-
-	      return Promise;
-	    }();
-
-	    Promise$1.prototype.then = then;
-	    Promise$1.all = all;
-	    Promise$1.race = race;
-	    Promise$1.resolve = resolve$1;
-	    Promise$1.reject = reject$1;
-	    Promise$1._setScheduler = setScheduler;
-	    Promise$1._setAsap = setAsap;
-	    Promise$1._asap = asap;
-	    /*global self*/
-
-	    function polyfill() {
-	      var local = void 0;
-
-	      if (typeof commonjsGlobal !== 'undefined') {
-	        local = commonjsGlobal;
-	      } else if (typeof self !== 'undefined') {
-	        local = self;
-	      } else {
-	        try {
-	          local = Function('return this')();
-	        } catch (e) {
-	          throw new Error('polyfill failed because global object is unavailable in this environment');
-	        }
-	      }
-
-	      var P = local.Promise;
-
-	      if (P) {
-	        var promiseToString = null;
-
-	        try {
-	          promiseToString = Object.prototype.toString.call(P.resolve());
-	        } catch (e) {// silently ignored
-	        }
-
-	        if (promiseToString === '[object Promise]' && !P.cast) {
-	          return;
-	        }
-	      }
-
-	      local.Promise = Promise$1;
-	    } // Strange compat..
-
-
-	    Promise$1.polyfill = polyfill;
-	    Promise$1.Promise = Promise$1;
-	    return Promise$1;
-	  });
+	    module.exports = Promise;
+	  })();
 	});
 
-	var Promise$1 = typeof Promise !== "undefined" ? Promise : es6Promise;
-
 	function registerLoggingCallbacks(obj) {
-	  var i,
-	      l,
-	      key,
-	      callbackNames = ["begin", "done", "log", "testStart", "testDone", "moduleStart", "moduleDone"];
+	  var callbackNames = ["begin", "done", "log", "testStart", "testDone", "moduleStart", "moduleDone"];
 
 	  function registerLoggingCallback(key) {
 	    var loggingCallback = function loggingCallback(callback) {
@@ -9769,8 +8979,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    return loggingCallback;
 	  }
 
-	  for (i = 0, l = callbackNames.length; i < l; i++) {
-	    key = callbackNames[i]; // Initialize key collection of logging callback
+	  for (var i = 0, l = callbackNames.length; i < l; i++) {
+	    var key = callbackNames[i]; // Initialize key collection of logging callback
 
 	    if (objectType(config.callbacks[key]) === "undefined") {
 	      config.callbacks[key] = [];
@@ -9795,9 +9005,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	  return callbacks.reduce(function (promiseChain, callback) {
 	    return promiseChain.then(function () {
-	      return Promise$1.resolve(callback(args));
+	      return promisePolyfill.resolve(callback(args));
 	    });
-	  }, Promise$1.resolve([]));
+	  }, promisePolyfill.resolve([]));
 	}
 
 	// Doesn't support IE9, it will return undefined on these browsers
@@ -9805,19 +9015,18 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	var fileName = (sourceFromStacktrace(0) || "").replace(/(:\d+)+\)?/, "").replace(/.+\//, "");
 	function extractStacktrace(e, offset) {
 	  offset = offset === undefined ? 4 : offset;
-	  var stack, include, i;
 
 	  if (e && e.stack) {
-	    stack = e.stack.split("\n");
+	    var stack = e.stack.split("\n");
 
 	    if (/^error$/i.test(stack[0])) {
 	      stack.shift();
 	    }
 
 	    if (fileName) {
-	      include = [];
+	      var include = [];
 
-	      for (i = offset; i < stack.length; i++) {
+	      for (var i = offset; i < stack.length; i++) {
 	        if (stack[i].indexOf(fileName) !== -1) {
 	          break;
 	        }
@@ -9889,7 +9098,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	    if (!setTimeout$1 || config.updateRate <= 0 || elapsedTime < config.updateRate) {
 	      var task = taskQueue.shift();
-	      Promise$1.resolve(task()).then(function () {
+	      promisePolyfill.resolve(task()).then(function () {
 	        if (!taskQueue.length) {
 	          advance();
 	        } else {
@@ -9932,7 +9141,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	}
 	/**
 	 * Return the number of tasks remaining in the task queue to be processed.
-	 * @return {Number}
+	 * @return {number}
 	 */
 
 
@@ -9942,8 +9151,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	/**
 	 * Adds a test to the TestQueue for execution.
 	 * @param {Function} testTasksFunc
-	 * @param {Boolean} prioritize
-	 * @param {String} seed
+	 * @param {boolean} prioritize
+	 * @param {string} seed
 	 */
 
 
@@ -10148,7 +9357,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  return TestReport;
 	}();
 
-	var focused$1 = false;
 	function Test(settings) {
 	  this.expected = null;
 	  this.assertions = [];
@@ -10214,8 +9422,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	Test.count = 0;
 
 	function getNotStartedModules(startModule) {
-	  var module = startModule,
-	      modules = [];
+	  var module = startModule;
+	  var modules = [];
 
 	  while (module && module.testsRun === 0) {
 	    modules.push(module);
@@ -10236,8 +9444,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  before: function before() {
 	    var _this = this;
 
-	    var module = this.module,
-	        notStartedModules = getNotStartedModules(module); // ensure the callbacks are executed serially for each module
+	    var module = this.module;
+	    var notStartedModules = getNotStartedModules(module); // ensure the callbacks are executed serially for each module
 
 	    var callbackPromises = notStartedModules.reduce(function (promiseChain, startModule) {
 	      return promiseChain.then(function () {
@@ -10252,7 +9460,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	          tests: startModule.tests
 	        });
 	      });
-	    }, Promise$1.resolve([]));
+	    }, promisePolyfill.resolve([]));
 	    return callbackPromises.then(function () {
 	      config.current = _this;
 	      _this.testEnvironment = extend({}, module.testEnvironment);
@@ -10271,7 +9479,6 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    });
 	  },
 	  run: function run() {
-	    var promise;
 	    config.current = this;
 	    this.callbackStarted = now();
 
@@ -10293,7 +9500,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    }
 
 	    function runTest(test) {
-	      promise = test.callback.call(test.testEnvironment, test.assert);
+	      var promise = test.callback.call(test.testEnvironment, test.assert);
 	      test.resolvePromise(promise); // If the test has a "lock" on it, but the timeout is 0, then we push a
 	      // failure as the test should be synchronous.
 
@@ -10387,20 +9594,19 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      this.pushFailure("Expected at least one assertion, but none were run - call " + "expect(0) to accept zero assertions.", this.stack);
 	    }
 
-	    var i,
-	        module = this.module,
-	        moduleName = module.name,
-	        testName = this.testName,
-	        skipped = !!this.skip,
-	        todo = !!this.todo,
-	        bad = 0,
-	        storage = config.storage;
+	    var module = this.module;
+	    var moduleName = module.name;
+	    var testName = this.testName;
+	    var skipped = !!this.skip;
+	    var todo = !!this.todo;
+	    var bad = 0;
+	    var storage = config.storage;
 	    this.runtime = now() - this.started;
 	    config.stats.all += this.assertions.length;
 	    config.stats.testCount += 1;
 	    module.stats.all += this.assertions.length;
 
-	    for (i = 0; i < this.assertions.length; i++) {
+	    for (var i = 0; i < this.assertions.length; i++) {
 	      if (!this.assertions[i].result) {
 	        bad++;
 	        config.stats.bad++;
@@ -10463,7 +9669,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	          return promiseChain.then(function () {
 	            return logSuiteEnd(completedModule);
 	          });
-	        }, Promise$1.resolve([]));
+	        }, promisePolyfill.resolve([]));
 	      }
 	    }).then(function () {
 	      config.current = undefined;
@@ -10531,8 +9737,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    } // Destructure of resultInfo = { result, actual, expected, message, negative }
 
 
-	    var source,
-	        details = {
+	    var details = {
 	      module: this.module.name,
 	      name: this.testName,
 	      result: resultInfo.result,
@@ -10549,7 +9754,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    }
 
 	    if (!resultInfo.result) {
-	      source = resultInfo.source || sourceFromStacktrace();
+	      var source = resultInfo.source || sourceFromStacktrace();
 
 	      if (source) {
 	        details.source = source;
@@ -10595,16 +9800,13 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    emit("assertion", assertion);
 	  },
 	  resolvePromise: function resolvePromise(promise, phase) {
-	    var then,
-	        resume,
-	        message,
-	        test = this;
-
 	    if (promise != null) {
-	      then = promise.then;
+	      var _test = this;
+
+	      var then = promise.then;
 
 	      if (objectType(then) === "function") {
-	        resume = internalStop(test);
+	        var resume = internalStop(_test);
 
 	        if (config.notrycatch) {
 	          then.call(promise, function () {
@@ -10614,22 +9816,24 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	          then.call(promise, function () {
 	            resume();
 	          }, function (error) {
-	            message = "Promise rejected " + (!phase ? "during" : phase.replace(/Each$/, "")) + " \"" + test.testName + "\": " + (error && error.message || error);
-	            test.pushFailure(message, extractStacktrace(error, 0)); // Else next test will carry the responsibility
+	            var message = "Promise rejected " + (!phase ? "during" : phase.replace(/Each$/, "")) + " \"" + _test.testName + "\": " + (error && error.message || error);
+
+	            _test.pushFailure(message, extractStacktrace(error, 0)); // Else next test will carry the responsibility
+
 
 	            saveGlobal(); // Unblock
 
-	            internalRecover(test);
+	            internalRecover(_test);
 	          });
 	        }
 	      }
 	    }
 	  },
 	  valid: function valid() {
-	    var filter = config.filter,
-	        regexFilter = /^(!?)\/([\w\W]*)\/(i?$)/.exec(filter),
-	        module = config.module && config.module.toLowerCase(),
-	        fullName = this.module.name + ": " + this.testName;
+	    var filter = config.filter;
+	    var regexFilter = /^(!?)\/([\w\W]*)\/(i?$)/.exec(filter);
+	    var module = config.module && config.module.toLowerCase();
+	    var fullName = this.module.name + ": " + this.testName;
 
 	    function moduleChainNameMatch(testModule) {
 	      var testModuleName = testModule.name ? testModule.name.toLowerCase() : null;
@@ -10721,26 +9925,26 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	}
 
 	function checkPollution() {
-	  var newGlobals,
-	      deletedGlobals,
-	      old = config.pollution;
+	  var old = config.pollution;
 	  saveGlobal();
-	  newGlobals = diff(config.pollution, old);
+	  var newGlobals = diff(config.pollution, old);
 
 	  if (newGlobals.length > 0) {
 	    pushFailure("Introduced global variable(s): " + newGlobals.join(", "));
 	  }
 
-	  deletedGlobals = diff(old, config.pollution);
+	  var deletedGlobals = diff(old, config.pollution);
 
 	  if (deletedGlobals.length > 0) {
 	    pushFailure("Deleted global variable(s): " + deletedGlobals.join(", "));
 	  }
-	} // Will be exposed as QUnit.test
+	}
 
+	var focused$1 = false; // indicates that the "only" filter was used
+	// Will be exposed as QUnit.test
 
 	function test(testName, callback) {
-	  if (focused$1) {
+	  if (focused$1 || config.currentModule.ignored) {
 	    return;
 	  }
 
@@ -10752,7 +9956,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	}
 	extend(test, {
 	  todo: function todo(testName, callback) {
-	    if (focused$1) {
+	    if (focused$1 || config.currentModule.ignored) {
 	      return;
 	    }
 
@@ -10764,7 +9968,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    newTest.queue();
 	  },
 	  skip: function skip(testName) {
-	    if (focused$1) {
+	    if (focused$1 || config.currentModule.ignored) {
 	      return;
 	    }
 
@@ -10775,6 +9979,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    test.queue();
 	  },
 	  only: function only(testName, callback) {
+	    if (config.currentModule.ignored) {
+	      return;
+	    }
+
 	    if (!focused$1) {
 	      config.queue.length = 0;
 	      focused$1 = true;
@@ -10808,16 +10016,16 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    }
 
 	    if (typeof timeoutDuration === "number" && timeoutDuration > 0) {
-	      clearTimeout(config.timeout);
-
 	      config.timeoutHandler = function (timeout) {
 	        return function () {
+	          config.timeout = null;
 	          pushFailure("Test took longer than ".concat(timeout, "ms; test timed out."), sourceFromStacktrace(2));
 	          released = true;
 	          internalRecover(test);
 	        };
 	      };
 
+	      clearTimeout(config.timeout);
 	      config.timeout = setTimeout$1(config.timeoutHandler(timeoutDuration), timeoutDuration);
 	    }
 	  }
@@ -10861,19 +10069,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 
 	  if (setTimeout$1) {
-	    if (config.timeout) {
-	      clearTimeout(config.timeout);
-	    }
-
+	    clearTimeout(config.timeout);
 	    config.timeout = setTimeout$1(function () {
 	      if (test.semaphore > 0) {
 	        return;
 	      }
 
-	      if (config.timeout) {
-	        clearTimeout(config.timeout);
-	      }
-
+	      clearTimeout(config.timeout);
+	      config.timeout = null;
 	      begin();
 	    });
 	  } else {
@@ -10949,6 +10152,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	      if (config.timeout) {
 	        clearTimeout(config.timeout);
+	        config.timeout = null;
 
 	        if (config.timeoutHandler && this.test.timeout > 0) {
 	          resetTestTimeout(this.test.timeout);
@@ -11351,7 +10555,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	 * Converts an error into a simple string for comparisons.
 	 *
 	 * @param {Error|Object} error
-	 * @return {String}
+	 * @return {string}
 	 */
 
 	function errorString(error) {
@@ -11369,37 +10573,51 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	/* global module, exports, define */
 	function exportQUnit(QUnit) {
-	  if (window$1 && document$1) {
+	  var exportedModule = false;
+
+	  if (window$1 && document) {
 	    // QUnit may be defined when it is preconfigured but then only QUnit and QUnit.config may be defined.
 	    if (window$1.QUnit && window$1.QUnit.version) {
 	      throw new Error("QUnit has already been defined.");
 	    }
 
 	    window$1.QUnit = QUnit;
-	  } // For nodejs
+	    exportedModule = true;
+	  } // For Node.js
 
 
 	  if (typeof module !== "undefined" && module && module.exports) {
 	    module.exports = QUnit; // For consistency with CommonJS environments' exports
 
 	    module.exports.QUnit = QUnit;
+	    exportedModule = true;
 	  } // For CommonJS with exports, but without module.exports, like Rhino
 
 
 	  if (typeof exports !== "undefined" && exports) {
 	    exports.QUnit = QUnit;
-	  }
+	    exportedModule = true;
+	  } // For AMD
+
 
 	  if (typeof define === "function" && define.amd) {
 	    define(function () {
 	      return QUnit;
 	    });
 	    QUnit.config.autostart = false;
+	    exportedModule = true;
 	  } // For Web/Service Workers
 
 
 	  if (self$1 && self$1.WorkerGlobalScope && self$1 instanceof self$1.WorkerGlobalScope) {
 	    self$1.QUnit = QUnit;
+	    exportedModule = true;
+	  } // For other environments, such as SpiderMonkey (mozjs) and other
+	  // embedded JavaScript engines
+
+
+	  if (!exportedModule) {
+	    global__default['default'].QUnit = QUnit;
 	  }
 	}
 
@@ -11460,10 +10678,19 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	QUnit.isLocal = window$1 && window$1.location && window$1.location.protocol === "file:"; // Expose the current QUnit version
 
-	QUnit.version = "2.13.0";
+	QUnit.version = "2.14.0";
 
 	extend(QUnit, {
+	  config: config,
+	  dump: dump,
+	  equiv: equiv,
+	  is: is,
+	  objectType: objectType,
 	  on: on,
+	  onError: onError,
+	  onUnhandledRejection: onUnhandledRejection,
+	  pushFailure: pushFailure,
+	  assert: Assert.prototype,
 	  module: module$1,
 	  test: test,
 	  // alias other test flavors for easy access
@@ -11471,38 +10698,40 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  skip: test.skip,
 	  only: test.only,
 	  start: function start(count) {
-	    var globalStartAlreadyCalled = globalStartCalled;
-
-	    if (!config.current) {
-	      globalStartCalled = true;
-
-	      if (runStarted) {
-	        throw new Error("Called start() while test already started running");
-	      } else if (globalStartAlreadyCalled || count > 1) {
-	        throw new Error("Called start() outside of a test context too many times");
-	      } else if (config.autostart) {
-	        throw new Error("Called start() outside of a test context when " + "QUnit.config.autostart was true");
-	      } else if (!config.pageLoaded) {
-	        // The page isn't completely loaded yet, so we set autostart and then
-	        // load if we're in Node or wait for the browser's load event.
-	        config.autostart = true; // Starts from Node even if .load was not previously called. We still return
-	        // early otherwise we'll wind up "beginning" twice.
-
-	        if (!document$1) {
-	          QUnit.load();
-	        }
-
-	        return;
-	      }
-	    } else {
+	    if (config.current) {
 	      throw new Error("QUnit.start cannot be called inside a test context.");
+	    }
+
+	    var globalStartAlreadyCalled = globalStartCalled;
+	    globalStartCalled = true;
+
+	    if (runStarted) {
+	      throw new Error("Called start() while test already started running");
+	    }
+
+	    if (globalStartAlreadyCalled || count > 1) {
+	      throw new Error("Called start() outside of a test context too many times");
+	    }
+
+	    if (config.autostart) {
+	      throw new Error("Called start() outside of a test context when " + "QUnit.config.autostart was true");
+	    }
+
+	    if (!config.pageLoaded) {
+	      // The page isn't completely loaded yet, so we set autostart and then
+	      // load if we're in Node or wait for the browser's load event.
+	      config.autostart = true; // Starts from Node even if .load was not previously called. We still return
+	      // early otherwise we'll wind up "beginning" twice.
+
+	      if (!document) {
+	        QUnit.load();
+	      }
+
+	      return;
 	    }
 
 	    scheduleBegin();
 	  },
-	  config: config,
-	  is: is,
-	  objectType: objectType,
 	  extend: function extend$1() {
 	    Logger.warn("QUnit.extend is deprecated and will be removed in QUnit 3.0." + " Please use Object.assign instead."); // delegate to utility implementation, which does not warn and can be used elsewhere internally
 
@@ -11538,15 +10767,9 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  stack: function stack(offset) {
 	    offset = (offset || 0) + 2;
 	    return sourceFromStacktrace(offset);
-	  },
-	  onError: onError,
-	  onUnhandledRejection: onUnhandledRejection
+	  }
 	});
 
-	QUnit.pushFailure = pushFailure;
-	QUnit.assert = Assert.prototype;
-	QUnit.equiv = equiv;
-	QUnit.dump = dump;
 	registerLoggingCallbacks(QUnit);
 
 	function scheduleBegin() {
@@ -11567,40 +10790,41 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	}
 
 	function begin() {
-	  var i,
-	      l,
-	      modulesLog = []; // If the test run hasn't officially begun yet
-
-	  if (!config.started) {
-	    // Record the time of the test run's beginning
-	    config.started = now(); // Delete the loose unnamed module if unused.
-
-	    if (config.modules[0].name === "" && config.modules[0].tests.length === 0) {
-	      config.modules.shift();
-	    } // Avoid unnecessary information by not logging modules' test environments
-
-
-	    for (i = 0, l = config.modules.length; i < l; i++) {
-	      modulesLog.push({
-	        name: config.modules[i].name,
-	        tests: config.modules[i].tests
-	      });
-	    } // The test run is officially beginning now
-
-
-	    emit("runStart", globalSuite.start(true));
-	    runLoggingCallbacks("begin", {
-	      totalTests: Test.count,
-	      modules: modulesLog
-	    }).then(unblockAndAdvanceQueue);
-	  } else {
+	  if (config.started) {
 	    unblockAndAdvanceQueue();
-	  }
+	    return;
+	  } // The test run hasn't officially begun yet
+	  // Record the time of the test run's beginning
+
+
+	  config.started = now(); // Delete the loose unnamed module if unused.
+
+	  if (config.modules[0].name === "" && config.modules[0].tests.length === 0) {
+	    config.modules.shift();
+	  } // Avoid unnecessary information by not logging modules' test environments
+
+
+	  var l = config.modules.length;
+	  var modulesLog = [];
+
+	  for (var i = 0; i < l; i++) {
+	    modulesLog.push({
+	      name: config.modules[i].name,
+	      tests: config.modules[i].tests
+	    });
+	  } // The test run is officially beginning now
+
+
+	  emit("runStart", globalSuite.start(true));
+	  runLoggingCallbacks("begin", {
+	    totalTests: Test.count,
+	    modules: modulesLog
+	  }).then(unblockAndAdvanceQueue);
 	}
 	exportQUnit(QUnit);
 
 	(function () {
-	  if (!window$1 || !document$1) {
+	  if (!window$1 || !document) {
 	    return;
 	  }
 
@@ -11613,7 +10837,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      return;
 	    }
 
-	    var fixture = document$1.getElementById("qunit-fixture");
+	    var fixture = document.getElementById("qunit-fixture");
 
 	    if (fixture) {
 	      config.fixture = fixture.cloneNode(true);
@@ -11627,13 +10851,13 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      return;
 	    }
 
-	    var fixture = document$1.getElementById("qunit-fixture");
+	    var fixture = document.getElementById("qunit-fixture");
 
 	    var resetFixtureType = _typeof(config.fixture);
 
 	    if (resetFixtureType === "string") {
 	      // support user defined values for `config.fixture`
-	      var newFixture = document$1.createElement("div");
+	      var newFixture = document.createElement("div");
 	      newFixture.setAttribute("id", "qunit-fixture");
 	      newFixture.innerHTML = config.fixture;
 	      fixture.parentNode.replaceChild(newFixture, fixture);
@@ -12528,7 +11752,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	(function () {
 	  // Don't load the HTML Reporter on non-browser environments
-	  if (!window$1 || !document$1) {
+	  if (!window$1 || !document) {
 	    return;
 	  }
 
@@ -12589,7 +11813,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 
 	  function id(name) {
-	    return document$1.getElementById && document$1.getElementById(name);
+	    return document.getElementById && document.getElementById(name);
 	  }
 
 	  function abortTests() {
@@ -12785,7 +12009,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 
 	  function toolbarUrlConfigContainer() {
-	    var urlConfigContainer = document$1.createElement("span");
+	    var urlConfigContainer = document.createElement("span");
 	    urlConfigContainer.innerHTML = getUrlConfigHtml();
 	    addClass(urlConfigContainer, "qunit-url-config");
 	    addEvents(urlConfigContainer.getElementsByTagName("input"), "change", toolbarChanged);
@@ -12794,7 +12018,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 
 	  function abortTestsButton() {
-	    var button = document$1.createElement("button");
+	    var button = document.createElement("button");
 	    button.id = "qunit-abort-tests-button";
 	    button.innerHTML = "Abort";
 	    addEvent(button, "click", abortTests);
@@ -12802,10 +12026,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 
 	  function toolbarLooseFilter() {
-	    var filter = document$1.createElement("form"),
-	        label = document$1.createElement("label"),
-	        input = document$1.createElement("input"),
-	        button = document$1.createElement("button");
+	    var filter = document.createElement("form"),
+	        label = document.createElement("label"),
+	        input = document.createElement("input"),
+	        button = document.createElement("button");
 	    addClass(filter, "qunit-filter");
 	    label.innerHTML = "Filter: ";
 	    input.type = "text";
@@ -12815,7 +12039,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    button.innerHTML = "Go";
 	    label.appendChild(input);
 	    filter.appendChild(label);
-	    filter.appendChild(document$1.createTextNode(" "));
+	    filter.appendChild(document.createTextNode(" "));
 	    filter.appendChild(button);
 	    addEvent(filter, "submit", interceptNavigation);
 	    return filter;
@@ -12839,16 +12063,16 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  function toolbarModuleFilter() {
 	    var commit,
 	        reset,
-	        moduleFilter = document$1.createElement("form"),
-	        label = document$1.createElement("label"),
-	        moduleSearch = document$1.createElement("input"),
-	        dropDown = document$1.createElement("div"),
-	        actions = document$1.createElement("span"),
-	        applyButton = document$1.createElement("button"),
-	        resetButton = document$1.createElement("button"),
-	        allModulesLabel = document$1.createElement("label"),
-	        allCheckbox = document$1.createElement("input"),
-	        dropDownList = document$1.createElement("ul"),
+	        moduleFilter = document.createElement("form"),
+	        label = document.createElement("label"),
+	        moduleSearch = document.createElement("input"),
+	        dropDown = document.createElement("div"),
+	        actions = document.createElement("span"),
+	        applyButton = document.createElement("button"),
+	        resetButton = document.createElement("button"),
+	        allModulesLabel = document.createElement("label"),
+	        allCheckbox = document.createElement("input"),
+	        dropDownList = document.createElement("ul"),
 	        dirty = false;
 	    moduleSearch.id = "qunit-modulefilter-search";
 	    moduleSearch.autocomplete = "off";
@@ -12876,7 +12100,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    }
 
 	    allModulesLabel.appendChild(allCheckbox);
-	    allModulesLabel.appendChild(document$1.createTextNode("All modules"));
+	    allModulesLabel.appendChild(document.createTextNode("All modules"));
 	    actions.id = "qunit-modulefilter-actions";
 	    actions.appendChild(applyButton);
 	    actions.appendChild(resetButton);
@@ -12907,8 +12131,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      }
 
 	      dropDown.style.display = "block";
-	      addEvent(document$1, "click", hideHandler);
-	      addEvent(document$1, "keydown", hideHandler); // Hide on Escape keydown or outside-container click
+	      addEvent(document, "click", hideHandler);
+	      addEvent(document, "keydown", hideHandler); // Hide on Escape keydown or outside-container click
 
 	      function hideHandler(e) {
 	        var inContainer = moduleFilter.contains(e.target);
@@ -12919,8 +12143,8 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	          }
 
 	          dropDown.style.display = "none";
-	          removeEvent(document$1, "click", hideHandler);
-	          removeEvent(document$1, "keydown", hideHandler);
+	          removeEvent(document, "click", hideHandler);
+	          removeEvent(document, "keydown", hideHandler);
 	          moduleSearch.value = "";
 	          searchInput();
 	        }
@@ -12993,7 +12217,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }
 
 	  function toolbarFilters() {
-	    var toolbarFilters = document$1.createElement("span");
+	    var toolbarFilters = document.createElement("span");
 	    toolbarFilters.id = "qunit-toolbar-filters";
 	    toolbarFilters.appendChild(toolbarLooseFilter());
 	    toolbarFilters.appendChild(toolbarModuleFilter());
@@ -13006,7 +12230,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    if (toolbar) {
 	      toolbar.appendChild(toolbarUrlConfigContainer());
 	      toolbar.appendChild(toolbarFilters());
-	      toolbar.appendChild(document$1.createElement("div")).className = "clearfix";
+	      toolbar.appendChild(document.createElement("div")).className = "clearfix";
 	    }
 	  }
 
@@ -13037,7 +12261,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	    if (tests) {
 	      tests.innerHTML = "";
-	      result = document$1.createElement("p");
+	      result = document.createElement("p");
 	      result.id = "qunit-testresult";
 	      result.className = "result";
 	      tests.parentNode.insertBefore(result, tests);
@@ -13065,7 +12289,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 	    if (userAgent) {
 	      userAgent.innerHTML = "";
-	      userAgent.appendChild(document$1.createTextNode("QUnit " + QUnit.version + "; " + navigator.userAgent));
+	      userAgent.appendChild(document.createTextNode("QUnit " + QUnit.version + "; " + navigator.userAgent));
 	    }
 	  }
 
@@ -13080,9 +12304,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    // having the HTML reporter actively render anything.
 
 	    if (qunit) {
-	      // Since QUnit 1.3, these are created automatically if the page
+	      qunit.setAttribute("role", "main"); // Since QUnit 1.3, these are created automatically if the page
 	      // contains id="qunit".
-	      qunit.innerHTML = "<h1 id='qunit-header'>" + escapeText(document$1.title) + "</h1>" + "<h2 id='qunit-banner'></h2>" + "<div id='qunit-testrunner-toolbar'></div>" + appendFilteredTest() + "<h2 id='qunit-userAgent'></h2>" + "<ol id='qunit-tests'></ol>";
+
+	      qunit.innerHTML = "<h1 id='qunit-header'>" + escapeText(document.title) + "</h1>" + "<h2 id='qunit-banner'></h2>" + "<div id='qunit-testrunner-toolbar' role='navigation'></div>" + appendFilteredTest() + "<h2 id='qunit-userAgent'></h2>" + "<ol id='qunit-tests'></ol>";
 	    }
 
 	    appendHeader();
@@ -13103,18 +12328,18 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      return;
 	    }
 
-	    title = document$1.createElement("strong");
+	    title = document.createElement("strong");
 	    title.innerHTML = getNameHtml(name, moduleName);
-	    rerunTrigger = document$1.createElement("a");
+	    rerunTrigger = document.createElement("a");
 	    rerunTrigger.innerHTML = "Rerun";
 	    rerunTrigger.href = setUrl({
 	      testId: testId
 	    });
-	    testBlock = document$1.createElement("li");
+	    testBlock = document.createElement("li");
 	    testBlock.appendChild(title);
 	    testBlock.appendChild(rerunTrigger);
 	    testBlock.id = "qunit-test-output-" + testId;
-	    assertList = document$1.createElement("ol");
+	    assertList = document.createElement("ol");
 	    assertList.className = "qunit-assert-list";
 	    testBlock.appendChild(assertList);
 	    tests.appendChild(testBlock);
@@ -13144,7 +12369,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	        if (test.className === "" || test.className === "running") {
 	          test.className = "aborted";
 	          assertList = test.getElementsByTagName("ol")[0];
-	          assertLi = document$1.createElement("li");
+	          assertLi = document.createElement("li");
 	          assertLi.className = "fail";
 	          assertLi.innerHTML = "Test aborted.";
 	          assertList.appendChild(assertLi);
@@ -13164,11 +12389,11 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      id("qunit-testresult-display").innerHTML = html;
 	    }
 
-	    if (config.altertitle && document$1.title) {
+	    if (config.altertitle && document.title) {
 	      // Show ✖ for good, ✔ for bad suite result in title
 	      // use escape sequences in case file gets loaded with non-utf-8
 	      // charset
-	      document$1.title = [stats.failedTests ? "\u2716" : "\u2714", document$1.title.replace(/^[\u2714\u2716] /i, "")].join(" ");
+	      document.title = [stats.failedTests ? "\u2716" : "\u2714", document.title.replace(/^[\u2714\u2716] /i, "")].join(" ");
 	    } // Scroll back to top to show results
 
 
@@ -13276,7 +12501,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    }
 
 	    assertList = testItem.getElementsByTagName("ol")[0];
-	    assertLi = document$1.createElement("li");
+	    assertLi = document.createElement("li");
 	    assertLi.className = details.result ? "pass" : "fail";
 	    assertLi.innerHTML = message;
 	    assertList.appendChild(assertLi);
@@ -13336,7 +12561,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	    if (details.skipped) {
 	      stats.skippedTests++;
 	      testItem.className = "skipped";
-	      skipped = document$1.createElement("em");
+	      skipped = document.createElement("em");
 	      skipped.className = "qunit-skipped-label";
 	      skipped.innerHTML = "skipped";
 	      testItem.insertBefore(skipped, testTitle);
@@ -13347,14 +12572,14 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	      testItem.className = testPassed ? "pass" : "fail";
 
 	      if (details.todo) {
-	        var todoLabel = document$1.createElement("em");
+	        var todoLabel = document.createElement("em");
 	        todoLabel.className = "qunit-todo-label";
 	        todoLabel.innerHTML = "todo";
 	        testItem.className += " todo";
 	        testItem.insertBefore(todoLabel, testTitle);
 	      }
 
-	      time = document$1.createElement("span");
+	      time = document.createElement("span");
 	      time.className = "runtime";
 	      time.innerHTML = details.runtime + " ms";
 	      testItem.insertBefore(time, assertList);
@@ -13370,7 +12595,7 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 
 
 	    if (details.source) {
-	      sourceName = document$1.createElement("p");
+	      sourceName = document.createElement("p");
 	      sourceName.innerHTML = "<strong>Source: </strong>" + escapeText(details.source);
 	      addClass(sourceName, "qunit-source");
 
@@ -13397,10 +12622,10 @@ define("ember-testing/lib/test/waiters", ["exports"], function (_exports) {
 	  }(window$1.phantom);
 
 	  if (usingPhantom) {
-	    console.warn("Support for PhantomJS is deprecated and will be removed in QUnit 3.0.");
+	    console$1.warn("Support for PhantomJS is deprecated and will be removed in QUnit 3.0.");
 	  }
 
-	  if (!usingPhantom && document$1.readyState === "complete") {
+	  if (!usingPhantom && document.readyState === "complete") {
 	    QUnit.load();
 	  } else {
 	    addEvent(window$1, "load", QUnit.load);
@@ -16455,8 +15680,6 @@ define("ember-qunit/index", ["exports", "ember-qunit/adapter", "ember-qunit/test
      Uses current URL configuration to setup the test container.
   
      * If `?nocontainer` is set, the test container will be hidden.
-     * If `?dockcontainer`, `?fullscreencontainer` or `?devmode` are set the test
-       container will be absolutely positioned.
      * If `?devmode` or `?fullscreencontainer` is set, the test container will be
        made full screen.
   
@@ -16473,19 +15696,12 @@ define("ember-qunit/index", ["exports", "ember-qunit/adapter", "ember-qunit/test
 
     let params = QUnit.urlParams;
     let containerVisibility = params.nocontainer ? 'hidden' : 'visible';
-    let containerPosition = params.dockcontainer || params.devmode || params.fullscreencontainer ? 'fixed' : 'relative';
 
     if (params.devmode || params.fullscreencontainer) {
       testContainer.className = ' full-screen';
     }
 
     testContainer.style.visibility = containerVisibility;
-    testContainer.style.position = containerPosition;
-    let qunitContainer = document.getElementById('qunit');
-
-    if (params.dockcontainer) {
-      qunitContainer.style.marginBottom = window.getComputedStyle(testContainer).height;
-    }
   }
   /**
      Instruct QUnit to start the tests.
@@ -16614,10 +15830,6 @@ define("ember-qunit/qunit-configuration", ["qunit"], function (QUnit) {
   QUnit.config.urlConfig.push({
     id: 'nolint',
     label: 'Disable Linting'
-  });
-  QUnit.config.urlConfig.push({
-    id: 'dockcontainer',
-    label: 'Dock container'
   });
   QUnit.config.urlConfig.push({
     id: 'devmode',
