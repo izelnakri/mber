@@ -1876,18 +1876,20 @@ define("@ember/test-helpers/setup-rendering-context", ["exports", "@ember/test-h
     {{outlet}}
   */
   {
-    "id": "GJakotF8",
-    "block": "{\"symbols\":[],\"statements\":[[1,[30,[36,1],[[30,[36,0],null,null]],null]]],\"hasEval\":false,\"upvars\":[\"-outlet\",\"component\"]}",
-    "moduleName": "(unknown template module)"
+    "id": "CtJTcOby",
+    "block": "[[[46,[28,[37,1],null,null],null,null,null]],[],false,[\"component\",\"-outlet\"]]",
+    "moduleName": "(unknown template module)",
+    "isStrictMode": false
   });
   const EMPTY_TEMPLATE = Ember.HTMLBars.template(
   /*
     
   */
   {
-    "id": "+FvXgosQ",
-    "block": "{\"symbols\":[],\"statements\":[],\"hasEval\":false,\"upvars\":[]}",
-    "moduleName": "(unknown template module)"
+    "id": "BD59E4Lo",
+    "block": "[[],[],false,[]]",
+    "moduleName": "(unknown template module)",
+    "isStrictMode": false
   }); // eslint-disable-next-line require-jsdoc
 
   function isRenderingTestContext(context) {
@@ -4518,7 +4520,7 @@ define("@ember/test-helpers/dom/wait-for", ["exports", "@ember/test-helpers/wait
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.24.0
+ * @version   3.25.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -4977,9 +4979,7 @@ define("@ember/debug/lib/capture-render-tree", ["exports", "@glimmer/util"], fun
     @since 3.14.0
   */
   function captureRenderTree(app) {
-    var env = (0, _util.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
-    var rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
-    var renderer = (0, _util.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+    var renderer = (0, _util.expect)(app.lookup('renderer:-dom'), `BUG: owner is missing renderer`);
     return renderer.debugRenderTree.capture();
   }
 });
@@ -5185,7 +5185,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
           until: '4.0.0',
           for: 'ember-source',
           since: {
-            available: '3.24.0'
+            enabled: '3.24.0'
           }
         });
       }
@@ -5197,7 +5197,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
           until: '4.0.0',
           for: 'ember-source',
           since: {
-            available: '3.24.0'
+            enabled: '3.24.0'
           }
         });
       }

@@ -33,7 +33,6 @@ import Model from 'memserver/model';
 export default class ${modelName} extends Model {
   static modelEditPlaceholder = true;
 }`;
-
 const DEFAULT_ACCEPTANCE_TEST_TO_ADD = `
 import { module, test } from 'qunit';
 import { visit, currentURL } from '@ember/test-helpers';

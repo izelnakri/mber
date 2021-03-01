@@ -139,7 +139,7 @@ test.serial('buildVendor(development, { fastboot: false }) works', async (t) => 
   });
 
   t.true(getTimeTakenForBuild(message) < VENDOR_JS_BUILD_TIME_THRESHOLD);
-  t.true(/BUILT: vendor\.js in \d+ms \[3\.\d+ MB\] Environment: development/g.test(message));
+  t.true(/BUILT: vendor\.js in \d+ms \[2\.\d+ MB\] Environment: development/g.test(message));
 
   const vendorJSBuffer = await fs.readFile(VENDOR_JS_OUTPUT_PATH);
   const vendorJSSize = vendorJSBuffer.length;
