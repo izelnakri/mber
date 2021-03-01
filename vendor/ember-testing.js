@@ -6,7 +6,7 @@
  *            Portions Copyright 2008-2011 Apple Inc. All rights reserved.
  * @license   Licensed under MIT license
  *            See https://raw.github.com/emberjs/ember.js/master/LICENSE
- * @version   3.24.0
+ * @version   3.25.1
  */
 /*globals process */
 var define, require, Ember; // Used in @ember/-internals/environment/lib/global.js
@@ -465,9 +465,7 @@ define("@ember/debug/lib/capture-render-tree", ["exports", "@glimmer/util"], fun
     @since 3.14.0
   */
   function captureRenderTree(app) {
-    var env = (0, _util.expect)(app.lookup('-environment:main'), 'BUG: owner is missing -environment:main');
-    var rendererType = env.isInteractive ? 'renderer:-dom' : 'renderer:-inert';
-    var renderer = (0, _util.expect)(app.lookup(rendererType), `BUG: owner is missing ${rendererType}`);
+    var renderer = (0, _util.expect)(app.lookup('renderer:-dom'), `BUG: owner is missing renderer`);
     return renderer.debugRenderTree.capture();
   }
 });
@@ -673,7 +671,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
           until: '4.0.0',
           for: 'ember-source',
           since: {
-            available: '3.24.0'
+            enabled: '3.24.0'
           }
         });
       }
@@ -685,7 +683,7 @@ define("@ember/debug/lib/deprecate", ["exports", "@ember/-internals/environment"
           until: '4.0.0',
           for: 'ember-source',
           since: {
-            available: '3.24.0'
+            enabled: '3.24.0'
           }
         });
       }
