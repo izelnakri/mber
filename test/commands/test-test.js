@@ -18,7 +18,7 @@ let childProcessTree = [];
 
 test.beforeEach(async () => {
   await killProcessOnPort(HTTP_PORT);
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 test.afterEach.always(async () => {
@@ -26,7 +26,7 @@ test.afterEach.always(async () => {
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 
   await killProcessOnPort(HTTP_PORT);
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 // TODO: memserver test cases, --debug mode works, backend-tests

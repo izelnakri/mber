@@ -7,9 +7,7 @@ import pathExists from '../../lib/utils/path-exists.js';
 const CWD = process.cwd();
 
 test.beforeEach(async () => {
-  if (await pathExists('online-shop')) {
-    await fs.rmdir('online-shop', { recursive: true });
-  }
+  await fs.rm('online-shop', { recursive: true, force: true });
 
   await fs.mkdir('online-shop', { recursive: true });
   await Promise.all([
@@ -28,9 +26,7 @@ test.beforeEach(async () => {
 });
 
 test.after(async () => {
-  if (await pathExists('online-shop')) {
-    await fs.rmdir('online-shop', { recursive: true });
-  }
+  await fs.rm('online-shop', { recursive: true, force: true });
 });
 
 test.serial('searchInParentDirectories(directory, file) works for current directory', async (t) => {

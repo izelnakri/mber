@@ -18,7 +18,7 @@ const APPLICATION_JS_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/assets/application.js`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true });
   await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 });
 

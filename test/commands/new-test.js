@@ -7,11 +7,11 @@ const shell = promisify(exec);
 const CWD = process.cwd();
 
 test.beforeEach(async () => {
-  await fs.rmdir('testapp', { recursive: true });
+  await fs.rm('testapp', { recursive: true, force: true });
 });
 
 test.afterEach.always(async () => {
-  await fs.rmdir('testapp', { recursive: true });
+  await fs.rm('testapp', { recursive: true, force: true });
 });
 
 test.serial('$ mber new -> throws error if applicationName not provided', async (t) => {
@@ -27,7 +27,7 @@ test.serial('$ mber new -> throws error if applicationName folder already exists
 
   t.true(stdout.includes('ember existingapp already exists!'));
 
-  await fs.rmdir('existingapp', { recursive: true });
+  await fs.rm('existingapp', { recursive: true, force: true });
 });
 
 test.serial('$ mber new -> creates', async (t) => {
@@ -64,7 +64,7 @@ test.serial('$ mber new -> creates', async (t) => {
   // assertContentForFile(t, 'src', ``)
 
   // assertContentForFile(t, 'tests', ``)
-  await fs.rmdir('anotherapp', { recursive: true });
+  await fs.rm('anotherapp', { recursive: true, force: true });
 });
 
 // function assertContentForFile(t, fileName, content) {

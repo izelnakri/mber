@@ -6,9 +6,7 @@ import pathExists from '../../lib/utils/path-exists.js';
 const CWD = process.cwd();
 
 test.before(async () => {
-  if (await pathExists('online-shop')) {
-    await fs.rmdir('online-shop', { recursive: true });
-  }
+  await fs.rm('online-shop', { recursive: true, force: true });
 
   await fs.mkdir('online-shop', { recursive: true });
   await Promise.all([
@@ -29,9 +27,7 @@ test.before(async () => {
 });
 
 test.after(async () => {
-  if (await pathExists('online-shop')) {
-    await fs.rmdir('online-shop', { recursive: true });
-  }
+  await fs.rm('online-shop', { recursive: true, force: true });
 });
 
 test('lookup() works for .js and .hbs by default', async (t) => {

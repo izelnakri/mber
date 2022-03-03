@@ -22,8 +22,8 @@ const EXAMPLE_ENV = createExampleENV('development');
 const SECOND_EXAMPLE_ENV = createExampleENV('production');
 
 test.beforeEach(async () => {
-  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
-  await fs.rmdir(`${PROJECT_ROOT}/dist`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true });
+  await fs.rm(`${PROJECT_ROOT}/dist`, { recursive: true, force: true });
   await fs.mkdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
   await fs.mkdir(`${PROJECT_ROOT}/dist`, { recursive: true });
 });

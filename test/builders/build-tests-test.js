@@ -14,7 +14,7 @@ const TESTS_JS_OUTPUT_PATH = `${CWD}/ember-app-boilerplate/tmp/assets/tests.js`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.rmdir(`${CWD}/ember-app-boilerplate/tmp`, { recursive: true });
+  await fs.rm(`${CWD}/ember-app-boilerplate/tmp`, { recursive: true, force: true });
   await fs.mkdir(`${CWD}/ember-app-boilerplate/tmp/assets`, { recursive: true });
 });
 
