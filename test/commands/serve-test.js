@@ -36,7 +36,7 @@ const CONTENT_TO_INJECT = '<h1 id="inject">injectedTestcontent</h1>'
 let childProcessTree = [];
 
 test.beforeEach(async () => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
   await killProcessOnPort(HTTP_PORT);
 });
 
@@ -44,7 +44,6 @@ test.afterEach.always(async () => {
   childProcessTree.forEach((childProcess) => childProcess.kill('SIGKILL'));
   childProcessTree.length = 0; // NOTE: JS trick: reset without replacing an array in memory
 
-  await fs.rmdir('dummyapp', { recursive: true });
   await killProcessOnPort(HTTP_PORT);
 });
 
@@ -372,6 +371,7 @@ async function testSuccessfullServe(t, stdout, options={ memserver: false, fastb
     window.require, window.define
   ].forEach((object) => t.truthy(object));
 
+  console.log(document.all);
   t.true(document.querySelector('#title').innerHTML === 'Congratulations, you made it!');
   t.deepEqual(Array.from(document.querySelectorAll('#users h4')).map((li) => li.innerHTML), [
     'Izel Nakri', 'Ash Belmokadem', 'Constantijn van de Wetering'

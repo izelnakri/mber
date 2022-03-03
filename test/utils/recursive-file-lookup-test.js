@@ -7,7 +7,7 @@ const CWD = process.cwd();
 
 test.before(async () => {
   if (await pathExists('online-shop')) {
-    await fs.rmdir('online-shop', { recursive: true });
+    await fs.rm('online-shop', { recursive: true, force: true });
   }
 
   await fs.mkdir('online-shop', { recursive: true });
@@ -30,7 +30,7 @@ test.before(async () => {
 
 test.after(async () => {
   if (await pathExists('online-shop')) {
-    await fs.rmdir('online-shop', { recursive: true });
+    await fs.rm('online-shop', { recursive: true, force: true });
   }
 });
 

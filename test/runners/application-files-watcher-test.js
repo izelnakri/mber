@@ -82,7 +82,7 @@ test.afterEach.always(async () => {
 });
 
 test.serial('it watches correctly on development mode', async (t) => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 
   t.plan(73);
 
@@ -123,11 +123,11 @@ test.serial('it watches correctly on development mode', async (t) => {
   WebSocketServer.close();
   stopStdoutListening();
   mock.removeMock();
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 test.serial('it watches memserver files correctly', async (t) => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 
   t.plan(29);
 
@@ -208,12 +208,12 @@ test.serial('it watches memserver files correctly', async (t) => {
   WebSocketServer.close();
   stopStdoutListening();
   mock.removeMock();
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 // TODO: calledOnce test with sinon
 test.serial('it watches test files correctly', async (t) => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 
   t.plan(97);
 
@@ -309,7 +309,7 @@ test.serial('it watches test files correctly', async (t) => {
   WebSocketServer.close();
   stopStdoutListening();
   mock.removeMock();
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 // it can change the ENV by changing the environment.js

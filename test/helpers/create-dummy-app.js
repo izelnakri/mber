@@ -27,8 +27,8 @@ export default async function(appName = 'dummyapp') {
     contents.replace("import app from 'mber';", "import app from '../index.js';")
   );
   await Promise.all([
-    fs.rmdir(`${TARGET_PROJECT_PATH}/dist`, { recursive: true }),
-    fs.rmdir(`${TARGET_PROJECT_PATH}/tmp`, { recursive: true })
+    fs.rm(`${TARGET_PROJECT_PATH}/dist`, { recursive: true, force: true }),
+    fs.rm(`${TARGET_PROJECT_PATH}/tmp`, { recursive: true, force: true })
   ]);
   await Promise.all([
     fs.mkdir(`${TARGET_PROJECT_PATH}/dist`, { recursive: true }),

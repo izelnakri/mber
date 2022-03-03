@@ -33,11 +33,11 @@ const OUTPUT_PACKAGE_JSON = `${PROJECT_ROOT}/dist/package.json`;
 const HTTP_PORT = 3000;
 
 test.beforeEach(async () => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 test.afterEach.always(async () => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 test.serial('$ mber build -> builds successfully', async (t) => {
