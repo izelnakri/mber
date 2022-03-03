@@ -99,6 +99,7 @@
     "eslint-plugin-ember": "^10.3.0",
     "express": "^4.17.3",
     "fastboot": "^3.1.2",
+    "graceful-fs": "^4.2.9",
     "jquery": "^3.6.0",
     "jsdom": "^16.5.2",
     "klaw": "^4.0.1",
