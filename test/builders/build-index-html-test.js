@@ -10,7 +10,7 @@ const OUTPUT_HTML_PATH = `${PROJECT_ROOT}/tmp/index.html`;
 const OUTPUT_TESTS_PATH = `${PROJECT_ROOT}/tmp/tests.html`;
 
 test.beforeEach(async () => {
-  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true });
   await fs.mkdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
 });
 

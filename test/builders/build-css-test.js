@@ -13,7 +13,7 @@ const APPLICATION_CSS_TARGET_BYTE_SIZE = '2.15 kB';
 const APPLICATION_CSS_COMPRESSED_TARGET_BYTE_SIZE = '1.78 kB';
 
 test.beforeEach(async () => {
-  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true });
   await fs.mkdir(`${PROJECT_ROOT}/tmp/assets`, { recursive: true });
 });
 

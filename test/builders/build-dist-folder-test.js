@@ -22,17 +22,17 @@ const TEST_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/dist/tests.html`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.rmdir(`${CWD}/some-app`, { recursive: true });
+  await fs.rm(`${CWD}/some-app`, { recursive: true, force: true });
   await createDummyApp('some-app');
   await Promise.all([
-    fs.rmdir(`${PROJECT_ROOT}/dist`, { recursive: true }),
-    fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true })
+    fs.rm(`${PROJECT_ROOT}/dist`, { recursive: true, force: true }),
+    fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true })
   ]);
 });
 
 test.afterEach.always(async () => {
   if (await pathExists(PROJECT_ROOT)) {
-    await fs.rmdir(PROJECT_ROOT, { recursive: true });
+    await fs.rm(PROJECT_ROOT, { recursive: true, force: true });
   }
 
   global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());

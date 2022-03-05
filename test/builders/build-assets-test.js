@@ -17,7 +17,7 @@ const INDEX_HTML_OUTPUT_PATH = `${PROJECT_ROOT}/tmp/index.html`;
 test.beforeEach(async () => {
   global.MBER_THREAD_POOL = WorkerPool.start();
 
-  await fs.rmdir(`${PROJECT_ROOT}/myapp`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/myapp`, { recursive: true, force: true });
   await createDummyApp('myapp');
   await Promise.all([
     fs.rm(APPLICATION_JS_OUTPUT_PATH, { force: true, recursive: true }),
@@ -30,7 +30,7 @@ test.beforeEach(async () => {
 
 test.afterEach.always(async () => {
   if (await pathExists('myapp')) {
-    await fs.rmdir('myapp', { recursive: true });
+    await fs.rm('myapp', { recursive: true, force: true });
   }
 
   global.MBER_THREAD_POOL.workers.forEach((worker) => worker.terminate());
@@ -79,7 +79,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works when tmp folder does no
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
-  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true });
 
   t.true(!(await pathExists(`${PROJECT_ROOT}/tmp`)));
 
@@ -108,7 +108,7 @@ test.serial('buildAssets(projectRoot, buildConfig) with memserver works', async 
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
-  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true });
 
   t.true(!(await pathExists(`${PROJECT_ROOT}/tmp`)));
 
@@ -136,7 +136,7 @@ test.serial('buildAssets(projectRoot, buildConfig) works for testing', async (t)
   const mock = mockProcessCWD(PROJECT_ROOT);
   const environmentFunction = (await import(`${PROJECT_ROOT}/config/environment.js`)).default;
 
-  await fs.rmdir(`${PROJECT_ROOT}/tmp`, { recursive: true });
+  await fs.rm(`${PROJECT_ROOT}/tmp`, { recursive: true, force: true });
 
   t.true(!(await pathExists(`${PROJECT_ROOT}/tmp`)));
 

@@ -95,7 +95,7 @@ test.afterEach.always(async () => {
 });
 // TODO: later assert error html content
 test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 
   t.plan(138);
 
@@ -147,11 +147,11 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
   stopStdoutListening();
   mock.removeMock();
 
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 test.serial('it handles css, js, hbs syntax errors gracefully without fastboot', async (t) => {
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 
   t.plan(127);
 
@@ -199,7 +199,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully without fastboot',
   stopStdoutListening();
   mock.removeMock();
 
-  await fs.rmdir('dummyapp', { recursive: true });
+  await fs.rm('dummyapp', { recursive: true, force: true });
 });
 
 async function testCSSErrorHandlingWorks(t, stdout, environment) {
