@@ -357,16 +357,16 @@ define("@glimmer/resolver/index", ["exports", "@glimmer/resolver/resolver", "@gl
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  Object.defineProperty(_exports, "default", {
-    enumerable: true,
-    get: function () {
-      return _resolver.default;
-    }
-  });
   Object.defineProperty(_exports, "BasicModuleRegistry", {
     enumerable: true,
     get: function () {
       return _basicRegistry.default;
+    }
+  });
+  Object.defineProperty(_exports, "default", {
+    enumerable: true,
+    get: function () {
+      return _resolver.default;
     }
   });
 });
@@ -526,7 +526,8 @@ define("@glimmer/resolver/module-registries/basic-registry", ["exports"], functi
   _exports.default = void 0;
 
   class BasicRegistry {
-    constructor(entries = {}) {
+    constructor() {
+      let entries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       this._entries = entries;
     }
 
@@ -965,9 +966,7 @@ define("@glimmer/component/-private/base-component-manager", ["exports", "@glimm
    * implementations (and thus this factory) should go away.
    */
   function BaseComponentManager(setOwner, getOwner, capabilities) {
-    var _temp;
-
-    return _temp = class {
+    return class {
       static create(attrs) {
         let owner = getOwner(attrs);
         return new this(owner);
@@ -992,7 +991,7 @@ define("@glimmer/component/-private/base-component-manager", ["exports", "@glimm
         return component;
       }
 
-    }, _temp;
+    };
   }
 });
 define("@glimmer/component/-private/component", ["exports", "@glimmer/component/-private/owner", "@glimmer/component/-private/destroyables"], function (_exports, _owner, _destroyables) {
@@ -1206,10 +1205,10 @@ define("@glimmer/component/-private/destroyables", ["exports"], function (_expor
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.setDestroying = setDestroying;
-  _exports.setDestroyed = setDestroyed;
-  _exports.isDestroying = isDestroying;
   _exports.isDestroyed = isDestroyed;
+  _exports.isDestroying = isDestroying;
+  _exports.setDestroyed = setDestroyed;
+  _exports.setDestroying = setDestroying;
   // NOTE: DO NOT MODIFY
   //
   // This module is clobbered by ember-addon-main when used in Ember >= 3.20.0-beta.4
@@ -1342,15 +1341,15 @@ define("ember-fetch/errors", ["exports"], function (_exports) {
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.isUnauthorizedResponse = isUnauthorizedResponse;
-  _exports.isForbiddenResponse = isForbiddenResponse;
-  _exports.isInvalidResponse = isInvalidResponse;
-  _exports.isBadRequestResponse = isBadRequestResponse;
-  _exports.isNotFoundResponse = isNotFoundResponse;
-  _exports.isGoneResponse = isGoneResponse;
   _exports.isAbortError = isAbortError;
+  _exports.isBadRequestResponse = isBadRequestResponse;
   _exports.isConflictResponse = isConflictResponse;
+  _exports.isForbiddenResponse = isForbiddenResponse;
+  _exports.isGoneResponse = isGoneResponse;
+  _exports.isInvalidResponse = isInvalidResponse;
+  _exports.isNotFoundResponse = isNotFoundResponse;
   _exports.isServerErrorResponse = isServerErrorResponse;
+  _exports.isUnauthorizedResponse = isUnauthorizedResponse;
 
   /**
    * Checks if the given response represents an unauthorized request error
@@ -1521,8 +1520,8 @@ define("ember-fetch/utils/serialize-query-params", ["exports", "ember-fetch/type
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
-  _exports.serializeQueryParams = serializeQueryParams;
   _exports.default = void 0;
+  _exports.serializeQueryParams = serializeQueryParams;
   const RBRACKET = /\[\]$/;
   /**
    * Helper function that turns the data/body of a request into a query param string.
@@ -68165,9 +68164,10 @@ define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_e
       state.element = element;
     },
 
-    updateModifier({
-      element
-    }, args) {
+    updateModifier(_ref, args) {
+      let {
+        element
+      } = _ref;
       let [fn, ...positional] = args.positional;
       fn(element, positional, args.named);
     },
@@ -68241,9 +68241,10 @@ define("@ember/render-modifiers/modifiers/will-destroy", ["exports"], function (
 
     updateModifier() {},
 
-    destroyModifier({
-      element
-    }, args) {
+    destroyModifier(_ref, args) {
+      let {
+        element
+      } = _ref;
       let [fn, ...positional] = args.positional;
       fn(element, positional, args.named);
     }
@@ -68258,6 +68259,7 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system"], funct
   Object.defineProperty(_exports, "__esModule", {
     value: true
   });
+  _exports.default = void 0;
   Object.defineProperty(_exports, "defaultRules", {
     enumerable: true,
     get: function () {
@@ -68276,7 +68278,6 @@ define("ember-inflector/index", ["exports", "ember-inflector/lib/system"], funct
       return _system.singularize;
     }
   });
-  _exports.default = void 0;
   var _default = _system.Inflector;
   _exports.default = _default;
 });
@@ -68524,7 +68525,8 @@ define("ember-inflector/lib/system/inflector", ["exports", "ember-inflector/lib/
         return this._sCache[word] || (this._sCache[word] = this._singularize(word));
       };
 
-      this.pluralize = function (numberOrWord, word, options = {}) {
+      this.pluralize = function (numberOrWord, word) {
+        let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
         this._cacheUsed = true;
         var cacheKey = [numberOrWord, word, options.withoutCount];
         return this._pCache[cacheKey] || (this._pCache[cacheKey] = this._pluralize(numberOrWord, word, options));
@@ -68618,7 +68620,9 @@ define("ember-inflector/lib/system/inflector", ["exports", "ember-inflector/lib/
       return this._pluralize(...arguments);
     },
 
-    _pluralize(wordOrCount, word, options = {}) {
+    _pluralize(wordOrCount, word) {
+      let options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
       if (word === undefined) {
         return this.inflect(wordOrCount, this.rules.plurals, this.rules.irregular);
       }
@@ -69122,9 +69126,7 @@ define("ember-resolver/resolvers/classic/index", ["exports", "ember-resolver/uti
       return '' + this.namespace.modulePrefix + '@' + fullName + ':';
     },
 
-    shouldWrapInClassFactory()
-    /* module, parsedName */
-    {
+    shouldWrapInClassFactory() {
       return false;
     },
 
@@ -69649,7 +69651,9 @@ define("ember-resolver/module-registries/requirejs", ["exports", "@glimmer/di"],
   _exports.default = void 0;
 
   class RequireJSRegistry {
-    constructor(config, modulePrefix, require = self.requirejs) {
+    constructor(config, modulePrefix) {
+      let require = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : self.requirejs;
+
       this._config = config;
       this._modulePrefix = modulePrefix;
       this._require = require;

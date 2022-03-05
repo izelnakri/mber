@@ -71,12 +71,12 @@
     "whatwg-fetch": "^3.6.2"
   },
   "dependencies": {
-    "@babel/core": "^7.13.14",
-    "@babel/plugin-proposal-class-properties": "^7.13.0",
-    "@babel/plugin-proposal-decorators": "^7.13.0",
-    "@babel/plugin-transform-modules-amd": "^7.13.0",
-    "@babel/plugin-transform-typescript": "^7.13.0",
-    "@babel/preset-typescript": "7.13.0",
+    "@babel/core": "^7.17.5",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/plugin-proposal-decorators": "^7.17.2",
+    "@babel/plugin-transform-modules-amd": "^7.16.7",
+    "@babel/plugin-transform-typescript": "^7.16.8",
+    "@babel/preset-typescript": "7.16.7",
     "@ember/ordered-set": "^4.0.0",
     "@ember/render-modifiers": "^1.0.2",
     "@glimmer/component": "^1.0.4",

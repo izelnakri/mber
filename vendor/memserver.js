@@ -9807,7 +9807,10 @@ process.umask = function() { return 0; };
   });
   _exports.default = _default;
 
-  function _default(statusCode = 200, data = {}, headers = {}) {
+  function _default() {
+    let statusCode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 200;
+    let data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    let headers = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
     return [statusCode, Object.assign({
       'Content-Type': 'application/json'
     }, headers), JSON.stringify(data)];
@@ -19879,8 +19882,8 @@ var routeRecognizer = createCommonjsModule(function (module, exports) {
       if (route.length > 0 && route.charCodeAt(0) === 47
       /* SLASH */
       ) {
-          route = route.substr(1);
-        }
+        route = route.substr(1);
+      }
 
       var parts = route.split("/");
       var names = undefined;
@@ -19898,16 +19901,16 @@ var routeRecognizer = createCommonjsModule(function (module, exports) {
         } else if (part.charCodeAt(0) === 58
         /* COLON */
         ) {
-            type = 1
-            /* Dynamic */
-            ;
-          } else if (part.charCodeAt(0) === 42
+          type = 1
+          /* Dynamic */
+          ;
+        } else if (part.charCodeAt(0) === 42
         /* STAR */
         ) {
-            type = 2
-            /* Star */
-            ;
-          } else {
+          type = 2
+          /* Star */
+          ;
+        } else {
           type = 0
           /* Static */
           ;
@@ -19918,20 +19921,20 @@ var routeRecognizer = createCommonjsModule(function (module, exports) {
         if (flags & 12
         /* Named */
         ) {
-            part = part.slice(1);
-            names = names || [];
-            names.push(part);
-            shouldDecodes = shouldDecodes || [];
-            shouldDecodes.push((flags & 4
-            /* Decoded */
-            ) !== 0);
-          }
+          part = part.slice(1);
+          names = names || [];
+          names.push(part);
+          shouldDecodes = shouldDecodes || [];
+          shouldDecodes.push((flags & 4
+          /* Decoded */
+          ) !== 0);
+        }
 
         if (flags & 14
         /* Counted */
         ) {
-            types[type]++;
-          }
+          types[type]++;
+        }
 
         segments.push({
           type: type,
@@ -20234,8 +20237,8 @@ var routeRecognizer = createCommonjsModule(function (module, exports) {
           if (segment.type === 4
           /* Epsilon */
           ) {
-              continue;
-            }
+            continue;
+          }
 
           isEmpty = false; // Add a "/" for the new segment
 
@@ -20319,8 +20322,8 @@ var routeRecognizer = createCommonjsModule(function (module, exports) {
         if (segment.type === 4
         /* Epsilon */
         ) {
-            continue;
-          }
+          continue;
+        }
 
         output += "/";
         output += generate[segment.type](segment, params);
@@ -21673,9 +21676,9 @@ var pretender = createCommonjsModule(function (module) {
       var Registry =
       /** @class */
       function () {
-        function Registry()
-        /* host */
-        {
+        function
+          /* host */
+        Registry() {
           // Herein we keep track of RouteRecognizer instances
           // keyed by HTTP method. Feel free to add more as needed.
           this.verbs = {
@@ -21880,9 +21883,9 @@ var pretender = createCommonjsModule(function (module) {
         return FakeRequest;
       }
 
-      function Pretender()
-      /* routeMap1, routeMap2, ..., options*/
-      {
+      function
+        /* routeMap1, routeMap2, ..., options*/
+      Pretender() {
         this.hosts = new Hosts();
         var lastArg = arguments[arguments.length - 1];
         var options = typeof lastArg === 'object' ? lastArg : null;
@@ -22102,12 +22105,12 @@ var pretender = createCommonjsModule(function (module) {
         prepareHeaders: function (headers) {
           return headers;
         },
-        handledRequest: function ()
-        /* verb, path, request */
-        {},
-        passthroughRequest: function ()
-        /* verb, path, request */
-        {},
+        handledRequest: function
+          /* verb, path, request */
+        () {},
+        passthroughRequest: function
+          /* verb, path, request */
+        () {},
         unhandledRequest: function (verb, path
         /*, request */
         ) {
