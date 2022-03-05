@@ -103,7 +103,7 @@
     "klaw": "^4.0.1",
     "memserver": "^2.3.9",
     "mustache": "^4.2.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "2.6.7",
     "ora": "^6.1.0",
     "puppeteer": "13.4.1",
     "sass": "1.49.9",
