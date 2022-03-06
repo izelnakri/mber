@@ -97,7 +97,7 @@ test.afterEach.always(async () => {
 test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', async (t) => {
   await fs.rm('dummyapp', { recursive: true, force: true });
 
-  t.plan(138);
+  t.plan(136);
 
   global.fastboot = {
     reload() {
@@ -139,7 +139,9 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
   await testCSSErrorHandlingWorks(t, stdout, 'memserver');
   await testApplicationJSErrorHandlingWorks(t, stdout, 'memserver');
   await testApplicationHBSErrorHandlingWorks(t, stdout, 'memserver');
+
   await testMemserverJSErrorHandlingWorks(t, stdout, 'memserver');
+
   await testTestJSErrorHandlingWorks(t, stdout, 'memserver');
 
   WebSocketServer.killWatchers();
@@ -153,7 +155,7 @@ test.serial('it handles css, js, hbs syntax errors gracefully on fastboot', asyn
 test.serial('it handles css, js, hbs syntax errors gracefully without fastboot', async (t) => {
   await fs.rm('dummyapp', { recursive: true, force: true });
 
-  t.plan(127);
+  t.plan(125);
 
   const TARGET_SOCKET_PORT = 8080;
   const mock = mockProcessCWD(PROJECT_ROOT);
@@ -381,8 +383,6 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment) {
 
   const firstContent = await readMemServerJS();
 
-  t.true(occurrenceCount(firstContent, /modelEditPlaceholder = true/g) === 1);
-
   await writeMemServerCode('/models/email.ts', JS_TYPO_ERROR);
 
   t.true(getAddNotificationCount(stdout, '/memserver/models/email.ts') === 1);
@@ -416,7 +416,6 @@ async function testMemserverJSErrorHandlingWorks(t, stdout, environment) {
 
   const lastContent = await readMemServerJS();
 
-  t.true(occurrenceCount(lastContent, /modelEditPlaceholder = true/g) === 2);
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/memserver/models/email'));
   t.true(codeIncludesAMDModule(lastContent, 'dummyapp/memserver/models/user'));
 }

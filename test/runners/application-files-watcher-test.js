@@ -129,7 +129,7 @@ test.serial('it watches correctly on development mode', async (t) => {
 test.serial('it watches memserver files correctly', async (t) => {
   await fs.rm('dummyapp', { recursive: true, force: true });
 
-  t.plan(29);
+  t.plan(28);
 
   global.fastboot = {
     reload() {
@@ -174,7 +174,6 @@ test.serial('it watches memserver files correctly', async (t) => {
   const firstContent = await readMemServerJS();
 
   t.true(codeIncludesAMDModule(firstContent, 'dummyapp/memserver/models/email'));
-  t.true(occurrenceCount(firstContent, /modelEditPlaceholder = true/g) === 1);
 
   const firstSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
   const secondSocket = new WebSocket(`ws://localhost:${DEFAULT_SOCKET_PORT}`);
@@ -215,7 +214,7 @@ test.serial('it watches memserver files correctly', async (t) => {
 test.serial('it watches test files correctly', async (t) => {
   await fs.rm('dummyapp', { recursive: true, force: true });
 
-  t.plan(97);
+  t.plan(96);
 
   const mock = mockProcessCWD(PROJECT_ROOT);
 
@@ -258,7 +257,6 @@ test.serial('it watches test files correctly', async (t) => {
   const firstContent = await readMemServerJS();
 
   t.true(codeIncludesAMDModule(firstContent, 'dummyapp/memserver/models/email'));
-  t.true(occurrenceCount(firstContent, /modelEditPlaceholder = true/g) === 1);
 
   await removeFile(`${PROJECT_ROOT}/memserver/models/email.ts`);
 
