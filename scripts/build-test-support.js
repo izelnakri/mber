@@ -76,7 +76,6 @@ function buildTestVendorJS() {
         '@ember/test-helpers/addon-test-support/@ember/test-helpers'
       ),
       fs.readFile(`${VENDOR_PATH}/ember-testing.js`),
-      fs.readFile(`${MODULE_PATH}/@ember/test-helpers/vendor/monkey-patches.js`),
       fs.readFile(`${MODULE_PATH}/qunit/qunit/qunit.js`),
       transpileNPMImports('qunit-dom', 'node_modules/qunit-dom/dist/qunit-dom.js', {
         transpile: false,
