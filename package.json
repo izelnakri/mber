@@ -48,7 +48,7 @@
     "@glimmer/resolver": "^0.4.3",
     "@typescript-eslint/parser": "5.13.0",
     "auto-changelog": "^2.4.0",
-    "ava": "^4.0.1",
+    "ava": "^4.1.0",
     "cors": "^2.8.5",
     "ember-cli-fastboot": "3.2.0",
     "ember-cli-test-loader": "^3.0.0",
