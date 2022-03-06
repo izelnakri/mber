@@ -87,10 +87,11 @@ Object.defineProperty(e,"__esModule",{value:!0}),e.default=void 0
 let i=n.default;(0,t.gte)("3.8.0-beta.1")?Ember._setComponentManager((e=>new r.default(e)),i):Ember._setComponentManager("glimmer",i)
 var s=i
 e.default=s})),define("@glimmer/component/-private/base-component-manager",["exports","@glimmer/component/-private/component"],(function(e,t){"use strict"
-Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e,t,r){return class{static create(e){return new this(t(e))}constructor(t){this.capabilities=r,e(this,t)}createComponent(e,r){return new e(t(this),r.named)}getContext(e){return e}}}})),define("@glimmer/component/-private/component",["exports","@glimmer/component/-private/owner","@glimmer/component/-private/destroyables"],(function(e,t,r){"use strict"
+Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(e,t,r){return class{static create(e){return new this(t(e))}constructor(t){(function(e,t,r){t in e?Object.defineProperty(e,t,{value:r,enumerable:!0,configurable:!0,writable:!0}):e[t]=r})(this,"capabilities",r),e(this,t)}createComponent(e,r){return new e(t(this),r.named)}getContext(e){return e}}}})),define("@glimmer/component/-private/component",["exports","@glimmer/component/-private/owner","@glimmer/component/-private/destroyables"],(function(e,t,r){"use strict"
 let n
 Object.defineProperty(e,"__esModule",{value:!0}),e.default=e.ARGS_SET=void 0,e.ARGS_SET=n
-e.default=class{constructor(e,r){this.args=void 0,this.args=r,(0,t.setOwner)(this,e)}get isDestroying(){return(0,r.isDestroying)(this)}get isDestroyed(){return(0,r.isDestroyed)(this)}willDestroy(){}}})),define("@glimmer/component/-private/destroyables",["exports"],(function(e){"use strict"
+e.default=class{constructor(e,r){var n,i,s
+s=void 0,(i="args")in(n=this)?Object.defineProperty(n,i,{value:s,enumerable:!0,configurable:!0,writable:!0}):n[i]=s,this.args=r,(0,t.setOwner)(this,e)}get isDestroying(){return(0,r.isDestroying)(this)}get isDestroyed(){return(0,r.isDestroyed)(this)}willDestroy(){}}})),define("@glimmer/component/-private/destroyables",["exports"],(function(e){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),e.isDestroyed=function(e){return r.has(e)},e.isDestroying=function(e){return t.has(e)},e.setDestroyed=function(e){r.set(e,!0)},e.setDestroying=function(e){t.set(e,!0)}
 const t=new WeakMap,r=new WeakMap})),define("@glimmer/component/-private/ember-component-manager",["exports","ember-compatibility-helpers","@glimmer/component/-private/base-component-manager","@glimmer/component/-private/destroyables"],(function(e,t,r,n){"use strict"
 Object.defineProperty(e,"__esModule",{value:!0}),e.default=void 0

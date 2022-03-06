@@ -50,7 +50,7 @@
     "auto-changelog": "^2.4.0",
     "ava": "^4.0.1",
     "cors": "^2.8.5",
-    "ember-cli-fastboot": "2.2.3",
+    "ember-cli-fastboot": "3.2.0",
     "ember-cli-test-loader": "^3.0.0",
     "ember-data": "3.26.0",
     "ember-fetch": "^8.0.4",

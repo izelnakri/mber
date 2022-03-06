@@ -27,6 +27,9 @@ define("@ember/test-waiters/build-waiter", ["exports", "@ember/test-waiters/toke
   });
   _exports._resetWaiterNames = _resetWaiterNames;
   _exports.default = buildWaiter;
+
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
   const WAITER_NAME_PATTERN = /^[^:]*:?.*/;
   let WAITER_NAMES = true
   /* DEBUG */
@@ -42,12 +45,18 @@ define("@ember/test-waiters/build-waiter", ["exports", "@ember/test-waiters/toke
 
   class TestWaiterImpl {
     constructor(name, nextToken) {
-      this.name = void 0;
-      this.nextToken = void 0;
-      this.isRegistered = false;
-      this.items = new Map();
-      this.completedOperationsForTokens = new WeakMap();
-      this.completedOperationsForPrimitives = new Map();
+      _defineProperty(this, "name", void 0);
+
+      _defineProperty(this, "nextToken", void 0);
+
+      _defineProperty(this, "isRegistered", false);
+
+      _defineProperty(this, "items", new Map());
+
+      _defineProperty(this, "completedOperationsForTokens", new WeakMap());
+
+      _defineProperty(this, "completedOperationsForPrimitives", new Map());
+
       this.name = name; // @ts-ignore
 
       this.nextToken = nextToken || getNextToken;
@@ -117,7 +126,8 @@ define("@ember/test-waiters/build-waiter", ["exports", "@ember/test-waiters/toke
 
   class NoopTestWaiter {
     constructor(name) {
-      this.name = void 0;
+      _defineProperty(this, "name", void 0);
+
       this.name = name;
     }
 

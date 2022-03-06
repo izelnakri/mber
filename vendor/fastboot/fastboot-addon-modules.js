@@ -189,15 +189,10 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
 
   });
   const FastBootService = Ember.Service.extend({
-    cookies: Ember.computed.deprecatingAlias('request.cookies', {
-      id: 'fastboot.cookies-to-request',
-      until: '0.9.9'
-    }),
-    headers: Ember.computed.deprecatingAlias('request.headers', {
-      id: 'fastboot.headers-to-request',
-      until: '0.9.9'
-    }),
     isFastBoot: typeof FastBoot !== 'undefined',
+    isFastboot: Ember.computed(function () {
+      (true && Ember.assert('The fastboot service does not have an `isFastboot` property. This is likely a typo. Please use `isFastBoot` instead.', false));
+    }),
 
     init() {
       this._super(...arguments);
@@ -208,13 +203,6 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
       this.set('shoebox', shoebox);
     },
 
-    host: Ember.computed(function () {
-      Ember.deprecate('Usage of fastboot service\'s `host` property is deprecated.  Please use `request.host` instead.', false, {
-        id: 'fastboot.host-to-request',
-        until: '0.9.9'
-      });
-      return this._fastbootInfo.request.host();
-    }),
     response: Ember.computed.readOnly('_fastbootInfo.response'),
     metadata: Ember.computed.readOnly('_fastbootInfo.metadata'),
     request: Ember.computed(function () {
@@ -222,6 +210,22 @@ define("ember-cli-fastboot/services/fastboot", ["exports"], function (_exports) 
       return RequestObject.create({
         request: Ember.get(this, '_fastbootInfo.request')
       });
+    }),
+    // this getter/setter pair is to avoid deprecation from [RFC - 680](https://github.com/emberjs/rfcs/pull/680)
+    _fastbootInfo: Ember.computed({
+      get() {
+        if (this.__fastbootInfo) {
+          return this.__fastbootInfo;
+        }
+
+        return Ember.getOwner(this).lookup('info:-fastboot');
+      },
+
+      set(_key, value) {
+        this.__fastbootInfo = value;
+        return value;
+      }
+
     }),
 
     deferRendering(promise) {
