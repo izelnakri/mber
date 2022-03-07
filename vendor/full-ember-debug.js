@@ -68018,7 +68018,7 @@ define("@ember/ordered-set", ["exports"], function (_exports) {
   var _default = OrderedSet;
   _exports.default = _default;
 });
-define("@ember/render-modifiers/modifiers/did-insert", ["exports"], function (_exports) {
+define("@ember/render-modifiers/modifiers/did-insert", ["exports", "@embroider/macros"], function (_exports, _macros) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -68071,15 +68071,18 @@ define("@ember/render-modifiers/modifiers/did-insert", ["exports"], function (_e
     @public
   */
   var _default = Ember._setModifierManager(() => ({
-    capabilities: Ember._modifierManagerCapabilities('3.13', {
+    capabilities: Ember._modifierManagerCapabilities((0, _macros.macroCondition)((0, _macros.dependencySatisfies)('ember-source', '>= 3.22.0-beta.1')) ? '3.22' : '3.13', {
       disableAutoTracking: true
     }),
 
     createModifier() {},
 
-    installModifier(_state, element, args) {
-      let [fn, ...positional] = args.positional;
-      fn(element, positional, args.named);
+    installModifier(_state, element, _ref) {
+      let {
+        positional: [fn, ...args],
+        named
+      } = _ref;
+      fn(element, args, named);
     },
 
     updateModifier() {},
@@ -68090,7 +68093,7 @@ define("@ember/render-modifiers/modifiers/did-insert", ["exports"], function (_e
 
   _exports.default = _default;
 });
-define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_exports) {
+define("@ember/render-modifiers/modifiers/did-update", ["exports", "@embroider/macros"], function (_exports, _macros) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -68098,6 +68101,18 @@ define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_e
   });
   _exports.default = void 0;
 
+  const untrack = function () {
+    if ((0, _macros.macroCondition)((0, _macros.dependencySatisfies)('ember-source', '> 3.27.0-beta.1'))) {
+      // ember-source@3.27 shipped "real modules" by default, so we can just use
+      // importSync to get @glimmer/validator directly
+      return (0, _macros.importSync)('@glimmer/validator').untrack;
+    } else if ((0, _macros.macroCondition)((0, _macros.dependencySatisfies)('ember-source', '>= 3.22.0-alpha.1'))) {
+      // we can access `window.Ember` here because it wasn't deprecated until at least 3.27
+      // eslint-disable-next-line no-undef
+      return Ember.__loader.require('@glimmer/validator').untrack;
+    } else {// nothing needed here, we do not call `untrack` in this case
+    }
+  }();
   /**
     The `{{did-update}}` element modifier is activated when any of its arguments
     are updated. It does not run on initial render.
@@ -68154,8 +68169,12 @@ define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_e
     @method did-update
     @public
   */
+
+
   var _default = Ember._setModifierManager(() => ({
-    capabilities: Ember._modifierManagerCapabilities('3.13', {
+    capabilities: (0, _macros.macroCondition)((0, _macros.dependencySatisfies)('ember-source', '>= 3.22.0-alpha.1')) ? Ember._modifierManagerCapabilities('3.22', {
+      disableAutoTracking: false
+    }) : Ember._modifierManagerCapabilities('3.13', {
       disableAutoTracking: true
     }),
 
@@ -68165,9 +68184,17 @@ define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_e
       };
     },
 
-    installModifier(state, element) {
+    installModifier(state, element, args) {
       // save element into state bucket
       state.element = element;
+
+      if ((0, _macros.macroCondition)((0, _macros.dependencySatisfies)('ember-source', '>= 3.22.0-alpha.1'))) {
+        // Consume individual properties to entangle tracking.
+        // https://github.com/emberjs/ember.js/issues/19277
+        // https://github.com/ember-modifier/ember-modifier/pull/63#issuecomment-815908201
+        args.positional.forEach(() => {});
+        args.named && Object.values(args.named);
+      }
     },
 
     updateModifier(_ref, args) {
@@ -68175,7 +68202,19 @@ define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_e
         element
       } = _ref;
       let [fn, ...positional] = args.positional;
-      fn(element, positional, args.named);
+
+      if ((0, _macros.macroCondition)((0, _macros.dependencySatisfies)('ember-source', '>= 3.22.0-alpha.1'))) {
+        // Consume individual properties to entangle tracking.
+        // https://github.com/emberjs/ember.js/issues/19277
+        // https://github.com/ember-modifier/ember-modifier/pull/63#issuecomment-815908201
+        args.positional.forEach(() => {});
+        args.named && Object.values(args.named);
+        untrack(() => {
+          fn(element, positional, args.named);
+        });
+      } else {
+        fn(element, positional, args.named);
+      }
     },
 
     destroyModifier() {}
@@ -68184,7 +68223,7 @@ define("@ember/render-modifiers/modifiers/did-update", ["exports"], function (_e
 
   _exports.default = _default;
 });
-define("@ember/render-modifiers/modifiers/will-destroy", ["exports"], function (_exports) {
+define("@ember/render-modifiers/modifiers/will-destroy", ["exports", "@embroider/macros"], function (_exports, _macros) {
   "use strict";
 
   Object.defineProperty(_exports, "__esModule", {
@@ -68231,7 +68270,7 @@ define("@ember/render-modifiers/modifiers/will-destroy", ["exports"], function (
     @public
   */
   var _default = Ember._setModifierManager(() => ({
-    capabilities: Ember._modifierManagerCapabilities('3.13', {
+    capabilities: Ember._modifierManagerCapabilities((0, _macros.macroCondition)((0, _macros.dependencySatisfies)('ember-source', '>= 3.22.0-beta.1')) ? '3.22' : '3.13', {
       disableAutoTracking: true
     }),
 
